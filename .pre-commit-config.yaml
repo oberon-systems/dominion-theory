@@ -1,0 +1,125 @@
+repos:
+- hooks:
+  - id: check-added-large-files
+  - id: check-ast
+  - id: check-case-conflict
+  - id: check-docstring-first
+  - id: check-executables-have-shebangs
+  - id: check-json
+  - id: pretty-format-json
+  - id: check-merge-conflict
+  - id: check-symlinks
+  - id: check-vcs-permalinks
+  - files: .*\.(yaml|eyaml|yml)$
+    id: check-yaml
+  - id: check-toml
+  - id: check-xml
+  - args:
+    - --allow-missing-credentials
+    id: detect-aws-credentials
+  - id: detect-private-key
+  - id: double-quote-string-fixer
+  - id: end-of-file-fixer
+  - files: ^[requirements]\.txt$
+    id: file-contents-sorter
+  - id: forbid-new-submodules
+  - id: mixed-line-ending
+  - id: requirements-txt-fixer
+  - id: sort-simple-yaml
+  - id: trailing-whitespace
+  repo: https://github.com/pre-commit/pre-commit-hooks
+  rev: v6.0.0
+- hooks:
+  - id: autopep8
+  repo: https://github.com/hhatto/autopep8
+  rev: v2.3.2
+- hooks:
+  - id: isort
+  repo: https://github.com/PyCQA/isort
+  rev: 6.0.1
+- hooks:
+  - id: puppet-lint
+  repo: https://github.com/pre-commit/mirrors-puppet-lint
+  rev: v4.3.0
+- hooks:
+  - id: forbid-crlf
+  - id: remove-crlf
+  - files: \.(py|sh|md|yaml)$
+    id: forbid-tabs
+  - args:
+    - --whitespaces-count
+    - '2'
+    files: \.(py|sh|md|yaml)$
+    id: remove-tabs
+  repo: https://github.com/Lucas-C/pre-commit-hooks
+  rev: v1.5.5
+- hooks:
+  - args:
+    - --indent
+    - '    '
+    - --bullets "-"
+    - -i
+    id: markdown-toc
+  repo: https://github.com/Lucas-C/pre-commit-hooks-nodejs
+  rev: v1.1.2
+- hooks:
+  - id: flake8
+  repo: https://github.com/PyCQA/flake8
+  rev: 7.3.0
+- hooks:
+  - id: validate_manifest
+  repo: https://github.com/pre-commit/pre-commit
+  rev: v4.3.0
+- hooks:
+  - id: pyupgrade
+  repo: https://github.com/asottile/pyupgrade
+  rev: v3.20.0
+- hooks:
+  - id: add-trailing-comma
+  repo: https://github.com/asottile/add-trailing-comma
+  rev: v3.2.0
+- hooks:
+  - id: pylint
+  repo: https://github.com/PyCQA/pylint
+  rev: v3.3.8
+- hooks:
+  - id: bundler-audit
+  - id: fasterer
+  - id: forbid-binary
+  - exclude: ^.*(?<!\.go)$
+    id: forbid-space-in-indent
+  - id: git-dirty
+  - id: markdownlint
+  - id: reek
+  - id: require-ascii
+    exclude: (.*\.md|motd)$
+  - id: rubocop
+  - id: script-must-have-extension
+  - id: script-must-not-have-extension
+  - args:
+    - -e
+    - SC2086
+    id: shellcheck
+  - id: shfmt
+  repo: https://github.com/jumanjihouse/pre-commit-hooks
+  rev: 3.0.0
+- hooks:
+  - description: Runs hadolint to lint Dockerfiles
+    entry: hadolint
+    id: hadolint
+    language: system
+    name: Lint Dockerfiles
+    types:
+    - dockerfile
+  repo: https://github.com/hadolint/hadolint
+  rev: v2.13.1-beta
+- hooks:
+  - id: check-useless-excludes
+  repo: meta
+- hooks:
+  - id: commitizen
+  - id: commitizen-branch
+    stages:
+    - pre-push
+  repo: https://github.com/commitizen-tools/commitizen
+  rev: v4.8.3

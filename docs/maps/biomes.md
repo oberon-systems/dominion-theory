@@ -1,25 +1,55 @@
 # Biomes
 
-Тут я попробу описать всё своё видиние биомов. Имплиминтацию из я изложу нижу в виде нескольких этапов от простого к сложному.
+This document provides description about all in-game Biomes.
 
-## Stage 0: A simple biomes configuration
+Please note, that Biomes properties/settings could not be changed in run-time!
 
-На этом этапе мы должны поддержать генерацию и визуализацию нескольких биомов, а именно:
+**Biomes list**:
 
-- вода
-- луг
-- лес
-- горы
+- `forest`
+- `mountain`
+- `grass`
+- `woter`
 
-В итоге должна получится карта, которая более-менее отражает реальный мир, с реками, озерами и морями.
+___
+## Properties
 
-Цель этого итапа: научиться генерировать простую карту и визуализировать её, желательно сразу в web.
+Each Biome has his own properties. This props depends environment settings, resources movement speed and other basics.
 
-## Stage 1: добавить свойства биомам
+They all represents a general multipliers but not a real numbers!
 
-- кол-во еды
-- кол-во воды
-- уровень угрозы
-- проходимость
+### water
 
-Цель этого этапа научиться присваивать свойства биомам, так же в отображение показывать сколько каких свойств есть на карте.
+Define how many water could be collected from a Biome.
+
+### food
+
+Define how many food could be collected from a Biome.
+
+### threat
+
+Threat level for a Biome (e.g. how often wild animals will be attack a tribe).
+
+### passability
+
+How faster could tribe move crossing a Biome.
+
+___
+## Environments
+
+There is a few environment settings for each Biome. Please note that some of the settings could be not present.
+
+- `moisture`: moisture level for a Biome, used for stick a biome with moisture layer on map generation stage.
+- `elevation`: elevation level for a Biome, used for stick a biome with elevation layer on map generation stage.
+
+___
+## Visualization
+
+Some visualization settings presented there as well.
+
+- `color`: a default color scheme used for visualize a Biome
+
+___
+## Configuration files location
+
+You cant find biomes configuration in [settings](src/dominion_theory/maps/settings/biomes/) directory.

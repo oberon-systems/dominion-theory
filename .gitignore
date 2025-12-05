@@ -2,3 +2,5 @@
 .venv
 .obsidian/workspace.json
 __pycache__
+build
+*.egg-info

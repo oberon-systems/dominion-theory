@@ -7,6 +7,8 @@ Dominion Theory: Maps: Settings
 
 from dataclasses import dataclass
 
+import numpy as np
+
 from .biomes import Biomes
 from .noise import Elevation, Moisture
 
@@ -21,7 +23,7 @@ class Settings:  # pylint: disable=too-many-instance-attributes
     height: int = 512
 
     # persistence
-    seed: int | None = None
+    seed: int = np.random.randint(0, 65534)
 
     # noise settings
     lacunarity: float = 2.0

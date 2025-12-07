@@ -26,4 +26,3 @@ class Elevation(Noise):
     scale: int = 100
     octaves: int = 6
     persistence: float = 0.6
-    seed: int = 1

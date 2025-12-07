@@ -20,22 +20,23 @@ def get_properties() -> list:
 
 
 @click.group()
-@click.option('--height', default=512, help='Map height')
-@click.option('--width', default=512, help='Map width')
-@click.option('--seed', default=None, help='Random seed')
+@click.option('--height', default=128, help='Map height')
+@click.option('--width', default=128, help='Map width')
+@click.option('--seed', default=0, help='Random seed')
 @click.pass_context
-def cli(ctx, height: int, width: int, seed: int | None):
+def cli(ctx, height: int, width: int, seed: int):
     """
     Base CLI definition
     """
     ctx.ensure_object(dict)
     ctx.obj['height'] = height
     ctx.obj['width'] = width
-    ctx.obj['seed'] = seed
+
+    ctx.obj['seed'] = seed if seed else settings.seed
 
 
 @cli.command(help='Simple map visualization')
-@click.option('--scale', default=5, help='Map scaling factor')
+@click.option('--scale', default=4, help='Map scaling factor')
 @click.pass_context
 def simple(ctx, scale: int):
     """
@@ -60,8 +61,9 @@ def simple(ctx, scale: int):
     default='ALL',
     help='Which property to show, defaults to all (chart)',
 )
+@click.option('--scale', default=4, help='Map scaling factor')
 @click.pass_context
-def show_property(ctx, name: str):
+def show_property(ctx, name: str, scale: int):
     """
     Show visualisation for some property or chart (default)
     """
@@ -75,7 +77,7 @@ def show_property(ctx, name: str):
             f'({settings.height}x{settings.width}, '
             f'seed {settings.seed})',
         )
-        visualize_property(atlas(), name)
+        visualize_property(atlas(), name, scale)
 
     else:
         click.echo(
@@ -83,7 +85,7 @@ def show_property(ctx, name: str):
             f'({settings.height}x{settings.width}, '
             f'seed {settings.seed})',
         )
-        visualize_all_properties(atlas())
+        visualize_all_properties(atlas(), scale)
 
 
 if __name__ == '__main__':

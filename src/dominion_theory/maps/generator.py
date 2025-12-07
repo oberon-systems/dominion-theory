@@ -19,14 +19,10 @@ def generator(
     elevation: ndarray,
     moisture: ndarray,
     biomes: Biomes,
-    seed: int | None = None,
 ) -> ndarray:
     """
     Generate map data.
     """
-
-    if seed is not None:
-        np.random.seed(seed)
 
     _biomes = np.zeros((height, width), dtype=object)
 

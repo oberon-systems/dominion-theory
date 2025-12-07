@@ -7,7 +7,7 @@ from dataclasses import dataclass
 from .base import Biome, BiomeProperties
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, repr=False)
 class Grass(Biome):
     """
     Grass Biome Settings Keeper

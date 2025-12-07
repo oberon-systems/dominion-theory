@@ -7,7 +7,7 @@ from dataclasses import dataclass
 from .base import Biome, BiomeProperties, Elevation
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, repr=False)
 class Mountain(Biome):
     """
     Mountain Biome Settings Keeper

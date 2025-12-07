@@ -13,7 +13,6 @@ class Noise:
     scale: int
     octaves: int
     persistence: float
-    seed: int
 
     def keys(self):
         # pylint: disable-next=no-member

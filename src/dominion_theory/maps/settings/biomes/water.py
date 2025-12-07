@@ -7,7 +7,7 @@ from dataclasses import dataclass
 from .base import Biome, BiomeProperties, Elevation
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, repr=False)
 class Water(Biome):
     """
     Water Biome Settings Keeper

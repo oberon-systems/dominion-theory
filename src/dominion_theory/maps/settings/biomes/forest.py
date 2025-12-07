@@ -7,7 +7,7 @@ from dataclasses import dataclass
 from .base import Biome, BiomeProperties, Moisture
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, repr=False)
 class Forest(Biome):
     """
     Forest Biome Settings Keeper

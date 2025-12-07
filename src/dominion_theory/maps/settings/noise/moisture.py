@@ -26,4 +26,3 @@ class Moisture(Noise):
     scale: int = 80
     octaves: int = 4
     persistence: float = 0.5
-    seed: int = 2

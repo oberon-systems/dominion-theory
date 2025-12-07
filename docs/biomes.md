@@ -1,5 +1,7 @@
 # Biomes
 
+#map #biomes
+
 This document provides description about all in-game Biomes.
 
 Please note, that Biomes properties/settings could not be changed in run-time!
@@ -33,6 +35,10 @@ Threat level for a Biome (e.g. how often wild animals will be attack a tribe).
 ### passability
 
 How faster could tribe move crossing a Biome.
+
+### resources
+
+List of collectible resources in a cell.
 
 ___
 ## Environments

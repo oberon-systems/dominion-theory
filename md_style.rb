@@ -22,6 +22,8 @@ exclude_rule 'MD004' # Unordered list style
 exclude_rule 'MD007' # Unordered list indentation
 exclude_rule 'MD029' # Ordered list item prefix
 exclude_rule 'MD013' # Line length
+exclude_rule 'MD018' # No space after hash on atx style header
+exclude_rule 'MD025' # Multiple top level headers in the same document
 exclude_rule 'MD031' # Fenced code blocks should be surrounded by blank lines
 exclude_rule 'MD033' # Inline HTML
 exclude_rule 'MD034' # Bare URL used

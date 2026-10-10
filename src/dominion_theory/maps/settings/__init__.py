@@ -14,10 +14,11 @@ from .noise import Elevation, Moisture
 
 
 @dataclass
-class Settings:  # pylint: disable=too-many-instance-attributes
+class Settings:
     """
     Maps Settings Keeper
     """
+
     # map size
     width: int = 512
     height: int = 512

@@ -17,7 +17,7 @@ def get_biomes_info(biomes: ndarray) -> tuple:
     stats = {}
     num = {}
 
-    for idx, (biome, count) in enumerate(zip(unique, counts)):
+    for idx, (biome, count) in enumerate(zip(unique, counts, strict=True)):
         name = repr(biome)
         colors[name] = biome.color
         stats[name] = (count / biomes.size) * 100
@@ -29,7 +29,7 @@ def get_biomes_info(biomes: ndarray) -> tuple:
 def color2rgb(color: str) -> tuple:
     if color.startswith('#'):
         color = color[1:]
-        return tuple(int(color[i:i+2], 16) for i in (0, 2, 4))
+        return tuple(int(color[i : i + 2], 16) for i in (0, 2, 4))
 
     color_map = {
         'blue': (0, 0, 255),
@@ -50,8 +50,6 @@ def color2rgb(color: str) -> tuple:
         'snow': (255, 250, 250),
     }
     return color_map.get(color.lower(), (128, 128, 128))
-
-# pylint: disable-next=too-many-locals,too-many-statements
 
 
 def visualize(
@@ -91,11 +89,8 @@ def visualize(
 
     while running:
         for event in pygame.event.get():
-            if event.type == pygame.QUIT:
+            if event.type == pygame.QUIT or event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
                 running = False
-            elif event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_ESCAPE:
-                    running = False
 
         screen.fill((40, 40, 40))
         screen.blit(map_surface, (0, 0))
@@ -104,10 +99,7 @@ def visualize(
         tooltip_text = None
         tooltip_props = None
 
-        if (
-            0 <= mouse_x < width * scale and
-            0 <= mouse_y < height * scale
-        ):
+        if 0 <= mouse_x < width * scale and 0 <= mouse_y < height * scale:
             grid_x = mouse_x // scale
             grid_y = mouse_y // scale
 
@@ -116,10 +108,7 @@ def visualize(
                 props = biome.properties
                 tooltip_text = f"({grid_x}, {grid_y}) {repr(biome)}"
                 tooltip_props = (
-                    f"W:{props.water:.1f} "
-                    f"F:{props.food:.1f} "
-                    f"T:{props.threat:.1f} "
-                    f"P:{props.passability:.1f}"
+                    f"W:{props.water:.1f} " f"F:{props.food:.1f} " f"T:{props.threat:.1f} " f"P:{props.passability:.1f}"
                 )
 
                 pygame.draw.rect(
@@ -191,10 +180,7 @@ def visualize_property(biomes: ndarray, name: str, scale: int):
 
     for i in range(height):
         for j in range(width):
-            if max_val > min_val:
-                normalized = (property_map[i, j] - min_val) / (max_val - min_val)
-            else:
-                normalized = 0.5
+            normalized = (property_map[i, j] - min_val) / (max_val - min_val) if max_val > min_val else 0.5
 
             r = int(normalized * 255)
             g = int((1 - normalized) * 100)
@@ -211,11 +197,8 @@ def visualize_property(biomes: ndarray, name: str, scale: int):
 
     while running:
         for event in pygame.event.get():
-            if event.type == pygame.QUIT:
+            if event.type == pygame.QUIT or event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
                 running = False
-            elif event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_ESCAPE:
-                    running = False
 
         screen.fill((40, 40, 40))
         screen.blit(map_surface, (0, 0))
@@ -302,10 +285,7 @@ def visualize_all_properties(biomes: ndarray, scale: int):
 
         for i in range(height):
             for j in range(width):
-                if max_val > min_val:
-                    normalized = (prop_map[i, j] - min_val) / (max_val - min_val)
-                else:
-                    normalized = 0.5
+                normalized = (prop_map[i, j] - min_val) / (max_val - min_val) if max_val > min_val else 0.5
 
                 color = color_schemes[prop](normalized)
                 pygame.draw.rect(surf, color, (j * scale, i * scale, scale, scale))
@@ -324,11 +304,8 @@ def visualize_all_properties(biomes: ndarray, scale: int):
 
     while running:
         for event in pygame.event.get():
-            if event.type == pygame.QUIT:
+            if event.type == pygame.QUIT or event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
                 running = False
-            elif event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_ESCAPE:
-                    running = False
 
         screen.fill((40, 40, 40))
 

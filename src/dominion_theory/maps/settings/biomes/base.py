@@ -4,6 +4,7 @@ Dominion Theory: Maps
     Base biomes settings module
 
 """
+
 from dataclasses import dataclass
 
 
@@ -13,16 +14,16 @@ class Biome:
     Biome Base Class
     """
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return self.__class__.__name__.lower()
 
-    def __lt__(self, other):
+    def __lt__(self, other: object) -> bool:
         return repr(self) < repr(other)
 
-    def __eq__(self, other):
+    def __eq__(self, other: object) -> bool:
         return repr(self) == repr(other)
 
-    def __hash__(self):
+    def __hash__(self) -> int:
         return hash(repr(self))
 
 
@@ -31,6 +32,7 @@ class BiomeProperties:
     """
     Biome Properties Base Class
     """
+
     # basic resources
     water: float
     food: float
@@ -45,6 +47,7 @@ class Moisture:
     """
     Moisture Base Class
     """
+
     min: float
     max: float
 
@@ -54,5 +57,6 @@ class Elevation:
     """
     Elevation Base Class
     """
+
     min: float
     max: float

@@ -1,14 +1,14 @@
 [build-system]
-requires = ["setuptools>=61.0", "wheel"]
+requires = ["setuptools>=77"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "dominion-theory"
-version = "1.0.0"
-description = "A simple strategic game"
+version = "0.0.1"
+description = "A strategy game with indirect control"
 readme = "README.md"
-requires-python = ">=3.13, <3.14"
-license = {text = "Private/Proprietary"}
+license = "AGPL-3.0-only"
+requires-python = ">=3.14"
 
 authors = [
     {name = "Oberon Systems", email = "info@oberon.systems"}
@@ -19,15 +19,56 @@ maintainers = [
 ]
 
 classifiers = [
-    "Programming Language :: Python",
-    "License :: OSI Approved :: Private/Proprietary",
     "Operating System :: POSIX :: Linux",
+    "Programming Language :: Python :: 3",
+    "Topic :: Games/Entertainment :: Turn Based Strategy",
 ]
 
-dependencies = []
-
-[tool.setuptools]
-package-dir = {"" = "src"}
+dependencies = [
+    "click>=8.5",
+    "numpy>=2.5",
+    "pygame-ce>=2.5.8",
+]
 
 [tool.setuptools.packages.find]
 where = ["src"]
+
+[tool.black]
+line-length = 120
+target-version = ["py314"]
+skip-string-normalization = true
+
+[tool.ruff]
+target-version = "py314"
+line-length = 120
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP", "S", "SIM"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["S101"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["dominion_theory"]
+
+[tool.mypy]
+python_version = "3.14"
+strict = true
+mypy_path = "src"
+
+[[tool.mypy.overrides]]
+module = ["pygame", "pygame.*"]
+ignore_missing_imports = true
+
+# The pygame tools are replaced by the web client and are not worth typing.
+[[tool.mypy.overrides]]
+module = "dominion_theory.maps.tools.*"
+ignore_errors = true
+
+[tool.pymarkdown]
+plugins.md013.enabled = false
+# Obsidian tags are a line of `#word`, which reads as a heading with no space.
+plugins.md018.enabled = false
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

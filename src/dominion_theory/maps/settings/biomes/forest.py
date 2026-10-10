@@ -12,6 +12,7 @@ class Forest(Biome):
     """
     Forest Biome Settings Keeper
     """
+
     # visualization settings
     color: str = '#006400'
 

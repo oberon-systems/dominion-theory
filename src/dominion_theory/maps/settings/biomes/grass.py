@@ -12,6 +12,7 @@ class Grass(Biome):
     """
     Grass Biome Settings Keeper
     """
+
     # visualization settings
     color: str = '#228B22'
 

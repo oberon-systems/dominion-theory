@@ -11,9 +11,10 @@ Please note, that Biomes properties/settings could not be changed in run-time!
 - `forest`
 - `mountain`
 - `grass`
-- `woter`
+- `water`
 
 ___
+
 ## Properties
 
 Each Biome has his own properties. This props depends environment settings, resources movement speed and other basics.
@@ -41,6 +42,7 @@ How faster could tribe move crossing a Biome.
 List of collectible resources in a cell.
 
 ___
+
 ## Environments
 
 There is a few environment settings for each Biome. Please note that some of the settings could be not present.
@@ -49,6 +51,7 @@ There is a few environment settings for each Biome. Please note that some of the
 - `elevation`: elevation level for a Biome, used for stick a biome with elevation layer on map generation stage.
 
 ___
+
 ## Visualization
 
 Some visualization settings presented there as well.
@@ -56,6 +59,7 @@ Some visualization settings presented there as well.
 - `color`: a default color scheme used for visualize a Biome
 
 ___
+
 ## Configuration files location
 
-You cant find biomes configuration in [settings](src/dominion_theory/maps/settings/biomes/) directory.
+You cant find biomes configuration in [settings](../src/dominion_theory/maps/settings/biomes/) directory.

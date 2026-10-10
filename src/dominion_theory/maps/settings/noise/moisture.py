@@ -23,6 +23,7 @@ class Moisture(Noise):
 
     seed: Random seed for reproducible results.
     """
+
     scale: int = 80
     octaves: int = 4
     persistence: float = 0.5

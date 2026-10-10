@@ -23,6 +23,7 @@ class Elevation(Noise):
 
     seed: Random seed for reproducible results.
     """
+
     scale: int = 100
     octaves: int = 6
     persistence: float = 0.6

@@ -6,18 +6,17 @@ Dominion Theory: Maps: Rivers
 """
 
 import numpy as np
-from numpy import ndarray
+from numpy.typing import NDArray
 
 from .settings.biomes import Biomes
 
 
-# pylint: disable-next=too-many-locals
 def create(
     height: int,
     width: int,
     num: int,
-    elevation: ndarray,
-) -> ndarray:
+    elevation: NDArray[np.float64],
+) -> NDArray[np.bool_]:
     """
     Generate rivers
     """
@@ -30,11 +29,7 @@ def create(
         path_length = 0
         max_path_length = min(width, height)
 
-        while (
-                y < height - 1 and
-                0 < x < width - 1 and
-                path_length < max_path_length
-        ):
+        while y < height - 1 and 0 < x < width - 1 and path_length < max_path_length:
 
             rivers[y, x] = True
 
@@ -56,16 +51,16 @@ def create(
 
 
 def apply(
-        biomes: ndarray,
-        rivers: ndarray,
-) -> ndarray:
+    biomes: NDArray[np.object_],
+    rivers: NDArray[np.bool_],
+) -> NDArray[np.object_]:
     """
     Applying rivers to provided biom map.
     """
     _biomes = biomes.copy()
     _coords = np.where(rivers)
 
-    for i, j in zip(_coords[0], _coords[1]):
+    for i, j in zip(_coords[0], _coords[1], strict=True):
         _biomes[i, j] = Biomes.water
 
     return _biomes

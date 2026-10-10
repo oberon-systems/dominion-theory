@@ -15,6 +15,7 @@ class Biomes:
     """
     Biomes Settings Keeper
     """
+
     forest: Forest = Forest()
     grass: Grass = Grass()
     mountain: Mountain = Mountain()

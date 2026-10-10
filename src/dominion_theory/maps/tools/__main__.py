@@ -15,7 +15,6 @@ def get_properties() -> list:
     """
     Collect properties names
     """
-    # pylint: disable-next=unnecessary-comprehension
     return [p for p in settings.biomes.grass.properties.__dict__]
 
 
@@ -46,9 +45,7 @@ def simple(ctx, scale: int):
     settings.width = ctx.obj['width']
     settings.seed = ctx.obj['seed']
     click.echo(
-        f'Generating simple map '
-        f'({settings.height}x{settings.width}, '
-        f'seed {settings.seed})',
+        f'Generating simple map ' f'({settings.height}x{settings.width}, ' f'seed {settings.seed})',
     )
     visualize(atlas(), scale)
 
@@ -73,21 +70,16 @@ def show_property(ctx, name: str, scale: int):
 
     if name != 'ALL':
         click.echo(
-            f'Generating {name} map '
-            f'({settings.height}x{settings.width}, '
-            f'seed {settings.seed})',
+            f'Generating {name} map ' f'({settings.height}x{settings.width}, ' f'seed {settings.seed})',
         )
         visualize_property(atlas(), name, scale)
 
     else:
         click.echo(
-            f'Generating maps for all properties '
-            f'({settings.height}x{settings.width}, '
-            f'seed {settings.seed})',
+            f'Generating maps for all properties ' f'({settings.height}x{settings.width}, ' f'seed {settings.seed})',
         )
         visualize_all_properties(atlas(), scale)
 
 
 if __name__ == '__main__':
-    # pylint: disable-next=no-value-for-parameter
     cli()

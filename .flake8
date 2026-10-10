@@ -1,2 +1,5 @@
 [flake8]
 max-line-length = 120
+# E203 and E701 contradict black's slicing and stub formatting.
+extend-ignore = E203, E701
+exclude = .venv, .pre-commit, build

@@ -1,6 +1,28 @@
-.pre-commit
+# Agents
+.claude/
+.gemini/
+CLAUDE.local.md
+GEMINI.md
+.mcp.json
+
+# Python
 .venv
+__pycache__/
+*.py[cod]
+*.egg-info/
+build/
+dist/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+
+# IDE
+.idea/
+.vscode/
 .obsidian/workspace.json
-__pycache__
-build
-*.egg-info
+
+# pre-commit, kept in-tree by PRE_COMMIT_HOME
+.pre-commit
+
+.env

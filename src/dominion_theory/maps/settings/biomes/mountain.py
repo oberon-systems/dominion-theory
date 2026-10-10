@@ -12,6 +12,7 @@ class Mountain(Biome):
     """
     Mountain Biome Settings Keeper
     """
+
     # visualization settings
     color: str = '#8B8989'
 

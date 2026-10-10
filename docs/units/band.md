@@ -6,13 +6,14 @@
 
 For each **Band** we determinate some sets of states, actions, properties and so, for example:
 
-- **[state](#states)**: represents a current **Band** state (e.g. normal, starved etc);
+- **[state](#state)**: represents a current **Band** state (e.g. normal, starved etc);
 - **[action](#action):** represents what **Band** doing at the moment;
 - **[population](#population):** how bigger the Band, one of the most important factors;
 - **[properties](#properties):** list of **Band**'s properties (speed, carrying values);
 - **[resources](#resources):** list of resources that **Band** owns;
 
 ___
+
 ## State
 
 - `normal`: no any features or threats applied to a **Band**;
@@ -21,6 +22,7 @@ ___
 - `tiredness`: rest required for a **Band**;
 
 ___
+
 ## Action
 
 - `move`: move to another location;
@@ -28,12 +30,14 @@ ___
 - `gather`: gather resources in a current location;
 
 ___
+
 ## Population
 
 min: 10
 max: 150
 
 ___
+
 ## Properties
 
 - `speed`: 1 cell per 5 hours, reduced by 9% for each 10 people;
@@ -46,6 +50,7 @@ ___
   - food: 2 units per 1 population per 24h;
 
 ___
+
 ## Resources
 
 - `water`: just a water it-self;

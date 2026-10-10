@@ -7,6 +7,9 @@ Dominion Theory: Maps Generation Module
         * settings: module settings object.
 """
 
+import numpy as np
+from numpy.typing import NDArray
+
 from ..core import logger
 from .generator import generator as map_generator
 from .layers import generator as layer_generator
@@ -16,13 +19,12 @@ from .settings import settings
 logger.name = 'maps'
 
 
-# pylint: disable-next=too-few-public-methods
 class Maps:
     """
     Main maps generation class.
     """
 
-    def __call__(self, *args, **kwargs):
+    def __call__(self) -> NDArray[np.object_]:
         logger.info('generate elevation layer: seed: %d', settings.seed)
         _elevation = layer_generator(
             width=settings.width,

@@ -12,6 +12,7 @@ class Water(Biome):
     """
     Water Biome Settings Keeper
     """
+
     # visualization settings
     color: str = '#0077BE'
 

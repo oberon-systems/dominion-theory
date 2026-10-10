@@ -124,8 +124,8 @@ day. Each such batch is closed as a gzip member of its own, so a server
 that dies loses at most the day in progress and leaves a file that still
 opens.
 
-When a game ends the runner writes the footer and marks the game as
-finished in the index.
+When a game ends the runner writes the footer and tells its subscribers.
+The API, one of them, marks the game as finished in the index.
 
 ___
 

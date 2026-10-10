@@ -20,7 +20,7 @@ dist/
 # IDE
 .idea/
 .vscode/
-.obsidian/workspace.json
+.obsidian/
 
 # pre-commit, kept in-tree by PRE_COMMIT_HOME
 .pre-commit

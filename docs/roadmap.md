@@ -196,7 +196,7 @@ The skeleton everything else hangs on.
   game shows, catalogues for English and Russian, the language kept in the
   player's profile.
 - The `api` package: create a game, read a snapshot, send a command,
-  subscribe to the tick stream.
+  subscribe to the stream of updates.
 - A versioned message schema that a client in any language can be built
   from.
 
@@ -204,7 +204,7 @@ The skeleton everything else hangs on.
 
 - The engine is a library first. A headless run from a test or the command
   line needs no server.
-- Request and response over HTTP, the tick stream over WebSocket, JSON in
+- Request and response over HTTP, the update stream over WebSocket, JSON in
   both. Proposed stack: FastAPI, pydantic, uvicorn; SQLModel for the
   database; fakeredis and a Valkey client for the game store.
 - Tables are plain: no foreign keys, no cascades, a new feature in a new

@@ -66,12 +66,12 @@ packages by layer.
 | `core`    | settings, logging, errors                                | nothing of ours            |
 | `content` | registries and data: biomes, units, eras, resources      | `core`                     |
 | `planet`  | world generation: the planet, windows, rivers            | `core`, `content`          |
-| `engine`  | game state, the tick, commands, events, clock, records   | `core`, `content`, `planet`|
+| `engine`  | game state, the tick, commands, events, clock, counters  | `core`, `content`, `planet`|
 | `players` | scripted players, from stage 3                           | `engine`                   |
 | `i18n`    | message keys and the catalogues                          | `core`                     |
 | `store`   | the game store: fake by default, Valkey when configured  | `core`                     |
 | `db`      | tables, sessions, migrations                             | `core`                     |
-| `runner`  | live games and the two clocks that drive them            | `engine`, `store`          |
+| `runner`  | live games, the two clocks, run records and replay       | `engine`, `store`          |
 | `api`     | the application, routes, the update stream               | `runner`, `engine`, `db`, `i18n` |
 | `lab`     | the batch runner, the LLM player, statistics             | the API as a client        |
 

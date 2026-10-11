@@ -62,4 +62,4 @@ ___
 
 ## Configuration files location
 
-You cant find biomes configuration in [settings](../src/dominion_theory/maps/settings/biomes/) directory.
+You cant find biomes configuration in [settings](../src/dominion_theory/planet/settings/biomes/) directory.

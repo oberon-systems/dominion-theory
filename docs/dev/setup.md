@@ -80,8 +80,8 @@ The tool takes a size, a seed and a property to colour by. Run it from the
 subshell for anything but the defaults.
 
 ```bash
-python -m dominion_theory.maps.tools --width 256 --height 256 --seed 42 simple
-python -m dominion_theory.maps.tools property --name food
+python -m dominion_theory.planet.tools --width 256 --height 256 --seed 42 simple
+python -m dominion_theory.planet.tools property --name food
 ```
 
 ___

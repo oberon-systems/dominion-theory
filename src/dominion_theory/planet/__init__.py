@@ -16,7 +16,7 @@ from .layers import generator as layer_generator
 from .rivers import apply, create
 from .settings import settings
 
-logger.name = 'maps'
+logger.name = 'planet'
 
 
 class Maps:

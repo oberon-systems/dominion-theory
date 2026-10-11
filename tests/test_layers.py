@@ -1,7 +1,7 @@
 import numpy as np
 from numpy.typing import NDArray
 
-from dominion_theory.maps.layers import generator
+from dominion_theory.planet.layers import generator
 
 
 def layer(seed: int) -> NDArray[np.float64]:

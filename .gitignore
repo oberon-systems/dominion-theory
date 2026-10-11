@@ -26,3 +26,6 @@ dist/
 .pre-commit
 
 .env
+
+# Local data: the SQLite file and the run records
+/data/

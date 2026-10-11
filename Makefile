@@ -43,7 +43,7 @@ test:  ## Run the test suite
 	$(VENV)/bin/pytest -q
 
 map:  ## Generate a map and show it in a window
-	$(VENV)/bin/python -m dominion_theory.maps.tools simple
+	$(VENV)/bin/python -m dominion_theory.planet.tools simple
 
 clean:  ## Remove the virtualenv, the hook environments and the build output
 	rm -rf $(VENV) .pre-commit build dist src/*.egg-info

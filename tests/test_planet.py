@@ -1,7 +1,7 @@
 import pytest
 
-from dominion_theory.maps import atlas, settings
-from dominion_theory.maps.settings.biomes.base import Biome
+from dominion_theory.planet import atlas, settings
+from dominion_theory.planet.settings.biomes.base import Biome
 
 
 def test_atlas_fills_every_cell_with_a_biome(monkeypatch: pytest.MonkeyPatch) -> None:

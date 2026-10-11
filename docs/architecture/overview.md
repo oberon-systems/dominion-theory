@@ -71,7 +71,7 @@ packages by layer.
 | `i18n`    | message keys and the catalogues                          | `core`                     |
 | `store`   | the game store: fake by default, Valkey when configured  | `core`                     |
 | `db`      | tables, sessions, migrations                             | `core`                     |
-| `runner`  | live games, the two clocks, run records and replay       | `engine`, `store`          |
+| `runner`  | live games, the two clocks, run records and replay       | `engine`, `store`, `content`|
 | `api`     | the application, routes, the update stream               | `runner`, `engine`, `db`, `i18n` |
 | `lab`     | the batch runner, the LLM player, statistics             | the API as a client        |
 

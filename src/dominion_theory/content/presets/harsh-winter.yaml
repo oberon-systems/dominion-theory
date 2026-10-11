@@ -1,0 +1,4 @@
+time:
+  seasons:
+    - {name: summer, months: 2}
+    - {name: winter, months: 4}

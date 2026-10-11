@@ -1,0 +1,8 @@
+time:
+  day_parts: [morning, midday, afternoon, evening, night]
+  days_per_month: 10
+  seasons:
+    - {name: spring, months: 2}
+    - {name: summer, months: 3}
+    - {name: autumn, months: 2}
+    - {name: winter, months: 3}

@@ -29,10 +29,12 @@ repos:
       - id: mypy
         additional_dependencies:
           - click==8.5.0
+          - deepdiff==9.1.0
           - numpy==2.5.3
           - pydantic==2.14.0
           - pydantic-settings==2.15.0
           - pytest==9.1.1
+          - types-PyYAML==6.0.12.20260906
 
   - repo: https://github.com/jackdewinter/pymarkdown
     rev: v0.9.40

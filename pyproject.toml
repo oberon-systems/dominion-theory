@@ -26,14 +26,19 @@ classifiers = [
 
 dependencies = [
     "click>=8.5",
+    "deepdiff>=9.1",
     "numpy>=2.5",
     "pydantic>=2.14",
     "pydantic-settings>=2.15",
     "pygame-ce>=2.5.8",
+    "PyYAML>=6.0.3",
 ]
 
 [tool.setuptools.packages.find]
 where = ["src"]
+
+[tool.setuptools.package-data]
+"dominion_theory.content" = ["defaults/*.yaml", "presets/*.yaml"]
 
 [tool.black]
 line-length = 120

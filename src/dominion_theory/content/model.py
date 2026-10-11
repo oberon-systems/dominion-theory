@@ -18,6 +18,7 @@ DURATION_UNITS = ('parts', 'days', 'months', 'years')
 Name = Annotated[str, Field(strict=True, pattern=r'^[a-z][a-z0-9_]*$')]
 Count = Annotated[int, Field(strict=True, ge=1)]
 Span = Annotated[int, Field(strict=True, ge=0)]
+Side = Annotated[int, Field(strict=True, ge=4)]
 
 
 class Node(BaseModel):
@@ -100,6 +101,15 @@ class Eras(Node):
         return era
 
 
+class Window(Node):
+    width: Side
+    height: Side
+
+
+class Planet(Node):
+    window: Window
+
+
 class Params(Node):
     """
     The resolved tree. A new section is a field here and a file in defaults.
@@ -107,6 +117,7 @@ class Params(Node):
 
     time: Time
     eras: Eras
+    planet: Planet
 
     @model_validator(mode='after')
     def _agree(self) -> Self:

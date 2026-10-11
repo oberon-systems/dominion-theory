@@ -5,10 +5,25 @@ Dominion Theory: Maps: Tools CLI
 
 """
 
+import secrets
+
 import click
+import numpy as np
 
 from .. import atlas, settings
 from .visualize import visualize, visualize_all_properties, visualize_property
+
+
+def world(ctx) -> np.ndarray:
+    """
+    Generate the map the options ask for
+    """
+    size = {'height': ctx.obj['height'], 'width': ctx.obj['width']}
+    return atlas(seed=ctx.obj['seed'], rivers=np.random.default_rng(ctx.obj['seed']), **size)
+
+
+def label(ctx) -> str:
+    return f'({ctx.obj["height"]}x{ctx.obj["width"]}, seed {ctx.obj["seed"]})'
 
 
 def get_properties() -> list:
@@ -31,7 +46,7 @@ def cli(ctx, height: int, width: int, seed: int):
     ctx.obj['height'] = height
     ctx.obj['width'] = width
 
-    ctx.obj['seed'] = seed if seed else settings.seed
+    ctx.obj['seed'] = seed if seed else secrets.randbelow(65534)
 
 
 @cli.command(help='Simple map visualization')
@@ -41,13 +56,8 @@ def simple(ctx, scale: int):
     """
     Show simple visualisation
     """
-    settings.height = ctx.obj['height']
-    settings.width = ctx.obj['width']
-    settings.seed = ctx.obj['seed']
-    click.echo(
-        f'Generating simple map ' f'({settings.height}x{settings.width}, ' f'seed {settings.seed})',
-    )
-    visualize(atlas(), scale)
+    click.echo(f'Generating simple map {label(ctx)}')
+    visualize(world(ctx), scale)
 
 
 @cli.command(name='property', help='Show map visualization for some property')
@@ -64,21 +74,13 @@ def show_property(ctx, name: str, scale: int):
     """
     Show visualisation for some property or chart (default)
     """
-    settings.height = ctx.obj['height']
-    settings.width = ctx.obj['width']
-    settings.seed = ctx.obj['seed']
-
     if name != 'ALL':
-        click.echo(
-            f'Generating {name} map ' f'({settings.height}x{settings.width}, ' f'seed {settings.seed})',
-        )
-        visualize_property(atlas(), name, scale)
+        click.echo(f'Generating {name} map {label(ctx)}')
+        visualize_property(world(ctx), name, scale)
 
     else:
-        click.echo(
-            f'Generating maps for all properties ' f'({settings.height}x{settings.width}, ' f'seed {settings.seed})',
-        )
-        visualize_all_properties(atlas(), scale)
+        click.echo(f'Generating maps for all properties {label(ctx)}')
+        visualize_all_properties(world(ctx), scale)
 
 
 if __name__ == '__main__':

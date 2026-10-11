@@ -7,8 +7,6 @@ Dominion Theory: Maps: Settings
 
 from dataclasses import dataclass
 
-import numpy as np
-
 from .biomes import Biomes
 from .noise import Elevation, Moisture
 
@@ -18,13 +16,6 @@ class Settings:
     """
     Maps Settings Keeper
     """
-
-    # map size
-    width: int = 512
-    height: int = 512
-
-    # persistence
-    seed: int = np.random.randint(0, 65534)
 
     # noise settings
     lacunarity: float = 2.0

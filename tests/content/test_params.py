@@ -32,6 +32,13 @@ def test_defaults_load() -> None:
     assert params.schema_version == SCHEMA_VERSION
 
 
+def test_planet_has_its_first_window() -> None:
+    window = load_params().planet.window
+
+    assert (window.width, window.height) == (512, 256)
+    assert refused({'planet.window.width': 3})['path'] == 'planet.window.width'
+
+
 def test_year_is_the_sum_of_its_seasons() -> None:
     params = load_params(overrides={'time.seasons.winter.months': 5})
 
@@ -91,7 +98,7 @@ def test_override_reaches_a_list_and_a_section() -> None:
 @pytest.mark.parametrize(
     ('path', 'found', 'expected'),
     [
-        ('units.band.population.start', 'units', 'one of eras, time'),
+        ('units.band.population.start', 'units', 'one of eras, planet, time'),
         ('time.seasons.monsoon.months', 'monsoon', 'one of spring, summer, autumn, winter'),
         ('time.day_parts.9', '9', 'one of 0, 1, 2, 3, 4'),
         ('time.days_per_month.alpha', 'alpha', 'no name below a value'),

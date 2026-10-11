@@ -1,0 +1,40 @@
+"""
+What the engine reports: a message key with values, never text. Every key is declared here.
+"""
+
+from dataclasses import dataclass
+from typing import Any
+
+from .clock import DAY_STARTED, MONTH_STARTED, SEASON_STARTED, YEAR_STARTED
+
+COMMAND_ACCEPTED = 'command-accepted'
+COMMAND_REFUSED = 'command-refused'
+
+REFUSED_UNKNOWN_COMMAND = 'refused-unknown-command'
+REFUSED_UNKNOWN_SEAT = 'refused-unknown-seat'
+
+EVENTS: dict[str, tuple[str, ...]] = {
+    COMMAND_ACCEPTED: ('id',),
+    COMMAND_REFUSED: ('id', 'reason'),
+    DAY_STARTED: ('year', 'month', 'day'),
+    MONTH_STARTED: ('year', 'month', 'season'),
+    SEASON_STARTED: ('year', 'season'),
+    YEAR_STARTED: ('year', 'seasons'),
+}
+
+REASONS: tuple[str, ...] = (REFUSED_UNKNOWN_COMMAND, REFUSED_UNKNOWN_SEAT)
+
+
+@dataclass(frozen=True)
+class Event:
+    key: str
+    values: dict[str, Any]
+
+    def __post_init__(self) -> None:
+        if self.key not in EVENTS:
+            raise ValueError(f'the event {self.key} is not declared')
+        if set(self.values) != set(EVENTS[self.key]):
+            raise ValueError(f'the event {self.key} carries {", ".join(EVENTS[self.key])}')
+
+    def data(self) -> dict[str, Any]:
+        return {'key': self.key, 'values': dict(self.values)}

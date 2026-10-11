@@ -13,34 +13,27 @@ from .settings.biomes import Biomes
 
 
 def generator(
-    height: int,
-    width: int,
     elevation: NDArray[np.float64],
     moisture: NDArray[np.float64],
     biomes: Biomes,
-) -> NDArray[np.object_]:
+) -> NDArray[np.uint8]:
     """
-    Generate map data.
+    Generate map data: for every cell the position of its biome among the fields of biomes.
     """
+    names = [f.name for f in fields(biomes)]
+    _biomes = np.full(elevation.shape, names.index('grass'), dtype=np.uint8)
 
-    _biomes = np.zeros((height, width), dtype=object)
+    # The first biome that matches wins, so they are laid from the last to the first.
+    for code in reversed(range(len(names))):
+        biome = getattr(biomes, names[code])
+        match = np.zeros(elevation.shape, dtype=bool)
 
-    for i in range(height):
-        for j in range(width):
-            elev = elevation[i, j]
-            moist = moisture[i, j]
+        if hasattr(biome, 'elevation'):
+            match |= (biome.elevation.min <= elevation) & (elevation <= biome.elevation.max)
 
-            for f in fields(biomes):
-                biome = getattr(biomes, f.name)
+        if hasattr(biome, 'moisture'):
+            match |= (biome.moisture.min <= moisture) & (moisture <= biome.moisture.max)
 
-                if hasattr(biome, 'elevation') and biome.elevation.min <= elev <= biome.elevation.max:
-                    _biomes[i, j] = biome
-                    break
-
-                if hasattr(biome, 'moisture') and biome.moisture.min <= moist <= biome.moisture.max:
-                    _biomes[i, j] = biome
-                    break
-            else:
-                _biomes[i, j] = biomes.grass
+        _biomes[match] = code
 
     return _biomes

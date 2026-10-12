@@ -52,6 +52,10 @@ def test_a_created_game_is_found_listed_and_stored(service: Service, store: Game
     assert runner.game.params.time.seasons[3].months == 4
 
 
+def test_the_presets_are_named(service: Service) -> None:
+    assert service.presets() == ['harsh-winter']
+
+
 def test_a_seed_left_out_is_drawn(service: Service) -> None:
     first = service.create(overrides=SMALL, mode=STEP)
     second = service.create(overrides=SMALL, mode=STEP)

@@ -3,6 +3,7 @@
 PROJECT := dominion-theory
 PYTHON  ?= python3.14
 VENV    ?= .venv
+PORT    ?= 8000
 PIP     := $(VENV)/bin/pip
 
 # lint reads NUL-separated names with `read -d`, which dash's read lacks.
@@ -13,7 +14,7 @@ export PRE_COMMIT_HOME := $(CURDIR)/.pre-commit
 
 .DEFAULT_GOAL := shell
 
-.PHONY: help install lint test map clean shell
+.PHONY: help install lint test run map clean shell
 
 help:  ## Show the available targets
 	@echo "$(PROJECT)"
@@ -41,6 +42,9 @@ lint:  ## Run the pre-commit hooks over every file
 
 test:  ## Run the test suite
 	$(VENV)/bin/pytest -q
+
+run:  ## Start the server on the loopback address
+	$(VENV)/bin/uvicorn --factory dominion_theory.api:create_app --host 127.0.0.1 --port $(PORT)
 
 map:  ## Generate a map and show it in a window
 	$(VENV)/bin/python -m dominion_theory.planet.tools simple

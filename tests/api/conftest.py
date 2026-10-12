@@ -1,0 +1,48 @@
+from collections.abc import Callable, Iterator
+from datetime import timedelta
+from pathlib import Path
+from typing import Any
+
+import fakeredis
+import pytest
+from fastapi.testclient import TestClient
+
+from dominion_theory.api import PREFIX, create_app
+from dominion_theory.core.settings import Settings
+from dominion_theory.runner import Service
+from dominion_theory.store import GameStore, ValkeyStore
+
+SMALL = {'planet.window.width': 32, 'planet.window.height': 16}
+
+
+@pytest.fixture
+def store() -> GameStore:
+    raw: Any = fakeredis.FakeValkey(server=fakeredis.FakeServer(server_type='valkey'))
+    return ValkeyStore(raw, timedelta(hours=2))
+
+
+@pytest.fixture
+def settings(tmp_path: Path) -> Settings:
+    return Settings(data_dir=tmp_path, tick_ms=2, updates_kept=4)
+
+
+@pytest.fixture
+def service(store: GameStore, settings: Settings) -> Service:
+    return Service(store, settings)
+
+
+@pytest.fixture
+def client(settings: Settings, service: Service) -> Iterator[TestClient]:
+    with TestClient(create_app(settings, service)) as opened:
+        yield opened
+
+
+@pytest.fixture
+def new_game(client: TestClient) -> Callable[..., dict[str, Any]]:
+    def create(**asked: Any) -> dict[str, Any]:
+        answer = client.post(f'{PREFIX}/games', json={'overrides': SMALL, 'mode': 'step', **asked})
+        assert answer.status_code == 201
+        created: dict[str, Any] = answer.json()
+        return created
+
+    return create

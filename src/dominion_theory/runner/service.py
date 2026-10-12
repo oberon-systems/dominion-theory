@@ -5,7 +5,7 @@ The live games of a server: created, found, ended, and picked up again after a r
 import secrets
 from typing import Any
 
-from ..content import load_params
+from ..content import load_params, presets
 from ..core.errors import DominionError
 from ..core.settings import Settings, get_settings
 from ..engine import Game
@@ -37,6 +37,9 @@ class Service:
         runner = self._runner(self._new_id(), game, mode, seats=seats)
         runner.save()
         return runner
+
+    def presets(self) -> list[str]:
+        return presets()
 
     def find(self, game_id: str) -> Runner:
         if game_id not in self._runners:

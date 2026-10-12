@@ -32,7 +32,9 @@ repos:
           - click==8.5.0
           - deepdiff==9.1.0
           - fakeredis==2.39.0
+          - fastapi==0.143.0
           - fluent.runtime==0.4.0
+          - httpx==0.28.1
           - numpy==2.5.3
           - pydantic==2.14.0
           - pydantic-settings==2.15.0

@@ -29,13 +29,16 @@ dependencies = [
     "click>=8.5",
     "deepdiff>=9.1",
     "fakeredis>=2.39",
+    "fastapi>=0.143",
     "fluent.runtime>=0.4",
+    "httpx>=0.28",
     "numpy>=2.5",
     "pydantic>=2.14",
     "pydantic-settings>=2.15",
     "pygame-ce>=2.5.8",
     "PyYAML>=6.0.3",
     "sqlmodel>=0.0.48",
+    "uvicorn[standard]>=0.54",
     "valkey>=6.1",
 ]
 

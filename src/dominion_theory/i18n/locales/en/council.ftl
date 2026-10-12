@@ -1,0 +1,10 @@
+proposal-move-north = we go towards the star that does not move
+proposal-move-north-east = we go between the unmoving star and the sunrise
+proposal-move-east = we go where the sun rises
+proposal-move-south-east = we go between the sunrise and the midday sun
+proposal-move-south = we go where the sun stands at midday
+proposal-move-south-west = we go between the midday sun and the sunset
+proposal-move-west = we go where the sun sets
+proposal-move-north-west = we go between the sunset and the unmoving star
+proposal-rest = we rest here
+proposal-stay-and-gather = we stay, we are short of food

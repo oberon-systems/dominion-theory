@@ -1,0 +1,10 @@
+error-request-unreadable = The request cannot be read.
+error-command-invalid = The command is not well formed.
+error-game-not-found = There is no game { $id }.
+error-game-ended = The game { $id } has ended.
+error-clock-running = The game { $id } is running; pause it to step.
+error-preset-not-found = There is no preset { $id }.
+error-params-invalid = The parameter { $path } is { $found }; expected { $expected }.
+error-record-unreadable = The record { $path } cannot be read.
+error-locale-unknown = The language { $locale } is not known.
+error-profile-not-found = There is no profile { $id }.

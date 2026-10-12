@@ -1,0 +1,106 @@
+import pytest
+from fluent.syntax import FluentParser, ast
+from fluent.syntax.visitor import Visitor
+
+from dominion_theory.content import load_params
+from dominion_theory.content.loader import PRESET_NOT_FOUND
+from dominion_theory.content.model import PARAMS_INVALID
+from dominion_theory.core.errors import DominionError
+from dominion_theory.db.profiles import LOCALE_UNKNOWN, LOCALES, PROFILE_NOT_FOUND
+from dominion_theory.engine import EVENTS, REASONS
+from dominion_theory.i18n import DATE, LANGUAGES, catalogue
+from dominion_theory.runner import ERRORS
+
+DIRECTIONS = ('north', 'north-east', 'east', 'south-east', 'south', 'south-west', 'west', 'north-west')
+
+# Stated by docs/api/commands.md and docs/api/protocol.md, declared by no code yet.
+SPECIFIED: set[str] = {
+    'refused-council-too-soon',
+    'refused-no-such-direction',
+    'refused-seat-banished',
+    'proposal-rest',
+    'proposal-stay-and-gather',
+    'error-request-unreadable',
+    'error-command-invalid',
+    'people-lost',
+    *(f'proposal-move-{direction}' for direction in DIRECTIONS),
+}
+
+
+class Variables(Visitor):
+    def __init__(self) -> None:
+        self.names: set[str] = set()
+
+    def visit_VariableReference(self, node: ast.VariableReference) -> None:
+        self.names.add(node.id.name)
+
+
+def entries(lang: str) -> list[ast.EntryType]:
+    return list(FluentParser().parse(catalogue(lang)).body)
+
+
+def variables(lang: str) -> dict[str, set[str]]:
+    found = {}
+    for entry in entries(lang):
+        if isinstance(entry, ast.Message):
+            visitor = Variables()
+            visitor.visit(entry)
+            found[entry.id.name] = visitor.names
+    return found
+
+
+def in_use() -> set[str]:
+    time = load_params().time
+    names = {f'time-part-{part}' for part in time.day_parts} | {f'time-season-{season.name}' for season in time.seasons}
+    errors = {*ERRORS, PRESET_NOT_FOUND, PARAMS_INVALID, LOCALE_UNKNOWN, PROFILE_NOT_FOUND}
+    return {*EVENTS, *REASONS, DATE} | errors | names | SPECIFIED
+
+
+def test_languages_are_those_of_a_profile() -> None:
+    assert LANGUAGES == LOCALES
+
+
+@pytest.mark.parametrize('lang', LANGUAGES)
+def test_catalogue_reads_cleanly(lang: str) -> None:
+    junk = [entry.content for entry in entries(lang) if isinstance(entry, ast.Junk)]
+
+    assert junk == []
+
+
+@pytest.mark.parametrize('lang', LANGUAGES)
+def test_key_is_written_once(lang: str) -> None:
+    keys = [entry.id.name for entry in entries(lang) if isinstance(entry, ast.Message)]
+
+    assert sorted(keys) == sorted(set(keys))
+
+
+@pytest.mark.parametrize('lang', LANGUAGES)
+def test_every_key_in_use_exists(lang: str) -> None:
+    assert in_use() - variables(lang).keys() == set()
+
+
+@pytest.mark.parametrize('lang', LANGUAGES)
+def test_no_key_that_nothing_uses(lang: str) -> None:
+    assert variables(lang).keys() - in_use() == set()
+
+
+def test_entry_takes_the_same_values_in_both_languages() -> None:
+    english, russian = variables('en'), variables('ru')
+
+    assert {key: english[key] for key in english.keys() & russian.keys()} == {
+        key: russian[key] for key in english.keys() & russian.keys()
+    }
+
+
+@pytest.mark.parametrize('lang', LANGUAGES)
+def test_event_asks_only_for_values_it_carries(lang: str) -> None:
+    found = variables(lang)
+
+    assert {key: found[key] - set(carried) for key, carried in EVENTS.items()} == dict.fromkeys(EVENTS, set())
+
+
+def test_unknown_language_is_refused() -> None:
+    with pytest.raises(DominionError) as raised:
+        catalogue('xx')
+
+    assert raised.value.message() == {'key': LOCALE_UNKNOWN, 'values': {'locale': 'xx'}}

@@ -1,0 +1,10 @@
+error-request-unreadable = Запрос не удалось прочитать.
+error-command-invalid = Команда составлена неверно.
+error-game-not-found = Игра { $id } не найдена.
+error-game-ended = Игра { $id } окончена.
+error-clock-running = Игра { $id } идёт; чтобы сделать шаг, поставьте её на паузу.
+error-preset-not-found = Набор параметров { $id } не найден.
+error-params-invalid = Параметр { $path }: получено { $found }, ожидалось { $expected }.
+error-record-unreadable = Запись { $path } не читается.
+error-locale-unknown = Язык { $locale } неизвестен.
+error-profile-not-found = Профиль { $id } не найден.

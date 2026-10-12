@@ -29,6 +29,7 @@ dependencies = [
     "click>=8.5",
     "deepdiff>=9.1",
     "fakeredis>=2.39",
+    "fluent.runtime>=0.4",
     "numpy>=2.5",
     "pydantic>=2.14",
     "pydantic-settings>=2.15",
@@ -43,6 +44,7 @@ where = ["src"]
 
 [tool.setuptools.package-data]
 "dominion_theory.content" = ["defaults/*.yaml", "presets/*.yaml"]
+"dominion_theory.i18n" = ["locales/*/*.ftl"]
 
 [tool.black]
 line-length = 120

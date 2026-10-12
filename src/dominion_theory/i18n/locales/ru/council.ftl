@@ -1,0 +1,10 @@
+proposal-move-north = идём на неподвижную звезду
+proposal-move-north-east = идём между неподвижной звездой и восходом
+proposal-move-east = идём туда, где встаёт солнце
+proposal-move-south-east = идём между восходом и полуденным солнцем
+proposal-move-south = идём туда, где солнце стоит в полдень
+proposal-move-south-west = идём между полуденным солнцем и закатом
+proposal-move-west = идём туда, где садится солнце
+proposal-move-north-west = идём между закатом и неподвижной звездой
+proposal-rest = отдыхаем здесь
+proposal-stay-and-gather = остаёмся: нам не хватает еды

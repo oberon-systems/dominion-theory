@@ -25,6 +25,7 @@ classifiers = [
 ]
 
 dependencies = [
+    "alembic>=1.20",
     "click>=8.5",
     "deepdiff>=9.1",
     "fakeredis>=2.39",
@@ -33,6 +34,7 @@ dependencies = [
     "pydantic-settings>=2.15",
     "pygame-ce>=2.5.8",
     "PyYAML>=6.0.3",
+    "sqlmodel>=0.0.48",
     "valkey>=6.1",
 ]
 

@@ -92,28 +92,36 @@ area, in the format of [Fluent](https://projectfluent.org/).
 ```text
 i18n/locales/
   en/
-    time.ftl
-    biomes.ftl
+    commands.ftl
     council.ftl
+    errors.ftl
+    people.ftl
+    time.ftl
   ru/
-    time.ftl
-    biomes.ftl
+    commands.ftl
     council.ftl
+    errors.ftl
+    people.ftl
+    time.ftl
 ```
 
 An entry names its key and gives the words, with the values in braces.
 
 ```fluent
-council-accepted = The council agrees: { $proposal }.
 proposal-move-east = we go where the sun rises
 proposal-rest = we rest here
+season-started = Year { $year }: { NAME("time-season", $season) } has come.
 
 people-lost =
     { $count ->
-        [one] The band lost { $count } person: { $cause }.
-       *[other] The band lost { $count } people: { $cause }.
+        [one] { $count } person has died.
+       *[other] { $count } people have died.
     }
 ```
+
+A value that is an identifier rather than a key is turned into a name by
+the function `NAME`, which takes the area and the identifier: the season
+`summer` becomes the words of `time-season-summer`.
 
 The words of the client, the `ui-` area, live with the client; all the
 rest lives with the server.
@@ -131,7 +139,8 @@ Russian is the reason the format matters, and Fluent covers each case.
   put into other sentences is written with its forms, and the sentence
   asks for the one it needs.
 - **Gender.** A verb in the past agrees with its subject. A name carries
-  its gender, and the sentence picks the verb by it.
+  its gender as an attribute of its entry, and the sentence asks `NAME`
+  for it with `form: "gender"` and picks the verb by the answer.
 
 None of this is visible to the engine. It sends the same key and the same
 values whatever the language.
@@ -149,6 +158,8 @@ The reader does, not the server that made the message.
 - **The lab** renders on the Python side, to give an LLM its observation
   as text. It can give the same game to a model in either language, which
   shows whether the language changes how the model plays.
+- **The console client** renders on the Python side too, with `render` of
+  the `i18n` package, and prints a line per update.
 
 The API never returns a finished sentence, with one exception: its own
 log, which is in English and is not for players.
@@ -158,7 +169,8 @@ ___
 ## Choosing the language
 
 The language is a field of the player's profile, `en` or `ru`, and
-English is the default.
+English is the default. The API calls the field `language`; the table
+keeps it in the column `locale`.
 
 A client asks for the profile, loads that catalogue, and may change the
 language at any time. Nothing in a running game changes when it does.
@@ -175,8 +187,10 @@ A stage is not done while one language lacks a word. Three tests hold
 this, and they run with the rest.
 
 - **Every key in use exists in both catalogues.** The keys are gathered
-  from the events and names the engine declares and from the identifiers
-  in the default parameters.
+  from the events and names the engine declares, from the errors the
+  server raises and from the identifiers in the default parameters. Keys
+  that a document states and no code declares yet are listed in the test
+  by hand.
 - **No catalogue holds a key nobody uses**, so dead words do not pile up.
 - **Both languages take the same values.** An entry that uses `$count` in
   English uses it in Russian.
@@ -198,8 +212,11 @@ ___
 
 ## Open points
 
-- **Numbers and dates** - how a date of the game calendar is written in
-  each language, and whether large numbers get separators.
+- **Numbers** - whether large numbers get separators. A date is settled:
+  it is the message `time-date`, written in each catalogue.
+- **The console client's own words** - its report of a replay and the
+  errors of the network are in English. The `ui-` area starts with the
+  browser client.
 - **Who writes the Russian** - the catalogue is written by hand; a
   machine draft is only ever a draft.
 - **More languages** - nothing prevents a third, and nothing is built for

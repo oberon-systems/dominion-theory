@@ -75,6 +75,8 @@ through the client library directly.
 
 A snapshot is written at the start of each game day and the changes of
 every tick in between, so a restore replays at most one day of changes.
+A command taken since the snapshot is kept in the same list, so a restored
+game holds the commands that were waiting when the server stopped.
 
 ___
 
@@ -88,11 +90,12 @@ something else.
 | `dt:games`                | set    | identifiers of live games                  |
 | `dt:game:<id>:meta`       | hash   | seed, hash of parameters, last tick, mode  |
 | `dt:game:<id>:snapshot`   | string | the state at the start of the current day  |
-| `dt:game:<id>:changes`    | list   | the changes of each tick since then        |
+| `dt:game:<id>:changes`    | list   | ticks and commands since then, in order    |
 
 A snapshot is a JSON document for everything that is not a grid, and the
-grids - the state of the cells - packed as arrays and compressed. Every
-key of a game expires after `DT_STORE_TTL` unless the game is touched.
+grids - the biomes now, the state of the cells later - packed as arrays
+and compressed with zlib. Every key of a game expires after
+`DT_STORE_TTL` unless the game is touched.
 
 When a game ends, its keys are removed: the run record and the row in the
 index are what remains of it.
@@ -128,7 +131,8 @@ have are used, and no query is written in the dialect of one of them.
 
 The schema is built by numbered migrations, with
 [Alembic](https://alembic.sqlalchemy.org/). A migration is never edited
-once it has been applied anywhere.
+once it has been applied anywhere. The server applies the migrations it
+lacks when it starts, so a local run needs no step of its own for them.
 
 ___
 
@@ -143,9 +147,11 @@ Stage 0 has two.
 | `id`         | identifier                             |
 | `name`       | the name shown in the game             |
 | `locale`     | language of the game, `en` or `ru`     |
-| `created_at` | wall-clock time                        |
+| `created_at` | wall-clock time, in Unix seconds       |
 
-A local server has one profile, created the first time it starts.
+A local server has one profile, `local`, created the first time it starts.
+Every time is a whole number of Unix seconds, so that both engines store
+it the same way.
 
 **`games`** - the index of games, described with
 [run records](records.md#the-index-of-games).
@@ -168,7 +174,9 @@ discussion per table.
   and each one is agreed before it is written.
 
 Two tests guard this: one fails when the schema holds a foreign key, the
-other when a column that refers to a profile is missing from the list.
+other when a column that refers to a profile is missing from the list. A
+hook of `make lint` refuses a migration that names a relation or alters a
+table.
 
 ___
 
@@ -191,7 +199,8 @@ ___
 - **Who is the player** - a local server has one profile and asks no
   password. How a player is told apart on a server that others can reach
   is not designed.
-- **How the snapshot is packed** - the exact encoding of the grids is
-  chosen by measuring size and time on a real map.
+- **How the snapshot is packed** - the grids are raw arrays behind a JSON
+  head, compressed together. Whether another encoding is worth it is
+  measured on a map that carries cell state.
 - **Changes or snapshots only** - if a snapshot proves cheap enough, it can
   be written every tick and the list of changes dropped.

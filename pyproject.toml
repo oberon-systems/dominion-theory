@@ -40,6 +40,7 @@ dependencies = [
     "sqlmodel>=0.0.48",
     "uvicorn[standard]>=0.54",
     "valkey>=6.1",
+    "websockets>=17.2",
 ]
 
 [tool.setuptools.packages.find]

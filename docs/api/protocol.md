@@ -63,6 +63,11 @@ Every address starts with `/api/v1`.
 | POST   | `/games/{id}/clock`           | pause, resume, speed, step                |
 | GET    | `/games/{id}/record`          | the run record, as a file                 |
 | WS     | `/games/{id}/updates`         | the stream of updates                     |
+| GET    | `/openapi.json`               | the description of the HTTP side          |
+| GET    | `/updates.schema.json`        | the schema of a message of the stream     |
+
+A profile is its `id`, its `name` and its `language`. Ending a game
+answers with its row of the index, as the list of games gives it.
 
 ___
 
@@ -76,7 +81,7 @@ and the mode is real time.
 {
   "seed": 42,
   "preset": "harsh-winter",
-  "overrides": {"peoples.bands": 8},
+  "overrides": {"planet.window.width": 256},
   "mode": "step"
 }
 ```
@@ -94,9 +99,9 @@ The answer names the game and says where it stands.
 }
 ```
 
-A game starts paused. Parameters that fail their check are refused with
-the path of the value, what was found and what was expected; see
-[Parameters](../architecture/parameters.md).
+A game starts paused, and the answer has status 201. Parameters that fail
+their check are refused with the path of the value, what was found and
+what was expected; see [Parameters](../architecture/parameters.md).
 
 ___
 
@@ -121,12 +126,16 @@ after it.
 
 The map is not in the snapshot: it is large and is fetched in pieces.
 
+Stage 0 answers with the frame of this. `seat` holds the name alone and
+`units` is empty until stage 2 brings the band, and the window starts at
+the origin until stage 1 places it on a planet.
+
 ___
 
 ## The stream of updates
 
 After the snapshot the client opens the stream and says which update it
-has.
+has. Without `after` the stream starts at the present.
 
 ```text
 /api/v1/games/7f3a9c1e/updates?after=311
@@ -164,11 +173,17 @@ Each message on the stream is one update.
 An update is not a tick. The client is never told how many steps of the
 engine an update covers, and a fast game may cover several in one.
 
+When a game ends the server closes the stream. A stream that cannot be
+served - no such game, a view that is not offered - gets one message, the
+error, and is closed with the code 4000 plus the HTTP status of that
+error: 4404 for a game that is not found.
+
 ___
 
 ## Falling behind
 
-The server keeps the last updates of a game for clients that reconnect.
+The server keeps the last updates of a game for clients that reconnect:
+512 of them, or what the setting `DT_UPDATES_KEPT` says.
 
 - A client that returns with `after` still in that window is sent what it
   missed and carries on.
@@ -231,6 +246,10 @@ Biomes do not change during an era, so a client fetches each rectangle
 once. What does change - a cell being exhausted and recovering - comes in
 the `cells` of an update.
 
+The answer holds the part of the asked rectangle that lies in the window,
+and a request with no rectangle gets the whole window. The state of the
+cells, `food` here, is not sent yet: cells get a state in stage 1.
+
 ___
 
 ## Views
@@ -243,7 +262,10 @@ The same game can be looked at in two ways.
   finding faults, and it sends no commands.
 
 The view is asked for with `?view=` on the snapshot, the map and the
-stream. Whether a server offers the spectator view is a setting.
+stream. Whether a server offers the spectator view is the setting
+`DT_SPECTATOR`, on by default; a view that is not offered is answered
+with 400. Until stage 2 gives a band something to know, both views show
+the same.
 
 ___
 
@@ -264,6 +286,10 @@ a game goes.
 | `speed`  | sets the multiplier, in real-time mode                  |
 | `step`   | advances once, in step mode or when paused              |
 
+The answer is the game, as `GET /games/{id}` gives it. `step` on a clock
+that is running is refused with 409, and in step mode there is no clock to
+pause, resume or speed up: those three are taken and change nothing.
+
 ___
 
 ## Errors
@@ -275,12 +301,12 @@ message, like everything else.
 {"key": "error-game-not-found", "values": {"id": "7f3a9c1e"}}
 ```
 
-| Status | When                                                     |
-|--------|----------------------------------------------------------|
-| 400    | the request cannot be read                               |
-| 404    | no such game, preset or language                         |
-| 409    | the game has ended                                       |
-| 422    | the parameters or the command fail their check           |
+| Status | When                                                      |
+|--------|-----------------------------------------------------------|
+| 400    | the request cannot be read                                |
+| 404    | no such game, preset or language; the record is gone      |
+| 409    | the game has ended; a step was asked of a running clock   |
+| 422    | the parameters, the command or a profile fail their check |
 
 A command that the rules refuse is not an error of the API: it was
 received correctly. The refusal comes as an event, described in
@@ -293,7 +319,8 @@ ___
 The HTTP side is described by an [OpenAPI](https://www.openapis.org/)
 document that the server produces from its own code, and the messages of
 the stream by a JSON Schema beside it. A client in any language can be
-generated or checked from the two.
+generated or checked from the two. They are served at
+`/api/v1/openapi.json` and `/api/v1/updates.schema.json`.
 
 The `v1` in the address changes only when an existing field changes its
 meaning or goes away. New addresses and new fields are added without a
@@ -306,8 +333,9 @@ ___
 - **Who is calling** - a local server has one profile and asks for no
   proof. Sign-in is designed when a server is first put where others can
   reach it.
-- **How long the stream remembers** - the number of updates kept for
-  reconnecting clients.
+- **How long the stream remembers** - the number is a setting now, with a
+  default of 512 updates. What it should be for a browser on a poor line
+  is seen in stage 4.
 - **Map encoding** - plain lists are easy to read and large. A packed form
   is added if the map proves slow to load.
 - **What a seat sees** - how far a band knows the land around it is a rule

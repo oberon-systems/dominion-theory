@@ -14,7 +14,7 @@ export PRE_COMMIT_HOME := $(CURDIR)/.pre-commit
 
 .DEFAULT_GOAL := shell
 
-.PHONY: help install lint test run map clean shell
+.PHONY: help install lint test run watch map clean shell
 
 help:  ## Show the available targets
 	@echo "$(PROJECT)"
@@ -45,6 +45,10 @@ test:  ## Run the test suite
 
 run:  ## Start the server on the loopback address
 	$(VENV)/bin/uvicorn --factory dominion_theory.api:create_app --host 127.0.0.1 --port $(PORT)
+
+# WATCH carries options of the client: make watch WATCH='--lang ru --step --updates 50'
+watch:  ## Watch a new game on the running server, a line per update
+	$(VENV)/bin/python -m dominion_theory.client watch --server http://127.0.0.1:$(PORT) $(WATCH)
 
 map:  ## Generate a map and show it in a window
 	$(VENV)/bin/python -m dominion_theory.planet.tools simple

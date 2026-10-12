@@ -59,22 +59,27 @@ ___
 Every line has a field `t` that names its kind. A reader skips kinds it
 does not know, so a new kind does not break an old reader.
 
-| `t`       | When                    | Holds                                         |
-|-----------|-------------------------|-----------------------------------------------|
-| `header`  | once, first             | versions, seed, parameters, seats, columns    |
-| `command` | when a command arrives  | tick, seat, the command, accepted or refused  |
-| `tick`    | after every tick        | tick, clock, state hash, counters, units      |
-| `event`   | when the engine reports | tick, message key, values                     |
-| `footer`  | once, last              | how the game ended, last tick, final hash     |
+| `t`       | When                     | Holds                                         |
+|-----------|--------------------------|-----------------------------------------------|
+| `header`  | once, first              | versions, seed, parameters, seats, columns    |
+| `command` | when a command is judged | tick, seat, the command, accepted or refused  |
+| `tick`    | after every tick         | tick, clock, state hash, counters, units      |
+| `event`   | when the engine reports  | tick, message key, values                     |
+| `footer`  | once, last               | how the game ended, last tick, final hash     |
 
 The header carries the whole resolved tree of
 [parameters](parameters.md) and its hash, the version of the engine and of
 the record format, and what kind of player held each seat. A record with
-no footer belongs to a game that was cut short.
+no footer belongs to a game that was cut short, or to one still running.
+
+Within one tick the lines come in this order: the commands judged at it,
+the tick itself, then its events. The example shows a record as stage 2
+will write it; stage 0 writes the same lines with the counters and unit
+columns it has.
 
 ```json
 {"t": "header", "format": 1, "engine": "0.1.0", "game": "7f3a9c1e", "seed": 42, "params_hash": "b41f", "params": {}, "seats": [{"seat": "player", "kind": "llm"}], "counters": ["bands", "people", "born", "died", "status"], "units": ["id", "x", "y", "state", "action", "people", "food", "water"]}
-{"t": "command", "tick": 12, "seat": "player", "seq": 1, "command": {"kind": "call-council", "proposal": "rest"}, "accepted": true}
+{"t": "command", "tick": 12, "seat": "player", "seq": 1, "command": {"id": "c-0192", "kind": "call-council", "proposal": {"kind": "rest"}}, "accepted": true}
 {"t": "tick", "tick": 12, "parts": 12, "hash": "9d2c", "counters": [6, 94, 0, 1, 51], "units": [[1, 40, 18, "normal", "camp", 15, 22.4, 9.0]]}
 {"t": "event", "tick": 12, "key": "council-accepted", "values": {"unit": 1, "proposal": "rest"}}
 {"t": "footer", "outcome": "banished", "tick": 3120, "hash": "0a7e"}
@@ -97,13 +102,18 @@ line carries the values in that order. A reader therefore needs no
 knowledge of the engine that wrote the file, and a stage that adds a
 counter changes no existing column.
 
+Stage 0 declares two counters, `commands_accepted` and
+`commands_refused`. The counters of the world and of the seat come with
+the rules that keep them.
+
 ___
 
 ## Units in a tick
 
 Each tick line also carries one row per living unit: where it is, what
 state it is in, what it did and what it holds. The columns are named in
-the header, like the counters.
+the header, like the counters. Until stage 2 brings the band there are no
+units, so the list of columns and the rows are empty.
 
 This is what heatmaps are drawn from. A map of where bands starve is every
 row whose state is `starvation`, counted by place; a map of where they
@@ -122,7 +132,8 @@ file; the engine itself never touches the disk.
 The runner collects lines and writes them out at the end of each game
 day. Each such batch is closed as a gzip member of its own, so a server
 that dies loses at most the day in progress and leaves a file that still
-opens.
+opens. The header is a member of its own, written when the game is
+created, and a reader drops a member that was cut short.
 
 When a game ends the runner writes the footer and tells its subscribers.
 The API, one of them, marks the game as finished in the index.
@@ -143,6 +154,11 @@ result.matched         # True when every tick gave the recorded hash
 result.diverged_at     # the first tick that did not, or None
 result.game            # the game, at the last tick of the record
 ```
+
+`replay` also takes other parameters than the header's, to play the same
+commands by other rules. The console client does the same from outside:
+`replay` downloads the record of a game over the API and reports whether
+every hash matched.
 
 After every tick the state hash is compared with the one in the record.
 The first tick where they differ is reported: it is either a record made
@@ -166,14 +182,16 @@ found without opening files.
 | `seed`        | the seed                                     |
 | `params_hash` | hash of the resolved tree                    |
 | `preset`      | name of the preset, when one was used        |
-| `started_at`  | wall-clock time                              |
-| `finished_at` | wall-clock time, empty while running         |
+| `started_at`  | wall-clock time, in Unix seconds             |
+| `finished_at` | the same, empty while running                |
 | `outcome`     | how it ended, empty while running            |
-| `last_tick`   | the last tick written                        |
+| `last_tick`   | the last tick, 0 while running               |
 | `record_path` | where the record lies                        |
 
 It is a plain table with no foreign keys. The record is the truth; the
-row is a pointer to it and a summary of it.
+row is a pointer to it and a summary of it. The summary is written once,
+when the game ends, so that a tick costs no query. A game ended over the
+API has the outcome `stopped`.
 
 ___
 

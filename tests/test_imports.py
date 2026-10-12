@@ -20,6 +20,7 @@ ALLOWED: dict[str, set[str]] = {
     'runner': {'engine', 'store', 'content'},
     'api': {'runner', 'engine', 'db', 'i18n'},
     'lab': set(),
+    'client': {'i18n', 'runner'},
 }
 
 
@@ -73,6 +74,9 @@ def test_every_package_is_in_the_table() -> None:
         ('api', 'from dominion_theory.store import Store', 'store'),
         ('core', 'from ..content import registry', 'content'),
         ('store', 'def late() -> None:\n    from ..engine import Game', 'engine'),
+        ('client', 'from ..api import create_app', 'api'),
+        ('client', 'from dominion_theory.engine import Game', 'engine'),
+        ('client', 'import dominion_theory.db', 'db'),
     ],
 )
 def test_forbidden_import_is_found(tmp_path: Path, owner: str, line: str, target: str) -> None:
@@ -91,6 +95,8 @@ def test_forbidden_import_is_found(tmp_path: Path, owner: str, line: str, target
         ('runner', 'from dominion_theory.core.settings import get_settings'),
         ('api', 'import dominion_theory.runner'),
         ('api', 'import json'),
+        ('client', 'from ..i18n import render'),
+        ('client', 'from ..runner import replay'),
     ],
 )
 def test_allowed_import_is_not_reported(tmp_path: Path, owner: str, line: str) -> None:

@@ -52,7 +52,9 @@ Every command has the same outside and its own inside.
 
 The seat is not in the command: it is known from who is calling. Sending
 a command again with the same `id` does nothing the second time, so a
-client may repeat a request it is unsure of.
+client may repeat a request it is unsure of. A command without an `id`, of
+an unknown kind or with other fields than its kind takes is answered with
+422 and `error-command-invalid`.
 
 ___
 
@@ -110,6 +112,9 @@ frame is cut to fit them; their rules are written in stage 2.
 | `pass`         | says the seat has nothing to ask this step     | stage 0  |
 | `call-council` | gathers the band and puts a proposal to it     | stage 2  |
 
+Until stage 2 the API checks the form of `call-council` and takes it, and
+the engine refuses it with `refused-unknown-command`.
+
 A proposal is one of three.
 
 | Proposal          | Fields                 | In the game                           |
@@ -129,6 +134,13 @@ Reasons a council may be refused, as they stand now:
 | `refused-no-such-direction`  | the band cannot go that way at all           |
 | `refused-seat-banished`      | the player is no longer in the band          |
 
+Two reasons belong to the frame and are built in stage 0.
+
+| Reason                    | When                                        |
+|---------------------------|---------------------------------------------|
+| `refused-unknown-command` | the rules know no command of that kind      |
+| `refused-unknown-seat`    | the game has no such seat                   |
+
 ___
 
 ## Step mode and passing
@@ -146,7 +158,8 @@ ___
 ## Examples
 
 A seat that rests when its band is tired and passes otherwise, in step
-mode. The addresses are shortened.
+mode. The addresses are shortened. Both examples show the council of
+stage 2; the lines with `pass` are what stage 0 already answers.
 
 ```text
 GET  /games/7f3a9c1e/snapshot       -> seq 311, waiting ["player"]

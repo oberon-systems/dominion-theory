@@ -29,9 +29,15 @@ included.
 
 ## State of the project
 
-Only the map generator exists: elevation and moisture noise, four biomes,
-rivers, and a [pygame-ce](https://pyga.me/) window to look at the
-result. Everything else is planned in [the roadmap](docs/roadmap.md).
+Stage 0 of [the roadmap](docs/roadmap.md) is built: the frame the game
+hangs on. A game is created over the API, advances by ticks through days,
+months and seasons, and tells its clients what happened in English or
+Russian; every run is recorded and replays to the same state.
+
+There is nothing to play yet. The map has four biomes and rivers, no band
+walks it, and the only client is a console one that prints the calendar.
+Biomes come in stage 1, the band and the council in stage 2, the browser
+client in stage 4.
 
 ## Quick start
 
@@ -40,16 +46,41 @@ Python 3.14 and `make` are required.
 ```bash
 make install
 make test
-make map
+make run
 ```
 
-`make map` opens a window with a generated map. A bare `make` opens a
-subshell with the virtualenv active, and `make help` lists every target.
+`make run` starts the server on the loopback address. In a second
+terminal, watch a game: one line per update, with the date and what
+happened.
+
+```bash
+make watch
+```
+
+Expected output, a line every half a second:
+
+```text
+game 7f3a9c1e
+midday, day 1, month 1, year 1, spring
+afternoon, day 1, month 1, year 1, spring
+evening, day 1, month 1, year 1, spring
+night, day 1, month 1, year 1, spring
+morning, day 2, month 1, year 1, spring: Day 2 of month 1, year 1, begins.
+```
+
+`make watch WATCH='--lang ru'` prints the same in Russian. `make map`
+opens a [pygame-ce](https://pyga.me/) window with a generated map, a bare
+`make` opens a subshell with the virtualenv active, and `make help` lists
+every target.
 
 ## Documentation
 
 - [Roadmap](docs/roadmap.md) - the stages, what each builds and how.
-- [Setup](docs/dev/setup.md) - install, lint, test, run.
+- [Setup](docs/dev/setup.md) - install, lint, test, run the server and
+  the client, settings.
+- [Architecture](docs/architecture/overview.md) - the layers, the
+  packages and what one tick does.
+- [Protocol](docs/api/protocol.md) - how a client talks to the game.
 - [Biomes](docs/biomes.md) - kinds of land and their properties.
 - [Band](docs/units/band.md) - the first unit.
 - [Game process](docs/game/01_bands.md) - how the band era plays.

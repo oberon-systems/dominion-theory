@@ -54,13 +54,15 @@ ___
 ## What the tree holds
 
 The tree has a fixed set of top-level sections. Each later stage fills its
-own; stage 0 defines the frame and the first two.
+own; stage 0 defines the frame and the first two. It also takes the size of
+the first window from `planet`, because the map generator cannot run
+without it.
 
 | Section      | Holds                                               | Filled in  |
 |--------------|-----------------------------------------------------|------------|
 | `time`       | parts of a day, days in a month, seasons            | stage 0    |
 | `eras`       | per era: parts per tick, size of a cell             | stage 0, 5 |
-| `planet`     | size, shape of continents, rivers, the first window | stage 1    |
+| `planet`     | size, shape of continents, rivers, the first window | stage 0, 1 |
 | `biomes`     | one entry per biome: properties per era, resources  | stage 1    |
 | `resources`  | weight, how fast each one spoils                    | stage 2    |
 | `units`      | one entry per kind of unit: the band first          | stage 2    |
@@ -87,13 +89,19 @@ A game's tree is built in three layers, each laid over the one before.
 
 The result is the **resolved tree**: complete, with nothing left to look
 up. Its hash is the short name of a parameter set, and two games with the
-same hash were played by the same rules.
+same hash were played by the same rules. The hash is the SHA-256 of the
+tree written as canonical JSON; the examples in these documents shorten
+it.
 
 A preset or an override may reach any value, however deep, one item of a
 list included: one season can be made longer without restating the other
 three. The layers are laid over each other and compared with
 [DeepDiff](https://zepworks.com/deepdiff/current/), which also answers the
 question the lab asks most: what exactly differs between these two trees.
+`diff(a, b)` of the `content` package gives that answer by dotted path.
+
+The files are [YAML](https://yaml.org/): `content/defaults` holds one file
+per section and `content/presets` one file per preset.
 
 ___
 
@@ -109,9 +117,12 @@ it.
 - **The sections must agree**: an era's tick divides a day or covers whole
   days, a biome names only resources that exist, a unit names only actions
   that exist.
+- **Names in a list do not repeat**: two seasons or two parts of a day
+  with one name are refused.
 
 An error names the path of the value, what was found and what was
-expected.
+expected. It is the message `error-params-invalid`, and the API answers it
+with status 422.
 
 ___
 
@@ -140,11 +151,12 @@ down. Nothing reads parameters from a global or from a file at run time.
 from dominion_theory.content import load_params
 from dominion_theory.engine import Game
 
-params = load_params(preset='harsh-winter', overrides={'units.band.population.start': 20})
+params = load_params(preset='harsh-winter', overrides={'planet.window.width': 256})
 game = Game.create(seed=42, params=params)
 
 params.time.days_per_month          # 10
 params.eras['band'].parts_per_tick  # 1
+params.planet.window.width          # 256
 params.hash                         # 'b41f...'
 ```
 
@@ -203,16 +215,17 @@ time:
     - {name: winter, months: 4}
 ```
 
-A game is created over the API with a preset and overrides.
+A game is created over the API with a preset and overrides. Only paths of
+the sections built so far are taken; `council.min_gap` is refused until
+stage 2 adds it.
 
 ```json
 {
   "seed": 42,
   "preset": "harsh-winter",
   "overrides": {
-    "council.min_gap": {"days": 5},
     "time.seasons.autumn.months": 1,
-    "peoples.bands": 8
+    "planet.window.width": 256
   }
 }
 ```
@@ -221,9 +234,10 @@ ___
 
 ## Open points
 
-- **The file format** - [YAML](https://yaml.org/) is the proposal: it
-  reads well for nested data and lists, and the neighbouring projects use
-  it. The alternative is TOML, which Python reads without a dependency.
+- **The schema version in a record** - the version is 1 and has never been
+  raised, and the header of a run record does not carry it: it holds the
+  whole tree and the version of the engine. The field is added with the
+  first change that raises the version.
 - **The reference** - a page listing every parameter with its default and
   meaning should be generated from the schema rather than written by
   hand. When it is built is not set.

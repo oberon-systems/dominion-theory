@@ -79,8 +79,9 @@ day   = parts % 50 // 5 + 1         -> 7
 part  = parts % 5 + 1               -> 5, night
 ```
 
-Months have no names of their own yet; a month is shown by its season and
-its number within it.
+Months have no names of their own yet. A date is shown with the number of
+the month in the year and the season beside it: "evening, day 3, month 7,
+year 1, autumn".
 
 ___
 
@@ -158,8 +159,8 @@ A rule never says "every N ticks". It names a unit of the calendar, and
 the engine turns that into parts.
 
 - **A duration** is a number and a unit: `{days: 3}`, `{months: 1}`,
-  `{parts: 2}`. The shortest gap between two councils and the window in
-  which a proposal is judged are written this way.
+  `{parts: 2}`, `{years: 1}`. The shortest gap between two councils and
+  the window in which a proposal is judged are written this way.
 - **A flow** - eating, drinking, spoiling, a cell recovering - is an
   amount per day. Each tick takes its share: the amount times the parts
   in the tick, over five.
@@ -184,7 +185,11 @@ this order: day, month, season, year.
 | `day-started`    | year, month, day        |
 | `month-started`  | year, month, season     |
 | `season-started` | year, season            |
-| `year-started`   | year, the season plan   |
+| `year-started`   | year, seasons           |
+
+`seasons` is the plan of the year: each season with the day of the year it
+starts on. The start of the game is not a boundary, so the first events
+come with day 2.
 
 Rules that run once a day - judging a proposal whose window has closed,
 for one - hang on `day-started` rather than on a count of ticks.
@@ -211,11 +216,10 @@ eras:
     parts_per_tick: 1
 ```
 
-The server setting stands apart from it.
+The server setting stands apart from it, in the environment.
 
-```yaml
-runner:
-  tick_ms: 500
+```bash
+export DT_TICK_MS=500
 ```
 
 A game refuses to start when the tree does not add up: a season with no

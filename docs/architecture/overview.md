@@ -3,8 +3,9 @@
 #architecture #stage0
 
 How the game is put together: the layers, the packages, what one tick does
-and where every kind of data lives. This is the design that stage 0 of
-[the roadmap](../roadmap.md) builds; nothing here exists yet.
+and where every kind of data lives. Stage 0 of
+[the roadmap](../roadmap.md) built this frame; what a later stage adds to
+it is marked as such.
 
 - [The idea in one picture](#the-idea-in-one-picture)
 - [Packages](#packages)
@@ -26,9 +27,9 @@ The game is a simulation that runs on the server. Clients draw what it
 reports and send what the player wants; they hold no rules.
 
 ```text
- web client      LLM player      unity client (later)
-     |               |                  |
-     +-------+-------+------------------+
+ console client  web client  LLM player  unity client
+     |               |           |            |
+     +-------+-------+-----------+------------+
              |  HTTP + WebSocket, JSON
      +-------+--------+
      |      api       |   games, commands in, state and events out
@@ -52,7 +53,9 @@ reports and send what the player wants; they hold no rules.
 ```
 
 Each layer knows only the ones below it. The engine can be imported and
-stepped from a test with no server, no store and no database.
+stepped from a test with no server, no store and no database. Of the
+clients only the console one exists: the browser client is stage 4, the
+LLM player belongs to the lab.
 
 ___
 
@@ -64,7 +67,7 @@ packages by layer.
 | Package   | Holds                                                    | May import                 |
 |-----------|----------------------------------------------------------|----------------------------|
 | `core`    | settings, logging, errors                                | nothing of ours            |
-| `content` | registries and data: biomes, units, eras, resources      | `core`                     |
+| `content` | the tree of parameters: schema, defaults, presets        | `core`                     |
 | `planet`  | world generation: the planet, windows, rivers            | `core`, `content`          |
 | `engine`  | game state, the tick, commands, events, clock, counters  | `core`, `content`, `planet`|
 | `players` | scripted players, from stage 3                           | `engine`                   |
@@ -74,9 +77,15 @@ packages by layer.
 | `runner`  | live games, the two clocks, run records and replay       | `engine`, `store`, `content`|
 | `api`     | the application, routes, the update stream               | `runner`, `engine`, `db`, `i18n` |
 | `lab`     | the batch runner, the LLM player, statistics             | the API as a client        |
+| `client`  | the console client: watch, step and replay a game        | `i18n`, `runner`           |
 
-The present `maps` package becomes `planet`. The browser client lives in a
-top-level `web` directory and is not a Python package.
+Every package may import `core`. `players` and `lab` are not built yet, and
+the browser client will live in a top-level `web` directory, not in a
+Python package.
+
+The console client talks to the game over the API alone and renders
+messages with `i18n`. It imports `runner` for one thing: a downloaded
+record is replayed by running the engine again, and `replay` lives there.
 
 ___
 
@@ -86,15 +95,16 @@ The engine is a library with one object, the game. It takes a seed and a
 parameter tree, accepts commands, and advances by one tick when told to.
 
 ```python
-from dominion_theory.engine import Game, CallCouncil
+from dominion_theory.engine import Game, Pass
 
 game = Game.create(seed=42, params=params)
-game.submit(CallCouncil(seat='player', proposal='rest'))
+game.submit(Pass(seat='player'))
 result = game.step()
 
 result.events      # what happened, as message keys with values
 result.changes     # what changed in the state since the last tick
 result.counters    # one row of numbers for the run record
+result.hash        # the hash of the state after this tick
 game.snapshot()    # the whole state, serialisable
 ```
 
@@ -129,6 +139,10 @@ part of the rules: changing it changes the outcome of a game.
    month, season and year boundaries are noted. See [Time](time.md).
 7. **Report** - events, changes and counters are returned.
 
+Stage 0 fills the first and the last two phases. The four between them
+are empty until the rules of stages 1 to 3 arrive, and their place in the
+order is already fixed.
+
 ___
 
 ## Determinism
@@ -159,11 +173,12 @@ thing that touches the store, where it keeps a copy of the game so that a
 game outlives a restart of the server.
 
 What leaves the runner is an **update**, not a tick: a sequence number,
-the game date, the events and the changes. One update usually covers one
-tick, but at high speed the runner may fold several into one. Nothing above
-the runner counts ticks: the API passes updates on without reading them,
-and a client orders them by sequence number and shows the date. In step
-mode an update also says which seats the game is waiting for.
+the game date, the events and the changes. As built, one update covers
+one tick; the contract leaves the runner free to fold several into one at
+high speed. Nothing above the runner counts ticks: the API passes updates
+on without reading them, and a client orders them by sequence number and
+shows the date. In step mode an update also says which seats the game is
+waiting for.
 
 - **Real time** - a tick every `tick_ms` milliseconds, 500 by default. A
   command that arrives late waits for the next tick. Pause and speed are
@@ -182,14 +197,15 @@ ___
 A seat is a place at the game that somebody plays from. Whoever holds it
 sees the same observation and can send the same commands.
 
-- **A person** in the browser client.
+- **A person** in the console client, and later in the browser.
 - **An LLM** through the lab's player, which is an API client like any
   other.
 - **A scripted player**, in process, for tests and batches.
 
 One game has one seat for now. The other bands are not seats: they are run
 by the engine's own decision function. An observation holds what the
-seat's band knows, not the whole state.
+seat's band knows, not the whole state; until stage 2 there is no band,
+and the seat sees the frame of the game only.
 
 ___
 
@@ -217,11 +233,13 @@ ___
 
 ## How a proposal travels
 
-The path of one player action, from the browser and back.
+The path of one player action, from the browser and back. The council is
+a rule of stage 2; today `pass` travels the same path and comes back as
+`command-accepted`.
 
 1. The client sends "call a council and propose a rest" to the API.
-2. The API checks that the caller holds the seat and hands the command to
-   the runner of that game.
+2. The API takes the caller for the one seat of the game, since there is
+   no sign-in yet, and hands the command to the runner of that game.
 3. The runner submits it to the engine before the next tick.
 4. The engine checks the command against the rules - the gap since the
    last council, for one - and holds the vote.
@@ -229,8 +247,9 @@ The path of one player action, from the browser and back.
    values of the proposal.
 6. The runner writes the changes to the store, appends the row of counters
    to the run record and hands an update to its subscribers.
-7. The API, one of them, pushes the update to every connected client. The client looks the key
-   up in the catalogue of the player's language and shows the words.
+7. The API, one of them, pushes the update to every connected client. The
+   client looks the key up in the catalogue of the player's language and
+   shows the words.
 
 ___
 
@@ -253,9 +272,11 @@ ___
 
 ## Open points
 
-- **Snapshot size** - whether the store keeps the whole state after every
-  tick or a full snapshot now and then with changes in between. It depends
-  on the size of the map and is measured, not guessed.
+- **Snapshot size** - the store keeps a full snapshot at the start of each
+  game day and the changes in between. Whether a snapshot is cheap enough
+  to be written every tick is measured once the map carries cell state.
+- **Folding updates** - whether a fast game puts several ticks into one
+  update, and from which speed.
 - **Splitting the server** - the API and the runner share one process. If
   they are ever split, the runner's interface gets a second implementation
   that works across processes; the API does not change.

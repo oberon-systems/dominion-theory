@@ -1,0 +1,19 @@
+biomes:
+  grass:
+    colour: '#228B22'
+    generation:
+      order: 90
+    eras:
+      band:
+        properties:
+          water: {base: 0.4, recovery: {days: 3}}
+          food:
+            base: 0.8
+            recovery: {days: 20}
+            seasons:
+              spring: {times: 0.7}
+              autumn: {times: 1.2}
+              winter: {times: 0.3}
+          threat: {base: 0.1}
+          passability: {base: 1.0}
+        resources: [water, forage]

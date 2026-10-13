@@ -50,8 +50,10 @@ def variables(lang: str) -> dict[str, set[str]]:
 
 
 def in_use() -> set[str]:
-    time = load_params().time
+    params = load_params()
+    time = params.time
     names = {f'time-part-{part}' for part in time.day_parts} | {f'time-season-{season.name}' for season in time.seasons}
+    names |= {f'biome-{biome}' for biome in params.biomes}
     errors = {*ERRORS, PRESET_NOT_FOUND, PARAMS_INVALID, LOCALE_UNKNOWN, PROFILE_NOT_FOUND}
     return {*EVENTS, *REASONS, DATE} | errors | names | SPECIFIED
 

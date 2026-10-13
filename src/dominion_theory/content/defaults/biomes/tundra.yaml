@@ -1,0 +1,19 @@
+biomes:
+  tundra:
+    colour: '#A9B8A0'
+    generation:
+      order: 30
+      temperature: {max: 0.2}
+    eras:
+      band:
+        properties:
+          water: {base: 0.4, recovery: {days: 3}}
+          food:
+            base: 0.2
+            recovery: {days: 60}
+            seasons:
+              summer: {times: 1.5}
+              winter: {times: 0.1}
+          threat: {base: 0.4}
+          passability: {base: 0.6}
+        resources: [water, forage]

@@ -27,7 +27,7 @@ def test_a_game_is_created_with_a_preset_and_overrides(client: TestClient, new_g
         'date': START,
     }
     assert len(created['params_hash']) == 64
-    assert params['planet']['window'] == {'width': 32, 'height': 16}
+    assert (params['planet']['window']['width'], params['planet']['window']['height']) == (32, 16)
     assert params['time']['seasons'][3] == {'name': 'winter', 'months': 4}
     assert client.get(f'{PREFIX}/games/{created["id"]}').json() == created
 

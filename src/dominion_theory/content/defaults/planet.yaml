@@ -1,4 +1,27 @@
 planet:
+  circumference_km: 40000
+  skeleton_km: 100
+  sea: 0.6
+  elevation: {scale_km: 4000, octaves: 6, persistence: 0.6}
+  relief: {scale_km: 150, octaves: 3, persistence: 0.5}
+  moisture: {scale_km: 1500, octaves: 4, persistence: 0.5}
+  temperature: {lapse: 0.4, noise: 0.05, scale_km: 1000}
+  rivers:
+    share: 0.08
+    meander_km: 30
+    effects:
+      band:
+        water: {plus: 0.5}
+        food: {plus: 0.1}
+        passability: {times: 0.7}
   window:
     width: 512
     height: 256
+    x: null
+    y: null
+    latitude: {min: 0.3, max: 0.6}
+    tries: 64
+    needs:
+      land: 0.6
+      rivers: 1
+      biomes: {forest: 0.15, hills: 0.05, outcrops: 0.01}

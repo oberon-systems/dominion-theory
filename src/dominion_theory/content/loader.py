@@ -16,6 +16,7 @@ from .model import PARAMS_INVALID, Params
 
 PRESET_NOT_FOUND = 'error-preset-not-found'
 DATA = files('dominion_theory.content')
+SPLIT = ('biomes',)
 DIFF_STEP = re.compile(r"\['([^']*)'\]|\[(\d+)\]")
 
 type Keys = tuple[str | int, ...]
@@ -95,22 +96,41 @@ def _lay(tree: dict[str, Any], changes: Iterable[tuple[Keys, Any]]) -> dict[str,
 
 
 def _read(folder: str, name: str) -> Any:
-    return yaml.safe_load(DATA.joinpath(folder, f'{name}.yaml').read_text(encoding='utf-8'))
+    return yaml.safe_load(DATA.joinpath(*folder.split('/'), f'{name}.yaml').read_text(encoding='utf-8'))
+
+
+def _names(folder: str) -> list[str]:
+    names = (entry.name for entry in DATA.joinpath(*folder.split('/')).iterdir())
+    return sorted(name.removesuffix('.yaml') for name in names if name.endswith('.yaml'))
+
+
+def _section(folder: str, name: str, section: str) -> Any:
+    data = _read(folder, name)
+    if not isinstance(data, dict) or list(data) != [section]:
+        raise DominionError(PARAMS_INVALID, path=section, found=data, expected=f'a mapping with the key {section}')
+    return data[section]
+
+
+def _entries(section: str) -> dict[str, Any]:
+    entries = {}
+    for name in _names(f'defaults/{section}'):
+        data = _section(f'defaults/{section}', name, section)
+        if not isinstance(data, dict) or list(data) != [name]:
+            path = f'{section}.{name}'
+            raise DominionError(PARAMS_INVALID, path=path, found=data, expected=f'a mapping with the key {name}')
+        entries[name] = data[name]
+    return entries
 
 
 def _defaults() -> dict[str, Any]:
-    tree = {}
-    for section in Params.model_fields:
-        data = _read('defaults', section)
-        if not isinstance(data, dict) or list(data) != [section]:
-            raise DominionError(PARAMS_INVALID, path=section, found=data, expected=f'a mapping with the key {section}')
-        tree[section] = data[section]
-    return tree
+    return {
+        section: _entries(section) if section in SPLIT else _section('defaults', section, section)
+        for section in Params.model_fields
+    }
 
 
 def presets() -> list[str]:
-    names = (entry.name for entry in DATA.joinpath('presets').iterdir())
-    return sorted(name.removesuffix('.yaml') for name in names if name.endswith('.yaml'))
+    return _names('presets')
 
 
 def _resolve(tree: dict[str, Any]) -> Params:

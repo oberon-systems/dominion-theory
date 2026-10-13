@@ -1,3 +1,5 @@
 eras:
   band:
     parts_per_tick: 1
+    cell_km: 10
+    properties: [water, food, threat, passability]

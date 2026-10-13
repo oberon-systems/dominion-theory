@@ -89,7 +89,7 @@ def test_override_is_laid_over_the_preset() -> None:
 
 
 def test_override_reaches_a_list_and_a_section() -> None:
-    params = load_params(overrides={'time.day_parts': ['day', 'night'], 'eras.band': {'parts_per_tick': 2}})
+    params = load_params(overrides={'time.day_parts': ['day', 'night'], 'eras.band.parts_per_tick': 2})
 
     assert params.time.day_parts == ('day', 'night')
     assert params.eras.band.parts_per_tick == 2
@@ -98,7 +98,7 @@ def test_override_reaches_a_list_and_a_section() -> None:
 @pytest.mark.parametrize(
     ('path', 'found', 'expected'),
     [
-        ('units.band.population.start', 'units', 'one of eras, planet, time'),
+        ('units.band.population.start', 'units', 'one of biomes, eras, planet, time'),
         ('time.seasons.monsoon.months', 'monsoon', 'one of spring, summer, autumn, winter'),
         ('time.day_parts.9', '9', 'one of 0, 1, 2, 3, 4'),
         ('time.days_per_month.alpha', 'alpha', 'no name below a value'),
@@ -114,7 +114,7 @@ def test_unknown_path_is_refused_with_its_path(path: str, found: str, expected: 
         ('time.days_per_month', 'ten', 'time.days_per_month'),
         ('time.days_per_month', 0, 'time.days_per_month'),
         ('time.seasons.winter', {'name': 'winter', 'months': 3, 'snow': 1}, 'time.seasons.winter.snow'),
-        ('eras.band', {'parts_per_tick': 1, 'cell': 1}, 'eras.band.cell'),
+        ('eras.band', {'parts_per_tick': 1, 'cell_km': 10, 'properties': ['food'], 'cell': 1}, 'eras.band.cell'),
         ('time.day_parts', ['Morning'], 'time.day_parts.0'),
     ],
 )

@@ -7,25 +7,18 @@ from dominion_theory.content.loader import PRESET_NOT_FOUND
 from dominion_theory.content.model import PARAMS_INVALID
 from dominion_theory.core.errors import DominionError
 from dominion_theory.db.profiles import LOCALE_UNKNOWN, LOCALES, PROFILE_NOT_FOUND
-from dominion_theory.engine import EVENTS, REASONS
-from dominion_theory.engine.band import STATES
+from dominion_theory.engine import EVENTS, REASONS, council
+from dominion_theory.engine.band import DIRECTIONS, STATES
+from dominion_theory.engine.commands import MOVE, PROPOSALS
 from dominion_theory.engine.events import STATE
 from dominion_theory.i18n import DATE, LANGUAGES, catalogue
 from dominion_theory.runner import ERRORS
 
-DIRECTIONS = ('north', 'north-east', 'east', 'south-east', 'south', 'south-west', 'west', 'north-west')
-
 # Stated by docs/api/commands.md and docs/api/protocol.md, declared by no code yet.
 SPECIFIED: set[str] = {
-    'refused-council-too-soon',
-    'refused-no-such-direction',
-    'refused-seat-banished',
-    'proposal-rest',
-    'proposal-stay-and-gather',
     'error-request-unreadable',
     'error-command-invalid',
     'people-lost',
-    *(f'proposal-move-{direction}' for direction in DIRECTIONS),
 }
 
 
@@ -59,6 +52,8 @@ def in_use() -> set[str]:
     names |= {f'resource-{resource}' for resource in params.resources}
     names |= {f'{STATE}{state}' for state in STATES}
     names |= {f'encounter-{kind}' for kind in params.encounters.kinds}
+    names |= {council.key({'kind': kind}) for kind in PROPOSALS if kind != MOVE}
+    names |= {council.key({'kind': MOVE, 'towards': towards}) for towards in DIRECTIONS}
     errors = {*ERRORS, PRESET_NOT_FOUND, PARAMS_INVALID, LOCALE_UNKNOWN, PROFILE_NOT_FOUND}
     return {*EVENTS, *REASONS, DATE} | errors | names | SPECIFIED
 

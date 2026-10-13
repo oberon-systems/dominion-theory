@@ -8,3 +8,22 @@ proposal-move-west = идём туда, где садится солнце
 proposal-move-north-west = идём между закатом и неподвижной звездой
 proposal-rest = отдыхаем здесь
 proposal-stay-and-gather = остаёмся: нам не хватает еды
+
+council-accepted = Совет согласился: { $proposal }. За — { NUMBER($yes, maximumFractionDigits: 1) } голосов из { NUMBER($all, maximumFractionDigits: 1) }.
+council-declined = Совет не согласился: { $proposal }. За — лишь { NUMBER($yes, maximumFractionDigits: 1) } голосов из { NUMBER($all, maximumFractionDigits: 1) }. Ваш вес теперь { NUMBER($status, maximumFractionDigits: 0) }.
+proposal-worked = Всё вышло хорошо: { $proposal }. Ваш вес теперь { NUMBER($status, maximumFractionDigits: 0) }.
+proposal-failed =
+    { $lost ->
+        [0] Вышло плохо: { $proposal }. Ваш вес теперь { NUMBER($status, maximumFractionDigits: 0) }.
+        [one] Вышло плохо: { $proposal }; погиб { $lost } человек. Ваш вес теперь { NUMBER($status, maximumFractionDigits: 0) }.
+        [few] Вышло плохо: { $proposal }; погибли { $lost } человека. Ваш вес теперь { NUMBER($status, maximumFractionDigits: 0) }.
+       *[many] Вышло плохо: { $proposal }; погибло { $lost } человек. Ваш вес теперь { NUMBER($status, maximumFractionDigits: 0) }.
+    }
+proposal-disaster =
+    { $lost ->
+        [one] Беда: { $proposal }; погиб { $lost } человек. Ваш вес теперь { NUMBER($status, maximumFractionDigits: 0) }.
+        [few] Беда: { $proposal }; погибли { $lost } человека. Ваш вес теперь { NUMBER($status, maximumFractionDigits: 0) }.
+       *[many] Беда: { $proposal }; погибло { $lost } человек. Ваш вес теперь { NUMBER($status, maximumFractionDigits: 0) }.
+    }
+intent-ended = Пути нет, община отступилась: { $proposal }.
+seat-banished = Община изгнала вас. Ваш голос больше не слышен.

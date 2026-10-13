@@ -202,3 +202,23 @@ def test_a_year_alone_gives_the_same_hashes_twice(params: Params) -> None:
 
     assert [first.step().hash for _ in range(500)] == [second.step().hash for _ in range(500)]
     assert first.tick == 500
+
+
+@pytest.mark.parametrize(
+    ('towards', 'beside'),
+    [
+        ('north', ('north-east', 'north-west')),
+        ('east', ('south-east', 'north-east')),
+        ('north-west', ('north', 'west')),
+    ],
+)
+def test_the_directions_beside_one_go_clockwise_first(towards: str, beside: tuple[str, str]) -> None:
+    assert decisions.beside(towards) == beside
+
+
+def test_stores_last_for_days_and_for_ever_when_nobody_eats() -> None:
+    fasting = load_params(overrides={**SMALL, 'units.band.consumption_per_day.forage': 0.0})
+    band = held({}, forage=22.5, water=30.0)
+
+    assert decisions.held_days(load_params(overrides=SMALL), band, 'food') == 1.5
+    assert decisions.held_days(fasting, band, 'food') == float('inf')

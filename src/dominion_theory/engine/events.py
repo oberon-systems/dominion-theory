@@ -16,9 +16,20 @@ PEOPLE_LOST = 'people-lost'
 PEOPLE_BORN = 'people-born'
 BAND_DIED = 'band-died'
 ENCOUNTER = 'encounter'
+COUNCIL_ACCEPTED = 'council-accepted'
+COUNCIL_DECLINED = 'council-declined'
+PROPOSAL_WORKED = 'proposal-worked'
+PROPOSAL_FAILED = 'proposal-failed'
+PROPOSAL_DISASTER = 'proposal-disaster'
+INTENT_ENDED = 'intent-ended'
+SEAT_BANISHED = 'seat-banished'
 
 REFUSED_UNKNOWN_COMMAND = 'refused-unknown-command'
 REFUSED_UNKNOWN_SEAT = 'refused-unknown-seat'
+REFUSED_COUNCIL_TOO_SOON = 'refused-council-too-soon'
+REFUSED_PROPOSAL_PENDING = 'refused-proposal-pending'
+REFUSED_NO_SUCH_DIRECTION = 'refused-no-such-direction'
+REFUSED_SEAT_BANISHED = 'refused-seat-banished'
 
 EVENTS: dict[str, tuple[str, ...]] = {
     COMMAND_ACCEPTED: ('id',),
@@ -33,11 +44,26 @@ EVENTS: dict[str, tuple[str, ...]] = {
     PEOPLE_BORN: ('count',),
     BAND_DIED: (),
     ENCOUNTER: ('kind', 'lost'),
+    COUNCIL_ACCEPTED: ('proposal', 'yes', 'all'),
+    COUNCIL_DECLINED: ('proposal', 'yes', 'all', 'status'),
+    PROPOSAL_WORKED: ('proposal', 'status'),
+    PROPOSAL_FAILED: ('proposal', 'lost', 'status'),
+    PROPOSAL_DISASTER: ('proposal', 'lost', 'status'),
+    INTENT_ENDED: ('proposal',),
+    SEAT_BANISHED: (),
 }
 
-REASONS: tuple[str, ...] = (REFUSED_UNKNOWN_COMMAND, REFUSED_UNKNOWN_SEAT)
+REASONS: tuple[str, ...] = (
+    REFUSED_UNKNOWN_COMMAND,
+    REFUSED_UNKNOWN_SEAT,
+    REFUSED_COUNCIL_TOO_SOON,
+    REFUSED_PROPOSAL_PENDING,
+    REFUSED_NO_SUCH_DIRECTION,
+    REFUSED_SEAT_BANISHED,
+)
 STATE = 'state-'
 KIND = 'encounter-'
+PROPOSAL = 'proposal-'
 
 
 @dataclass(frozen=True)

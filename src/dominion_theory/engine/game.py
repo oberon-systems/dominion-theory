@@ -10,14 +10,14 @@ from typing import Any, Self
 import numpy as np
 from numpy.typing import NDArray
 
-from ..content import Params, Property
+from ..content import Duration, Params, Property
 from ..planet import Planet, biome_names, place
 from . import band as bands
-from . import decisions, encounters
+from . import council, decisions, encounters
 from .band import Action, Band
 from .cells import Cells, Place
 from .clock import Clock, Date
-from .commands import BUILT, Command
+from .commands import BUILT, CALL_COUNCIL, MOVE, Command
 from .counters import Counters
 from .events import (
     BAND_DIED,
@@ -25,24 +25,37 @@ from .events import (
     BAND_STATE_ENDED,
     COMMAND_ACCEPTED,
     COMMAND_REFUSED,
+    COUNCIL_ACCEPTED,
+    COUNCIL_DECLINED,
     ENCOUNTER,
+    INTENT_ENDED,
     KIND,
     PEOPLE_BORN,
     PEOPLE_LOST,
+    PROPOSAL_DISASTER,
+    PROPOSAL_FAILED,
+    PROPOSAL_WORKED,
+    REFUSED_COUNCIL_TOO_SOON,
+    REFUSED_NO_SUCH_DIRECTION,
+    REFUSED_PROPOSAL_PENDING,
+    REFUSED_SEAT_BANISHED,
     REFUSED_UNKNOWN_COMMAND,
     REFUSED_UNKNOWN_SEAT,
+    SEAT_BANISHED,
     STATE,
     Event,
 )
 from .hashing import digest
 from .streams import Streams
 
-SNAPSHOT_FORMAT = 3
+SNAPSHOT_FORMAT = 4
 DIED = 'died'
+BANISHED = 'banished'
 ERA = 'band'
 SEATS: tuple[str, ...] = ('player',)
 UNIT_COLUMNS: tuple[str, ...] = bands.COLUMNS
 TOTALS = ('moves', 'gathers', 'camps', 'deaths', 'encounters')
+VERDICTS = {council.WORKED: PROPOSAL_WORKED, council.FAILED: PROPOSAL_FAILED, council.DISASTER: PROPOSAL_DISASTER}
 
 # The order is part of the rules: docs/architecture/overview.md, One tick.
 PHASES = ('commands', 'councils', 'decisions', 'actions', 'world', 'calendar', 'report')
@@ -84,6 +97,8 @@ class _Tick:
     gone: list[int] = field(default_factory=list)
     shown: dict[str, Any] | None = None
     action: Action | None = None
+    councils: list[council.Proposal] = field(default_factory=list)
+    seat: dict[str, Any] = field(default_factory=dict)
 
 
 def _decides(game: Game, band: Band) -> Action:
@@ -124,7 +139,10 @@ class Game:
         self._pending: list[tuple[int, Command]] = []
         self._sequence: dict[str, int] = {}
         self._seen: set[str] = set()
-        self._totals = {'commands_accepted': 0, 'commands_refused': 0, **dict.fromkeys(TOTALS, 0)}
+        self.status = params.council.status.start
+        self.council_from = 0
+        self.judgement: dict[str, Any] | None = None
+        self._totals = {'commands_accepted': 0, 'commands_refused': 0, **dict.fromkeys(TOTALS, 0), 'councils': 0}
         self.counters = Counters()
         for name in ('commands_accepted', 'commands_refused'):
             self.counters.declare(name, partial(self._totals.__getitem__, name))
@@ -134,6 +152,8 @@ class Game:
             self.counters.declare(name, partial(self._held, name))
         for name in TOTALS:
             self.counters.declare(name, partial(self._totals.__getitem__, name))
+        self.counters.declare('status', lambda: self.status)
+        self.counters.declare('councils', partial(self._totals.__getitem__, 'councils'))
 
     @classmethod
     def create(cls, seed: int, params: Params) -> Self:
@@ -162,6 +182,8 @@ class Game:
             next((Band.read(unit) for unit in snapshot['units']), None),
         )
         game.over, game.outcome = snapshot['over'], snapshot['outcome']
+        game.status, game.council_from = snapshot['seat']['status'], snapshot['seat']['council_from']
+        game.judgement = snapshot['judgement']
         commands = snapshot['commands']
         game.era = snapshot['era']
         game.tick = snapshot['tick']
@@ -175,6 +197,18 @@ class Game:
     @property
     def date(self) -> Date:
         return self.clock.date
+
+    @property
+    def seat(self) -> dict[str, Any]:
+        """
+        The seat as a client sees it: docs/game/01_bands.md, What the API shows.
+        """
+        unit = None if self.band is None else self.band.id
+        return {'name': self.seats[0], 'unit': unit, 'status': self.status, 'council_from': self.council_from}
+
+    @property
+    def banished(self) -> bool:
+        return self.status <= 0
 
     @property
     def stocked(self) -> tuple[str, ...]:
@@ -285,6 +319,8 @@ class Game:
             'units': [] if self.band is None else [self.band.plain()],
             'over': self.over,
             'outcome': self.outcome,
+            'seat': self.seat,
+            'judgement': self.judgement,
         }
 
     def _held(self, prop: str) -> float:
@@ -335,11 +371,32 @@ class Game:
                 shares[name] = pace * era.parts_per_tick / self.clock.to_parts(recovery)
         return shares
 
+    def _ticks(self, duration: Duration) -> int:
+        return -(-self.params.parts(duration) // self.params.eras[self.era].parts_per_tick)
+
     def _judge(self, command: Command) -> str | None:
         if command.seat not in self.seats:
             return REFUSED_UNKNOWN_SEAT
+        if self.banished:
+            return REFUSED_SEAT_BANISHED
         if command.kind not in BUILT:
             return REFUSED_UNKNOWN_COMMAND
+        if command.kind == CALL_COUNCIL:
+            return self._refusal(council.proposal(command.fields))
+        return None
+
+    def _refusal(self, proposal: council.Proposal | None) -> str | None:
+        """
+        Why a council cannot be called now, in the order of docs/game/indirect_control.md.
+        """
+        if proposal is None or self.band is None:
+            return REFUSED_UNKNOWN_COMMAND
+        if self.tick < self.council_from:
+            return REFUSED_COUNCIL_TOO_SOON
+        if self.judgement is not None:
+            return REFUSED_PROPOSAL_PENDING
+        if proposal['kind'] == MOVE and decisions.way(self.params, self.band, proposal['towards'], self.era) is None:
+            return REFUSED_NO_SUCH_DIRECTION
         return None
 
     def _commands(self, tick: _Tick) -> None:
@@ -348,18 +405,59 @@ class Game:
             if reason is None:
                 self._totals['commands_accepted'] += 1
                 tick.events.append(Event(COMMAND_ACCEPTED, {'id': command.id}))
+                if command.kind == CALL_COUNCIL:
+                    self._call(tick, command)
             else:
                 self._totals['commands_refused'] += 1
                 tick.events.append(Event(COMMAND_REFUSED, {'id': command.id, 'reason': reason}))
         self._pending.clear()
 
+    def _call(self, tick: _Tick, command: Command) -> None:
+        proposal = council.proposal(command.fields)
+        if proposal is not None:
+            tick.councils.append(proposal)
+        self._totals['councils'] += 1
+        self.council_from = self.tick + self._ticks(self.params.council.min_gap)
+        tick.seat['council_from'] = self.council_from
+
     def _councils(self, tick: _Tick) -> None:
-        pass
+        band = self.band
+        if band is None:
+            return
+        tick.shown = band.shown(self.window.scale)
+        for proposal in tick.councils:
+            yes, every = council.vote(self.params, band, proposal, self.status, self.date.part, self.era)
+            values = {'proposal': council.key(proposal), 'yes': yes, 'all': every}
+            if yes > every / 2:
+                tick.events.append(Event(COUNCIL_ACCEPTED, values))
+                until = self.tick + self._ticks(council.intent(self.params, proposal))
+                band.intent = {'proposal': proposal, 'until': until}
+                self.judgement = {
+                    'proposal': proposal,
+                    'closes': self.tick + self._ticks(council.window(self.params, proposal)),
+                    'population': band.population,
+                    'supply': council.supply(self.params, band),
+                    'lost': {},
+                }
+            else:
+                self._status(tick, self.params.council.status.declined)
+                tick.events.append(Event(COUNCIL_DECLINED, {**values, 'status': self.status}))
+                self._banish(tick)
 
     def _decisions(self, tick: _Tick) -> None:
-        if self.band is not None:
-            tick.shown = self.band.shown(self.window.scale)
-            tick.action = self.choose(self, self.band)
+        band = self.band
+        if band is None:
+            return
+        if band.intent is not None:
+            proposal = band.intent['proposal']
+            held = decisions.intended(self.params, band, proposal, self.date.part, self.era)
+            if held is not None:
+                band.wander, band.reason = None, decisions.reason(held)
+                tick.action = held.action
+                return
+            band.intent = None
+            tick.events.append(Event(INTENT_ENDED, {'proposal': council.key(proposal)}))
+        tick.action = self.choose(self, band)
 
     def _actions(self, tick: _Tick) -> None:
         band = self.band
@@ -386,6 +484,37 @@ class Game:
             tick.events.append(Event(BAND_DIED, {}))
             tick.gone.append(band.id)
             self.band, self.over, self.outcome = None, True, DIED
+            return
+        if band.intent is not None and self.tick + 1 >= band.intent['until']:
+            band.intent = None
+        if self.judgement is not None and self.tick + 1 >= self.judgement['closes']:
+            self._verdict(tick, band, self.judgement)
+
+    def _lost(self, cause: str, count: int) -> None:
+        if self.judgement is not None:
+            lost = self.judgement['lost']
+            lost[cause] = lost.get(cause, 0) + count
+
+    def _verdict(self, tick: _Tick, band: Band, judgement: dict[str, Any]) -> None:
+        self.judgement = None
+        proposal = judgement['proposal']
+        found = council.verdict(self.params, judgement, council.supply(self.params, band))
+        self._status(tick, council.amount(self.params, proposal, found))
+        values: dict[str, Any] = {'proposal': council.key(proposal), 'status': self.status}
+        if found != council.WORKED:
+            values['lost'] = sum(judgement['lost'].values())
+        tick.events.append(Event(VERDICTS[found], values))
+        self._banish(tick)
+
+    def _status(self, tick: _Tick, amount: float) -> None:
+        status = council.held(self.status + amount)
+        if status != self.status:
+            self.status = tick.seat['status'] = status
+
+    def _banish(self, tick: _Tick) -> None:
+        if self.banished and self.outcome != BANISHED:
+            tick.events.append(Event(SEAT_BANISHED, {}))
+            self.over, self.outcome = True, BANISHED
 
     def _encounter(self, tick: _Tick, band: Band) -> None:
         threat = self.value('threat', band.x, band.y)
@@ -400,6 +529,7 @@ class Game:
         if lost:
             band.population -= lost
             self._totals['deaths'] += lost
+            self._lost(bands.ENCOUNTER, lost)
             tick.events.append(Event(PEOPLE_LOST, {'count': lost, 'cause': bands.ENCOUNTER}))
 
     def _day_ends(self, tick: _Tick, band: Band) -> None:
@@ -407,6 +537,7 @@ class Game:
         self._states(tick, began, ended)
         for cause, count in lost:
             self._totals['deaths'] += count
+            self._lost(cause, count)
             tick.events.append(Event(PEOPLE_LOST, {'count': count, 'cause': cause}))
         born = bands.grow(self.params, band)
         if born:
@@ -429,5 +560,5 @@ class Game:
             shown = self.band.shown(self.window.scale)
             units = [shown] if shown != tick.shown else []
             tick.units.append(self.band.row(self.params))
-        tick.changes.update({'units': units, 'gone': tick.gone, 'cells': cells, 'known': tick.known, 'seat': {}})
+        tick.changes.update({'units': units, 'gone': tick.gone, 'cells': cells, 'known': tick.known, 'seat': tick.seat})
         tick.counters.extend(self.counters.row())

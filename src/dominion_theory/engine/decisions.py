@@ -2,11 +2,13 @@
 How a band decides: needs scored against what it knows, as docs/game/decisions.md states it.
 """
 
+import math
 from collections.abc import Callable, Collection
 from dataclasses import dataclass
 from typing import Any
 
 from ..content import Params
+from . import commands
 from .band import (
     CAMP,
     DIRECTIONS,
@@ -31,6 +33,12 @@ WANDER = 'wander'
 # The need a property of a cell answers, and the state that doubles it.
 NEEDS: dict[str, tuple[str, str]] = {'food': (HUNGER, STARVATION), 'water': (THIRST, THIRST)}
 EFFORT = 4.0
+# What a band may still do under the intent of each proposal: docs/game/decisions.md, Under an intent.
+NARROWED: dict[str, frozenset[str]] = {
+    commands.MOVE: frozenset({MOVE, CAMP}),
+    commands.REST: frozenset({CAMP}),
+    commands.STAY: frozenset({GATHER, CAMP}),
+}
 
 
 @dataclass(frozen=True)
@@ -49,14 +57,21 @@ def needs(params: Params, band: Band, part: str) -> dict[str, float]:
     comfort = params.parts(rules.decisions.comfort) / params.time.parts_per_day
     found: dict[str, float] = {}
     for prop, (need, state) in NEEDS.items():
-        resources = [name for name, held in params.resources.items() if held.property == prop]
-        eaten = band.population * sum(rules.consumption_per_day.get(name, 0.0) for name in resources)
-        days = sum(band.held(name) for name in resources) / eaten if eaten > 0 else comfort
+        days = min(held_days(params, band, prop), comfort)
         wanted = 1.0 - days / comfort if comfort > 0 else 0.0
         found[need] = _held(wanted * (2.0 if state in band.states else 1.0))
     rest = band.fatigue + (rules.decisions.night if part in rules.decisions.night_parts else 0.0)
     found[REST] = _held(rest * (2.0 if TIREDNESS in band.states else 1.0))
     return found
+
+
+def held_days(params: Params, band: Band, prop: str) -> float:
+    """
+    The days the stores of a property last the band; endless when nobody eats it.
+    """
+    resources = [name for name, held in params.resources.items() if held.property == prop]
+    eaten = band.population * sum(params.units.band.consumption_per_day.get(name, 0.0) for name in resources)
+    return sum(band.held(name) for name in resources) / eaten if eaten > 0 else math.inf
 
 
 def _held(value: float) -> float:
@@ -154,6 +169,39 @@ def _pull(
             if best is None or value > best[0]:
                 best = value, need, at
     return best or (0.0, REST, target)
+
+
+def beside(towards: str) -> tuple[str, str]:
+    """
+    The two directions next to one, the clockwise one first.
+    """
+    names = list(DIRECTIONS)
+    at = names.index(towards)
+    return names[(at + 1) % len(names)], names[(at - 1) % len(names)]
+
+
+def way(params: Params, band: Band, towards: str, era: str) -> str | None:
+    """
+    The direction a band sent somewhere takes: that one, else one beside it, as far as the band knows.
+    """
+    for name in (towards, *beside(towards)):
+        dx, dy = DIRECTIONS[name]
+        if reachable(params, band, (band.x + dx, band.y + dy), era):
+            return name
+    return None
+
+
+def intended(params: Params, band: Band, proposal: dict[str, Any], part: str, era: str) -> Scored | None:
+    """
+    The best of what an intent leaves the band; None when the way of a move is closed.
+    """
+    towards = None
+    if proposal['kind'] == commands.MOVE:
+        towards = way(params, band, proposal['towards'], era)
+        if towards is None:
+            return None
+    found = options(params, band, part, era, NARROWED[proposal['kind']], None if towards is None else {towards})
+    return max(found, key=lambda held: held.score)
 
 
 def decide(

@@ -83,13 +83,15 @@ def test_a_repeated_command_id_is_taken_once(client: TestClient, new_game: NewGa
 def test_a_command_the_rules_refuse_is_not_an_error_of_the_api(client: TestClient, new_game: NewGame) -> None:
     game = new_game()['id']
 
+    nowhere = {'id': 'c-1', 'kind': 'call-council', 'proposal': {'kind': 'move', 'towards': 'east'}}
+
     with client.websocket_connect(f'{PREFIX}/games/{game}/updates?after=0') as stream:
-        answer = client.post(f'{PREFIX}/games/{game}/commands', json=REST)
+        answer = client.post(f'{PREFIX}/games/{game}/commands', json=nowhere)
         update = stream.receive_json()
 
     assert answer.json() == {'id': 'c-1', 'taken': True}
     assert update['events'] == [
-        {'key': 'command-refused', 'values': {'id': 'c-1', 'reason': 'refused-unknown-command'}}
+        {'key': 'command-refused', 'values': {'id': 'c-1', 'reason': 'refused-no-such-direction'}}
     ]
 
 

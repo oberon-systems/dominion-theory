@@ -2,8 +2,8 @@ from dominion_theory.engine import CallCouncil, Command, Pass
 from dominion_theory.engine.commands import BUILT
 
 
-def test_only_pass_is_built() -> None:
-    assert {'pass'} == BUILT
+def test_pass_and_the_council_are_built() -> None:
+    assert {'pass', 'call-council'} == BUILT
 
 
 def test_envelope_is_the_id_the_kind_and_the_rest() -> None:

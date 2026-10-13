@@ -8,9 +8,14 @@ from typing import Any
 
 PASS = 'pass'  # noqa: S105
 CALL_COUNCIL = 'call-council'
+MOVE = 'move'
+REST = 'rest'
+STAY = 'stay-and-gather'
 
-BUILT = frozenset({PASS})
+BUILT = frozenset({PASS, CALL_COUNCIL})
 ENVELOPE = ('id', 'kind')
+# The fields of a proposal besides its kind.
+PROPOSALS: dict[str, tuple[str, ...]] = {MOVE: ('towards',), REST: (), STAY: ()}
 
 
 @dataclass(frozen=True, kw_only=True)

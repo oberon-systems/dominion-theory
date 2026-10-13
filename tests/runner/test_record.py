@@ -35,8 +35,10 @@ COUNTERS = (
     'camps',
     'deaths',
     'encounters',
+    'status',
+    'councils',
 )
-COUNTED = {'commands_refused': 1, 'population': 15, 'food': 15.0, 'water': 15.0, 'camps': 1}
+COUNTED = {'commands_refused': 1, 'population': 15, 'food': 15.0, 'water': 15.0, 'camps': 1, 'status': 50.0}
 DAY = 5
 
 

@@ -18,6 +18,7 @@ planet:
     belt: 0.8
     inland: 0.6
     inland_km: 800
+    heights: 0.0
     belts:
       - {latitude: 0.0, wet: 1.0}
       - {latitude: 0.12, wet: 0.85}
@@ -27,7 +28,7 @@ planet:
       - {latitude: 0.65, wet: 0.6}
       - {latitude: 0.85, wet: 0.3}
       - {latitude: 1.0, wet: 0.2}
-  temperature: {lapse: 0.25, noise: 0.05, scale_km: 1000}
+  temperature: {lapse: 0.25, noise: 0.05, scale_km: 1000, warmth: 0.0}
   rivers:
     share: 0.043
     great: 0.02

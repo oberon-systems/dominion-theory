@@ -258,7 +258,15 @@ piece outlined in red, is another target and takes the same options.
 
 ```bash
 make planet
-make planet MAP='--seed 42 --preset pangea'
+make planet MAP='--seed 42'
+```
+
+A preset is named after a dash, for the planet and for the window alike.
+
+```bash
+make planet-dune
+make planet-pangea MAP='--seed 42'
+make map-archipelago
 ```
 
 Options go through `MAP`. With `--out` the picture is written to a file
@@ -318,7 +326,8 @@ make maps PRESETS=
 
 The default planet and every preset of `PRESETS` are drawn for every seed
 of `SEEDS`. The presets
-`pangea`, `continents` and `archipelago` are the types of planet;
+`pangea`, `continents` and `archipelago` are the types of planet and
+`dune` is a desert world;
 [Generation](../biomes/generation.md#continents) tells what they change.
 An empty `PRESETS` draws the default alone.
 

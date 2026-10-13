@@ -95,9 +95,26 @@ def test_moisture_follows_the_belts_of_latitude_and_dries_inland(params: Params)
     shore = np.zeros(5)
     noise = made.moisture(x, y)
 
-    assert (made.damp(x, y, shore) - noise).tolist() == pytest.approx([2.0, 0.0, -2.0, 0.0, -2.0])
-    assert (made.damp(x, y, shore + wet.inland_km) - made.damp(x, y, shore)).tolist() == pytest.approx([-1.5] * 5)
-    assert (made.damp(x, y, shore + np.inf) - made.damp(x, y, shore)).tolist() == pytest.approx([-3.0] * 5)
+    low = np.zeros(5)
+    assert (made.damp(x, y, shore, low) - noise).tolist() == pytest.approx([2.0, 0.0, -2.0, 0.0, -2.0])
+    dried = made.damp(x, y, shore + wet.inland_km, low) - made.damp(x, y, shore, low)
+    assert dried.tolist() == pytest.approx([-1.5] * 5)
+    assert (made.damp(x, y, shore + np.inf, low) - made.damp(x, y, shore, low)).tolist() == pytest.approx([-3.0] * 5)
+
+
+def test_heights_catch_moisture_and_belts_can_tell_north_from_south(params: Params) -> None:
+    planet = params.planet
+    belts = [{'latitude': -1.0, 'wet': 0.0}, {'latitude': 1.0, 'wet': 1.0}]
+    given = {**planet.moisture.model_dump(), 'belts': belts, 'belt': 1.0, 'inland': 0.0, 'heights': 2.0}
+    wet = planet.moisture.model_validate(given)
+    made = layers(7, planet.circumference_km, planet.elevation, planet.relief, wet, planet.temperature)
+    x = np.full(3, 123.0)
+    y = np.array([0.0, 1000.0, 2000.0])
+    none = np.zeros(3)
+    noise = made.moisture(x, y)
+
+    assert (made.damp(x, y, none, none) - noise).tolist() == pytest.approx([1.0, 0.0, -1.0])
+    assert (made.damp(x, y, none, np.array([0.5, 1.0, -1.0])) - made.damp(x, y, none, none)).tolist() == [1.0, 2.0, 0.0]
 
 
 def test_temperature_falls_to_the_poles_and_with_height(params: Params) -> None:
@@ -111,3 +128,7 @@ def test_temperature_falls_to_the_poles_and_with_height(params: Params) -> None:
     assert made.temperature(x, y, np.ones(3)).tolist() == [0.0, 0.5 - calm.lapse, 1.0 - calm.lapse]
     assert made.temperature(x, y, -np.ones(3)).tolist() == [0.0, 0.5, 1.0]
     assert np.array_equal(made.temperature(x, 2000.0 - y, np.zeros(3)), made.temperature(x, y, np.zeros(3)))
+
+    warmer = calm.model_copy(update={'warmth': 0.25})
+    warm = layers(7, planet.circumference_km, planet.elevation, planet.relief, planet.moisture, warmer)
+    assert warm.temperature(x, y, np.zeros(3)).tolist() == [0.25, 0.75, 1.0]

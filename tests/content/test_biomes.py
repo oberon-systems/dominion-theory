@@ -87,6 +87,7 @@ def test_planet_is_the_one_of_the_document() -> None:
     assert planet.temperature.lapse == 0.25
     moisture = planet.moisture
     assert (moisture.scale_km, moisture.belt, moisture.inland, moisture.inland_km) == (1500, 0.8, 0.6, 800)
+    assert moisture.heights == 0.0
     assert [(held.latitude, held.wet) for held in moisture.belts][:3] == [(0.0, 1.0), (0.12, 0.85), (0.27, 0.1)]
     rivers = planet.rivers
     assert (rivers.share, rivers.great, rivers.ocean) == (0.043, 0.02, 0.02)

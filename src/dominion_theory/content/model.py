@@ -260,10 +260,11 @@ class Elevation(Layer):
 
 class Belt(Node):
     """
-    How wet a latitude is: 0 at the equator, 1 at a pole, the two halves of the planet alike.
+    How wet a latitude is: 0 at the equator, 1 at the north pole. With no belt south of the equator
+    the two halves of the planet are alike; a latitude below 0, down to -1 at the south pole, tells them apart.
     """
 
-    latitude: Share
+    latitude: Level
     wet: Share
 
 
@@ -275,13 +276,14 @@ class Moisture(Layer):
     belt: Factor
     inland: Factor
     inland_km: Count
+    heights: Factor
     belts: tuple[Belt, ...] = Field(min_length=1)
 
     @model_validator(mode='after')
     def _northward(self) -> Self:
         latitudes = [held.latitude for held in self.belts]
         if any(first >= second for first, second in zip(latitudes, latitudes[1:], strict=False)):
-            raise ValueError('belts from the equator to the pole, no latitude twice')
+            raise ValueError('belts from south to north, no latitude twice')
         return self
 
 
@@ -289,6 +291,7 @@ class Temperature(Node):
     lapse: Share
     noise: Share
     scale_km: Count
+    warmth: Level
 
 
 class Rivers(Node):

@@ -91,7 +91,7 @@ class Skeleton:
         return {
             'elevation': elevation,
             'relief': _share(self.layers.relief(x, y), self.reliefs),
-            'moisture': _share(self.layers.damp(x, y, self.inland(x, y)), self.moistures),
+            'moisture': _share(self.layers.damp(x, y, self.inland(x, y), elevation), self.moistures),
             'temperature': self.layers.temperature(x, y, elevation),
         }
 
@@ -173,7 +173,7 @@ def skeleton(
     table = _heights(np.sort(heights, axis=None), under)
     land = heights > 0
     away = _inland(land, float(skeleton_km))
-    moistures = made.damp(x, y, away)
+    moistures = made.damp(x, y, away, np.interp(heights, *table))
     # A planet with no land has no land to take shares of, so the whole of it stands in.
     measured = land if land.any() else np.ones_like(land)
     return Skeleton(

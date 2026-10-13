@@ -110,12 +110,14 @@ with no seam: every octave has a whole number of squares around, so the
 largest shapes are close to `scale_km` and not exactly it.
 
 ```text
-temperature = 1 - latitude - lapse * elevation + noise * belts
+temperature = 1 - latitude - lapse * elevation + noise * belts + warmth
 ```
 
 Latitude is 0 at the equator and 1 at a pole, elevation is the restated
 one and counts on land only, `belts` is one octave of noise from -1 to 1,
-and the result is held between 0 and 1.
+and the result is held between 0 and 1. `warmth` moves the whole planet:
+0 by default, above it a warmer world whose ice and snow draw back to
+the poles or go, below it a colder one.
 
 ___
 
@@ -145,6 +147,14 @@ a continent and in mid ocean, whatever the type of the planet.
 
 A count of 0 leaves the land to the noise alone.
 
+A preset can go further and make another world. `dune` is a planet of
+sand: a five-hundredth of it is sea, it is warm to the poles and has no ice or
+snow, and the desert takes all the land that hills and mountains leave.
+A handful of rivers run on the whole planet, none of them great, and
+lakes are as rare. The only green is along a river: its floodplain and
+its swamp are the oases. It changes numbers
+of the planet and the rule of one biome, and no code.
+
 ___
 
 ## Climate
@@ -154,6 +164,7 @@ alone. Three things add up to the moisture of a place.
 
 ```text
 moisture = noise + belt * (2 * wet of the latitude - 1) - inland * dried
+           + heights * elevation
 dried    = 1 - 0.5 ^ (distance from the sea / inland_km)
 ```
 
@@ -166,7 +177,15 @@ dried    = 1 - 0.5 ^ (distance from the sea / inland_km)
   and has lost half of `inland` at `inland_km`. The heart of a large
   continent is dry. The distance is measured on the skeleton, from every
   node under the sea, and read between nodes at a cell.
+- **Heights.** `heights` is how much wetter the highest land is than the
+  shore; 0, the default, leaves height out. With it rain falls by the
+  mountains.
 - **The noise** keeps a belt from running as a straight line.
+
+Belts run from the equator, latitude 0, to the north pole, latitude 1,
+and hold for the south as well. A list that names a latitude below 0,
+down to -1 at the south pole, tells north from south: one pole may then
+be wet and the other dry.
 
 The sum is restated as a share of land like the other layers, so a rule
 still reads "the driest 15 percent of land": the climate decides where
@@ -427,6 +446,7 @@ planet:
     belt: 0.8
     inland: 0.6
     inland_km: 800
+    heights: 0.0
     belts:
       - {latitude: 0.0, wet: 1.0}
       - {latitude: 0.12, wet: 0.85}
@@ -436,7 +456,7 @@ planet:
       - {latitude: 0.65, wet: 0.6}
       - {latitude: 0.85, wet: 0.3}
       - {latitude: 1.0, wet: 0.2}
-  temperature: {lapse: 0.25, noise: 0.05, scale_km: 1000}
+  temperature: {lapse: 0.25, noise: 0.05, scale_km: 1000, warmth: 0.0}
   rivers:
     share: 0.043
     great: 0.02

@@ -5,7 +5,7 @@ PYTHON  ?= python3.14
 VENV    ?= .venv
 PORT    ?= 8000
 SEEDS   ?= 1 2 3 4 5
-PRESETS ?= pangea continents archipelago
+PRESETS ?= pangea continents archipelago dune
 STAMP   := $(shell date +%Y%m%d-%H%M%S)
 MAPS    ?= maps/$(STAMP)
 MAPPED  := tests/planet/maps.json
@@ -20,7 +20,7 @@ export PRE_COMMIT_HOME := $(CURDIR)/.pre-commit
 
 .DEFAULT_GOAL := shell
 
-.PHONY: help install lint test run watch map planet maps clean shell
+.PHONY: help install lint test run watch map planet maps clean shell $(PRESETS:%=planet-%) $(PRESETS:%=map-%)
 
 help:  ## Show the available targets
 	@echo "$(PROJECT)"
@@ -28,6 +28,10 @@ help:  ## Show the available targets
 	@echo "Targets:"
 	@awk 'BEGIN {FS = ":.*## "} /^[a-z-]+:.*## / {printf "  %-10s %s\n", $$1, $$2}' \
 		$(MAKEFILE_LIST)
+	@for preset in $(PRESETS); do \
+		printf "  %-20s %s\n" "planet-$$preset" "Draw the whole planet of the preset $$preset"; \
+		printf "  %-20s %s\n" "map-$$preset" "Draw the first window of the preset $$preset"; \
+	done
 
 # A venv made through a symlink to a standalone interpreter cannot find its
 # standard library, so the interpreter is called by its resolved path.
@@ -67,6 +71,13 @@ map:  ## Draw the first window of a seed, in a window or into a file
 
 planet:  ## Draw the whole planet of a seed, with the first window outlined; takes MAP as map does
 	$(VENV)/bin/python -m dominion_theory.planet.tools --planet $(MAP)
+
+# One target for every preset of PRESETS: make planet-dune, make map-pangea MAP='--seed 42'.
+$(PRESETS:%=planet-%): planet-%:
+	$(VENV)/bin/python -m dominion_theory.planet.tools --planet --preset $* $(MAP)
+
+$(PRESETS:%=map-%): map-%:
+	$(VENV)/bin/python -m dominion_theory.planet.tools --preset $* $(MAP)
 
 # For tuning: make maps SEEDS='7 8' PRESETS= MAPS=maps/alpha MAP='--set planet.sea=0.5'
 maps:  ## Write the planet and the first window as pictures, timed: the default and every preset of PRESETS

@@ -1,0 +1,22 @@
+planet:
+  sea: 0.002
+  elevation:
+    continents: {count: 0}
+  temperature: {warmth: 0.5}
+  rivers:
+    share: 0.000125
+    great: 0.0
+    lakes: 0.01
+    lake_full: 0.25
+  window:
+    needs:
+      rivers: 0
+      biomes: {forest: 0.0}
+biomes:
+  mountain:
+    generation:
+      elevation: {min: 0.997}
+  desert:
+    generation:
+      moisture: {max: 1.0}
+      temperature: {min: 0.0}

@@ -84,21 +84,26 @@ class Layers:
     depth: float
     lapse: float
     noise: float
+    warmth: float
     latitudes: Floats
     wets: Floats
     belt: float
     inland: float
     inland_km: float
+    heights: float
 
-    def damp(self, x: Floats, y: Floats, away: Floats) -> Floats:
+    def damp(self, x: Floats, y: Floats, away: Floats, land: Floats) -> Floats:
         """
         How wet a place is before it is restated as a share: the noise, the belt of its latitude laid over it,
-        and the drying of land that lies away from the sea, half of it reached at inland_km.
+        the drying of land away from the sea, half of it reached at inland_km, and what heights catch;
+        land is the restated elevation. Belts that reach south of the equator tell north from south.
         """
         equator = self.circumference_km / 4
-        zone = np.interp(np.abs(y - equator) / equator, self.latitudes, self.wets)
+        north = (equator - y) / equator
+        zone = np.interp(north if self.latitudes[0] < 0 else np.abs(north), self.latitudes, self.wets)
         dried = 1.0 - 0.5 ** (away / self.inland_km)
-        wet: Floats = self.moisture(x, y) + self.belt * (2.0 * zone - 1.0) - self.inland * dried
+        caught = self.heights * np.clip(land, 0.0, 1.0)
+        wet: Floats = self.moisture(x, y) + self.belt * (2.0 * zone - 1.0) - self.inland * dried + caught
         return wet
 
     def height(self, x: Floats, y: Floats, sea: float, brim: float, span: float) -> Floats:
@@ -119,7 +124,7 @@ class Layers:
         """
         equator = self.circumference_km / 4
         latitude = np.abs(y - equator) / equator
-        raw = 1.0 - latitude - self.lapse * np.clip(land, 0.0, 1.0) + self.noise * self.belts(x, y)
+        raw = 1.0 - latitude - self.lapse * np.clip(land, 0.0, 1.0) + self.noise * self.belts(x, y) + self.warmth
         held: Floats = np.clip(raw, 0.0, 1.0)
         return held
 
@@ -156,9 +161,11 @@ def layers(
         depth=basins.depth,
         lapse=temperature.lapse,
         noise=temperature.noise,
+        warmth=temperature.warmth,
         latitudes=np.array([held.latitude for held in moisture.belts]),
         wets=np.array([held.wet for held in moisture.belts]),
         belt=moisture.belt,
         inland=moisture.inland,
         inland_km=float(moisture.inland_km),
+        heights=moisture.heights,
     )

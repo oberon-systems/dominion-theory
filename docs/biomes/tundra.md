@@ -18,7 +18,8 @@ both poles, and land that height has made as cold.
 | 30    | temperature up to 0.15 |
 
 It comes before outcrops, hills, desert and forest in the order, so cold
-decides first; only water and mountains win against it.
+decides first; only water, mountains and [snow](snow.md), which is colder
+still, win against it.
 
 ___
 

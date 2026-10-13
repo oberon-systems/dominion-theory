@@ -530,6 +530,12 @@ ___
   as well.
 - **The size of a lake** - a hollow of one node that is shallow gives a
   pond too small to see. Lakes that show stand in the basins.
+- **Green by a lake** - the layer `flow` follows rivers. A lake no river
+  runs through has bare shores, which shows on a desert planet.
+- **A delta is small** - an arm ends at the first water it meets, and a
+  cell of 10 km cannot show a web of channels.
+- **The first window is found late** on the default planet: its two
+  continents lie by the equator, and many tries fall into the ocean.
 - **The seam** - the first window keeps clear of it. A window that grows
   in stage 5 may have to cross it.
 - **The south** - a window in the southern half needs the seasons turned

@@ -13,12 +13,13 @@ ___
 
 ## Where it appears
 
-Water is first in the order, so nothing else can claim a cell below the
-sea level. By default 60 percent of the planet is water.
+Water takes every cell below the sea level that ice and shallows, which
+come before it, have left: the sea deeper than its shallowest 15 percent.
+By default 60 percent of the planet lies under the sea.
 
 | Order | Rule              |
 |-------|-------------------|
-| 10    | elevation below 0 |
+| 10    | elevation up to 0 |
 
 ___
 

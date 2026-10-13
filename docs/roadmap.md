@@ -289,9 +289,12 @@ biome, `docs/biomes/generation.md`. `docs/biomes.md` is folded in.
 **Done**: a fifth biome is added by one data file and one test. The same
 seed gives the same map, rivers included.
 
-Swamp was the proof: it arrived by its data file, its name in two
-catalogues, its document and one test. The numbers of the
-planet were tuned on maps drawn by the developer tool; see
+The stage is closed. Swamp was the proof: it arrived by its data file,
+its name in two catalogues, its document and one test, and eight more
+biomes followed the same way. Looking at drawn maps widened the stage:
+mountain ranges, lakes, rivers with beds and deltas, a climate, the count
+of continents and presets for other planets were built in it. The numbers
+were tuned on maps drawn by the developer tool; see
 [Setup](dev/setup.md#look-at-a-map).
 
 ___
@@ -489,6 +492,11 @@ How the map relates to the world, and how it changes from era to era.
 - **The planet is a continuous function** of the seed and planet
   coordinates, so any window at any cell size can be produced, and rivers
   are lines on the planet rather than chains of cells.
+- **The shape and the climate of a planet are parameters.** The count of
+  continents, two by default, the belts of moisture by latitude, how dry
+  land gets inland and how warm the planet is are numbers of the tree,
+  and a preset makes another planet of them: one continent, several,
+  islands only, a desert world.
 - **The world is as close to a planet as it can be**: it wraps from east to
   west, and latitude drives temperature. It is a cylinder, not a sphere:
   every row is as long as the equator.
@@ -538,3 +546,8 @@ Each is answered in the design doc of the stage named.
   that grows may have to cross the seam and the equator.
 - **Valleys** (not set) - a river is not cut into the land, so it may
   cross a cell of hills.
+- **Frost and a climate that changes** (stage 2 and later) - water,
+  rivers and land that freeze by season are a modifier of properties
+  driven by the season and the temperature of the cell, not biomes. A
+  planet that warms is the same with one more shift of temperature; the
+  biomes `snow` and `ice` then become frost that never ends.

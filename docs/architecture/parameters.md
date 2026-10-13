@@ -82,7 +82,8 @@ A game's tree is built in three layers, each laid over the one before.
 1. **Defaults** - shipped with the game, one file per section. Every
    parameter has a default, so an empty request starts a playable game.
 2. **A preset** - a named file with a set of changes, such as a harsher
-   winter or a crowded map. Optional.
+   winter or another planet: one continent, islands only, a desert
+   world. Optional.
 3. **Overrides** - single values given when the game is created, each
    addressed by its path in the tree.
 

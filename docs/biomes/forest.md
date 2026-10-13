@@ -10,8 +10,9 @@ ___
 
 ## Where it appears
 
-Forest takes the wetter half of the land that is left after water,
-mountains, tundra, outcrops, hills and desert.
+Forest takes the wetter half of the land that is left after every biome
+with a rule of its own: the water, the cold, the heights, the banks of
+rivers, the desert and the shores.
 
 | Order | Rule              |
 |-------|-------------------|

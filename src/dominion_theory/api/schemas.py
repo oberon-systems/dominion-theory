@@ -109,7 +109,27 @@ class Snapshot(BaseModel):
     waiting: list[str]
 
 
+class Biome(BaseModel):
+    id: str
+    name: Message
+    colour: str
+    properties: dict[str, float]
+    resources: list[str]
+
+
+class Biomes(BaseModel):
+    era: str
+    biomes: list[Biome]
+
+
 class Map(BaseModel):
+    """
+    Beside the named fields, one list of stocks per stocked property of the era, in the order of cells.
+    """
+
+    model_config = ConfigDict(extra='allow')
+    __pydantic_extra__: dict[str, list[float]] = Field(init=False)
+
     scale: int
     x: int
     y: int
@@ -117,6 +137,7 @@ class Map(BaseModel):
     height: int
     biomes: list[str]
     cells: list[int]
+    rivers: list[int]
 
 
 class Taken(BaseModel):
@@ -135,10 +156,22 @@ class ClockRequest(Asked):
         return self
 
 
+class Cell(BaseModel):
+    """
+    The whole new state of a cell: its place and one stock per stocked property of the era.
+    """
+
+    model_config = ConfigDict(extra='allow')
+    __pydantic_extra__: dict[str, float] = Field(init=False)
+
+    x: int
+    y: int
+
+
 class Changes(BaseModel):
     units: list[dict[str, Any]]
     gone: list[int]
-    cells: list[dict[str, Any]]
+    cells: list[Cell]
     seat: dict[str, Any]
 
 

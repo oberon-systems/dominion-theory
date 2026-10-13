@@ -12,6 +12,7 @@ from fastapi.responses import FileResponse
 from ...core.errors import DominionError
 from ...runner import RECORD_UNREADABLE, Runner
 from .. import schemas
+from ..biomes import described
 from ..commands import read_command
 from ..context import Context, Ctx, Seen
 from ..maps import rectangle
@@ -72,6 +73,11 @@ async def params(game_id: str, context: Ctx) -> dict[str, Any]:
 @router.get('/{game_id}/snapshot')
 async def snapshot(game_id: str, context: Ctx, view: Seen) -> schemas.Snapshot:
     return schemas.Snapshot(**context.runner(game_id).snapshot())
+
+
+@router.get('/{game_id}/biomes')
+async def biomes(game_id: str, context: Ctx, view: Seen) -> schemas.Biomes:
+    return schemas.Biomes(**described(context.runner(game_id).game))
 
 
 @router.get('/{game_id}/map')

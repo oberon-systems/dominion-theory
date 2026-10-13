@@ -17,6 +17,7 @@ ADDRESSES = {
     ('delete', '/games/{game_id}'),
     ('get', '/games/{game_id}/params'),
     ('get', '/games/{game_id}/snapshot'),
+    ('get', '/games/{game_id}/biomes'),
     ('get', '/games/{game_id}/map'),
     ('post', '/games/{game_id}/commands'),
     ('post', '/games/{game_id}/clock'),

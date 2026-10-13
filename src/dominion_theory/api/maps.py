@@ -29,8 +29,14 @@ def rectangle(
     window = game.window
     left, right = _span(x, width, window.x, window.width)
     top, bottom = _span(y, height, window.y, window.height)
-    cut = game.biomes[top - window.y : bottom - window.y, left - window.x : right - window.x]
-    codes, cells = np.unique(cut, return_inverse=True)
+    rows, columns = slice(top - window.y, bottom - window.y), slice(left - window.x, right - window.x)
+    codes, cells = np.unique(game.biomes[rows, columns], return_inverse=True)
+    stocks = {name: np.ones((bottom - top, right - left)) for name in game.stocked}
+    for kept in game.cells.plain():
+        at = kept['x'], kept['y']
+        if left <= at[0] < right and top <= at[1] < bottom:
+            for name, stock in stocks.items():
+                stock[at[1] - top, at[0] - left] = game.cells.stock(at, name)
     names = game.snapshot()['biomes']
     return {
         'scale': window.scale,
@@ -40,4 +46,6 @@ def rectangle(
         'height': bottom - top,
         'biomes': [names[code] for code in codes.tolist()],
         'cells': cells.ravel().tolist(),
+        'rivers': game.rivers[rows, columns].astype(int).ravel().tolist(),
+        **{name: stock.ravel().tolist() for name, stock in stocks.items()},
     }

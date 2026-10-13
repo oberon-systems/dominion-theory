@@ -20,8 +20,24 @@ def test_the_schema_describes_both_messages() -> None:
     schema = stream_schema()
 
     assert schema['$schema'].endswith('2020-12/schema')
-    assert {'Update', 'Resync', 'Date', 'Message', 'Changes'} <= schema['$defs'].keys()
+    assert {'Update', 'Resync', 'Date', 'Message', 'Changes', 'Cell'} <= schema['$defs'].keys()
+    assert set(schema['$defs']['Cell']['required']) == {'x', 'y'}
     assert set(schema['$defs']['Update']['required']) == {'seq', 'date', 'events', 'changes', 'waiting'}
+
+
+def test_a_changed_cell_is_its_place_and_a_stock_per_property() -> None:
+    changes = {'units': [], 'gone': [], 'cells': [{'x': 3, 'y': 4, 'food': 0.4, 'water': 1.0}], 'seat': {}}
+    handed = Handed(5, Date(1, 1, 2, 'morning', 'spring'), [], changes, [])
+    spoiled = {**handed.data(), 'changes': {**changes, 'cells': [{'x': 3, 'y': 4, 'food': 'alpha'}]}}
+    placeless = {**handed.data(), 'changes': {**changes, 'cells': [{'x': 3, 'food': 0.4}]}}
+
+    read = STREAM.validate_python(handed.data())
+
+    assert isinstance(read, Update)
+    assert read.changes.cells[0].model_dump() == {'x': 3, 'y': 4, 'food': 0.4, 'water': 1.0}
+    for refused in (spoiled, placeless):
+        with pytest.raises(ValidationError):
+            STREAM.validate_python(refused)
 
 
 def test_a_game_is_asked_for_with_nothing() -> None:

@@ -82,6 +82,7 @@ REQUESTS: list[tuple[str, str, dict[str, Any] | None]] = [
     ('DELETE', '', None),
     ('GET', '/params', None),
     ('GET', '/snapshot', None),
+    ('GET', '/biomes', None),
     ('GET', '/map', None),
     ('POST', '/commands', {'id': 'c-1', 'kind': 'pass'}),
     ('POST', '/clock', {'action': 'step'}),
@@ -141,10 +142,10 @@ def test_the_spectator_view_is_a_setting(settings: Settings, service: Service) -
 
         refused = [
             client.get(f'{PREFIX}/games/{game}/{address}', params={'view': 'spectator'})
-            for address in ('snapshot', 'map')
+            for address in ('snapshot', 'map', 'biomes')
         ]
         seat = client.get(f'{PREFIX}/games/{game}/snapshot', params={'view': 'seat'})
 
-    assert [answer.status_code for answer in refused] == [400, 400]
+    assert [answer.status_code for answer in refused] == [400, 400, 400]
     assert refused[0].json() == {'key': 'error-request-unreadable', 'values': {}}
     assert seat.status_code == 200

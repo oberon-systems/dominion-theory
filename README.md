@@ -81,6 +81,6 @@ every target.
 - [Architecture](docs/architecture/overview.md) - the layers, the
   packages and what one tick does.
 - [Protocol](docs/api/protocol.md) - how a client talks to the game.
-- [Biomes](docs/biomes.md) - kinds of land and their properties.
+- [Biomes](docs/biomes/overview.md) - kinds of land and their properties.
 - [Band](docs/units/band.md) - the first unit.
 - [Game process](docs/game/01_bands.md) - how the band era plays.

@@ -3,6 +3,8 @@ import pytest
 from dominion_theory.content import load_params
 from dominion_theory.core.errors import DominionError
 
+HALVES = {'time.day_parts': ['day', 'night'], 'units.band.decisions.night_parts': ['night']}
+
 
 def refused(overrides: dict[str, object]) -> dict[str, object]:
     with pytest.raises(DominionError) as raised:
@@ -51,7 +53,7 @@ def test_tick_that_cuts_a_day_is_refused(tick: int) -> None:
 
 
 def test_tick_is_checked_against_the_day_of_the_same_tree() -> None:
-    params = load_params(overrides={'time.day_parts': ['day', 'night'], 'eras.band.parts_per_tick': 2})
+    params = load_params(overrides={**HALVES, 'eras.band.parts_per_tick': 2})
 
     assert params.eras.band.parts_per_tick == 2
 

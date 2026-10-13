@@ -141,7 +141,7 @@ drawn between its two bounds and rounded up to whole people.
 | `predator`  | anywhere              | any      | 3      | 0 to 10%     |
 | `accident`  | mountain, hills, outcrops, ice | `move` | 2 | 0 to 10%     |
 | `drowning`  | shallows, river cells | `move`, `gather` | 3 | 5 to 15% |
-| `bad-water` | swamp, marsh          | `gather` | 4      | 0 to 20%     |
+| `poisoning` | swamp, marsh          | `gather` | 4      | 0 to 20%     |
 
 A share that rounds to nobody is a scare: the event is reported and no
 one is lost. Kinds are data, an entry each of the section `encounters`,
@@ -164,7 +164,7 @@ encounters:
       biomes: [shallows]
       rivers: true
       actions: [move, gather]
-    bad-water:
+    poisoning:
       weight: 4
       loss: {min: 0.0, max: 0.2}
       biomes: [swamp, marsh]

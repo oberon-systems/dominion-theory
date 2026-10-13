@@ -1,0 +1,3 @@
+resources:
+  water: {property: water, weight_kg: 1.0, spoils: {days: 5}}
+  forage: {property: food, weight_kg: 1.0, spoils: {days: 3}}

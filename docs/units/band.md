@@ -226,9 +226,9 @@ units:
     gathering:
       forage: 1.0
       water: 4.0
-    consumption:
-      forage_per_day: 1.0
-      water_per_day: 2.0
+    consumption_per_day:
+      forage: 1.0
+      water: 2.0
     speed:
       base: 1.2
       slowdown: 0.03

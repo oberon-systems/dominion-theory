@@ -12,6 +12,9 @@ def months(preset: str | None = None, overrides: dict[str, object] | None = None
     return {season.name: season.months for season in load_params(preset, overrides).time.seasons}
 
 
+HALVES = {'time.day_parts': ['day', 'night'], 'units.band.decisions.night_parts': ['night']}
+
+
 def refused(overrides: dict[str, object]) -> dict[str, object]:
     with pytest.raises(DominionError) as raised:
         load_params(overrides=overrides)
@@ -99,7 +102,7 @@ def test_override_is_laid_over_the_preset() -> None:
 
 
 def test_override_reaches_a_list_and_a_section() -> None:
-    params = load_params(overrides={'time.day_parts': ['day', 'night'], 'eras.band.parts_per_tick': 2})
+    params = load_params(overrides={**HALVES, 'eras.band.parts_per_tick': 2})
 
     assert params.time.day_parts == ('day', 'night')
     assert params.eras.band.parts_per_tick == 2
@@ -108,7 +111,7 @@ def test_override_reaches_a_list_and_a_section() -> None:
 @pytest.mark.parametrize(
     ('path', 'found', 'expected'),
     [
-        ('units.band.population.start', 'units', 'one of biomes, eras, planet, time'),
+        ('peoples.band.count', 'peoples', 'one of biomes, council, encounters, eras, planet, resources, time, units'),
         ('time.seasons.monsoon.months', 'monsoon', 'one of spring, summer, autumn, winter'),
         ('time.day_parts.9', '9', 'one of 0, 1, 2, 3, 4'),
         ('time.days_per_month.alpha', 'alpha', 'no name below a value'),

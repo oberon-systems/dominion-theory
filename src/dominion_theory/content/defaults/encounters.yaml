@@ -1,0 +1,22 @@
+encounters:
+  chance: 0.1
+  actions: {camp: 0.5, gather: 1.0, move: 1.5}
+  kinds:
+    predator: {weight: 3, loss: {min: 0.0, max: 0.1}}
+    accident:
+      weight: 2
+      loss: {min: 0.0, max: 0.1}
+      biomes: [mountain, hills, outcrops, ice]
+      actions: [move]
+    drowning:
+      weight: 3
+      loss: {min: 0.05, max: 0.15}
+      biomes: [shallows]
+      rivers: true
+      actions: [move, gather]
+    poisoning:
+      weight: 4
+      loss: {min: 0.0, max: 0.2}
+      biomes: [swamp, marsh]
+      actions: [gather]
+      resources: [water]

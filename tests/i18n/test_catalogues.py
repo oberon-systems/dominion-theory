@@ -54,6 +54,8 @@ def in_use() -> set[str]:
     time = params.time
     names = {f'time-part-{part}' for part in time.day_parts} | {f'time-season-{season.name}' for season in time.seasons}
     names |= {f'biome-{biome}' for biome in params.biomes}
+    names |= {f'resource-{resource}' for resource in params.resources}
+    names |= {f'encounter-{kind}' for kind in params.encounters.kinds}
     errors = {*ERRORS, PRESET_NOT_FOUND, PARAMS_INVALID, LOCALE_UNKNOWN, PROFILE_NOT_FOUND}
     return {*EVENTS, *REASONS, DATE} | errors | names | SPECIFIED
 

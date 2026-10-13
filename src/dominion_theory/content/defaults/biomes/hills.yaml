@@ -7,7 +7,12 @@ biomes:
     eras:
       band:
         properties:
-          water: {base: 0.5, recovery: {days: 3}}
+          water:
+            base: 0.5
+            recovery: {days: 3}
+            seasons:
+              spring: {times: 1.2}
+              winter: {times: 0.8}
           food:
             base: 0.5
             recovery: {days: 30}
@@ -16,5 +21,9 @@ biomes:
               autumn: {times: 1.1}
               winter: {times: 0.3}
           threat: {base: 0.3}
-          passability: {base: 0.7}
+          passability:
+            base: 0.7
+            seasons:
+              spring: {times: 0.8}
+              winter: {times: 0.6}
         resources: [water, forage]

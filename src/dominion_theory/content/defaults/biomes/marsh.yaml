@@ -18,5 +18,8 @@ biomes:
               autumn: {times: 1.1}
               winter: {times: 0.4}
           threat: {base: 0.4}
-          passability: {base: 0.5}
+          passability:
+            base: 0.5
+            seasons:
+              spring: {times: 0.8}
         resources: [water, forage]

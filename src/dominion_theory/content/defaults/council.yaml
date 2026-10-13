@@ -1,0 +1,24 @@
+council:
+  min_gap: {days: 2}
+  voice:
+    share: 0.5
+    least: 2.0
+  intent:
+    move: {days: 1}
+    rest: {days: 2}
+    stay_and_gather: {days: 2}
+  judgement:
+    move_after: {days: 3}
+    supply_cap: {days: 2}
+    tolerance: 0.25
+    disaster: 0.2
+  status:
+    start: 50
+    declined: -2
+    move_worked: 4
+    move_failed: -6
+    move_disaster: -20
+    rest: 2
+    stay_worked: 3
+    stay_failed: -6
+    stay_disaster: -20

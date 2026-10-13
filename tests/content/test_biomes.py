@@ -4,7 +4,7 @@ from pathlib import Path
 import pytest
 from pydantic import ValidationError
 
-from dominion_theory.content import LAYERS, RESOURCES, Modifier, Params, Range, diff, load_params, loader
+from dominion_theory.content import LAYERS, Modifier, Params, Range, diff, load_params, loader
 
 FOOD = 'biomes.forest.eras.band.properties.food'
 
@@ -46,7 +46,7 @@ def test_forest_is_the_one_of_its_document() -> None:
         'winter': ('times', 0.4),
     }
     assert forest.eras['band'].properties['threat'].recovery is None
-    assert forest.eras['band'].resources == RESOURCES
+    assert forest.eras['band'].resources == ('water', 'forage')
 
 
 def test_spot_checks_of_the_other_biomes() -> None:

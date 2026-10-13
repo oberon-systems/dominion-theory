@@ -53,7 +53,7 @@ def test_a_created_game_is_found_listed_and_stored(service: Service, store: Game
 
 
 def test_the_presets_are_named(service: Service) -> None:
-    assert service.presets() == ['harsh-winter']
+    assert service.presets() == ['archipelago', 'continents', 'harsh-winter', 'pangea']
 
 
 def test_a_seed_left_out_is_drawn(service: Service) -> None:

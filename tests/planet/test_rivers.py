@@ -86,7 +86,7 @@ def test_river_is_followed_up_to_its_source() -> None:
     flow = gather(surface, targets, RAIN)
     chosen = pick(flow, surface, LAND, 0.1)
 
-    followed = sources(chosen, flow, targets)
+    followed = sources(chosen, flow, targets, LAND)
 
     assert chosen.sum() < followed.sum()
     assert (followed[chosen]).all()
@@ -116,25 +116,34 @@ def test_small_body_of_water_is_an_inland_sea_and_water_runs_through_it() -> Non
     assert (targets[:, 4] != NONE).all()
 
 
-def test_deepest_basins_are_flooded_whole() -> None:
+def test_deepest_basins_hold_lakes_as_full_as_the_parameter_says() -> None:
     surface = fill(HEIGHTS, LAND)
 
-    assert not flooded(HEIGHTS, surface, LAND, 0.0).any()
-    assert np.array_equal(flooded(HEIGHTS, surface, LAND, 1.0), surface > HEIGHTS)
-    assert flooded(HEIGHTS, surface, LAND, 1.0)[:, 3].all()
+    assert not flooded(HEIGHTS, surface, LAND, 0.0, 1.0)[0].any()
+    assert not flooded(HEIGHTS, surface, LAND, 1.0, 0.0)[0].any()
+    assert np.array_equal(flooded(HEIGHTS, surface, LAND, 1.0, 1.0)[0], surface > HEIGHTS)
 
     heights = np.tile(np.array([-1.0, 5.0, 1.0, 6.0, 4.0, 3.9, 7.0, 2.0]), (3, 1))
     land = heights > 0
     filled = fill(heights, land)
-    deepest = flooded(heights, filled, land, 0.5)
+    deepest, levels = flooded(heights, filled, land, 0.5, 1.0)
+    shallow, lower = flooded(heights, filled, land, 1.0, 0.5)
 
-    assert np.array_equal(flooded(heights, filled, land, 1.0), filled > heights)
+    assert np.array_equal(flooded(heights, filled, land, 1.0, 1.0)[0], filled > heights)
     assert deepest[:, 2].all()
     assert not deepest[:, 5].any()
+    assert levels[:, 2].tolist() == pytest.approx([5.0] * 3, abs=1e-6)
+    assert np.isneginf(levels[~deepest]).all()
+    assert lower[:, 2].tolist() == pytest.approx([3.0] * 3, abs=1e-6)
+    assert shallow[:, 4:6].all()
+    assert lower[:, 5].tolist() == pytest.approx([4.95] * 3, abs=1e-6)
+    lowest = flooded(heights, filled, land, 1.0, 0.04)[0]
+    assert lowest[:, 5].all()
+    assert not lowest[:, 4].any()
 
 
 def test_lake_is_water_and_stays_in_its_basin() -> None:
-    wet = load_params(overrides={**SMALL, 'planet.rivers.lakes': 1.0})
+    wet = load_params(overrides={**SMALL, 'planet.rivers.lakes': 1.0, 'planet.rivers.lake_full': 1.0})
     dry = load_params(overrides={**SMALL, 'planet.rivers.lakes': 0.0})
     drowned = Planet(5, wet).read(0, 0, 400, 200, 10)
     world = Planet(5, dry).read(0, 0, 400, 200, 10)
@@ -145,7 +154,8 @@ def test_lake_is_water_and_stays_in_its_basin() -> None:
 
     assert lakes.any()
     assert not ((drowned.elevation > 0) & (world.elevation <= 0)).any()
-    assert (drowned.biomes[lakes] == Planet(5, wet).biomes.index('water')).all()
+    frozen = [Planet(5, wet).biomes.index(name) for name in ('water', 'ice')]
+    assert np.isin(drowned.biomes[lakes], frozen).all()
     assert np.array_equal(levels > -np.inf, laid.lakes[9])
     assert levels[laid.lakes[9]].tolist() == pytest.approx(laid.surface[9][laid.lakes[9]].tolist(), abs=1e-6)
     assert not Planet(5, dry).rivers.lakes.any()

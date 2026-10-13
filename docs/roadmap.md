@@ -129,8 +129,9 @@ What is already settled and binds every stage.
   relief, moisture, temperature and flow that must all hold, and an order; the
   first biome by order takes the cell. A new biome is a data file, its
   name in both catalogues, a document and a test.
-- **The starting biomes are twelve**: grass, forest, hills, mountain,
-  outcrops, water, desert, tundra, swamp, floodplain, marsh and dunes.
+- **The starting biomes are fourteen**: grass, forest, hills, mountain,
+  outcrops, water, desert, tundra, swamp, floodplain, marsh, dunes, snow
+  and ice.
 - **A threshold of generation is a share of the planet**, not a number of
   the noise: the sea is the share of the planet under water, and a height
   is the share of land lying lower.

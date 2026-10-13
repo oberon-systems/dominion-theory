@@ -3,11 +3,13 @@ planet:
   skeleton_km: 100
   sea: 0.6
   elevation:
-    scale_km: 6000
-    octaves: 6
+    scale_km: 3000
+    octaves: 5
     persistence: 0.5
+    continents: {count: 2, weight: 0.9, radius_km: 6000, spread: 0.4, edge: 4}
+    islands: {scale_km: 700, octaves: 3, persistence: 0.5, weight: 0.2}
     ridges: {scale_km: 2000, octaves: 2, persistence: 0.5, weight: 3.0, sharpness: 12}
-    basins: {scale_km: 800, octaves: 2, persistence: 0.5, share: 0.15, depth: 0.9}
+    basins: {scale_km: 800, octaves: 2, persistence: 0.5, share: 0.06, depth: 0.7}
   relief: {scale_km: 150, octaves: 3, persistence: 0.5}
   moisture:
     scale_km: 1500
@@ -27,9 +29,10 @@ planet:
       - {latitude: 1.0, wet: 0.2}
   temperature: {lapse: 0.25, noise: 0.05, scale_km: 1000}
   rivers:
-    share: 0.08
+    share: 0.05
     great: 0.02
-    lakes: 0.7
+    lakes: 0.5
+    lake_full: 0.35
     ocean: 0.02
     meander_km: 30
     width_km: 40
@@ -50,6 +53,6 @@ planet:
     latitude: {min: 0.38, max: 0.6}
     tries: 64
     needs:
-      land: 0.6
+      land: 0.5
       rivers: 1
       biomes: {forest: 0.15, hills: 0.05, outcrops: 0.01}

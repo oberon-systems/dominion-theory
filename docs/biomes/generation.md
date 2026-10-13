@@ -11,6 +11,7 @@ are described in [the overview](overview.md).
 - [The size of the planet](#the-size-of-the-planet)
 - [Skeleton and detail](#skeleton-and-detail)
 - [Layers](#layers)
+- [Continents](#continents)
 - [Climate](#climate)
 - [Ranges](#ranges)
 - [Shares instead of thresholds](#shares-instead-of-thresholds)
@@ -118,6 +119,34 @@ and the result is held between 0 and 1.
 
 ___
 
+## Continents
+
+How many continents a planet has is a parameter, not a chance of the
+noise.
+
+`elevation.continents.count` centres are drawn from the stream
+`continents`. They stand around the planet at even steps, each moved a
+little, and north or south of the equator by no more than `spread` of
+the way to a pole. Around every centre the land is raised as a plateau
+that falls off at `radius_km`; `edge` says how steep that fall is, and
+`weight` how high the plateau stands over the noise. A continent is
+stretched one way or the other, so no two are alike.
+
+The noise still shapes the shore, and a finer noise, `islands`, is laid
+over the whole planet: it raises islands out of any sea, off the coast of
+a continent and in mid ocean, whatever the type of the planet.
+
+| Planet              | How                                             |
+|---------------------|-------------------------------------------------|
+| two large continents | the default                                    |
+| one continent       | the preset `pangea`; its heart is dry           |
+| four or five        | the preset `continents`                         |
+| islands only        | the preset `archipelago`: no continents, more sea |
+
+A count of 0 leaves the land to the noise alone.
+
+___
+
 ## Climate
 
 Where it is wet and where it is dry follows the planet, not the noise
@@ -210,8 +239,10 @@ ranges all hold.
 
 | Order | Biome      | Rule                                  | Reads as                   |
 |-------|------------|---------------------------------------|----------------------------|
+| 5     | `ice`      | elevation up to 0, temperature up to 0.08 | the frozen sea at the poles |
 | 10    | `water`    | elevation up to 0                     | sea and lakes              |
 | 20    | `mountain` | elevation from 0.92                   | highest 8 percent of land  |
+| 25    | `snow`     | temperature up to 0.07                | the caps of the poles      |
 | 30    | `tundra`   | temperature up to 0.15                | the cold belts             |
 | 40    | `outcrops` | relief from 0.95                      | most broken 5 percent      |
 | 50    | `hills`    | elevation from 0.68                   | the belt below mountains   |
@@ -249,7 +280,7 @@ Rivers are traced on the skeleton, in four steps.
    is not the ocean but an inland sea: it is filled like a hollow, and a
    river leaves it.
 3. **Gathering** - a node carries its own rain and all that flows into it.
-   The nodes that carry the most, 8 percent of land by default, are river
+   The nodes that carry the most, 5 percent of land by default, are river
    nodes. Each river is then followed upstream, by the largest inflow at
    every node, to the node nothing flows into: its source on a divide.
 4. **The line** - river nodes are joined downstream into lines, each to
@@ -270,8 +301,10 @@ on land.
 
 **Lakes** stand in the hollows that were filled, the basins first of
 all. Hollows that touch are one basin, as deep as the water had to rise
-to spill out of it; the deepest basins, `rivers.lakes` as a share, are
-flooded whole. A cell is lake when one of the four nodes around it holds
+to spill out of it; the deepest basins, `rivers.lakes` as a share, hold a
+lake. Its water stands `rivers.lake_full` of the way from the bottom of
+the basin to its brim, so a lake lies in the lowest part of its basin and
+does not drown the whole of it. A cell is lake when one of the four nodes around it holds
 one and the cell lies below the water. Towards a node that stands lower
 than the lake, its outlet or the sea, the level is lowered to the sea
 level, so the water does not run on down the valley; elsewhere the shore
@@ -319,7 +352,7 @@ need is taken.
 
 | Need            | Default | Means                                |
 |-----------------|---------|--------------------------------------|
-| land            | 0.6     | at least this share of cells is land |
+| land            | 0.5     | at least this share of cells is land |
 | `forest`        | 0.15    | share of cells                       |
 | `hills`         | 0.05    | share of cells                       |
 | `outcrops`      | 0.01    | share of cells                       |
@@ -350,6 +383,8 @@ rivers and the same window.
 | Stream        | Draws                                |
 |---------------|--------------------------------------|
 | `elevation`   | the noise of the elevation layer     |
+| `continents`  | where the continents stand           |
+| `islands`     | the finer noise that raises islands  |
 | `ridges`      | the noise the ranges follow          |
 | `basins`      | the noise the basins follow          |
 | `relief`      | the noise of the relief layer        |
@@ -376,11 +411,13 @@ planet:
   skeleton_km: 100
   sea: 0.6
   elevation:
-    scale_km: 6000
-    octaves: 6
+    scale_km: 3000
+    octaves: 5
     persistence: 0.5
+    continents: {count: 2, weight: 0.9, radius_km: 6000, spread: 0.4, edge: 4}
+    islands: {scale_km: 700, octaves: 3, persistence: 0.5, weight: 0.2}
     ridges: {scale_km: 2000, octaves: 2, persistence: 0.5, weight: 3.0, sharpness: 12}
-    basins: {scale_km: 800, octaves: 2, persistence: 0.5, share: 0.15, depth: 0.9}
+    basins: {scale_km: 800, octaves: 2, persistence: 0.5, share: 0.06, depth: 0.7}
   relief: {scale_km: 150, octaves: 3, persistence: 0.5}
   moisture:
     scale_km: 1500
@@ -400,9 +437,10 @@ planet:
       - {latitude: 1.0, wet: 0.2}
   temperature: {lapse: 0.25, noise: 0.05, scale_km: 1000}
   rivers:
-    share: 0.08
+    share: 0.05
     great: 0.02
-    lakes: 0.7
+    lakes: 0.5
+    lake_full: 0.35
     ocean: 0.02
     meander_km: 30
     width_km: 40
@@ -423,7 +461,7 @@ planet:
     latitude: {min: 0.38, max: 0.6}
     tries: 64
     needs:
-      land: 0.6
+      land: 0.5
       rivers: 1
       biomes: {forest: 0.15, hills: 0.05, outcrops: 0.01}
 ```

@@ -16,8 +16,18 @@ def test_the_reference_is_the_one_of_this_planet() -> None:
 
     assert kept['inputs'] == reference.inputs(load_params()), STALE
     assert sorted(kept['seeds']) == [str(seed) for seed in reference.SEEDS]
-    for seed, found in kept['seeds'].items():
-        assert found['corners'] <= CORNERS, f'seed {seed}: {SQUARE}'
+    assert sorted(kept['presets']) == sorted(reference.shaped(load_params()))
+    for name, seeds in {'the default': kept['seeds'], **kept['presets']}.items():
+        assert sorted(seeds) == [str(seed) for seed in reference.SEEDS]
+        for seed, found in seeds.items():
+            assert found['corners'] <= CORNERS, f'{name}, seed {seed}: {SQUARE}'
+
+
+def test_presets_that_shape_the_planet_are_told_from_the_others() -> None:
+    found = reference.shaped(load_params())
+
+    assert {'pangea', 'continents', 'archipelago'} <= set(found)
+    assert 'harsh-winter' not in found
 
 
 def test_what_moved_between_two_surveys_is_told_by_path() -> None:

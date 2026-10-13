@@ -14,8 +14,10 @@ def biome(params: Params, **given: float) -> str:
 
 def test_biomes_are_ordered_by_generation(params: Params) -> None:
     names = (
+        'ice',
         'water',
         'mountain',
+        'snow',
         'tundra',
         'outcrops',
         'hills',
@@ -75,6 +77,15 @@ def test_low_flat_shore_is_marsh_where_it_is_moist_and_dunes_where_it_is_dry(par
     assert biome(params, elevation=0.3, relief=0.3, moisture=0.1, temperature=0.6) == 'desert'
     assert biome(params, elevation=0.1, relief=0.6, moisture=0.28, temperature=0.6) == 'grass'
     assert biome(params, elevation=0.1, relief=0.6, moisture=0.72) == 'forest'
+
+
+def test_coldest_sea_is_ice_and_coldest_land_is_snow(params: Params) -> None:
+    assert biome(params, elevation=-0.5, temperature=0.05) == 'ice'
+    assert biome(params, elevation=0.0, temperature=0.08) == 'ice'
+    assert biome(params, elevation=-0.5, temperature=0.1) == 'water'
+    assert biome(params, temperature=0.05) == 'snow'
+    assert biome(params, temperature=0.1) == 'tundra'
+    assert biome(params, elevation=0.95, temperature=0.05) == 'mountain'
 
 
 def test_all_ranges_of_a_rule_must_hold(params: Params) -> None:

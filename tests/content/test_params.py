@@ -60,7 +60,11 @@ def test_tree_is_frozen() -> None:
 
 
 def test_preset_changes_only_what_it_names() -> None:
-    assert presets() == ['harsh-winter']
+    assert presets() == ['archipelago', 'continents', 'harsh-winter', 'pangea']
+    shapes = {name: load_params(name).planet.elevation.continents for name in ('pangea', 'continents', 'archipelago')}
+    assert {name: held.count for name, held in shapes.items()} == {'pangea': 1, 'continents': 5, 'archipelago': 0}
+    assert {held.weight for held in shapes.values()} == {load_params().planet.elevation.continents.weight}
+    assert (load_params('archipelago').planet.sea, load_params('pangea').planet.sea) == (0.8, load_params().planet.sea)
     assert months('harsh-winter') == {'spring': 2, 'summer': 2, 'autumn': 2, 'winter': 4}
     assert diff(load_params(), load_params('harsh-winter')) == {
         'time.seasons.summer.months': {'old': 3, 'new': 2},

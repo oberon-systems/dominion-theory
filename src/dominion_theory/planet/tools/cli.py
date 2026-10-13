@@ -58,10 +58,12 @@ def _drawn(params: Params, region: Region, show: str, season: str | None) -> pic
 
 def _report(params: Params, region: Region) -> None:
     found = pictures.shares(params, region)
-    land = 1.0 - found.get('water', 0.0)
+    land = float((region.elevation > 0).mean())
     click.echo(f'{"biome":<10} {"of all":>7} {"of land":>8}')
     for name, share in found.items():
-        of_land = f' {share / land:8.1%}' if land and name != 'water' else ''
+        height = params.biomes[name].generation.elevation
+        sea = height is not None and height.max is not None and height.max <= 0
+        of_land = f' {share / land:8.1%}' if land and not sea else ''
         click.echo(f'{name:<10} {share:7.1%}{of_land}')
     click.echo(f'cells with a river: {float(region.rivers.mean()):.1%}')
     click.echo(f'square corners of the shore: {pictures.corners(region.elevation <= 0)}')
@@ -103,9 +105,9 @@ def cli(
     places = tries(seed, params)
     order = f'try {places.index((x, y)) + 1} of {len(places)}' if (x, y) in places else 'given by hand'
     missed = misses(planet.skeleton, planet.rivers, params, x, y)
-    click.echo(
-        f'seed {seed}: the window at {x}, {y}, {order}, {missed} needs missed, {len(planet.rivers.lines)} rivers'
-    )
+    lines = len(planet.rivers.lines)
+    click.echo(f'{preset or "default"}, seed {seed}: the window at {x}, {y}, {order}, {missed} needs missed')
+    click.echo(f'rivers: {lines}')
 
     if whole:
         if planet.circumference_km % (2 * cell_km):

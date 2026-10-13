@@ -1,0 +1,10 @@
+planet:
+  sea: 0.8
+  elevation:
+    scale_km: 1500
+    continents: {count: 0}
+    islands: {weight: 0.6}
+  window:
+    needs:
+      land: 0.15
+      biomes: {forest: 0.04, hills: 0.02}

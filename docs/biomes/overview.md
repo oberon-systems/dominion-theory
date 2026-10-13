@@ -24,7 +24,7 @@ ___
 
 ## The starting set
 
-Twelve biomes cover the planet. Six were named by the roadmap; `desert` and
+Fourteen biomes cover the planet. Six were named by the roadmap; `desert` and
 `tundra` are added because a whole planet has dry and cold land, and
 without them it would be grass up to the poles.
 
@@ -38,6 +38,8 @@ without them it would be grass up to the poles.
 | [`water`](water.md)      | sea and lakes; nobody walks here        |
 | [`desert`](desert.md)    | dry and warm, nearly empty              |
 | [`tundra`](tundra.md)    | the cold belts near the poles           |
+| [`snow`](snow.md)        | land under snow all year, at the poles  |
+| [`ice`](ice.md)          | the frozen sea at the poles; walkable   |
 | [`swamp`](swamp.md)      | deltas and the flat banks of rivers     |
 | [`floodplain`](floodplain.md) | the meadows beside a river         |
 | [`marsh`](marsh.md)      | the wet shore of the sea, in patches    |
@@ -311,8 +313,9 @@ The tests that every biome has all its properties and its name in both
 catalogues take the new file in by themselves. The tests that spell out
 the whole list of biomes in order gain the new name.
 
-[`swamp`](swamp.md), [`floodplain`](floodplain.md), [`marsh`](marsh.md)
-and [`dunes`](dunes.md) were added this way, and `make map` shows where a new
+[`swamp`](swamp.md), [`floodplain`](floodplain.md), [`marsh`](marsh.md),
+[`dunes`](dunes.md), [`snow`](snow.md) and [`ice`](ice.md) were added this
+way, and `make map` shows where a new
 biome lands; see [Setup](../dev/setup.md#look-at-a-map).
 
 ___

@@ -13,8 +13,10 @@ def test_defaults_hold_the_biomes_in_generation_order() -> None:
     biomes = load_params().biomes
 
     assert sorted(biomes, key=lambda name: biomes[name].generation.order) == [
+        'ice',
         'water',
         'mountain',
+        'snow',
         'tundra',
         'outcrops',
         'hills',
@@ -73,18 +75,21 @@ def test_planet_is_the_one_of_the_document() -> None:
 
     assert (planet.circumference_km, planet.skeleton_km, planet.sea) == (40000, 100, 0.6)
     assert planet.elevation.model_dump() == {
-        'scale_km': 6000,
-        'octaves': 6,
+        'scale_km': 3000,
+        'octaves': 5,
         'persistence': 0.5,
+        'continents': {'count': 2, 'weight': 0.9, 'radius_km': 6000, 'spread': 0.4, 'edge': 4},
+        'islands': {'scale_km': 700, 'octaves': 3, 'persistence': 0.5, 'weight': 0.2},
         'ridges': {'scale_km': 2000, 'octaves': 2, 'persistence': 0.5, 'weight': 3.0, 'sharpness': 12},
-        'basins': {'scale_km': 800, 'octaves': 2, 'persistence': 0.5, 'share': 0.15, 'depth': 0.9},
+        'basins': {'scale_km': 800, 'octaves': 2, 'persistence': 0.5, 'share': 0.06, 'depth': 0.7},
     }
     assert planet.temperature.lapse == 0.25
     moisture = planet.moisture
     assert (moisture.scale_km, moisture.belt, moisture.inland, moisture.inland_km) == (1500, 0.8, 0.6, 800)
     assert [(held.latitude, held.wet) for held in moisture.belts][:3] == [(0.0, 1.0), (0.12, 0.85), (0.27, 0.1)]
     rivers = planet.rivers
-    assert (rivers.share, rivers.great, rivers.lakes, rivers.ocean) == (0.08, 0.02, 0.7, 0.02)
+    assert (rivers.share, rivers.great, rivers.ocean) == (0.05, 0.02, 0.02)
+    assert (rivers.lakes, rivers.lake_full) == (0.5, 0.35)
     assert (rivers.meander_km, rivers.width_km, rivers.valley_km) == (30, 40, 100)
     assert (rivers.delta_km, rivers.arms, rivers.islands) == (400, 4, 0.3)
     assert planet.rivers.model_dump()['effects'] == {
@@ -93,7 +98,7 @@ def test_planet_is_the_one_of_the_document() -> None:
     assert (planet.window.x, planet.window.y, planet.window.tries) == (None, None, 64)
     assert planet.window.latitude.model_dump() == {'min': 0.38, 'max': 0.6}
     assert planet.window.needs.model_dump() == {
-        'land': 0.6,
+        'land': 0.5,
         'rivers': 1,
         'biomes': {'forest': 0.15, 'hills': 0.05, 'outcrops': 0.01},
     }

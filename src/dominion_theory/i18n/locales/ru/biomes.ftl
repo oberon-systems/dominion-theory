@@ -10,3 +10,5 @@ biome-swamp = болото
 biome-marsh = прибрежные топи
 biome-dunes = дюны
 biome-floodplain = пойма
+biome-ice = льды
+biome-snow = снега

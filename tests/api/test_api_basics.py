@@ -75,7 +75,9 @@ def test_an_unknown_language_has_no_catalogue(client: TestClient) -> None:
 
 
 def test_the_presets_are_listed(client: TestClient) -> None:
-    assert client.get(f'{PREFIX}/presets').json() == {'presets': ['harsh-winter']}
+    assert client.get(f'{PREFIX}/presets').json() == {
+        'presets': ['archipelago', 'continents', 'harsh-winter', 'pangea']
+    }
 
 
 def test_the_openapi_document_holds_every_address(client: TestClient) -> None:

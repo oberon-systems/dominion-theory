@@ -60,6 +60,31 @@ def test_ridges_and_basins_shape_land_and_leave_the_sea_and_the_shore_alone(para
     assert np.array_equal(shaped[~land], lifted[~land])
 
 
+def test_land_rises_around_the_centre_of_a_continent_and_nowhere_else(params: Params) -> None:
+    planet = params.planet
+    around = planet.circumference_km
+    lone = planet.elevation.continents.model_copy(update={'count': 1, 'radius_km': 500, 'weight': 5.0, 'edge': 6})
+    one = planet.elevation.model_copy(update={'continents': lone})
+    bare = planet.elevation.model_copy(update={'continents': lone.model_copy(update={'count': 0})})
+    made = layers(7, around, one, planet.relief, planet.moisture, planet.temperature).elevation
+    plain = layers(7, around, bare, planet.relief, planet.moisture, planet.temperature).elevation
+    again = layers(7, around, one, planet.relief, planet.moisture, planet.temperature).elevation
+    other = layers(8, around, one, planet.relief, planet.moisture, planet.temperature).elevation
+    x, y = np.meshgrid(np.arange(5.0, 4000.0, 50.0), np.arange(5.0, 2000.0, 50.0))
+    east = x - made.centres[0, 0]
+    away = np.hypot(east - around * np.round(east / around), y - made.centres[0, 1])
+
+    lifted = made(x, y) - plain(x, y)
+
+    assert (len(made.centres), len(plain.centres)) == (1, 0)
+    assert np.array_equal(made.centres, again.centres)
+    assert not np.array_equal(made.centres, other.centres)
+    assert (lifted >= 0).all()
+    assert lifted[away < 300].min() > 2.5
+    assert (away > 1800).any()
+    assert lifted[away > 1800].max() < 0.05
+
+
 def test_moisture_follows_the_belts_of_latitude_and_dries_inland(params: Params) -> None:
     planet = params.planet
     belts = [{'latitude': 0.0, 'wet': 1.0}, {'latitude': 0.5, 'wet': 0.0}, {'latitude': 1.0, 'wet': 0.5}]

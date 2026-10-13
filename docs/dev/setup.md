@@ -77,8 +77,10 @@ The tests need nothing installed or started: they use the in-process
 store, a SQLite file in a temporary directory, and the loopback address
 for the tests of the client.
 
-`make test` also keeps the reference of the maps,
-`tests/planet/maps.json`: for three seeds, where the first window lies,
+`make test` runs the tests of the code first and stops when one fails.
+After them it keeps the reference of the maps,
+`tests/planet/maps.json`: for three seeds of the default planet and of
+every preset that shapes the planet, where the first window lies,
 how many rivers run, the share of every biome, how many square corners
 the shore has and a hash of every cell, with a hash of what a map follows
 from, the default parameters and the
@@ -86,7 +88,7 @@ code of the planet.
 
 - **Nothing changed** - the hashes of the inputs agree and nothing is
   built.
-- **Something changed** - the three planets are built, the reference is
+- **Something changed** - the planets are built, the reference is
   rewritten, every value that moved is printed as `old -> new`, and the
   maps are drawn as [`make maps`](#look-at-a-map) draws them.
 
@@ -249,6 +251,15 @@ terminal gets the shares as well.
 make map
 ```
 
+`make map` shows the land a band era is played on, a piece of the planet
+5120 km across, so no continent fits in it. The whole planet, with that
+piece outlined in red, is another target and takes the same options.
+
+```bash
+make planet
+make planet MAP='--seed 42 --preset pangea'
+```
+
 Options go through `MAP`. With `--out` the picture is written to a file
 and no window is opened, so a map can be looked at without a display.
 
@@ -275,7 +286,8 @@ make map MAP='--preset harsh-winter --set planet.sea=0.5'
 Expected output:
 
 ```text
-seed 42: the window at 1730, 540, try 2 of 64, 0 needs missed, 310 rivers
+default, seed 42: the window at 1730, 540, try 2 of 64, 0 needs missed
+rivers: 310
 biome       of all  of land
 water        60.0%
 mountain      3.2%     8.0%
@@ -299,7 +311,15 @@ beside them. This is how the numbers of the planet are tuned.
 ```bash
 make maps
 make maps SEEDS='7 8 9' MAPS=maps/alpha MAP='--set planet.sea=0.5'
+make maps PRESETS=pangea SEEDS='1 2 3'
+make maps PRESETS=
 ```
+
+The default planet and every preset of `PRESETS` are drawn for every seed
+of `SEEDS`. The presets
+`pangea`, `continents` and `archipelago` are the types of planet;
+[Generation](../biomes/generation.md#continents) tells what they change.
+An empty `PRESETS` draws the default alone.
 
 Every run gets its own directory under `maps`, named by the moment it
 started, so two runs can be laid side by side. git ignores the pictures

@@ -102,7 +102,7 @@ def test_the_window_is_written_to_a_file_the_same_for_the_same_seed(tmp_path: Pa
     first, output = run(tmp_path, 'alpha.png')
     second, _ = run(tmp_path, 'beta.png')
 
-    assert 'seed 5: the window at' in output
+    assert 'default, seed 5: the window at' in output
     assert first.read_bytes() == second.read_bytes()
     assert first.read_bytes().startswith(b'\x89PNG')
 

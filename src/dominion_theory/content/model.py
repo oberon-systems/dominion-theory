@@ -230,7 +230,30 @@ class Basins(Node):
     depth: Share
 
 
+class Continents(Node):
+    """
+    The shape of the planet: so many continents raised around centres drawn from the seed.
+    None leaves the land to the noise alone.
+    """
+
+    count: Span
+    weight: Factor
+    radius_km: Count
+    spread: Share
+    edge: Count
+
+
+class Islands(Layer):
+    """
+    A finer noise over the whole planet, which raises islands out of any sea.
+    """
+
+    weight: Factor
+
+
 class Elevation(Layer):
+    continents: Continents
+    islands: Islands
     ridges: Ridges
     basins: Basins
 
@@ -272,6 +295,7 @@ class Rivers(Node):
     share: Share
     great: Share
     lakes: Share
+    lake_full: Share
     ocean: Share
     meander_km: Span
     width_km: Span

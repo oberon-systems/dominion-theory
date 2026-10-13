@@ -1,0 +1,14 @@
+biomes:
+  snow:
+    colour: '#F5F5F5'
+    generation:
+      order: 25
+      temperature: {max: 0.07}
+    eras:
+      band:
+        properties:
+          water: {base: 0.5, recovery: {days: 3}}
+          food: {base: 0.05, recovery: {days: 90}}
+          threat: {base: 0.5}
+          passability: {base: 0.4}
+        resources: [water]

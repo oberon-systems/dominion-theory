@@ -158,9 +158,10 @@ def pick(flow: Floats, surface: Floats, land: Flags, share: float) -> Flags:
     return chosen.reshape(flow.shape)
 
 
-def sources(chosen: Flags, flow: Floats, targets: Indices) -> Flags:
+def sources(chosen: Flags, flow: Floats, targets: Indices, land: Flags) -> Flags:
     """
     The chosen nodes and, above each, the largest inflow followed up to where nothing flows in: its source.
+    The way up may lead through an inland sea; its nodes are passed and are no river.
     """
     aims: list[int] = targets.ravel().tolist()
     largest: dict[int, int] = {}
@@ -174,14 +175,14 @@ def sources(chosen: Flags, flow: Floats, targets: Indices) -> Flags:
         while above is not None and not marked[above]:
             marked[above] = True
             above = largest.get(above)
-    followed: Flags = np.array(marked, dtype=bool).reshape(chosen.shape)
+    followed: Flags = np.array(marked, dtype=bool).reshape(chosen.shape) & land
     return followed
 
 
-def flooded(heights: Floats, surface: Floats, land: Flags, share: float) -> Flags:
+def flooded(heights: Floats, surface: Floats, land: Flags, share: float, full: float) -> tuple[Flags, Floats]:
     """
-    The nodes that hold a lake. Hollows that touch are one basin, and of the basins the deepest share is flooded,
-    each as a whole.
+    The nodes that hold a lake and the level of its water. Hollows that touch are one basin; the deepest
+    share of the basins hold a lake, and it stands as high as full of the way from the bottom to the brim.
     """
     depth = np.where(land, surface - heights, 0.0)
     bodies, sizes = _bodies(depth > 0)
@@ -190,8 +191,14 @@ def flooded(heights: Floats, surface: Floats, land: Flags, share: float) -> Flag
     order = np.argsort(-deepest[1:], kind='stable') + 1
     kept = np.zeros(len(sizes), dtype=bool)
     kept[order[: round(share * (len(sizes) - 1))]] = True
-    holding: Flags = kept[bodies]
-    return holding
+
+    bottom = np.full(len(sizes), np.inf)
+    brim = np.full(len(sizes), -np.inf)
+    np.minimum.at(bottom, bodies.ravel(), heights.ravel())
+    np.maximum.at(brim, bodies.ravel(), surface.ravel())
+    levels: Floats = (bottom + full * (brim - bottom))[bodies]
+    holding: Flags = kept[bodies] & (heights < levels)
+    return holding, np.where(holding, levels, -np.inf)
 
 
 def _smooth(controls: Floats) -> Floats:
@@ -420,7 +427,8 @@ def _cells(west: float, north: float, east: float, south: float, cell_km: int) -
 class Rivers:
     """
     The rivers of a planet: the nodes that carry them, what every node carries, the lines, every stretch
-    of them with its bed and its size, the filled surface and the nodes whose hollow holds a lake.
+    of them with its bed and its size, the nodes that hold a lake, and the surface: the water of a lake
+    at its nodes, the land with its hollows filled elsewhere.
     """
 
     circumference_km: int
@@ -594,13 +602,14 @@ def lay(
     surface = fill(heights, ~open_sea)
     targets = drain(surface, ~open_sea)
     flow = gather(surface, targets, rain)
-    chosen = sources(pick(flow, surface, land, course['share']), flow, targets)
+    chosen = sources(pick(flow, surface, land, course['share']), flow, targets, land)
     great = pick(flow, surface, land, course['great']) & chosen
     # The size of a river at a node: 0 for the least of all river nodes, 1 for the one that carries the most.
     sizes = np.zeros(flow.shape)
     ranked = np.flatnonzero(chosen)[np.argsort(flow[chosen], kind='stable')]
     sizes.flat[ranked] = np.linspace(0.0, 1.0, ranked.size)
     lines, courses = trace(flow, targets, chosen, great, land, open_sea, sizes, circumference_km, course, rng, under)
+    lakes, levels = flooded(heights, surface, land, course['lakes'], course['lake_full'])
     return Rivers(
         circumference_km=circumference_km,
         nodes=chosen,
@@ -609,8 +618,8 @@ def lay(
         courses=courses,
         islands=course['islands'],
         valley_km=course['valley_km'],
-        surface=surface,
-        lakes=flooded(heights, surface, land, course['lakes']),
+        surface=np.where(lakes, levels, surface),
+        lakes=lakes,
     )
 
 

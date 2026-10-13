@@ -1,0 +1,3 @@
+planet:
+  elevation:
+    continents: {count: 1, radius_km: 9000, spread: 0.2}

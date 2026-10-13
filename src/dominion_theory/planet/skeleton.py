@@ -35,6 +35,14 @@ class Skeleton:
         above: NDArray[np.bool_] = self.elevation > self.sea_level
         return above
 
+    @property
+    def rain(self) -> Floats:
+        """
+        What falls on a node: its moisture as a share of land, and nothing on the sea.
+        """
+        fallen: Floats = np.where(self.land, _share(self.moisture, self.moistures), 0.0)
+        return fallen
+
     def restate(self, x: Floats, y: Floats) -> dict[str, Floats]:
         """
         The four layers at places in kilometres, as the rules of biomes read them.

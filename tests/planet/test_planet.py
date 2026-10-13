@@ -4,7 +4,8 @@ import pytest
 from dominion_theory.content import LAYERS, Params
 from dominion_theory.planet import Planet, Region, biome_names
 
-GRIDS = (*LAYERS, 'biomes')
+CELLS = (*LAYERS, 'biomes')
+GRIDS = (*CELLS, 'rivers')
 
 
 def same(first: Region, second: Region) -> bool:
@@ -62,7 +63,7 @@ def test_two_cell_sizes_agree_where_their_centres_coincide(params: Params) -> No
     fine = planet.read(0, 0, 400, 200, 10)
     coarse = planet.read(0, 0, 80, 40, 50)
 
-    for grid in GRIDS:
+    for grid in CELLS:
         assert np.array_equal(getattr(fine, grid)[2::5, 2::5], getattr(coarse, grid))
 
 

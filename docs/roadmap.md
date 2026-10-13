@@ -107,6 +107,18 @@ What is already settled and binds every stage.
   for one, takes people.
 - **A council cannot be called too often.** The shortest gap between two
   councils is a parameter, somewhere between a day and a month.
+- **The council can vote a proposal down**, and that costs a little
+  status. The others vote by how close the proposal is to what the band
+  would have done itself; the player's voice always weighs more than
+  one, and more with status.
+- **A proposal is judged by supplies and people**: the days of food and
+  water in the stores at the call and at the close of the window, and
+  the share of people lost. A fifth of the band lost is a disaster.
+- **A band gathers on its own cell only.** The shallows can be entered
+  at the very shore, where water and food are plenty and the threat is
+  high; a river gives more water; the water of a swamp may poison.
+- **A season changes food, water and movement** through modifiers of the
+  biome, and winter slows what grows back. Frost comes later.
 - **Every amount and every window here is a parameter.**
 - **The game speaks English and Russian from the start.** The engine never
   produces text: it names a message by a key and gives its values, and the
@@ -326,8 +338,10 @@ The first unit, and the rules of indirect control.
   player only adds proposals on top.
 - Every number lives in data, not in code, so balance is tuned without
   edits to the engine.
-- The design doc first settles the contradictions in the current notes: see
-  [Open questions](#open-questions).
+- The design docs settled the contradictions of the old notes: the rates
+  of gathering and consumption on the five-tick day, the vote, the
+  judgement, the seasons. What they left is under
+  [Open questions](#open-questions) and in their own open points.
 
 **Docs**: `docs/units/band.md` (rewritten), `docs/game/01_bands.md`
 (rewritten), `docs/game/indirect_control.md`, `docs/game/decisions.md`,
@@ -520,24 +534,13 @@ ___
 
 Each is answered in the design doc of the stage named.
 
-- **Gathering against consumption** (stage 2) - one unit per person per
-  tick against one or two units per person per day makes hunger
-  impossible. The rates are set anew on the five-tick day.
 - **Merging** (stage 3, stage 5) - when two bands agree to merge, and how
   the two councils and the status of their members become one.
-- **A proposal that worked out** (stage 2) - by what the game judges it
-  within its window: food, water, people lost, and where the line to
-  disaster lies.
-- **The vote** (stage 2) - whether the council can turn a proposal down,
-  how status weighs in, and what a refusal does to status.
 - **Land that comes into view** (stage 5) - whether the peoples placed
   there are raised bands only, or new ones as well.
-- **Seasons** (stage 2) - they change food first, per biome, since
-  stage 1. What they do to water and movement, and whether a cell
-  recovers in winter, is set with the band's rates.
-- **The sea** (stage 2) - sea and lake are one biome whose water is 1.
-  When a band may drink from a neighbouring cell, the sea has to stop
-  being drinkable.
+- **The sea** (not set) - sea and lake are one biome, so a band that
+  wades into the shallows drinks at the sea shore too. Telling salt
+  water from fresh needs a second biome or a mark like the river's.
 - **The size of the first window** (stage 3) - 5120 km across is a lot of
   land for one band and five to ten others. It is set again when it is
   known how often bands should meet.
@@ -546,7 +549,7 @@ Each is answered in the design doc of the stage named.
   that grows may have to cross the seam and the equator.
 - **Valleys** (not set) - a river is not cut into the land, so it may
   cross a cell of hills.
-- **Frost and a climate that changes** (stage 2 and later) - water,
+- **Frost and a climate that changes** (later) - water,
   rivers and land that freeze by season are a modifier of properties
   driven by the season and the temperature of the cell, not biomes. A
   planet that warms is the same with one more shift of temperature; the

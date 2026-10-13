@@ -131,8 +131,12 @@ Reasons a council may be refused, as they stand now:
 | Reason                       | When                                         |
 |------------------------------|----------------------------------------------|
 | `refused-council-too-soon`   | the gap since the last council has not passed |
+| `refused-proposal-pending`   | the last proposal that passed is not judged yet |
 | `refused-no-such-direction`  | the band cannot go that way at all           |
 | `refused-seat-banished`      | the player is no longer in the band          |
+
+The rules behind them are in
+[Indirect control](../game/indirect_control.md#calling-a-council).
 
 Two reasons belong to the frame and are built in stage 0.
 
@@ -180,12 +184,13 @@ ___
 
 ## Open points
 
-- **A council the band votes down** - that is not a refused command: the
-  command was carried out and the vote went against it. How it is reported
-  and what it does to status is a rule of stage 2.
 - **Directions by landmark** - the player speaks of the sunrise and the
-  pole star, the command of compass points. Whether a proposal may also
-  name a thing seen on the map, such as a river, is left for stage 2.
+  pole star, the command of compass points. A proposal that names a thing
+  seen on the map, such as a river, waits for the browser client.
 - **More than one command in a step** - they are judged in order, and the
   rules of the council stop a second council anyway. Whether a limit is
   needed is seen when there are more kinds of command.
+
+A council the band votes down is settled: the command is accepted, the
+event `council-declined` follows and status falls a little, as
+[Indirect control](../game/indirect_control.md#the-vote) tells.

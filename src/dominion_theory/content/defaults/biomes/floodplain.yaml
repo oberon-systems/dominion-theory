@@ -1,0 +1,24 @@
+biomes:
+  floodplain:
+    colour: '#9ACD32'
+    generation:
+      order: 53
+      flow: {min: 0.45}
+      temperature: {min: 0.2}
+    eras:
+      band:
+        properties:
+          water: {base: 0.8, recovery: {days: 3}}
+          food:
+            base: 0.9
+            recovery: {days: 20}
+            seasons:
+              spring: {times: 0.6}
+              autumn: {times: 1.2}
+              winter: {times: 0.3}
+          threat: {base: 0.2}
+          passability:
+            base: 0.9
+            seasons:
+              spring: {times: 0.5}
+        resources: [water, forage]

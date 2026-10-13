@@ -24,7 +24,7 @@ ___
 
 ## The starting set
 
-Eleven biomes cover the planet. Six were named by the roadmap; `desert` and
+Twelve biomes cover the planet. Six were named by the roadmap; `desert` and
 `tundra` are added because a whole planet has dry and cold land, and
 without them it would be grass up to the poles.
 
@@ -38,7 +38,8 @@ without them it would be grass up to the poles.
 | [`water`](water.md)      | sea and lakes; nobody walks here        |
 | [`desert`](desert.md)    | dry and warm, nearly empty              |
 | [`tundra`](tundra.md)    | the cold belts near the poles           |
-| [`swamp`](swamp.md)      | deltas, river banks and lake shores     |
+| [`swamp`](swamp.md)      | deltas and the flat banks of rivers     |
+| [`floodplain`](floodplain.md) | the meadows beside a river         |
 | [`marsh`](marsh.md)      | the wet shore of the sea, in patches    |
 | [`dunes`](dunes.md)      | the dry shore of the sea, in patches    |
 
@@ -186,6 +187,10 @@ So a river in the desert is the best water for days around, and a river
 anywhere is slower to cross but can be crossed. The numbers are
 `planet.rivers.effects`, per era.
 
+The few great rivers are the exception: their bed is cells of the biome
+`water`, two or three across, with islands in it, and it is not crossed
+on foot. [Generation](generation.md#rivers) tells which rivers are great.
+
 ___
 
 ## What a cell remembers
@@ -306,8 +311,8 @@ The tests that every biome has all its properties and its name in both
 catalogues take the new file in by themselves. The tests that spell out
 the whole list of biomes in order gain the new name.
 
-[`swamp`](swamp.md), [`marsh`](marsh.md) and [`dunes`](dunes.md) were
-added this way, and `make map` shows where a new
+[`swamp`](swamp.md), [`floodplain`](floodplain.md), [`marsh`](marsh.md)
+and [`dunes`](dunes.md) were added this way, and `make map` shows where a new
 biome lands; see [Setup](../dev/setup.md#look-at-a-map).
 
 ___

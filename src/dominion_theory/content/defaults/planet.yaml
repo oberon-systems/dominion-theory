@@ -12,10 +12,16 @@ planet:
   moisture: {scale_km: 1500, octaves: 4, persistence: 0.5}
   temperature: {lapse: 0.25, noise: 0.05, scale_km: 1000}
   rivers:
-    share: 0.05
+    share: 0.08
+    great: 0.02
     lakes: 0.7
     ocean: 0.02
     meander_km: 30
+    width_km: 40
+    valley_km: 100
+    delta_km: 400
+    arms: 4
+    islands: 0.3
     effects:
       band:
         water: {plus: 0.5}

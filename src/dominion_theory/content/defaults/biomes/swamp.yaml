@@ -2,9 +2,9 @@ biomes:
   swamp:
     colour: '#4A6B5D'
     generation:
-      order: 65
-      flow: {min: 0.9}
-      relief: {max: 0.5}
+      order: 52
+      flow: {min: 0.45}
+      relief: {max: 0.35}
       temperature: {min: 0.3}
     eras:
       band:

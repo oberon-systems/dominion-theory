@@ -77,6 +77,18 @@ def test_pictures_are_tiled_two_in_a_row_framed_and_enlarged() -> None:
     assert tuple(one[1, 1]) == (9, 9, 9)
 
 
+def test_square_corners_of_a_shore_are_counted() -> None:
+    square = np.zeros((40, 40), dtype=np.bool_)
+    square[10:30, 10:30] = True
+    rows, columns = np.indices((40, 40))
+    round_lake = (rows - 20) ** 2 + (columns - 20) ** 2 < 12**2
+
+    assert pictures.corners(square) == 4
+    assert pictures.corners(round_lake) == 0
+    assert pictures.corners(np.zeros((40, 40), dtype=np.bool_)) == 0
+    assert pictures.corners(np.zeros((1, 40), dtype=np.bool_)) == 0
+
+
 def test_shares_of_biomes_add_up_to_the_whole(params: Params, land: Region) -> None:
     found = pictures.shares(params, land)
 

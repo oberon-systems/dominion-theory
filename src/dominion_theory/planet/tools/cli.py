@@ -64,6 +64,7 @@ def _report(params: Params, region: Region) -> None:
         of_land = f' {share / land:8.1%}' if land and name != 'water' else ''
         click.echo(f'{name:<10} {share:7.1%}{of_land}')
     click.echo(f'cells with a river: {float(region.rivers.mean()):.1%}')
+    click.echo(f'square corners of the shore: {pictures.corners(region.elevation <= 0)}')
 
 
 @click.command()

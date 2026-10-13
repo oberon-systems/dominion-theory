@@ -1,5 +1,5 @@
 {
-  "inputs": "839f8a9d42acd281e05b287c22f21df475230678df4af695b24618c908c10982",
+  "inputs": "343600ab85bc8c459992c63daa27951c3bfbfbb0a8b2cacf0468d1dcbed98779",
   "seeds": {
     "1": {
       "window": [
@@ -8,23 +8,25 @@
       ],
       "try": 11,
       "missed": 0,
-      "rivers": 246,
-      "river_cells": 0.051,
+      "rivers": 947,
+      "river_cells": 0.0754,
       "shares": {
-        "water": 0.626,
+        "water": 0.6326,
         "mountain": 0.0318,
-        "tundra": 0.0624,
-        "outcrops": 0.0139,
-        "hills": 0.0602,
-        "dunes": 0.0054,
-        "desert": 0.0139,
-        "swamp": 0.0085,
-        "marsh": 0.0059,
-        "forest": 0.0904,
-        "grass": 0.0816
+        "tundra": 0.0612,
+        "outcrops": 0.0137,
+        "hills": 0.0596,
+        "swamp": 0.0037,
+        "floodplain": 0.0081,
+        "dunes": 0.0094,
+        "desert": 0.0099,
+        "marsh": 0.0159,
+        "forest": 0.0768,
+        "grass": 0.0773
       },
-      "planet": "661ac3bdb9e60b71e3ef7b6fcfbe6d77c5c3afbb85a1aa0e266c9a12e6a59baf",
-      "played": "22c5613a0b6a4db26d55661f7888a53d9a729dd6d3566622e07a491587017fd5"
+      "corners": 0,
+      "planet": "c1a4618ad6f0af9ee881082b7a7915493758b76253448e85a18048ef2b019095",
+      "played": "ec8a0e886d88f4e2e053bccdbcdcbeca28857990bad2aa89f4fd8dddb0a009d7"
     },
     "2": {
       "window": [
@@ -33,23 +35,25 @@
       ],
       "try": 2,
       "missed": 0,
-      "rivers": 220,
-      "river_cells": 0.048,
+      "rivers": 871,
+      "river_cells": 0.0707,
       "shares": {
-        "water": 0.6279,
+        "water": 0.635,
         "mountain": 0.0316,
-        "tundra": 0.0702,
-        "outcrops": 0.0133,
-        "hills": 0.0582,
-        "dunes": 0.0047,
-        "desert": 0.0152,
-        "swamp": 0.0077,
-        "marsh": 0.0057,
-        "forest": 0.088,
-        "grass": 0.0775
+        "tundra": 0.0689,
+        "outcrops": 0.0131,
+        "hills": 0.0578,
+        "swamp": 0.003,
+        "floodplain": 0.0075,
+        "dunes": 0.0083,
+        "desert": 0.0114,
+        "marsh": 0.0161,
+        "forest": 0.0747,
+        "grass": 0.0728
       },
-      "planet": "aae8c2d41cfcf489e0fe4add782763cd97ef4740d5b3a3ca8a2e9d9838cb6a12",
-      "played": "f92eba934e4789b44a2933aae00dbc3f53b1ecb8913919e256c8bf15ed29ec5d"
+      "corners": 0,
+      "planet": "4d15debf248094976518f1d89af15b0ced3e701a71bfb116b96dfcf787aa8b16",
+      "played": "ea3a961287fb33beb80a2a6c318166ab672cda820e4cbd37e28ae7e6d2008711"
     },
     "3": {
       "window": [
@@ -58,23 +62,25 @@
       ],
       "try": 8,
       "missed": 0,
-      "rivers": 238,
-      "river_cells": 0.0498,
+      "rivers": 975,
+      "river_cells": 0.0725,
       "shares": {
-        "water": 0.6257,
-        "mountain": 0.0315,
-        "tundra": 0.06,
-        "outcrops": 0.0138,
-        "hills": 0.0674,
-        "dunes": 0.0045,
-        "desert": 0.0149,
-        "swamp": 0.0085,
-        "marsh": 0.0052,
-        "forest": 0.0894,
-        "grass": 0.0792
+        "water": 0.6313,
+        "mountain": 0.0316,
+        "tundra": 0.0592,
+        "outcrops": 0.0136,
+        "hills": 0.0671,
+        "swamp": 0.0037,
+        "floodplain": 0.008,
+        "dunes": 0.0079,
+        "desert": 0.0116,
+        "marsh": 0.0122,
+        "forest": 0.0793,
+        "grass": 0.0746
       },
-      "planet": "cf7ff47b248b88740f197732d53af4359e687e394831165b6cc4bae7666fdb8d",
-      "played": "7def8551d680250ee43f7577113bea18c2ed9afeea356c4b8215e5d8ce1ddff7"
+      "corners": 0,
+      "planet": "6eb2a47a2a4a39507867cb14c71e68746b796496b4b4b6dedb76962f94787716",
+      "played": "3120b0c450b5af57001cb10319876005635d1eaf0169a1f2b5ceebbf7319249a"
     }
   }
 }

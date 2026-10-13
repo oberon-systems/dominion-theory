@@ -79,10 +79,7 @@ class Planet:
             planet.relief,
             planet.moisture,
             planet.temperature,
-            planet.rivers.share,
-            planet.rivers.lakes,
-            planet.rivers.ocean,
-            planet.rivers.meander_km,
+            tuple(sorted(planet.rivers.model_dump(exclude={'effects'}).items())),
         )
 
     def read(self, x: int, y: int, width: int, height: int, cell_km: int) -> Region:

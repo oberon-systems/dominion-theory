@@ -11,13 +11,12 @@ ___
 
 ## Where it appears
 
-Dunes are shore land, the lowest fifth of all land, where the ground is
-flat, dry and warm. The flat ground breaks them into patches, so they do
-not run along a coast as a strip.
+Dunes are shore land, the lowest fifth of all land, where it is dry and
+warm: the low coast of a dry country.
 
 | Order | Rule                                                                           |
 |-------|--------------------------------------------------------------------------------|
-| 55    | elevation up to 0.2, relief up to 0.4, moisture up to 0.3, temperature from 0.5 |
+| 55    | elevation up to 0.2, moisture up to 0.25, temperature from 0.5                 |
 
 They come before desert, so the driest shore is dunes and the desert
 begins behind it. The same shore where it is moist is

@@ -4,7 +4,21 @@ from numpy.typing import NDArray
 
 from dominion_theory.content import Params, load_params
 from dominion_theory.planet import Planet
-from dominion_theory.planet.rivers import NONE, Rivers, drain, fill, flooded, gather, ocean, pick, rivers, sources
+from dominion_theory.planet.rivers import (
+    NONE,
+    PIECES,
+    Rivers,
+    _smooth,
+    delta,
+    drain,
+    fill,
+    flooded,
+    gather,
+    ocean,
+    pick,
+    rivers,
+    sources,
+)
 
 SMALL = {'planet.circumference_km': 4000, 'planet.window.width': 32, 'planet.window.height': 16}
 # A sea, a slope with a hollow on the way, a ridge, and a second slope that reaches the sea through the seam.
@@ -102,33 +116,117 @@ def test_small_body_of_water_is_an_inland_sea_and_water_runs_through_it() -> Non
     assert (targets[:, 4] != NONE).all()
 
 
-def test_deepest_hollows_hold_lakes_at_the_level_they_spill_at() -> None:
+def test_deepest_basins_are_flooded_whole() -> None:
     surface = fill(HEIGHTS, LAND)
 
-    every = flooded(HEIGHTS, surface, LAND, 1.0)
-    none = flooded(HEIGHTS, surface, LAND, 0.0)
+    assert not flooded(HEIGHTS, surface, LAND, 0.0).any()
+    assert np.array_equal(flooded(HEIGHTS, surface, LAND, 1.0), surface > HEIGHTS)
+    assert flooded(HEIGHTS, surface, LAND, 1.0)[:, 3].all()
 
-    assert np.isneginf(none).all()
-    assert np.array_equal(np.isfinite(every), surface > HEIGHTS)
-    assert np.isfinite(every[:, 3]).all()
-    assert np.array_equal(every[:, 3], surface[:, 3])
-    assert (every[:, 3] > HEIGHTS[:, 3]).all()
+    heights = np.tile(np.array([-1.0, 5.0, 1.0, 6.0, 4.0, 3.9, 7.0, 2.0]), (3, 1))
+    land = heights > 0
+    filled = fill(heights, land)
+    deepest = flooded(heights, filled, land, 0.5)
+
+    assert np.array_equal(flooded(heights, filled, land, 1.0), filled > heights)
+    assert deepest[:, 2].all()
+    assert not deepest[:, 5].any()
 
 
-def test_lake_is_water_and_flow_is_a_layer_between_the_nodes() -> None:
+def test_lake_is_water_and_stays_in_its_basin() -> None:
     wet = load_params(overrides={**SMALL, 'planet.rivers.lakes': 1.0})
     dry = load_params(overrides={**SMALL, 'planet.rivers.lakes': 0.0})
-    flooded_world = Planet(5, wet).read(0, 0, 400, 200, 10)
+    drowned = Planet(5, wet).read(0, 0, 400, 200, 10)
     world = Planet(5, dry).read(0, 0, 400, 200, 10)
     laid = Planet(5, wet).rivers
-    lakes = (flooded_world.elevation <= 0) & (world.elevation > 0)
+    lakes = (drowned.elevation <= 0) & (world.elevation > 0)
+    centres = np.arange(40, dtype=np.float64) * 100.0 + 50.0
+    levels = laid.lake(centres, np.full(40, 950.0))
 
     assert lakes.any()
-    assert not ((flooded_world.elevation > 0) & (world.elevation <= 0)).any()
-    assert (flooded_world.biomes[lakes] == Planet(5, wet).biomes.index('water')).all()
-    assert 0.0 <= world.flow.min() < world.flow.max() <= 1.0
-    centres = np.arange(40, dtype=np.float64) * 100.0 + 50.0
-    assert np.allclose(laid.wet(centres, np.full(40, 950.0)), laid.shares[9])
+    assert not ((drowned.elevation > 0) & (world.elevation <= 0)).any()
+    assert (drowned.biomes[lakes] == Planet(5, wet).biomes.index('water')).all()
+    assert np.array_equal(levels > -np.inf, laid.lakes[9])
+    assert levels[laid.lakes[9]].tolist() == pytest.approx(laid.surface[9][laid.lakes[9]].tolist(), abs=1e-6)
+    assert not Planet(5, dry).rivers.lakes.any()
+
+
+def test_flow_is_a_ribbon_along_a_river_as_wide_as_the_river_is_large() -> None:
+    line = np.array([[1000.0, 500.0], [1100.0, 500.0]])
+    bare = np.zeros((20, 40))
+    course = np.array([[1000.0, 500.0, 1100.0, 500.0, 0.0, 0.0, 0.5, 1.0]])
+    lone = Rivers(4000, bare > 0, bare, (line,), course, 0.0, 60.0, surface=bare, lakes=bare > 0)
+    x = np.array([1000.0, 1050.0, 1100.0, 1100.0, 1100.0, 1100.0, 1200.0, 3000.0])
+    y = np.array([500.0, 500.0, 500.0, 530.0, 560.0, 440.0, 500.0, 500.0])
+
+    assert lone.wet(x, y).tolist() == pytest.approx([0.5, 0.75, 1.0, 0.5, 0.0, 0.0, 0.0, 0.0])
+    assert not lone.bed(x, y).any()
+    assert lone.wet(x + 4000.0, y).tolist() == pytest.approx(lone.wet(x, y).tolist())
+
+
+def test_curve_runs_through_every_point_it_was_given() -> None:
+    controls = np.array([[0.0, 0.0], [100.0, 50.0], [200.0, -50.0], [300.0, 0.0]])
+
+    curve = _smooth(controls)
+
+    assert len(curve) == 3 * PIECES + 1
+    assert np.array_equal(curve[::PIECES], controls)
+    steps = np.diff(curve, axis=0)
+    turns = np.abs(np.diff(np.arctan2(steps[:, 1], steps[:, 0])))
+    assert turns.max() < np.pi / 2
+
+
+def test_great_river_has_a_bed_of_water_with_islands() -> None:
+    great = {**SMALL, 'planet.rivers.great': 0.05, 'planet.rivers.width_km': 30}
+    bare = Planet(5, load_params(overrides={**great, 'planet.rivers.islands': 0.0}))
+    isles = Planet(5, load_params(overrides={**great, 'planet.rivers.islands': 0.5}))
+    none = Planet(5, load_params(overrides={**SMALL, 'planet.rivers.great': 0.0}))
+    beds = bare.rivers.beds
+    x, y = np.meshgrid(np.arange(400) * 10.0 + 5.0, np.arange(200) * 10.0 + 5.0)
+
+    lying = bare.rivers.bed(x, y)
+    dry = none.read(0, 0, 400, 200, 10).elevation > 0
+
+    assert len(none.rivers.beds) == 0
+    assert not none.rivers.bed(x, y).any()
+    assert len(beds)
+    assert beds[:, 4:].max() == 15.0
+    assert (lying & dry).any()
+    assert not (bare.read(0, 0, 400, 200, 10).elevation[lying] > 0).any()
+    assert (isles.read(0, 0, 400, 200, 10).elevation[lying] > 0).any()
+    for west, north, east, south in beds[:20, :4].tolist():
+        middle = np.array([(west + east) / 2]), np.array([(north + south) / 2])
+        assert bare.rivers.bed(*middle).all()
+    assert np.array_equal(lying[:, :200], bare.rivers.bed(x[:, :200], y[:, :200]))
+
+
+def test_arm_of_a_delta_bears_away_and_ends_in_the_sea() -> None:
+    def under(x: NDArray[np.float64], y: NDArray[np.float64]) -> NDArray[np.bool_]:
+        return x >= 300.0
+
+    course = {'delta_km': 200.0, 'arms': 5.0}
+    forks = np.full((5, 2), 0.5)
+
+    arms = delta(np.array([100.0, 500.0]), np.array([200.0, 500.0]), course, forks, under)
+
+    assert len(arms) == 8
+    for arm in arms:
+        assert arm[-1, 0] >= 300.0
+        assert (arm[:-1, 0] < 300.0).all()
+    assert sum(1 for arm in arms if tuple(arm[0]) == (100.0, 500.0)) == 4
+    assert {float(np.sign(arm[-1, 1] - 500.0)) for arm in arms} == {-1.0, 1.0}
+    assert delta(np.array([100.0, 500.0]), np.array([200.0, 500.0]), course, forks, lambda x, y: x < 0) == []
+    assert delta(np.array([100.0, 500.0]), np.array([200.0, 500.0]), {**course, 'arms': 0.0}, forks, under) == []
+
+
+def test_great_river_meets_the_ocean_in_a_delta() -> None:
+    great = {**SMALL, 'planet.rivers.great': 0.05}
+    armed = Planet(5, load_params(overrides=great)).rivers
+    plain = Planet(5, load_params(overrides={**great, 'planet.rivers.arms': 0})).rivers
+
+    assert len(armed.lines) > len(plain.lines)
+    assert len(armed.courses) > len(plain.courses)
+    assert np.array_equal(armed.beds, plain.beds)
 
 
 def test_mouth_of_a_river_lies_at_the_centre_of_a_sea_node(params: Params) -> None:
@@ -140,9 +238,8 @@ def test_mouth_of_a_river_lies_at_the_centre_of_a_sea_node(params: Params) -> No
     for line in planet.rivers.lines:
         x, y = line[-1]
         row, column = int(y // side), int(x // side) % land.shape[1]
-        if not land[row, column]:
+        if not land[row, column] and (x % side, y % side) == pytest.approx((side / 2, side / 2)):
             mouths += 1
-            assert (x % side, y % side) == pytest.approx((side / 2, side / 2))
     assert mouths
 
 
@@ -163,7 +260,7 @@ def test_rivers_are_kept_beside_the_skeleton(params: Params) -> None:
     assert Planet(5, params).rivers is not Planet(6, params).rivers
 
 
-def test_line_ends_at_the_sea_or_in_another_line(params: Params) -> None:
+def test_line_ends_in_water_or_in_another_line(params: Params) -> None:
     planet = Planet(5, params)
     land = planet.skeleton.land
     side = params.planet.skeleton_km
@@ -176,7 +273,8 @@ def test_line_ends_at_the_sea_or_in_another_line(params: Params) -> None:
         around = np.abs((others[:, 0] - x + circumference / 2) % circumference - circumference / 2)
         met = bool(((around < 1e-6) & (np.abs(others[:, 1] - y) < 1e-6)).any())
         at_sea = not land[int(y // side), int(x // side) % land.shape[1]]
-        assert at_sea or met
+        under = bool(planet.skeleton.restate(np.array([x]), np.array([y]))['elevation'][0] <= 0)
+        assert at_sea or met or under
 
 
 def test_marks_agree_between_a_rectangle_and_its_halves(params: Params) -> None:
@@ -203,7 +301,7 @@ def test_marks_agree_across_the_seam(params: Params) -> None:
 def test_river_that_leaves_through_the_seam_comes_back_on_the_other_side() -> None:
     line = np.array([[3955.0, 505.0], [4045.0, 505.0]])
     bare = np.zeros((20, 40))
-    lone = Rivers(4000, nodes=bare > 0, flow=bare, lines=(line,), levels=bare - np.inf, shares=bare)
+    lone = Rivers(4000, bare > 0, bare, (line,), np.zeros((0, 8)), 0.0, 60.0, surface=bare, lakes=bare > 0)
 
     assert lone.marks(395, 50, 5, 1, 10).all()
     assert lone.marks(0, 50, 6, 1, 10).tolist() == [[True, True, True, True, True, False]]

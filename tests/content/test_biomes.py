@@ -18,9 +18,10 @@ def test_defaults_hold_the_biomes_in_generation_order() -> None:
         'tundra',
         'outcrops',
         'hills',
+        'swamp',
+        'floodplain',
         'dunes',
         'desert',
-        'swamp',
         'marsh',
         'forest',
         'grass',
@@ -80,7 +81,9 @@ def test_planet_is_the_one_of_the_document() -> None:
     }
     assert planet.temperature.lapse == 0.25
     rivers = planet.rivers
-    assert (rivers.share, rivers.lakes, rivers.ocean, rivers.meander_km) == (0.05, 0.7, 0.02, 30)
+    assert (rivers.share, rivers.great, rivers.lakes, rivers.ocean) == (0.08, 0.02, 0.7, 0.02)
+    assert (rivers.meander_km, rivers.width_km, rivers.valley_km) == (30, 40, 100)
+    assert (rivers.delta_km, rivers.arms, rivers.islands) == (400, 4, 0.3)
     assert planet.rivers.model_dump()['effects'] == {
         'band': {'water': {'plus': 0.5}, 'food': {'plus': 0.1}, 'passability': {'times': 0.7}}
     }

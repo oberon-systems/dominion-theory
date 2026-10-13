@@ -9,3 +9,4 @@ biome-tundra = тундра
 biome-swamp = болото
 biome-marsh = прибрежные топи
 biome-dunes = дюны
+biome-floodplain = пойма

@@ -11,13 +11,12 @@ ___
 
 ## Where it appears
 
-A marsh is shore land, the lowest fifth of all land, where the ground is
-flat, moist and not cold. The flat ground breaks it into patches, so it
-does not run along a coast as a strip.
+A marsh is shore land, the lowest quarter of all land, where it is moist
+and not cold: the low coast of a wet country.
 
 | Order | Rule                                                                           |
 |-------|--------------------------------------------------------------------------------|
-| 67    | elevation up to 0.2, relief up to 0.4, moisture from 0.7, temperature from 0.3 |
+| 67    | elevation up to 0.25, moisture from 0.75, temperature from 0.3                 |
 
 It comes after swamp, so the mouth of a river stays swamp, and before
 forest, which would take the same land. The same shore where it is dry

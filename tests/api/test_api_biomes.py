@@ -14,7 +14,20 @@ from dominion_theory.i18n import LANGUAGES, catalogue
 type NewGame = Callable[..., dict[str, Any]]
 
 SMALL = {'planet.circumference_km': 4000, 'planet.window.width': 32, 'planet.window.height': 16}
-ORDER = ['water', 'mountain', 'tundra', 'outcrops', 'hills', 'dunes', 'desert', 'swamp', 'marsh', 'forest', 'grass']
+ORDER = [
+    'water',
+    'mountain',
+    'tundra',
+    'outcrops',
+    'hills',
+    'swamp',
+    'floodplain',
+    'dunes',
+    'desert',
+    'marsh',
+    'forest',
+    'grass',
+]
 BASES = {'water': 0.6, 'food': 0.9, 'threat': 0.4, 'passability': 0.6}
 FOREST = {
     'id': 'forest',
@@ -33,7 +46,7 @@ def test_the_biomes_are_those_of_the_default_tree_in_generation_order(client: Te
     assert answer.status_code == 200
     assert answer.json()['era'] == 'band'
     assert [biome['id'] for biome in biomes] == ORDER
-    assert biomes[9] == FOREST
+    assert biomes[10] == FOREST
     for biome in biomes:
         held = params.biomes[biome['id']]
         era = held.eras['band']
@@ -48,8 +61,8 @@ def test_an_overridden_base_is_the_one_given(client: TestClient, new_game: NewGa
 
     biomes = client.get(f'{PREFIX}/games/{created["id"]}/biomes').json()['biomes']
 
-    assert biomes[9]['properties'] == {**BASES, 'food': 0.5}
-    assert biomes[10]['properties']['food'] == load_params().biomes['grass'].eras['band'].properties['food'].base
+    assert biomes[10]['properties'] == {**BASES, 'food': 0.5}
+    assert biomes[11]['properties']['food'] == load_params().biomes['grass'].eras['band'].properties['food'].base
 
 
 @pytest.mark.parametrize('lang', LANGUAGES)

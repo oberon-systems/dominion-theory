@@ -4,8 +4,7 @@ biomes:
     generation:
       order: 55
       elevation: {max: 0.2}
-      relief: {max: 0.4}
-      moisture: {max: 0.3}
+      moisture: {max: 0.25}
       temperature: {min: 0.5}
     eras:
       band:

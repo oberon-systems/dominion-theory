@@ -6,6 +6,8 @@ from dominion_theory.planet import place
 from dominion_theory.planet.tools import reference
 
 REFERENCE = Path(__file__).with_name('maps.json')
+SQUARE = 'the shore of the first window runs in square corners: water is cut by a grid, not by the land'
+CORNERS = 4
 STALE = 'the planet changed since its reference was written: make test redraws the maps and rewrites it'
 
 
@@ -14,6 +16,8 @@ def test_the_reference_is_the_one_of_this_planet() -> None:
 
     assert kept['inputs'] == reference.inputs(load_params()), STALE
     assert sorted(kept['seeds']) == [str(seed) for seed in reference.SEEDS]
+    for seed, found in kept['seeds'].items():
+        assert found['corners'] <= CORNERS, f'seed {seed}: {SQUARE}'
 
 
 def test_what_moved_between_two_surveys_is_told_by_path() -> None:

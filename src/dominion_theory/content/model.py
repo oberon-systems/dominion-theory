@@ -243,9 +243,15 @@ class Temperature(Node):
 
 class Rivers(Node):
     share: Share
+    great: Share
     lakes: Share
     ocean: Share
     meander_km: Span
+    width_km: Span
+    valley_km: Count
+    delta_km: Span
+    arms: Span
+    islands: Share
     effects: dict[Name, dict[Name, Modifier]]
 
 

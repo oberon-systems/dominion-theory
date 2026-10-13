@@ -11,16 +11,16 @@ ___
 
 ## Where it appears
 
-A swamp is where the most water runs through, the tenth of land with
-the largest flow, when the ground there is flat and not cold. So it lies
-in the mouths of rivers, along the large ones on a plain and at lakes.
+A swamp lies along a river where the ground is flat and not cold: in a
+delta, between its arms, and in patches on the banks of the larger
+rivers. The rest of the same ribbon is [floodplain](floodplain.md).
 
-| Order | Rule                                                  |
-|-------|-------------------------------------------------------|
-| 65    | flow from 0.9, relief up to 0.5, temperature from 0.3 |
+| Order | Rule                                                    |
+|-------|---------------------------------------------------------|
+| 52    | flow from 0.45, relief up to 0.35, temperature from 0.3 |
 
-It is ordered before forest, which would take the same land, and after
-hills, so a river in high country cuts no swamp. The layer `flow` is told
+It comes after hills, so a river in high country cuts no swamp, and
+before everything that would take the same land. The layer `flow` is told
 in [Generation](generation.md#rivers).
 
 ___

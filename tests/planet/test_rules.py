@@ -13,7 +13,20 @@ def biome(params: Params, **given: float) -> str:
 
 
 def test_biomes_are_ordered_by_generation(params: Params) -> None:
-    names = ('water', 'mountain', 'tundra', 'outcrops', 'hills', 'dunes', 'desert', 'swamp', 'marsh', 'forest', 'grass')
+    names = (
+        'water',
+        'mountain',
+        'tundra',
+        'outcrops',
+        'hills',
+        'swamp',
+        'floodplain',
+        'dunes',
+        'desert',
+        'marsh',
+        'forest',
+        'grass',
+    )
 
     assert ordered(params.biomes) == names
 
@@ -36,11 +49,20 @@ def test_first_biome_by_order_wins(params: Params, given: dict[str, float], expe
 
 def test_flat_warm_land_with_much_water_running_through_is_swamp(params: Params) -> None:
     assert biome(params, flow=0.95, relief=0.3) == 'swamp'
-    assert biome(params, flow=0.95, relief=0.3, moisture=0.9) == 'swamp'
-    assert biome(params, flow=0.95, relief=0.3, temperature=0.25) == 'grass'
-    assert biome(params, flow=0.95, relief=0.6) == 'grass'
-    assert biome(params, flow=0.8, relief=0.3) == 'grass'
+    assert biome(params, flow=0.5, relief=0.3, moisture=0.9) == 'swamp'
+    assert biome(params, flow=0.95, relief=0.3, moisture=0.1, temperature=0.6) == 'swamp'
+    assert biome(params, flow=0.95, relief=0.3, temperature=0.25) == 'floodplain'
+    assert biome(params, flow=0.4, relief=0.3) == 'grass'
     assert biome(params, flow=0.95, relief=0.3, elevation=0.7) == 'hills'
+
+
+def test_land_beside_a_river_is_floodplain_where_it_is_not_swamp(params: Params) -> None:
+    assert biome(params, flow=0.95) == 'floodplain'
+    assert biome(params, flow=0.45, moisture=0.9) == 'floodplain'
+    assert biome(params, flow=0.95, moisture=0.1, temperature=0.6) == 'floodplain'
+    assert biome(params, flow=0.4, moisture=0.9) == 'forest'
+    assert biome(params, flow=0.95, temperature=0.18) == 'grass'
+    assert biome(params, flow=0.95, temperature=0.1) == 'tundra'
 
 
 def test_low_flat_shore_is_marsh_where_it_is_moist_and_dunes_where_it_is_dry(params: Params) -> None:
@@ -51,7 +73,8 @@ def test_low_flat_shore_is_marsh_where_it_is_moist_and_dunes_where_it_is_dry(par
     assert biome(params, elevation=0.1, relief=0.3, moisture=0.2, temperature=0.6) == 'dunes'
     assert biome(params, elevation=0.1, relief=0.3, moisture=0.1, temperature=0.6) == 'dunes'
     assert biome(params, elevation=0.3, relief=0.3, moisture=0.1, temperature=0.6) == 'desert'
-    assert biome(params, elevation=0.1, relief=0.6, moisture=0.2, temperature=0.6) == 'grass'
+    assert biome(params, elevation=0.1, relief=0.6, moisture=0.28, temperature=0.6) == 'grass'
+    assert biome(params, elevation=0.1, relief=0.6, moisture=0.72) == 'forest'
 
 
 def test_all_ranges_of_a_rule_must_hold(params: Params) -> None:

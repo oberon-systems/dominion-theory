@@ -33,7 +33,8 @@ def inputs(params: Params) -> str:
 
 def survey(seed: int, params: Params) -> dict[str, Any]:
     """
-    The planet of a seed in numbers: where the window lies, the rivers, the shares of biomes, every cell as a hash.
+    The planet of a seed in numbers: where the window lies, the rivers, the shares of biomes,
+    the square corners of the shore, every cell as a hash.
     """
     planet = Planet(seed, params)
     window = params.planet.window
@@ -50,6 +51,7 @@ def survey(seed: int, params: Params) -> dict[str, Any]:
         'rivers': len(planet.rivers.lines),
         'river_cells': round(float(whole.rivers.mean()), 4),
         'shares': {name: round(share, 4) for name, share in pictures.shares(params, whole).items()},
+        'corners': pictures.corners(played.elevation <= 0),
         'planet': sha256(whole.biomes.tobytes() + whole.rivers.tobytes()).hexdigest(),
         'played': sha256(played.biomes.tobytes() + played.rivers.tobytes()).hexdigest(),
     }

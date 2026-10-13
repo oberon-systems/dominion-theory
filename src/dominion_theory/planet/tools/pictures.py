@@ -18,6 +18,7 @@ GAP = '#282828'
 LOW = '#101028'
 HIGH = '#FFE66D'
 PADDING = 4
+LONG = 8
 
 Picture = NDArray[np.uint8]
 Values = NDArray[np.float64]
@@ -103,6 +104,32 @@ def framed(picture: Picture, x: int, y: int, width: int, height: int) -> Picture
 def enlarged(picture: Picture, scale: int) -> Picture:
     grown: Picture = np.repeat(np.repeat(picture, scale, axis=0), scale, axis=1)
     return grown
+
+
+def _runs(edges: NDArray[np.bool_]) -> NDArray[np.int64]:
+    """
+    For every edge along a row, how many edges in a row it stands with.
+    """
+    padded = np.zeros((edges.shape[0], edges.shape[1] + 2), dtype=np.int8)
+    padded[:, 1:-1] = edges
+    steps = np.diff(padded.ravel())
+    spans = np.flatnonzero(steps == -1) - np.flatnonzero(steps == 1)
+    lengths = np.zeros(padded.size, dtype=np.int64)
+    lengths[padded.ravel() == 1] = np.repeat(spans, spans)
+    held: NDArray[np.int64] = lengths.reshape(padded.shape)[:, 1:-1]
+    return held
+
+
+def corners(water: NDArray[np.bool_]) -> int:
+    """
+    How many square corners the shore has: places where a straight stretch of it running east meets one
+    running south, both LONG cells or longer. A shore that follows the land has none; one cut by a grid has many.
+    """
+    if min(water.shape) < 2:
+        return 0
+    east = _runs(water[:-1] != water[1:]) >= LONG
+    south = _runs((water[:, :-1] != water[:, 1:]).T).T >= LONG
+    return int(((east[:, :-1] | east[:, 1:]) & (south[:-1] | south[1:])).sum())
 
 
 def shares(params: Params, region: Region) -> dict[str, float]:

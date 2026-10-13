@@ -79,8 +79,9 @@ for the tests of the client.
 
 `make test` also keeps the reference of the maps,
 `tests/planet/maps.json`: for three seeds, where the first window lies,
-how many rivers run, the share of every biome and a hash of every cell,
-with a hash of what a map follows from, the default parameters and the
+how many rivers run, the share of every biome, how many square corners
+the shore has and a hash of every cell, with a hash of what a map follows
+from, the default parameters and the
 code of the planet.
 
 - **Nothing changed** - the hashes of the inputs agree and nothing is
@@ -98,7 +99,10 @@ git diff tests/planet/maps.json
 ```
 
 A test fails when the reference is not the one of the planet as it is,
-which happens when the tests are run past `make test`.
+which happens when the tests are run past `make test`, and when the shore
+of a first window has square corners: water cut by the grid of the
+skeleton instead of by the land. The numbers say that a map moved, not
+whether it is better, so the pictures are still looked at.
 
 ___
 

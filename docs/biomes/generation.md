@@ -98,8 +98,8 @@ from five of them.
 - **Temperature** is not noise. It is 1 at the equator and 0 at the poles,
   falls with height on land, and carries a small noise so that the belts
   do not run as straight lines.
-- **Flow** is not noise either. It is what the rivers gather, told in
-  [Rivers](#rivers): near 0 on a divide, 1 in the largest river bed.
+- **Flow** is not noise either. It is a ribbon along every river, told in
+  [Rivers](#rivers): 0 away from them, 1 on the line of the largest.
 
 Every noise layer has its own stream of the seed, so a change to one
 never moves another. Noise is laid so that it closes around the planet
@@ -184,10 +184,11 @@ ranges all hold.
 | 30    | `tundra`   | temperature up to 0.15                | the cold belts             |
 | 40    | `outcrops` | relief from 0.95                      | most broken 5 percent      |
 | 50    | `hills`    | elevation from 0.68                   | the belt below mountains   |
-| 55    | `dunes`    | elevation up to 0.2, relief up to 0.4, moisture up to 0.3, temperature from 0.5 | the dry shore |
+| 52    | `swamp`    | flow from 0.45, relief up to 0.35, temperature from 0.3 | flat land beside a river |
+| 53    | `floodplain` | flow from 0.45, temperature from 0.2 | the banks of a river |
+| 55    | `dunes`    | elevation up to 0.2, moisture up to 0.25, temperature from 0.5 | the dry shore |
 | 60    | `desert`   | moisture up to 0.15, temperature from 0.5 | dry and warm           |
-| 65    | `swamp`    | flow from 0.9, relief up to 0.5, temperature from 0.3 | flat land full of water |
-| 67    | `marsh`    | elevation up to 0.2, relief up to 0.4, moisture from 0.7, temperature from 0.3 | the wet shore |
+| 67    | `marsh`    | elevation up to 0.25, moisture from 0.75, temperature from 0.3 | the wet shore |
 | 70    | `forest`   | moisture from 0.5                     | the wetter half            |
 | 90    | `grass`    | none                                  | everything else            |
 
@@ -217,15 +218,16 @@ Rivers are traced on the skeleton, in four steps.
    is not the ocean but an inland sea: it is filled like a hollow, and a
    river leaves it.
 3. **Gathering** - a node carries its own rain and all that flows into it.
-   The nodes that carry the most, 5 percent of land by default, are river
+   The nodes that carry the most, 8 percent of land by default, are river
    nodes. Each river is then followed upstream, by the largest inflow at
    every node, to the node nothing flows into: its source on a divide.
 4. **The line** - river nodes are joined downstream into lines, each to
    the sea or into a larger river. A node is moved off the centre of its
-   square, and the line between two nodes bends by up to `meander_km`, so
-   that a river does not show the grid it was traced on. How far a node
-   is moved and in how many pieces a bend is drawn are constants of the
-   code, not parameters.
+   square, a point half way to the next node is pushed aside by up to
+   `meander_km`, and one smooth curve is drawn through all of them, so
+   that a river shows neither the grid it was traced on nor a corner. How
+   far a node is moved and in how many pieces the curve is drawn between
+   two points are constants of the code, not parameters.
 
 Of two nodes that carry the same, the lower is taken first, so a river is
 never cut on its way down.
@@ -236,16 +238,32 @@ its square, where there is water at any cell size, so a mouth never ends
 on land.
 
 **Lakes** stand in the hollows that were filled, the basins first of
-all. A hollow is as deep as the water had to rise to spill out of it; the
-deepest of them, `rivers.lakes` as a share, hold a lake at that level. A
-cell is lake when one of the four nodes around it holds one and the cell
-lies below that level, and it is then the biome `water`. A river runs
-into a lake and out of it, and a large lake is an inland sea.
+all. Hollows that touch are one basin, as deep as the water had to rise
+to spill out of it; the deepest basins, `rivers.lakes` as a share, are
+flooded whole. A cell is lake when one of the four nodes around it holds
+one and the cell lies below the water. Towards a node with no lake the
+level is lowered to the sea level, so the water stays in its basin and
+its shore follows the land. It is then the biome `water`. A river runs into a lake and out of
+it, and a large lake is an inland sea.
 
-**The layer `flow`** is what a node gathers, restated as the share of
-land that gathers less, and read between the four nodes around a place.
-It is what puts a biome beside rivers, in deltas and at lakes, as
-[swamp](swamp.md) is.
+**A great river has a bed.** The nodes that carry the most of all,
+`rivers.great` as a share of land, make a river `width_km` wide: the
+cells within half of that from its line are the biome `water`, so it
+cannot be walked across. A share of the bed, `islands`, where the ground
+is most broken, stays land: islands in the stream. Every other river is a
+mark on a cell that can be crossed.
+
+**A delta.** Where a great river meets the ocean it breaks into arms:
+`rivers.arms` of them fan out from the node above its last on land, as
+wide at the mouth as `delta_km`, each bearing further away as it goes and forking
+once. An arm ends at the first place under the sea, and one that finds no
+sea is not drawn. Arms are lines like any river.
+
+**The layer `flow`** is the size of the largest river near a place: 0
+for the least of all river nodes, 1 for the one that carries the most,
+falling to nothing at `valley_km` from the line. So it is a ribbon along
+a river that widens as rivers join, and it covers a delta. It is what
+puts [swamp](swamp.md) and [floodplain](floodplain.md) beside rivers.
 
 A cell of any size has a river when a line crosses it. That is a mark on
 the cell beside its biome: forest with a river is still forest. What the
@@ -335,10 +353,16 @@ planet:
   moisture: {scale_km: 1500, octaves: 4, persistence: 0.5}
   temperature: {lapse: 0.25, noise: 0.05, scale_km: 1000}
   rivers:
-    share: 0.05
+    share: 0.08
+    great: 0.02
     lakes: 0.7
     ocean: 0.02
     meander_km: 30
+    width_km: 40
+    valley_km: 100
+    delta_km: 400
+    arms: 4
+    islands: 0.3
     effects:
       band:
         water: {plus: 0.5}
@@ -396,9 +420,10 @@ ___
 - **A river is not cut into the land.** Detail is not lowered along the
   line, so a river may cross a cell of hills. Cutting a valley is added
   if drawn maps look wrong without it.
-- **The shore of a lake** - a lake is read from the nodes around a cell,
-  so past its outlet it may spill a little way down the valley. It is
-  drawn more exactly if maps look wrong.
+- **A river does not dry up.** Every river reaches the ocean, in a desert
+  as well.
+- **The size of a lake** - a hollow of one node that is shallow gives a
+  pond too small to see. Lakes that show stand in the basins.
 - **The seam** - the first window keeps clear of it. A window that grows
   in stage 5 may have to cross it.
 - **The south** - a window in the southern half needs the seasons turned

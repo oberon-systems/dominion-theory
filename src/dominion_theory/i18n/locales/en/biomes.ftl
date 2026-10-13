@@ -7,3 +7,5 @@ biome-water = water
 biome-desert = desert
 biome-tundra = tundra
 biome-swamp = swamp
+biome-marsh = coastal marsh
+biome-dunes = dunes

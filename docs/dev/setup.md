@@ -236,7 +236,7 @@ ___
 Draw the first window of a seed and show it in a window. Close it with
 Escape. A panel beside the map holds the legend with the share of every
 biome, and under it the cell the pointer is on: its place, its biome,
-whether a river crosses it, its properties and the four layers. The
+whether a river crosses it, its properties and the layers. The
 terminal gets the shares as well.
 
 ```bash

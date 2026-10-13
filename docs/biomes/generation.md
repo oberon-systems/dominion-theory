@@ -11,6 +11,7 @@ are described in [the overview](overview.md).
 - [The size of the planet](#the-size-of-the-planet)
 - [Skeleton and detail](#skeleton-and-detail)
 - [Layers](#layers)
+- [Ranges](#ranges)
 - [Shares instead of thresholds](#shares-instead-of-thresholds)
 - [From layers to a biome](#from-layers-to-a-biome)
 - [Rivers](#rivers)
@@ -78,7 +79,7 @@ ___
 ## Layers
 
 A layer is one number for every place on the planet. Biomes are chosen
-from four of them.
+from five of them.
 
 | Layer         | Range   | Says                                         |
 |---------------|---------|----------------------------------------------|
@@ -86,15 +87,19 @@ from four of them.
 | `relief`      | 0 to 1  | how broken the ground is, at any height      |
 | `moisture`    | 0 to 1  | how wet the land is                          |
 | `temperature` | 0 to 1  | how warm it is, from the pole to the equator |
+| `flow`        | 0 to 1  | how much water runs through the place        |
 
 - **Elevation** is noise at the scale of continents with finer noise on
-  top. It decides land and sea.
+  top. It decides land and sea. Land is then lifted along mountain
+  ranges; see [Ranges](#ranges).
 - **Relief** is fine noise of its own. It is what tells a rocky outcrop
   from the grass around it at the same height.
 - **Moisture** is noise at the scale of regions.
 - **Temperature** is not noise. It is 1 at the equator and 0 at the poles,
   falls with height on land, and carries a small noise so that the belts
   do not run as straight lines.
+- **Flow** is not noise either. It is what the rivers gather, told in
+  [Rivers](#rivers): near 0 on a divide, 1 in the largest river bed.
 
 Every noise layer has its own stream of the seed, so a change to one
 never moves another. Noise is laid so that it closes around the planet
@@ -108,6 +113,39 @@ temperature = 1 - latitude - lapse * elevation + noise * belts
 Latitude is 0 at the equator and 1 at a pole, elevation is the restated
 one and counts on land only, `belts` is one octave of noise from -1 to 1,
 and the result is held between 0 and 1.
+
+___
+
+## Ranges
+
+Noise alone puts the highest land in a blot at the middle of a continent.
+Mountains run in ranges, so the land is lifted along lines.
+
+A second noise, `ridges`, is laid over the planet. Where it turns from
+one sign to the other runs a line, and that line is the crest of a range.
+
+```text
+height = (elevation - sea level) * (1 + weight * crest) * (1 - depth * dip)
+crest  = (1 - |ridges|) ^ sharpness
+dip    = how far the noise basins stands over its brim, 0 to 1
+```
+
+- **Only land is lifted.** The sea level is measured before the ranges
+  are raised, and a height below it is left alone, so no shore moves.
+- **A range fades to the coast**: the lift is a share of the height the
+  land already has.
+- **`weight`** is how many times higher a crest stands than the land it
+  rose from; 0 gives the planet without ranges.
+- **`sharpness`** is how narrow a range is: the higher, the thinner.
+
+Hills are the belt just below the mountains by height, so they lie around
+every range by themselves.
+
+**Basins** work the other way. A third noise, `basins`, sinks the land
+where it is highest: `share` of the planet lies in a basin, and `depth`
+is how much of its height the middle of one loses. A basin never sinks
+below the sea level. Inland it is a hollow that water cannot leave
+without rising, and that is where lakes and inland seas stand.
 
 ___
 
@@ -135,7 +173,7 @@ ___
 
 ## From layers to a biome
 
-Every biome carries a generation rule: a range for any of the four layers,
+Every biome carries a generation rule: a range for any of the five layers,
 and its place in the order. A cell gets the first biome, by order, whose
 ranges all hold.
 
@@ -146,8 +184,10 @@ ranges all hold.
 | 30    | `tundra`   | temperature up to 0.15                | the cold belts             |
 | 40    | `outcrops` | relief from 0.95                      | most broken 5 percent      |
 | 50    | `hills`    | elevation from 0.68                   | the belt below mountains   |
+| 55    | `dunes`    | elevation up to 0.2, relief up to 0.4, moisture up to 0.3, temperature from 0.5 | the dry shore |
 | 60    | `desert`   | moisture up to 0.15, temperature from 0.5 | dry and warm           |
-| 65    | `swamp`    | elevation up to 0.15, moisture from 0.85, temperature from 0.3 | low, wet and not cold |
+| 65    | `swamp`    | flow from 0.9, relief up to 0.5, temperature from 0.3 | flat land full of water |
+| 67    | `marsh`    | elevation up to 0.2, relief up to 0.4, moisture from 0.7, temperature from 0.3 | the wet shore |
 | 70    | `forest`   | moisture from 0.5                     | the wetter half            |
 | 90    | `grass`    | none                                  | everything else            |
 
@@ -172,10 +212,14 @@ Rivers are traced on the skeleton, in four steps.
 
 1. **Rain** - every land node takes water in proportion to its moisture.
 2. **Flow** - water runs from a node to the lowest of its eight
-   neighbours. Hollows are filled first, so every drop reaches the sea.
+   neighbours. Hollows are filled first, so every drop reaches the
+   ocean. A body of water with less than `rivers.ocean` of all sea nodes
+   is not the ocean but an inland sea: it is filled like a hollow, and a
+   river leaves it.
 3. **Gathering** - a node carries its own rain and all that flows into it.
    The nodes that carry the most, 5 percent of land by default, are river
-   nodes.
+   nodes. Each river is then followed upstream, by the largest inflow at
+   every node, to the node nothing flows into: its source on a divide.
 4. **The line** - river nodes are joined downstream into lines, each to
    the sea or into a larger river. A node is moved off the centre of its
    square, and the line between two nodes bends by up to `meander_km`, so
@@ -185,6 +229,23 @@ Rivers are traced on the skeleton, in four steps.
 
 Of two nodes that carry the same, the lower is taken first, so a river is
 never cut on its way down.
+
+So a river rises on a divide, which the ranges make a mountain crest, and
+ends in the sea or in a larger river. A sea node is left at the centre of
+its square, where there is water at any cell size, so a mouth never ends
+on land.
+
+**Lakes** stand in the hollows that were filled, the basins first of
+all. A hollow is as deep as the water had to rise to spill out of it; the
+deepest of them, `rivers.lakes` as a share, hold a lake at that level. A
+cell is lake when one of the four nodes around it holds one and the cell
+lies below that level, and it is then the biome `water`. A river runs
+into a lake and out of it, and a large lake is an inland sea.
+
+**The layer `flow`** is what a node gathers, restated as the share of
+land that gathers less, and read between the four nodes around a place.
+It is what puts a biome beside rivers, in deltas and at lakes, as
+[swamp](swamp.md) is.
 
 A cell of any size has a river when a line crosses it. That is a mark on
 the cell beside its biome: forest with a river is still forest. What the
@@ -239,6 +300,8 @@ rivers and the same window.
 | Stream        | Draws                                |
 |---------------|--------------------------------------|
 | `elevation`   | the noise of the elevation layer     |
+| `ridges`      | the noise the ranges follow          |
+| `basins`      | the noise the basins follow          |
 | `relief`      | the noise of the relief layer        |
 | `moisture`    | the noise of the moisture layer      |
 | `temperature` | the noise laid over the belts        |
@@ -262,12 +325,19 @@ planet:
   circumference_km: 40000
   skeleton_km: 100
   sea: 0.6
-  elevation: {scale_km: 6000, octaves: 6, persistence: 0.5}
+  elevation:
+    scale_km: 6000
+    octaves: 6
+    persistence: 0.5
+    ridges: {scale_km: 2000, octaves: 2, persistence: 0.5, weight: 3.0, sharpness: 12}
+    basins: {scale_km: 800, octaves: 2, persistence: 0.5, share: 0.15, depth: 0.9}
   relief: {scale_km: 150, octaves: 3, persistence: 0.5}
   moisture: {scale_km: 1500, octaves: 4, persistence: 0.5}
   temperature: {lapse: 0.25, noise: 0.05, scale_km: 1000}
   rivers:
     share: 0.05
+    lakes: 0.7
+    ocean: 0.02
     meander_km: 30
     effects:
       band:
@@ -311,7 +381,7 @@ ___
 
 | Defect                                         | Now                                        |
 |------------------------------------------------|--------------------------------------------|
-| mountains sat on middle heights                | mountains are the highest land             |
+| mountains sat on middle heights                | mountains are the highest land, in ranges  |
 | a biome matched when any of its ranges held    | all ranges must hold                       |
 | rivers ran down the screen, top to bottom      | rivers run downhill to the sea             |
 | a river turned its cells into water            | a river is a mark beside the biome         |
@@ -326,8 +396,9 @@ ___
 - **A river is not cut into the land.** Detail is not lowered along the
   line, so a river may cross a cell of hills. Cutting a valley is added
   if drawn maps look wrong without it.
-- **Lakes** - water gathers only where the land dips below the sea level.
-  A hollow that is filled to route the rivers does not become a lake yet.
+- **The shore of a lake** - a lake is read from the nodes around a cell,
+  so past its outlet it may spill a little way down the valley. It is
+  drawn more exactly if maps look wrong.
 - **The seam** - the first window keeps clear of it. A window that grows
   in stage 5 may have to cross it.
 - **The south** - a window in the southern half needs the seasons turned

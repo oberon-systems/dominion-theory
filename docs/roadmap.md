@@ -126,16 +126,16 @@ What is already settled and binds every stage.
   two, winter three, on the year of ten months. The lengths are
   parameters, and later a season may come early or run long.
 - **A biome is data with a generation rule**: ranges over elevation,
-  relief, moisture and temperature that must all hold, and an order; the
+  relief, moisture, temperature and flow that must all hold, and an order; the
   first biome by order takes the cell. A new biome is a data file, its
   name in both catalogues, a document and a test.
-- **The starting biomes are nine**: grass, forest, hills, mountain,
-  outcrops, water, desert, tundra and swamp.
+- **The starting biomes are eleven**: grass, forest, hills, mountain,
+  outcrops, water, desert, tundra, swamp, marsh and dunes.
 - **A threshold of generation is a share of the planet**, not a number of
   the noise: the sea is the share of the planet under water, and a height
   is the share of land lying lower.
-- **A river is a line and a mark**, not a biome: it is traced by flow down
-  to the sea, a cell it crosses keeps its biome, can be crossed and gets
+- **A river is a line and a mark**, not a biome: it is traced by flow from
+  its source on a divide down to the sea, through the lakes on its way, a cell it crosses keeps its biome, can be crossed and gets
   the river's modifiers.
 - **A property is a base with modifiers**: what is added first, what
   multiplies after, held between 0 and 1, worked out when asked and stored
@@ -535,5 +535,5 @@ Each is answered in the design doc of the stage named.
 - **The seam and the south** (stage 5) - the first window keeps clear of
   the seam and lies in the north, where the seasons are true. A window
   that grows may have to cross the seam and the equator.
-- **Valleys and lakes** (not set) - a river is not cut into the land and a
-  filled hollow is not a lake.
+- **Valleys** (not set) - a river is not cut into the land, so it may
+  cross a cell of hills.

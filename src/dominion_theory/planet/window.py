@@ -46,7 +46,7 @@ def misses(skeleton: Skeleton, rivers: Rivers, params: Params, x: int, y: int) -
     east = (x + (np.arange(columns) + 0.5) * window.width / columns) * cell_km
     south = (y + (np.arange(rows) + 0.5) * window.height / rows) * cell_km
     places = np.meshgrid(east, south)
-    layers = skeleton.restate(places[0], places[1])
+    layers = rivers.restate(skeleton, places[0], places[1])
     codes = classify(params.biomes, layers)
     names = ordered(params.biomes)
 

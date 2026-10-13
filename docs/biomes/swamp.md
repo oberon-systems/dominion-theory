@@ -2,24 +2,26 @@
 
 #biome #swamp
 
-Low, wet, warm ground that stands in water. It never runs dry and it
-feeds well, but it is the slowest land to cross that can be crossed at
-all, and it is not safe. The model is in [the overview](overview.md).
+Flat, warm ground that stands in water: the delta of a river, its banks
+on a plain, the shore of a lake. It never runs dry and it feeds well, but
+it is the slowest land to cross that can be crossed at all, and it is not
+safe. The model is in [the overview](overview.md).
 
 ___
 
 ## Where it appears
 
-A swamp is the wettest 15 percent of land where that land is also low,
-within the lowest 15 percent above the shore, and not cold. So it lies
-on wet coasts and in the mouths of rivers, in small patches.
+A swamp is where the most water runs through, the tenth of land with
+the largest flow, when the ground there is flat and not cold. So it lies
+in the mouths of rivers, along the large ones on a plain and at lakes.
 
-| Order | Rule                                                           |
-|-------|----------------------------------------------------------------|
-| 65    | elevation up to 0.15, moisture from 0.85, temperature from 0.3 |
+| Order | Rule                                                  |
+|-------|-------------------------------------------------------|
+| 65    | flow from 0.9, relief up to 0.5, temperature from 0.3 |
 
-It is ordered before forest, which would take the same land. Wet low land
-in the cold stays forest or becomes tundra.
+It is ordered before forest, which would take the same land, and after
+hills, so a river in high country cuts no swamp. The layer `flow` is told
+in [Generation](generation.md#rivers).
 
 ___
 

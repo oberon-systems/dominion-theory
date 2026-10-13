@@ -24,7 +24,7 @@ ___
 
 ## The starting set
 
-Nine biomes cover the planet. Six were named by the roadmap; `desert` and
+Eleven biomes cover the planet. Six were named by the roadmap; `desert` and
 `tundra` are added because a whole planet has dry and cold land, and
 without them it would be grass up to the poles.
 
@@ -38,7 +38,9 @@ without them it would be grass up to the poles.
 | [`water`](water.md)      | sea and lakes; nobody walks here        |
 | [`desert`](desert.md)    | dry and warm, nearly empty              |
 | [`tundra`](tundra.md)    | the cold belts near the poles           |
-| [`swamp`](swamp.md)      | low, wet, warm ground: rich and slow    |
+| [`swamp`](swamp.md)      | deltas, river banks and lake shores     |
+| [`marsh`](marsh.md)      | the wet shore of the sea, in patches    |
+| [`dunes`](dunes.md)      | the dry shore of the sea, in patches    |
 
 Swamp was left out of the first set on purpose. It is the biome that
 closed the stage: added last, by one data file, to prove that nothing else
@@ -304,7 +306,8 @@ The tests that every biome has all its properties and its name in both
 catalogues take the new file in by themselves. The tests that spell out
 the whole list of biomes in order gain the new name.
 
-[`swamp`](swamp.md) was added this way, and `make map` shows where a new
+[`swamp`](swamp.md), [`marsh`](marsh.md) and [`dunes`](dunes.md) were
+added this way, and `make map` shows where a new
 biome lands; see [Setup](../dev/setup.md#look-at-a-map).
 
 ___

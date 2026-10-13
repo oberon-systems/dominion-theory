@@ -29,6 +29,35 @@ def test_every_layer_has_its_own_stream(params: Params) -> None:
     assert np.array_equal(made.elevation(x, y), moved.elevation(x, y))
 
 
+def test_ridges_and_basins_shape_land_and_leave_the_sea_and_the_shore_alone(params: Params) -> None:
+    planet = params.planet
+    made = layers(7, planet.circumference_km, planet.elevation, planet.relief, planet.moisture, planet.temperature)
+    still = planet.elevation.model_copy(
+        update={
+            'ridges': planet.elevation.ridges.model_copy(update={'weight': 0.0}),
+            'basins': planet.elevation.basins.model_copy(update={'depth': 0.0}),
+        }
+    )
+    plain = layers(7, planet.circumference_km, still, planet.relief, planet.moisture, planet.temperature)
+    x, y = np.meshgrid(np.arange(5.0, 4000.0, 50.0), np.arange(5.0, 2000.0, 50.0))
+    base = made.elevation(x, y)
+    sea = float(np.median(base))
+    land = base > sea
+
+    lifted = made.height(x, y, sea, 2.0, 1.0)
+    shaped = made.height(x, y, sea, 0.0, 1.0)
+
+    assert np.array_equal(plain.height(x, y, sea, 0.0, 1.0), base - sea)
+    assert np.array_equal(lifted > 0, land)
+    assert np.array_equal(lifted[~land], (base - sea)[~land])
+    assert (lifted[land] >= (base - sea)[land]).all()
+    assert (lifted[land] > (base - sea)[land]).any()
+    assert np.array_equal(shaped > 0, land)
+    assert (shaped <= lifted).all()
+    assert (shaped[land] < lifted[land]).any()
+    assert np.array_equal(shaped[~land], lifted[~land])
+
+
 def test_temperature_falls_to_the_poles_and_with_height(params: Params) -> None:
     planet = params.planet
     calm = planet.temperature.model_copy(update={'noise': 0.0})

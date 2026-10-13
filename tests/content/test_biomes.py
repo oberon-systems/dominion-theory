@@ -18,8 +18,10 @@ def test_defaults_hold_the_biomes_in_generation_order() -> None:
         'tundra',
         'outcrops',
         'hills',
+        'dunes',
         'desert',
         'swamp',
+        'marsh',
         'forest',
         'grass',
     ]
@@ -69,9 +71,16 @@ def test_planet_is_the_one_of_the_document() -> None:
     planet = load_params().planet
 
     assert (planet.circumference_km, planet.skeleton_km, planet.sea) == (40000, 100, 0.6)
-    assert planet.elevation.model_dump() == {'scale_km': 6000, 'octaves': 6, 'persistence': 0.5}
+    assert planet.elevation.model_dump() == {
+        'scale_km': 6000,
+        'octaves': 6,
+        'persistence': 0.5,
+        'ridges': {'scale_km': 2000, 'octaves': 2, 'persistence': 0.5, 'weight': 3.0, 'sharpness': 12},
+        'basins': {'scale_km': 800, 'octaves': 2, 'persistence': 0.5, 'share': 0.15, 'depth': 0.9},
+    }
     assert planet.temperature.lapse == 0.25
-    assert (planet.rivers.share, planet.rivers.meander_km) == (0.05, 30)
+    rivers = planet.rivers
+    assert (rivers.share, rivers.lakes, rivers.ocean, rivers.meander_km) == (0.05, 0.7, 0.02, 30)
     assert planet.rivers.model_dump()['effects'] == {
         'band': {'water': {'plus': 0.5}, 'food': {'plus': 0.1}, 'passability': {'times': 0.7}}
     }
@@ -140,4 +149,4 @@ def test_range_is_closed_and_a_side_left_out_is_open() -> None:
     assert [Range(min=0.2, max=0.4).holds(value) for value in (0.1, 0.2, 0.4, 0.5)] == [False, True, True, False]
     assert Range(min=0.2).holds(1.0)
     assert Range(max=0.0).holds(-1.0)
-    assert LAYERS == ('elevation', 'relief', 'moisture', 'temperature')
+    assert LAYERS == ('elevation', 'relief', 'moisture', 'temperature', 'flow')

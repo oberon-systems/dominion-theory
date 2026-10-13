@@ -34,7 +34,7 @@ game hangs on and the land. A game is created over the API, advances by
 ticks through days, months and seasons, and tells its clients what
 happened in English or Russian; every run is recorded and replays to the
 same state. It is played in a window on a planet made from the seed, with
-nine biomes that are data, rivers, and cells that are worn out and
+eleven biomes that are data, rivers, and cells that are worn out and
 recover.
 
 There is nothing to play yet. No band walks the map, and the only client

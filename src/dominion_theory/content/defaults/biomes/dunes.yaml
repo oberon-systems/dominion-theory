@@ -1,0 +1,17 @@
+biomes:
+  dunes:
+    colour: '#EAD9A0'
+    generation:
+      order: 55
+      elevation: {max: 0.2}
+      relief: {max: 0.4}
+      moisture: {max: 0.3}
+      temperature: {min: 0.5}
+    eras:
+      band:
+        properties:
+          water: {base: 0.1, recovery: {days: 3}}
+          food: {base: 0.15, recovery: {days: 60}}
+          threat: {base: 0.2}
+          passability: {base: 0.7}
+        resources: [water, forage]

@@ -16,7 +16,7 @@ def region(params: Params, rows: list[list[str]], rivers: list[list[bool]]) -> R
     names = biome_names(params)
     codes = np.array([[names.index(name) for name in row] for row in rows], dtype=np.uint8)
     layer = np.zeros(codes.shape)
-    return Region(layer, layer, layer, layer, codes, np.array(rivers, dtype=np.bool_))
+    return Region(layer, layer, layer, layer, layer, codes, np.array(rivers, dtype=np.bool_))
 
 
 @pytest.fixture

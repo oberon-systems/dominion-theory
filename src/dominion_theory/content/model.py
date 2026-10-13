@@ -15,7 +15,7 @@ SCHEMA_VERSION = 1
 PARAMS_INVALID = 'error-params-invalid'
 DURATION_UNITS = ('parts', 'days', 'months', 'years')
 MODIFIER_KINDS = ('plus', 'times')
-LAYERS = ('elevation', 'relief', 'moisture', 'temperature')
+LAYERS = ('elevation', 'relief', 'moisture', 'temperature', 'flow')
 RESOURCES = ('water', 'forage')
 ZOOM = 5
 
@@ -170,6 +170,7 @@ class Generation(Node):
     relief: Range | None = None
     moisture: Range | None = None
     temperature: Range | None = None
+    flow: Range | None = None
 
     @property
     def ranges(self) -> dict[str, Range]:
@@ -205,6 +206,35 @@ class Layer(Node):
     persistence: Share
 
 
+class Ridges(Node):
+    """
+    Mountain ranges: lines of a noise of their own that lift the land they cross.
+    """
+
+    scale_km: Count
+    octaves: Count
+    persistence: Share
+    weight: Factor
+    sharpness: Count
+
+
+class Basins(Node):
+    """
+    Hollows in the land, where lakes and inland seas gather: a share of the planet, sunk by a share of its height.
+    """
+
+    scale_km: Count
+    octaves: Count
+    persistence: Share
+    share: Share
+    depth: Share
+
+
+class Elevation(Layer):
+    ridges: Ridges
+    basins: Basins
+
+
 class Temperature(Node):
     lapse: Share
     noise: Share
@@ -213,6 +243,8 @@ class Temperature(Node):
 
 class Rivers(Node):
     share: Share
+    lakes: Share
+    ocean: Share
     meander_km: Span
     effects: dict[Name, dict[Name, Modifier]]
 
@@ -252,7 +284,7 @@ class Planet(Node):
     circumference_km: Count
     skeleton_km: Count
     sea: Share
-    elevation: Layer
+    elevation: Elevation
     relief: Layer
     moisture: Layer
     temperature: Temperature

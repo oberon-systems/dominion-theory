@@ -3,8 +3,8 @@ biomes:
     colour: '#4A6B5D'
     generation:
       order: 65
-      elevation: {max: 0.15}
-      moisture: {min: 0.85}
+      flow: {min: 0.9}
+      relief: {max: 0.5}
       temperature: {min: 0.3}
     eras:
       band:

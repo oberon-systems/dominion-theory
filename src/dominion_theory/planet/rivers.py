@@ -1,5 +1,6 @@
 """
 Rivers: flow traced on the skeleton, joined into lines in planet kilometres, and the mark they leave on cells.
+With them the lakes that stand in hollows on the way, and the flow as a layer for the rules of biomes.
 """
 
 import heapq
@@ -11,9 +12,9 @@ from itertools import pairwise
 import numpy as np
 from numpy.typing import NDArray
 
-from ..content import Layer, Temperature
+from ..content import Elevation, Layer, Temperature
 from .noise import Floats, stream
-from .skeleton import skeleton
+from .skeleton import Skeleton, skeleton
 
 KEPT = 4
 STREAM = 'rivers'
@@ -41,6 +42,35 @@ def _beside[T: np.generic](grid: NDArray[T], south: int, east: int, beyond: floa
     else:
         moved[-south:] = turned[:south]
     return moved
+
+
+def ocean(land: Flags, share: float) -> Flags:
+    """
+    The sea nodes that lie in a body of water holding at least a share of all of them. A smaller body is
+    an inland sea: water runs through it and on, as through a lake.
+    """
+    rows, around = land.shape
+    body = [0 if dry else NONE for dry in land.ravel().tolist()]
+    sizes = [0]
+    for start in np.flatnonzero(~land).tolist():
+        if body[start] != NONE:
+            continue
+        body[start] = len(sizes)
+        reached = [start]
+        for node in reached:
+            row, column = divmod(node, around)
+            for south, east in DIRECTIONS:
+                below = row + south
+                beside = below * around + (column + east) % around
+                if 0 <= below < rows and body[beside] == NONE:
+                    body[beside] = len(sizes)
+                    reached.append(beside)
+        sizes.append(len(reached))
+
+    least = share * (land.size - int(land.sum()))
+    open_sea = np.array([number > 0 and size >= least for number, size in enumerate(sizes)], dtype=bool)
+    wide: Flags = open_sea[np.array(body, dtype=np.int64)].reshape(land.shape)
+    return wide
 
 
 def fill(heights: Floats, land: Flags) -> Floats:
@@ -115,6 +145,38 @@ def pick(flow: Floats, surface: Floats, land: Flags, share: float) -> Flags:
     return chosen.reshape(flow.shape)
 
 
+def sources(chosen: Flags, flow: Floats, targets: Indices) -> Flags:
+    """
+    The chosen nodes and, above each, the largest inflow followed up to where nothing flows in: its source.
+    """
+    aims: list[int] = targets.ravel().tolist()
+    largest: dict[int, int] = {}
+    for node in np.argsort(-flow, axis=None, kind='stable').tolist():
+        if aims[node] != NONE:
+            largest.setdefault(aims[node], node)
+
+    marked: list[bool] = chosen.ravel().tolist()
+    for node in np.flatnonzero(chosen).tolist():
+        above = largest.get(node)
+        while above is not None and not marked[above]:
+            marked[above] = True
+            above = largest.get(above)
+    followed: Flags = np.array(marked, dtype=bool).reshape(chosen.shape)
+    return followed
+
+
+def flooded(heights: Floats, surface: Floats, land: Flags, share: float) -> Floats:
+    """
+    The level of the lake at every node: of the hollows the deepest share hold one, the rest of the land none.
+    """
+    depth = np.where(land, surface - heights, 0.0).ravel()
+    hollows = np.flatnonzero(depth > 0)
+    deepest = hollows[np.argsort(-depth[hollows], kind='stable')][: round(share * hollows.size)]
+    levels = np.full(heights.size, -np.inf)
+    levels[deepest] = surface.ravel()[deepest]
+    return levels.reshape(heights.shape)
+
+
 def _stretch(start: Floats, end: Floats, bend: float) -> list[Floats]:
     along = end - start
     across = np.array([-along[1], along[0]]) / float(np.hypot(along[0], along[1]))
@@ -127,6 +189,7 @@ def trace(
     flow: Floats,
     targets: Indices,
     chosen: Flags,
+    land: Flags,
     circumference_km: int,
     meander_km: int,
     rng: np.random.Generator,
@@ -137,6 +200,8 @@ def trace(
     rows, around = flow.shape
     side = circumference_km / around
     shifts = rng.uniform(-JITTER, JITTER, (rows, around, 2))
+    # A sea node stays at its centre, which is under water at any cell size, so a mouth never ends on land.
+    shifts[~land] = 0.0
     bends: list[float] = (rng.uniform(-1.0, 1.0, (rows, around)) * meander_km).ravel().tolist()
     centres = np.stack(np.meshgrid(np.arange(around) + 0.5, np.arange(rows) + 0.5), axis=-1)
     places = ((centres + shifts) * side).reshape(-1, 2)
@@ -147,6 +212,11 @@ def trace(
     largest: dict[int, int] = {}
     for node in nodes[np.argsort(-flow.ravel()[nodes], kind='stable')].tolist():
         largest.setdefault(aims[node], node)
+    # An inland sea spills into the node below it, and the river that leaves it starts on its water.
+    spills: dict[int, int] = {}
+    for node in np.flatnonzero(~land).tolist():
+        if aims[node] != NONE:
+            spills.setdefault(aims[node], node)
 
     lines: list[Floats] = []
     for node in nodes.tolist():
@@ -154,6 +224,10 @@ def trace(
             continue
         here = places[node]
         points = [here]
+        if node in spills:
+            water = places[spills[node]].copy()
+            water[0] += circumference_km * round((here[0] - water[0]) / circumference_km)
+            points = [water, here]
         while aims[node] != NONE:
             after = aims[node]
             there = places[after].copy()
@@ -209,13 +283,55 @@ def _cells(west: float, north: float, east: float, south: float, cell_km: int) -
 @dataclass(frozen=True)
 class Rivers:
     """
-    The rivers of a planet: the nodes that carry them, what every node carries, and the lines.
+    The rivers of a planet: the nodes that carry them, what every node carries, the lines,
+    the level of the lake at every node and the flow of every node as a share of land.
     """
 
     circumference_km: int
     nodes: Flags
     flow: Floats
     lines: tuple[Floats, ...]
+    levels: Floats
+    shares: Floats
+
+    def lake(self, x: Floats, y: Floats) -> Floats:
+        """
+        The level of the lake a place in kilometres may lie in: the highest of the four nodes around it,
+        and no level where none of them holds a lake.
+        """
+        rows, around = self.levels.shape
+        side = self.circumference_km / around
+        column = np.floor(x / side - 0.5).astype(np.int64)
+        row = np.clip(np.floor(y / side - 0.5).astype(np.int64), 0, rows - 1)
+        below = np.minimum(row + 1, rows - 1)
+        west, east = column % around, (column + 1) % around
+        level: Floats = np.maximum.reduce(
+            [self.levels[row, west], self.levels[row, east], self.levels[below, west], self.levels[below, east]]
+        )
+        return level
+
+    def wet(self, x: Floats, y: Floats) -> Floats:
+        """
+        The flow at a place in kilometres, 0 to 1, read between the four nodes around it.
+        """
+        rows, around = self.shares.shape
+        side = self.circumference_km / around
+        east = x / side - 0.5
+        south = np.clip(y / side - 0.5, 0.0, rows - 1.0)
+        column = np.floor(east).astype(np.int64)
+        row = np.minimum(np.floor(south).astype(np.int64), max(rows - 2, 0))
+        below = np.minimum(row + 1, rows - 1)
+        along, down = east - column, south - row
+        north = self.shares[row, column % around] * (1 - along) + self.shares[row, (column + 1) % around] * along
+        further = self.shares[below, column % around] * (1 - along) + self.shares[below, (column + 1) % around] * along
+        read: Floats = north * (1 - down) + further * down
+        return read
+
+    def restate(self, frame: Skeleton, x: Floats, y: Floats) -> dict[str, Floats]:
+        """
+        Every layer the rules of biomes read at places in kilometres: those of the skeleton, lakes and flow laid in.
+        """
+        return {**frame.restate(x, y, self.lake(x, y)), 'flow': self.wet(x, y)}
 
     @cached_property
     def segments(self) -> Floats:
@@ -267,18 +383,30 @@ def lay(
     rain: Floats,
     circumference_km: int,
     share: float,
+    lakes: float,
+    open_sea: float,
     meander_km: int,
     rng: np.random.Generator,
 ) -> Rivers:
     """
-    The four steps: rain, flow over filled hollows, gathering, the lines.
+    The steps: rain, flow over filled hollows, gathering, rivers followed up to their sources, the lines.
+    Water leaves the land and the inland seas alike: only the ocean keeps it.
     """
-    surface = fill(heights, land)
-    targets = drain(surface, land)
+    inland = ~ocean(land, open_sea)
+    surface = fill(heights, inland)
+    targets = drain(surface, inland)
     flow = gather(surface, targets, rain)
-    chosen = pick(flow, surface, land, share)
-    lines = trace(flow, targets, chosen, circumference_km, meander_km, rng)
-    return Rivers(circumference_km=circumference_km, nodes=chosen, flow=flow, lines=lines)
+    chosen = sources(pick(flow, surface, land, share), flow, targets)
+    lines = trace(flow, targets, chosen, land, circumference_km, meander_km, rng)
+    carried = np.sort(flow[land]) if land.any() else np.zeros(1)
+    return Rivers(
+        circumference_km=circumference_km,
+        nodes=chosen,
+        flow=flow,
+        lines=lines,
+        levels=flooded(heights, surface, land, lakes),
+        shares=np.interp(flow, carried, np.linspace(0.0, 1.0, carried.size)),
+    )
 
 
 @lru_cache(maxsize=KEPT)
@@ -287,15 +415,18 @@ def rivers(
     circumference_km: int,
     skeleton_km: int,
     sea: float,
-    elevation: Layer,
+    elevation: Elevation,
     relief: Layer,
     moisture: Layer,
     temperature: Temperature,
     share: float,
+    lakes: float,
+    open_sea: float,
     meander_km: int,
 ) -> Rivers:
     """
     Kept in the process beside the skeleton they are traced on, never in the state of a game.
     """
     frame = skeleton(seed, circumference_km, skeleton_km, sea, elevation, relief, moisture, temperature)
-    return lay(frame.elevation, frame.land, frame.rain, circumference_km, share, meander_km, stream(seed, STREAM))
+    rng = stream(seed, STREAM)
+    return lay(frame.elevation, frame.land, frame.rain, circumference_km, share, lakes, open_sea, meander_km, rng)

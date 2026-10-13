@@ -1,0 +1,23 @@
+biomes:
+  marsh:
+    colour: '#5F9E8F'
+    generation:
+      order: 67
+      elevation: {max: 0.2}
+      relief: {max: 0.4}
+      moisture: {min: 0.7}
+      temperature: {min: 0.3}
+    eras:
+      band:
+        properties:
+          water: {base: 0.7, recovery: {days: 3}}
+          food:
+            base: 0.6
+            recovery: {days: 30}
+            seasons:
+              spring: {times: 0.7}
+              autumn: {times: 1.1}
+              winter: {times: 0.4}
+          threat: {base: 0.4}
+          passability: {base: 0.5}
+        resources: [water, forage]

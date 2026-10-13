@@ -37,6 +37,7 @@ class Region:
     relief: Floats
     moisture: Floats
     temperature: Floats
+    flow: Floats
     biomes: NDArray[np.uint8]
     rivers: NDArray[np.bool_]
 
@@ -79,6 +80,8 @@ class Planet:
             planet.moisture,
             planet.temperature,
             planet.rivers.share,
+            planet.rivers.lakes,
+            planet.rivers.ocean,
             planet.rivers.meander_km,
         )
 
@@ -91,7 +94,7 @@ class Planet:
             raise ValueError(f'rows {y} to {y + height} do not lie between the poles')
         columns = (x + np.arange(width)) % across
         east, south = np.meshgrid((columns + 0.5) * cell_km, (y + np.arange(height) + 0.5) * cell_km)
-        layers = self.skeleton.restate(east, south)
+        layers = self.rivers.restate(self.skeleton, east, south)
         biomes = classify(self.params.biomes, layers)
         marks = self.rivers.marks(x, y, width, height, cell_km)
         if WATER in self.biomes:
@@ -101,6 +104,7 @@ class Planet:
             relief=layers['relief'],
             moisture=layers['moisture'],
             temperature=layers['temperature'],
+            flow=layers['flow'],
             biomes=biomes,
             rivers=marks,
         )

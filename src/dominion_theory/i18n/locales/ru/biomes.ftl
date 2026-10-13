@@ -7,3 +7,5 @@ biome-water = вода
 biome-desert = пустыня
 biome-tundra = тундра
 biome-swamp = болото
+biome-marsh = прибрежные топи
+biome-dunes = дюны

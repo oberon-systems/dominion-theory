@@ -29,7 +29,7 @@ planet:
       - {latitude: 1.0, wet: 0.2}
   temperature: {lapse: 0.25, noise: 0.05, scale_km: 1000}
   rivers:
-    share: 0.05
+    share: 0.043
     great: 0.02
     lakes: 0.5
     lake_full: 0.35

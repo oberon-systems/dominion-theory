@@ -281,7 +281,7 @@ Rivers are traced on the skeleton, in four steps.
    is not the ocean but an inland sea: it is filled like a hollow, and a
    river leaves it.
 3. **Gathering** - a node carries its own rain and all that flows into it.
-   The nodes that carry the most, 5 percent of land by default, are river
+   The nodes that carry the most, 4.3 percent of land by default, are river
    nodes. Each river is then followed upstream, by the largest inflow at
    every node, to the node nothing flows into: its source on a divide.
 4. **The line** - river nodes are joined downstream into lines, each to
@@ -438,7 +438,7 @@ planet:
       - {latitude: 1.0, wet: 0.2}
   temperature: {lapse: 0.25, noise: 0.05, scale_km: 1000}
   rivers:
-    share: 0.05
+    share: 0.043
     great: 0.02
     lakes: 0.5
     lake_full: 0.35

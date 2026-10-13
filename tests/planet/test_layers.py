@@ -1,4 +1,5 @@
 import numpy as np
+import pytest
 
 from dominion_theory.content import Params
 from dominion_theory.planet import Planet
@@ -20,9 +21,10 @@ def test_every_layer_has_its_own_stream(params: Params) -> None:
     made = layers(7, planet.circumference_km, planet.elevation, planet.relief, planet.moisture, planet.temperature)
     x, y = np.meshgrid(np.arange(5.0, 400.0, 10.0), np.arange(5.0, 400.0, 10.0))
     same = planet.elevation.model_copy(update={'scale_km': 500, 'octaves': 2})
-    twins = layers(7, planet.circumference_km, same, same, same, planet.temperature)
+    damp = planet.moisture.model_copy(update={'scale_km': 500, 'octaves': 2})
+    twins = layers(7, planet.circumference_km, same, same, damp, planet.temperature)
 
-    moved = layers(7, planet.circumference_km, planet.elevation, same, same, planet.temperature)
+    moved = layers(7, planet.circumference_km, planet.elevation, same, damp, planet.temperature)
 
     assert not np.array_equal(twins.elevation(x, y), twins.relief(x, y))
     assert not np.array_equal(twins.elevation(x, y), twins.moisture(x, y))
@@ -56,6 +58,21 @@ def test_ridges_and_basins_shape_land_and_leave_the_sea_and_the_shore_alone(para
     assert (shaped <= lifted).all()
     assert (shaped[land] < lifted[land]).any()
     assert np.array_equal(shaped[~land], lifted[~land])
+
+
+def test_moisture_follows_the_belts_of_latitude_and_dries_inland(params: Params) -> None:
+    planet = params.planet
+    belts = [{'latitude': 0.0, 'wet': 1.0}, {'latitude': 0.5, 'wet': 0.0}, {'latitude': 1.0, 'wet': 0.5}]
+    wet = planet.moisture.model_validate({**planet.moisture.model_dump(), 'belts': belts, 'belt': 2.0, 'inland': 3.0})
+    made = layers(7, planet.circumference_km, planet.elevation, planet.relief, wet, planet.temperature)
+    x = np.full(5, 123.0)
+    y = np.array([1000.0, 750.0, 500.0, 0.0, 1500.0])
+    shore = np.zeros(5)
+    noise = made.moisture(x, y)
+
+    assert (made.damp(x, y, shore) - noise).tolist() == pytest.approx([2.0, 0.0, -2.0, 0.0, -2.0])
+    assert (made.damp(x, y, shore + wet.inland_km) - made.damp(x, y, shore)).tolist() == pytest.approx([-1.5] * 5)
+    assert (made.damp(x, y, shore + np.inf) - made.damp(x, y, shore)).tolist() == pytest.approx([-3.0] * 5)
 
 
 def test_temperature_falls_to_the_poles_and_with_height(params: Params) -> None:

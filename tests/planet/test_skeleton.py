@@ -5,6 +5,7 @@ import pytest
 
 from dominion_theory.content import Params, load_params
 from dominion_theory.planet import Planet
+from dominion_theory.planet.skeleton import _inland
 
 SMALL = {'planet.circumference_km': 4000, 'planet.window.width': 32, 'planet.window.height': 16}
 WIDE = {'planet.circumference_km': 8000, 'planet.window.width': 32, 'planet.window.height': 16}
@@ -39,6 +40,33 @@ def test_relief_and_moisture_are_shares_of_land() -> None:
 
     assert abs(float(np.median(world.relief[land])) - 0.5) < 0.1
     assert abs(float(np.median(world.moisture[land])) - 0.5) < 0.1
+
+
+def test_distance_from_the_sea_goes_by_the_eight_neighbours_and_around_the_planet() -> None:
+    land = np.ones((5, 8), dtype=np.bool_)
+    land[2, 0] = False
+
+    away = _inland(land, 100.0)
+
+    assert away[2].tolist() == pytest.approx([0.0, 100.0, 200.0, 300.0, 400.0, 300.0, 200.0, 100.0])
+    assert away[0, 0] == pytest.approx(200.0)
+    assert away[0, 2] == pytest.approx(200.0 * 2**0.5)
+    assert away[1, 3] == pytest.approx(100.0 * 2**0.5 + 200.0)
+    assert not _inland(np.ones((5, 8), dtype=np.bool_), 100.0).any()
+    assert not _inland(np.zeros((5, 8), dtype=np.bool_), 100.0).any()
+
+
+def test_land_far_from_the_sea_is_drier_and_the_shares_hold() -> None:
+    dry = load_params(overrides={**WIDE, 'planet.moisture.inland': 5.0, 'planet.moisture.belt': 0.0})
+    planet = Planet(7, dry)
+    world = planet.read(0, 0, 400, 200, 20)
+    land = world.elevation > 0
+    x, y = np.meshgrid(np.arange(400) * 20.0 + 10.0, np.arange(200) * 20.0 + 10.0)
+    away = planet.skeleton.inland(x, y)
+    far = land & (away > np.median(away[land]))
+
+    assert abs(float(np.median(world.moisture[land])) - 0.5) < 0.1
+    assert world.moisture[far].mean() < world.moisture[land & ~far].mean() - 0.2
 
 
 def test_skeleton_is_worked_out_once_for_a_seed_and_a_planet(params: Params) -> None:

@@ -148,6 +148,13 @@ def test_river_effects_name_properties_of_their_era() -> None:
     assert refused({'planet.rivers.effects': {'alpha': {}}})['path'] == 'planet.rivers.effects'
 
 
+def test_belts_of_moisture_run_from_the_equator_to_the_pole() -> None:
+    belts = [{'latitude': 0.5, 'wet': 1.0}, {'latitude': 0.2, 'wet': 0.0}]
+
+    assert str(refused({'planet.moisture.belts': belts})['path']).startswith('planet.moisture')
+    assert str(refused({'planet.moisture.belts': []})['path']).startswith('planet.moisture')
+
+
 def test_need_names_a_biome_that_exists() -> None:
     values = refused({'planet.window.needs.biomes': {'alpha': 0.1}})
 

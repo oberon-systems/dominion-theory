@@ -9,7 +9,22 @@ planet:
     ridges: {scale_km: 2000, octaves: 2, persistence: 0.5, weight: 3.0, sharpness: 12}
     basins: {scale_km: 800, octaves: 2, persistence: 0.5, share: 0.15, depth: 0.9}
   relief: {scale_km: 150, octaves: 3, persistence: 0.5}
-  moisture: {scale_km: 1500, octaves: 4, persistence: 0.5}
+  moisture:
+    scale_km: 1500
+    octaves: 4
+    persistence: 0.5
+    belt: 0.8
+    inland: 0.6
+    inland_km: 800
+    belts:
+      - {latitude: 0.0, wet: 1.0}
+      - {latitude: 0.12, wet: 0.85}
+      - {latitude: 0.27, wet: 0.1}
+      - {latitude: 0.38, wet: 0.45}
+      - {latitude: 0.5, wet: 0.8}
+      - {latitude: 0.65, wet: 0.6}
+      - {latitude: 0.85, wet: 0.3}
+      - {latitude: 1.0, wet: 0.2}
   temperature: {lapse: 0.25, noise: 0.05, scale_km: 1000}
   rivers:
     share: 0.08
@@ -32,7 +47,7 @@ planet:
     height: 256
     x: null
     y: null
-    latitude: {min: 0.3, max: 0.6}
+    latitude: {min: 0.38, max: 0.6}
     tries: 64
     needs:
       land: 0.6

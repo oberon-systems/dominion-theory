@@ -235,6 +235,33 @@ class Elevation(Layer):
     basins: Basins
 
 
+class Belt(Node):
+    """
+    How wet a latitude is: 0 at the equator, 1 at a pole, the two halves of the planet alike.
+    """
+
+    latitude: Share
+    wet: Share
+
+
+class Moisture(Layer):
+    """
+    Noise, the belts of latitude laid over it, and the drying of land far from the sea.
+    """
+
+    belt: Factor
+    inland: Factor
+    inland_km: Count
+    belts: tuple[Belt, ...] = Field(min_length=1)
+
+    @model_validator(mode='after')
+    def _northward(self) -> Self:
+        latitudes = [held.latitude for held in self.belts]
+        if any(first >= second for first, second in zip(latitudes, latitudes[1:], strict=False)):
+            raise ValueError('belts from the equator to the pole, no latitude twice')
+        return self
+
+
 class Temperature(Node):
     lapse: Share
     noise: Share
@@ -292,7 +319,7 @@ class Planet(Node):
     sea: Share
     elevation: Elevation
     relief: Layer
-    moisture: Layer
+    moisture: Moisture
     temperature: Temperature
     rivers: Rivers
     window: Window

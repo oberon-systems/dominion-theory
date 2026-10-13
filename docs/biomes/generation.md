@@ -11,6 +11,7 @@ are described in [the overview](overview.md).
 - [The size of the planet](#the-size-of-the-planet)
 - [Skeleton and detail](#skeleton-and-detail)
 - [Layers](#layers)
+- [Climate](#climate)
 - [Ranges](#ranges)
 - [Shares instead of thresholds](#shares-instead-of-thresholds)
 - [From layers to a biome](#from-layers-to-a-biome)
@@ -94,7 +95,8 @@ from five of them.
   ranges; see [Ranges](#ranges).
 - **Relief** is fine noise of its own. It is what tells a rocky outcrop
   from the grass around it at the same height.
-- **Moisture** is noise at the scale of regions.
+- **Moisture** is noise at the scale of regions, with a climate laid
+  over it; see [Climate](#climate).
 - **Temperature** is not noise. It is 1 at the equator and 0 at the poles,
   falls with height on land, and carries a small noise so that the belts
   do not run as straight lines.
@@ -113,6 +115,35 @@ temperature = 1 - latitude - lapse * elevation + noise * belts
 Latitude is 0 at the equator and 1 at a pole, elevation is the restated
 one and counts on land only, `belts` is one octave of noise from -1 to 1,
 and the result is held between 0 and 1.
+
+___
+
+## Climate
+
+Where it is wet and where it is dry follows the planet, not the noise
+alone. Three things add up to the moisture of a place.
+
+```text
+moisture = noise + belt * (2 * wet of the latitude - 1) - inland * dried
+dried    = 1 - 0.5 ^ (distance from the sea / inland_km)
+```
+
+- **The belts of latitude.** `belts` is a list of points, each a latitude
+  and how wet it is; between two points the value is read on a line. By
+  default the equator is wet, the subtropics are dry, the temperate belt
+  is wet again and the poles are dry. The two halves of the planet are
+  alike.
+- **The distance from the sea.** Land dries as it lies further inland,
+  and has lost half of `inland` at `inland_km`. The heart of a large
+  continent is dry. The distance is measured on the skeleton, from every
+  node under the sea, and read between nodes at a cell.
+- **The noise** keeps a belt from running as a straight line.
+
+The sum is restated as a share of land like the other layers, so a rule
+still reads "the driest 15 percent of land": the climate decides where
+that land lies, not how much of it there is.
+
+The first window is tried in the wet temperate belt.
 
 ___
 
@@ -241,9 +272,10 @@ on land.
 all. Hollows that touch are one basin, as deep as the water had to rise
 to spill out of it; the deepest basins, `rivers.lakes` as a share, are
 flooded whole. A cell is lake when one of the four nodes around it holds
-one and the cell lies below the water. Towards a node with no lake the
-level is lowered to the sea level, so the water stays in its basin and
-its shore follows the land. It is then the biome `water`. A river runs into a lake and out of
+one and the cell lies below the water. Towards a node that stands lower
+than the lake, its outlet or the sea, the level is lowered to the sea
+level, so the water does not run on down the valley; elsewhere the shore
+is where the land rises out of the water. It is then the biome `water`. A river runs into a lake and out of
 it, and a large lake is an inland sea.
 
 **A great river has a bed.** The nodes that carry the most of all,
@@ -350,7 +382,22 @@ planet:
     ridges: {scale_km: 2000, octaves: 2, persistence: 0.5, weight: 3.0, sharpness: 12}
     basins: {scale_km: 800, octaves: 2, persistence: 0.5, share: 0.15, depth: 0.9}
   relief: {scale_km: 150, octaves: 3, persistence: 0.5}
-  moisture: {scale_km: 1500, octaves: 4, persistence: 0.5}
+  moisture:
+    scale_km: 1500
+    octaves: 4
+    persistence: 0.5
+    belt: 0.8
+    inland: 0.6
+    inland_km: 800
+    belts:
+      - {latitude: 0.0, wet: 1.0}
+      - {latitude: 0.12, wet: 0.85}
+      - {latitude: 0.27, wet: 0.1}
+      - {latitude: 0.38, wet: 0.45}
+      - {latitude: 0.5, wet: 0.8}
+      - {latitude: 0.65, wet: 0.6}
+      - {latitude: 0.85, wet: 0.3}
+      - {latitude: 1.0, wet: 0.2}
   temperature: {lapse: 0.25, noise: 0.05, scale_km: 1000}
   rivers:
     share: 0.08
@@ -373,7 +420,7 @@ planet:
     height: 256
     x: null
     y: null
-    latitude: {min: 0.3, max: 0.6}
+    latitude: {min: 0.38, max: 0.6}
     tries: 64
     needs:
       land: 0.6

@@ -6,7 +6,7 @@ from dataclasses import dataclass
 
 import numpy as np
 
-from ..content import Elevation, Layer, Temperature
+from ..content import Elevation, Layer, Moisture, Temperature
 from .noise import Floats, Noise, stream
 
 
@@ -28,6 +28,22 @@ class Layers:
     depth: float
     lapse: float
     noise: float
+    latitudes: Floats
+    wets: Floats
+    belt: float
+    inland: float
+    inland_km: float
+
+    def damp(self, x: Floats, y: Floats, away: Floats) -> Floats:
+        """
+        How wet a place is before it is restated as a share: the noise, the belt of its latitude laid over it,
+        and the drying of land that lies away from the sea, half of it reached at inland_km.
+        """
+        equator = self.circumference_km / 4
+        zone = np.interp(np.abs(y - equator) / equator, self.latitudes, self.wets)
+        dried = 1.0 - 0.5 ** (away / self.inland_km)
+        wet: Floats = self.moisture(x, y) + self.belt * (2.0 * zone - 1.0) - self.inland * dried
+        return wet
 
     def height(self, x: Floats, y: Floats, sea: float, brim: float, span: float) -> Floats:
         """
@@ -57,7 +73,7 @@ def layers(
     circumference_km: int,
     elevation: Elevation,
     relief: Layer,
-    moisture: Layer,
+    moisture: Moisture,
     temperature: Temperature,
 ) -> Layers:
     ridges, basins = elevation.ridges, elevation.basins
@@ -78,4 +94,9 @@ def layers(
         depth=basins.depth,
         lapse=temperature.lapse,
         noise=temperature.noise,
+        latitudes=np.array([held.latitude for held in moisture.belts]),
+        wets=np.array([held.wet for held in moisture.belts]),
+        belt=moisture.belt,
+        inland=moisture.inland,
+        inland_km=float(moisture.inland_km),
     )

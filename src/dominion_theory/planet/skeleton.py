@@ -8,12 +8,37 @@ from functools import lru_cache
 import numpy as np
 from numpy.typing import NDArray
 
-from ..content import Elevation, Layer, Temperature
+from ..content import Elevation, Layer, Moisture, Temperature
 from .layers import Layers, layers
 from .noise import Floats
 
 KEPT = 4
 SMALLEST = 1e-12
+STEPS = ((-1, 0), (-1, 1), (0, 1), (1, 1), (1, 0), (1, -1), (0, -1), (-1, -1))
+
+
+def around(grid: Floats, east: Floats, south: Floats) -> tuple[Floats, Floats, Floats, Floats, Floats, Floats]:
+    """
+    The four nodes around a place given in squares, and how far the place lies from the first of them
+    to the east and to the south; x wraps, the poles hold their row.
+    """
+    rows, wide = grid.shape
+    east = east - 0.5
+    south = np.clip(south - 0.5, 0.0, rows - 1.0)
+    column = np.floor(east).astype(np.int64)
+    row = np.minimum(np.floor(south).astype(np.int64), max(rows - 2, 0))
+    below = np.minimum(row + 1, rows - 1)
+    west, further = column % wide, (column + 1) % wide
+    return grid[row, west], grid[row, further], grid[below, west], grid[below, further], east - column, south - row
+
+
+def between(grid: Floats, east: Floats, south: Floats) -> Floats:
+    """
+    A grid of nodes read between the four around a place given in squares.
+    """
+    first, second, third, fourth, along, down = around(grid, east, south)
+    read: Floats = (first * (1 - along) + second * along) * (1 - down) + (third * (1 - along) + fourth * along) * down
+    return read
 
 
 @dataclass(frozen=True)
@@ -26,6 +51,7 @@ class Skeleton:
     elevation: Floats
     relief: Floats
     moisture: Floats
+    away: Floats
     sea_level: float
     brim: float
     span: float
@@ -46,6 +72,13 @@ class Skeleton:
         fallen: Floats = np.where(self.land, _share(self.moisture, self.moistures), 0.0)
         return fallen
 
+    def inland(self, x: Floats, y: Floats) -> Floats:
+        """
+        How far from the sea a place in kilometres lies, read between the four nodes around it.
+        """
+        side = self.layers.circumference_km / int(self.away.shape[1])
+        return between(self.away, x / side, y / side)
+
     def restate(self, x: Floats, y: Floats, lakes: Floats | None = None) -> dict[str, Floats]:
         """
         The layers of the noise at places in kilometres, as the rules of biomes read them.
@@ -58,7 +91,7 @@ class Skeleton:
         return {
             'elevation': elevation,
             'relief': _share(self.layers.relief(x, y), self.reliefs),
-            'moisture': _share(self.layers.moisture(x, y), self.moistures),
+            'moisture': _share(self.layers.damp(x, y, self.inland(x, y)), self.moistures),
             'temperature': self.layers.temperature(x, y, elevation),
         }
 
@@ -86,6 +119,31 @@ def _heights(ordered: Floats, under: int) -> tuple[Floats, Floats]:
     return raw, shares
 
 
+def _inland(land: NDArray[np.bool_], side: float) -> Floats:
+    """
+    For every node the way to the nearest sea node in kilometres, by steps to the eight neighbours.
+    A planet with no sea is the same distance from it everywhere, and that is told as none.
+    """
+    away = np.where(land, np.inf, 0.0)
+    if land.all():
+        return np.zeros(land.shape)
+    while True:
+        nearer = away.copy()
+        for south, east in STEPS:
+            beside = np.roll(away, -east, axis=1)
+            moved = np.full_like(beside, np.inf)
+            if south > 0:
+                moved[:-south] = beside[south:]
+            elif south < 0:
+                moved[-south:] = beside[:south]
+            else:
+                moved = beside
+            nearer = np.minimum(nearer, moved + side * float(np.hypot(south, east)))
+        if np.array_equal(nearer, away):
+            return away
+        away = nearer
+
+
 @lru_cache(maxsize=KEPT)
 def skeleton(
     seed: int,
@@ -94,7 +152,7 @@ def skeleton(
     sea: float,
     elevation: Elevation,
     relief: Layer,
-    moisture: Layer,
+    moisture: Moisture,
     temperature: Temperature,
 ) -> Skeleton:
     """
@@ -104,7 +162,6 @@ def skeleton(
     around = circumference_km // skeleton_km
     x, y = np.meshgrid((np.arange(around) + 0.5) * skeleton_km, (np.arange(around // 2) + 0.5) * skeleton_km)
     reliefs = made.relief(x, y)
-    moistures = made.moisture(x, y)
 
     # The sea is measured before land is shaped: ridges and basins change land only and move no shore.
     under = round(sea * x.size)
@@ -115,6 +172,8 @@ def skeleton(
     heights = made.height(x, y, level, brim, span)
     table = _heights(np.sort(heights, axis=None), under)
     land = heights > 0
+    away = _inland(land, float(skeleton_km))
+    moistures = made.damp(x, y, away)
     # A planet with no land has no land to take shares of, so the whole of it stands in.
     measured = land if land.any() else np.ones_like(land)
     return Skeleton(
@@ -122,6 +181,7 @@ def skeleton(
         elevation=heights,
         relief=reliefs,
         moisture=moistures,
+        away=away,
         sea_level=level,
         brim=brim,
         span=span,

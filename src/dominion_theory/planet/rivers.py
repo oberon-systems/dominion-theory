@@ -14,9 +14,9 @@ from itertools import pairwise
 import numpy as np
 from numpy.typing import NDArray
 
-from ..content import Elevation, Layer, Temperature
+from ..content import Elevation, Layer, Moisture, Temperature
 from .noise import Floats, stream
-from .skeleton import Skeleton, skeleton
+from .skeleton import Skeleton, around, skeleton
 
 KEPT = 4
 STREAM = 'rivers'
@@ -416,30 +416,6 @@ def _cells(west: float, north: float, east: float, south: float, cell_km: int) -
     return cells
 
 
-def _around(grid: Floats, east: Floats, south: Floats) -> tuple[Floats, Floats, Floats, Floats, Floats, Floats]:
-    """
-    The four nodes around a place given in squares, and how far the place lies from the first of them
-    to the east and to the south; x wraps, the poles hold their row.
-    """
-    rows, around = grid.shape
-    east = east - 0.5
-    south = np.clip(south - 0.5, 0.0, rows - 1.0)
-    column = np.floor(east).astype(np.int64)
-    row = np.minimum(np.floor(south).astype(np.int64), max(rows - 2, 0))
-    below = np.minimum(row + 1, rows - 1)
-    west, further = column % around, (column + 1) % around
-    return grid[row, west], grid[row, further], grid[below, west], grid[below, further], east - column, south - row
-
-
-def _between(grid: Floats, east: Floats, south: Floats) -> Floats:
-    """
-    A grid of nodes read between the four around a place given in squares.
-    """
-    first, second, third, fourth, along, down = _around(grid, east, south)
-    read: Floats = (first * (1 - along) + second * along) * (1 - down) + (third * (1 - along) + fourth * along) * down
-    return read
-
-
 @dataclass(frozen=True)
 class Rivers:
     """
@@ -464,14 +440,21 @@ class Rivers:
     def lake(self, x: Floats, y: Floats) -> Floats:
         """
         The level of the lake a place in kilometres may lie in: that of the lake nodes among the four around
-        it, lowered to the sea level as the place draws near a node with no lake, so that water stays
-        in its basin and its shore follows the land, not the squares.
+        it. Towards a node that stands lower than the lake, its outlet or the sea, the level is lowered
+        to the sea level, so water does not run on down the valley; towards a node that stands higher
+        it is not, and there the shore is where the land rises out of the water.
         """
+        east, south = x / self.side, y / self.side
         levels = np.where(self.lakes, self.surface, -np.inf)
-        highest = np.maximum.reduce(_around(levels, x / self.side, y / self.side)[:4])
-        near = _between(self.lakes.astype(np.float64), x / self.side, y / self.side)
-        held: Floats = np.where(near > 0, np.maximum(highest, 0.0) * near, -np.inf)
-        return held
+        highest = np.maximum.reduce(around(levels, east, south)[:4])
+        *nodes, along, down = around(self.surface, east, south)
+        flooded_at = around(self.lakes.astype(np.float64), east, south)[:4]
+        parts = ((1 - along) * (1 - down), along * (1 - down), (1 - along) * down, along * down)
+        holds = [(lake > 0) | (node >= highest) for lake, node in zip(flooded_at, nodes, strict=True)]
+        held = np.add.reduce([part * hold for part, hold in zip(parts, holds, strict=True)])
+        near = np.add.reduce([part * lake for part, lake in zip(parts, flooded_at, strict=True)])
+        level: Floats = np.where(near > 0, np.maximum(highest, 0.0) * held, -np.inf)
+        return level
 
     @cached_property
     def beds(self) -> Floats:
@@ -639,7 +622,7 @@ def rivers(
     sea: float,
     elevation: Elevation,
     relief: Layer,
-    moisture: Layer,
+    moisture: Moisture,
     temperature: Temperature,
     course: tuple[tuple[str, float], ...],
 ) -> Rivers:

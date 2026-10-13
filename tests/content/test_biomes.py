@@ -80,6 +80,9 @@ def test_planet_is_the_one_of_the_document() -> None:
         'basins': {'scale_km': 800, 'octaves': 2, 'persistence': 0.5, 'share': 0.15, 'depth': 0.9},
     }
     assert planet.temperature.lapse == 0.25
+    moisture = planet.moisture
+    assert (moisture.scale_km, moisture.belt, moisture.inland, moisture.inland_km) == (1500, 0.8, 0.6, 800)
+    assert [(held.latitude, held.wet) for held in moisture.belts][:3] == [(0.0, 1.0), (0.12, 0.85), (0.27, 0.1)]
     rivers = planet.rivers
     assert (rivers.share, rivers.great, rivers.lakes, rivers.ocean) == (0.08, 0.02, 0.7, 0.02)
     assert (rivers.meander_km, rivers.width_km, rivers.valley_km) == (30, 40, 100)
@@ -88,7 +91,7 @@ def test_planet_is_the_one_of_the_document() -> None:
         'band': {'water': {'plus': 0.5}, 'food': {'plus': 0.1}, 'passability': {'times': 0.7}}
     }
     assert (planet.window.x, planet.window.y, planet.window.tries) == (None, None, 64)
-    assert planet.window.latitude.model_dump() == {'min': 0.3, 'max': 0.6}
+    assert planet.window.latitude.model_dump() == {'min': 0.38, 'max': 0.6}
     assert planet.window.needs.model_dump() == {
         'land': 0.6,
         'rivers': 1,

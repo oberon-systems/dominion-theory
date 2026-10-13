@@ -9,7 +9,7 @@ from dominion_theory.api.maps import rectangle
 from dominion_theory.content import load_params
 from dominion_theory.engine import Game
 
-SMALL = {'planet.window.width': 32, 'planet.window.height': 16}
+SMALL = {'planet.circumference_km': 4000, 'planet.window.width': 32, 'planet.window.height': 16}
 
 
 @pytest.fixture(scope='module')

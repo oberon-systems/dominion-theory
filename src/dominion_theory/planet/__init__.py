@@ -2,84 +2,81 @@
 Dominion Theory: Planet Generation Module
 
     Provides:
-        * generate: the biome codes of a map, the same for the same arguments.
-        * atlas: a callable map object that return
-                 a generated map data.
-        * settings: module settings object.
+        * Planet: the planet of a seed and its parameters, read by place and cell size.
+        * Region: what the planet answers for a rectangle of cells.
+        * biome_names: the biome identifiers of a tree, by order of generation.
 """
 
-from dataclasses import fields
+from dataclasses import dataclass
 
 import numpy as np
 from numpy.typing import NDArray
 
-from ..core import logger
-from .generator import generator as map_generator
-from .layers import generator as layer_generator
-from .rivers import apply, create
-from .settings import settings
-
-logger.name = 'planet'
-
-BIOMES: tuple[str, ...] = tuple(field.name for field in fields(settings.biomes))
+from ..content import Params
+from .noise import Floats
+from .rules import classify, ordered
+from .skeleton import Skeleton, skeleton
 
 
-def generate(seed: int, width: int, height: int, rivers: np.random.Generator) -> NDArray[np.uint8]:
+def biome_names(params: Params) -> tuple[str, ...]:
+    return ordered(params.biomes)
+
+
+@dataclass(frozen=True)
+class Region:
     """
-    A map as positions in BIOMES. Nothing is drawn but from the seed and the stream given.
-    """
-    logger.info('generate elevation layer: seed: %d', seed)
-    _elevation = layer_generator(
-        width=width,
-        height=height,
-        lacunarity=settings.lacunarity,
-        seed=seed,
-        **settings.elevation,
-    )
-
-    logger.info('generate moisture layer: seed: %d', seed + 1)
-    _moisture = layer_generator(
-        width=width,
-        height=height,
-        lacunarity=settings.lacunarity,
-        seed=seed + 1,
-        **settings.moisture,
-    )
-
-    logger.info('generate world atlas')
-    _atlas = map_generator(
-        biomes=settings.biomes,
-        elevation=_elevation,
-        moisture=_moisture,
-    )
-
-    logger.info('generate rivers')
-    _rivers = create(
-        height=height,
-        width=width,
-        num=settings.rivers,
-        elevation=_elevation,
-        rng=rivers,
-    )
-
-    logger.info('apply rivers')
-    return apply(biomes=_atlas, rivers=_rivers, water=BIOMES.index('water'))
-
-
-class Maps:
-    """
-    Main maps generation class.
+    A rectangle of cells: the restated layers and, as positions in biome_names, the biomes.
     """
 
-    def __call__(self, seed: int, width: int, height: int, rivers: np.random.Generator) -> NDArray[np.object_]:
-        table = np.empty(len(BIOMES), dtype=object)
-        for code, name in enumerate(BIOMES):
-            table[code] = getattr(settings.biomes, name)
-        world: NDArray[np.object_] = table[generate(seed=seed, width=width, height=height, rivers=rivers)]
-        return world
+    elevation: Floats
+    relief: Floats
+    moisture: Floats
+    temperature: Floats
+    biomes: NDArray[np.uint8]
 
 
-atlas = Maps()
+class Planet:
+    """
+    A function of the seed, a place and a cell size. Nothing is kept for land nobody looks at.
+    """
+
+    def __init__(self, seed: int, params: Params) -> None:
+        self.seed = seed
+        self.params = params
+        self.circumference_km = params.planet.circumference_km
+        self.biomes = biome_names(params)
+
+    @property
+    def skeleton(self) -> Skeleton:
+        planet = self.params.planet
+        return skeleton(
+            self.seed,
+            planet.circumference_km,
+            planet.skeleton_km,
+            planet.sea,
+            planet.elevation,
+            planet.relief,
+            planet.moisture,
+            planet.temperature,
+        )
+
+    def read(self, x: int, y: int, width: int, height: int, cell_km: int) -> Region:
+        """
+        Cells of cell_km to a side from the north-west one at x, y. A cell reads the planet at its centre.
+        """
+        across = self.circumference_km // cell_km
+        if y < 0 or y + height > across // 2:
+            raise ValueError(f'rows {y} to {y + height} do not lie between the poles')
+        columns = (x + np.arange(width)) % across
+        east, south = np.meshgrid((columns + 0.5) * cell_km, (y + np.arange(height) + 0.5) * cell_km)
+        layers = self.skeleton.restate(east, south)
+        return Region(
+            elevation=layers['elevation'],
+            relief=layers['relief'],
+            moisture=layers['moisture'],
+            temperature=layers['temperature'],
+            biomes=classify(self.params.biomes, layers),
+        )
 
 
-__all__ = ['BIOMES', 'atlas', 'generate', 'settings']
+__all__ = ['Planet', 'Region', 'biome_names']

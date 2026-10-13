@@ -10,7 +10,7 @@ import numpy as np
 from numpy.typing import NDArray
 
 from ..content import Params
-from ..planet import BIOMES, generate
+from ..planet import Planet, biome_names
 from .clock import Clock, Date
 from .commands import BUILT, Command
 from .counters import Counters
@@ -21,7 +21,6 @@ from .streams import Streams
 SNAPSHOT_FORMAT = 1
 ERA = 'band'
 SEATS: tuple[str, ...] = ('player',)
-RIVERS = 'rivers'
 UNIT_COLUMNS: tuple[str, ...] = ()
 
 # The order is part of the rules: docs/architecture/overview.md, One tick.
@@ -92,7 +91,7 @@ class Game:
     def create(cls, seed: int, params: Params) -> Self:
         streams = Streams(seed)
         size = params.planet.window
-        biomes = generate(seed=seed, width=size.width, height=size.height, rivers=streams[RIVERS])
+        biomes = Planet(seed, params).read(0, 0, size.width, size.height, params.eras[ERA].cell_km).biomes
         return cls(seed, params, streams, Window(0, 0, 0, size.width, size.height), biomes)
 
     @classmethod
@@ -167,7 +166,7 @@ class Game:
                 'seen': sorted(self._seen),
             },
             'counters': dict(self._totals),
-            'biomes': list(BIOMES),
+            'biomes': list(biome_names(self.params)),
         }
 
     def _judge(self, command: Command) -> str | None:

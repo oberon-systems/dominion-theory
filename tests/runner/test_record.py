@@ -14,7 +14,7 @@ from dominion_theory.engine import CallCouncil, Pass
 from dominion_theory.runner import RECORD_UNREADABLE, STEP, Runner, Service, read, replay
 from dominion_theory.store import ValkeyStore
 
-SMALL = {'planet.window.width': 32, 'planet.window.height': 16}
+SMALL = {'planet.circumference_km': 4000, 'planet.window.width': 32, 'planet.window.height': 16}
 DAY = 5
 
 

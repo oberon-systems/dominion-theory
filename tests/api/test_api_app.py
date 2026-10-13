@@ -6,7 +6,7 @@ from dominion_theory.db import LOCAL_PROFILE, Database, find_profile
 from dominion_theory.runner import Service
 from dominion_theory.store import GameStore
 
-SMALL = {'planet.window.width': 32, 'planet.window.height': 16}
+SMALL = {'planet.circumference_km': 4000, 'planet.window.width': 32, 'planet.window.height': 16}
 
 
 def test_the_factory_serves_under_the_versioned_address(client: TestClient) -> None:

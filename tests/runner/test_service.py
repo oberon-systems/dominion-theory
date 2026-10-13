@@ -12,7 +12,7 @@ from dominion_theory.engine import Pass
 from dominion_theory.runner import GAME_NOT_FOUND, REAL_TIME, STEP, RealTimeRunner, Service, read, replay
 from dominion_theory.store import GameStore, ValkeyStore
 
-SMALL = {'planet.window.width': 32, 'planet.window.height': 16}
+SMALL = {'planet.circumference_km': 4000, 'planet.window.width': 32, 'planet.window.height': 16}
 DAY = 5
 
 

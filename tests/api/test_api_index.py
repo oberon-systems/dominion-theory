@@ -15,7 +15,7 @@ from dominion_theory.runner import Service, record_path
 
 type NewGame = Callable[..., dict[str, Any]]
 
-SMALL = {'planet.window.width': 32, 'planet.window.height': 16}
+SMALL = {'planet.circumference_km': 4000, 'planet.window.width': 32, 'planet.window.height': 16}
 
 
 @pytest.fixture

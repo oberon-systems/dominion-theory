@@ -4,7 +4,7 @@ from click.testing import CliRunner
 from dominion_theory.client import cli
 
 YEAR = 500
-SMALL = ('--set', 'planet.window.width=32', '--set', 'planet.window.height=16')
+SMALL = ('--set', 'planet.circumference_km=4000', '--set', 'planet.window.width=32', '--set', 'planet.window.height=16')
 SPOKEN = {
     'en': {
         4: 'morning, day 2, month 1, year 1, spring: Command pass-4 was accepted. Day 2 of month 1, year 1, begins.',

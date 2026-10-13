@@ -5,7 +5,7 @@ from click.testing import CliRunner, Result
 from dominion_theory.client import Api, cli
 from dominion_theory.client.cli import _overrides
 
-SMALL = {'planet.window.width': 32, 'planet.window.height': 16}
+SMALL = {'planet.circumference_km': 4000, 'planet.window.width': 32, 'planet.window.height': 16}
 SET = tuple(part for path, value in SMALL.items() for part in ('--set', f'{path}={value}'))
 
 

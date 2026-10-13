@@ -6,7 +6,7 @@ import pytest
 from dominion_theory.client import PREFIX, Api, Refused
 from dominion_theory.runner import read
 
-SMALL = {'planet.window.width': 32, 'planet.window.height': 16}
+SMALL = {'planet.circumference_km': 4000, 'planet.window.width': 32, 'planet.window.height': 16}
 START = {'year': 1, 'month': 1, 'day': 1, 'part': 'morning', 'season': 'spring'}
 
 

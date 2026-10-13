@@ -153,7 +153,8 @@ def test_two_stores_of_the_same_settings_see_the_same_data() -> None:
 
 
 def test_a_game_of_the_engine_is_restored_from_the_store(store: GameStore) -> None:
-    game = Game.create(seed=42, params=load_params(overrides={'planet.window.width': 32, 'planet.window.height': 16}))
+    small = {'planet.circumference_km': 4000, 'planet.window.width': 32, 'planet.window.height': 16}
+    game = Game.create(seed=42, params=load_params(overrides=small))
     game.step()
     store.save_snapshot('alpha', game.snapshot(), Meta(game.seed, game.params.hash, game.tick, 'step'))
 

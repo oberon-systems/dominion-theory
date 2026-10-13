@@ -60,7 +60,8 @@ def test_other_seed_gives_other_hashes(params: Params) -> None:
 
 
 def test_other_parameters_give_other_hashes(params: Params) -> None:
-    other = load_params(overrides={'planet.window.width': 32, 'planet.window.height': 16, 'time.days_per_month': 12})
+    small = {'planet.circumference_km': 4000, 'planet.window.width': 32, 'planet.window.height': 16}
+    other = load_params(overrides={**small, 'time.days_per_month': 12})
 
     assert Game.create(seed=7, params=params).state_hash() != Game.create(seed=7, params=other).state_hash()
 

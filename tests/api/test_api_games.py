@@ -117,14 +117,19 @@ def test_the_snapshot_is_what_the_caller_may_see(client: TestClient, new_game: N
     seat = client.get(f'{PREFIX}/games/{game}/snapshot')
     spectator = client.get(f'{PREFIX}/games/{game}/snapshot', params={'view': 'spectator'})
 
-    assert seat.json() == {
+    shown = seat.json()
+    window = shown.pop('window')
+
+    assert shown == {
         'seq': 0,
         'date': START,
-        'window': {'scale': 0, 'x': 0, 'y': 0, 'width': 32, 'height': 16},
         'seat': {'name': 'player'},
         'units': [],
         'waiting': ['player'],
     }
+    assert (window['scale'], window['width'], window['height']) == (0, 32, 16)
+    assert 0 <= window['x'] <= 400 - 32
+    assert 0 <= window['y'] <= 200 - 16
     assert spectator.json() == seat.json()
     assert client.get(f'{PREFIX}/games/{game}/snapshot', params={'view': 'alpha'}).status_code == 400
 

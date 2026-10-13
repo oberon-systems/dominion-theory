@@ -8,7 +8,9 @@ from dominion_theory.content import Params, load_params
 from dominion_theory.engine import PHASES, CallCouncil, Command, Game, Pass, StepResult, Window
 from dominion_theory.engine.clock import DAY_STARTED, MONTH_STARTED, SEASON_STARTED, YEAR_STARTED, Date
 from dominion_theory.engine.game import _Tick
+from dominion_theory.planet import Planet, place
 
+SMALL = {'planet.circumference_km': 4000, 'planet.window.width': 32, 'planet.window.height': 16}
 TICKS = 300
 
 
@@ -35,17 +37,29 @@ def test_overview_example_runs_as_written() -> None:
 
     assert [event.key for event in result.events] == ['command-refused']
     assert result.changes == {'units': [], 'gone': [], 'cells': [], 'seat': {}}
-    assert result.counters == [0, 1]
+    assert result.counters == [0, 1, 0]
     assert copy.state_hash() == game.state_hash() == result.hash
 
 
 def test_world_is_the_window_and_its_biomes(params: Params) -> None:
     game = Game.create(seed=3, params=params)
 
-    assert game.window == Window(scale=0, x=0, y=0, width=32, height=16)
-    assert game.biomes.shape == (16, 32)
+    x, y = place(3, params)
+    region = Planet(3, params).read(x, y, 32, 16, params.eras.band.cell_km)
+
+    assert game.window == Window(scale=0, x=x, y=y, width=32, height=16)
+    assert game.window == Game.create(seed=3, params=params).window
     assert game.biomes.dtype == np.uint8
+    assert game.rivers.dtype == np.bool_
+    assert np.array_equal(game.biomes, region.biomes)
+    assert np.array_equal(game.rivers, region.rivers)
     assert game.date == Date(1, 1, 1, 'morning', 'spring')
+
+
+def test_window_given_by_hand_is_used() -> None:
+    given = load_params(overrides={**SMALL, 'planet.window.x': 100, 'planet.window.y': 50})
+
+    assert Game.create(seed=3, params=given).window == Window(scale=0, x=100, y=50, width=32, height=16)
 
 
 def test_same_seed_gives_the_same_hash_after_every_tick(params: Params) -> None:
@@ -60,8 +74,7 @@ def test_other_seed_gives_other_hashes(params: Params) -> None:
 
 
 def test_other_parameters_give_other_hashes(params: Params) -> None:
-    small = {'planet.circumference_km': 4000, 'planet.window.width': 32, 'planet.window.height': 16}
-    other = load_params(overrides={**small, 'time.days_per_month': 12})
+    other = load_params(overrides={**SMALL, 'time.days_per_month': 12})
 
     assert Game.create(seed=7, params=params).state_hash() != Game.create(seed=7, params=other).state_hash()
 
@@ -95,7 +108,8 @@ def test_snapshot_does_not_share_its_arrays(params: Params) -> None:
     game = Game.create(seed=11, params=params)
     before = game.state_hash()
 
-    game.snapshot()['grids']['biomes'][:] = 0
+    for grid in game.snapshot()['grids'].values():
+        grid[:] = grid == 0
 
     assert game.state_hash() == before
 
@@ -103,8 +117,9 @@ def test_snapshot_does_not_share_its_arrays(params: Params) -> None:
 def test_unreadable_snapshot_is_refused(params: Params) -> None:
     snapshot = Game.create(seed=11, params=params).snapshot()
 
-    with pytest.raises(ValueError, match='format 0'):
-        Game.restore({**snapshot, 'format': 0})
+    assert snapshot['format'] == 2
+    with pytest.raises(ValueError, match='format 1'):
+        Game.restore({**snapshot, 'format': 1})
 
 
 def test_pass_is_accepted(params: Params) -> None:
@@ -130,6 +145,7 @@ def test_repeated_command_id_is_judged_once(params: Params) -> None:
     assert dict(zip(game.counters.names, game.counters.row(), strict=True)) == {
         'commands_accepted': 1,
         'commands_refused': 0,
+        'cells_depleted': 0,
     }
 
 

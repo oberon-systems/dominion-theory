@@ -1,4 +1,5 @@
 import asyncio
+from dataclasses import asdict
 from datetime import timedelta
 from pathlib import Path
 from typing import Any
@@ -112,7 +113,7 @@ def test_the_snapshot_carries_the_last_update(service: Service) -> None:
     assert runner.snapshot() == {
         'seq': 3,
         'date': {'year': 1, 'month': 1, 'day': 1, 'part': 'evening', 'season': 'spring'},
-        'window': {'scale': 0, 'x': 0, 'y': 0, 'width': 32, 'height': 16},
+        'window': asdict(runner.game.window),
         'seat': {'name': 'player'},
         'units': [],
         'waiting': ['player'],

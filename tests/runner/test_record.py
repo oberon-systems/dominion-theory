@@ -57,7 +57,7 @@ def test_the_header_names_the_game_and_its_columns(service: Service) -> None:
         'params_hash': runner.game.params.hash,
         'params': runner.game.params.tree(),
         'seats': [{'seat': 'player', 'kind': 'scripted'}],
-        'counters': ['commands_accepted', 'commands_refused'],
+        'counters': ['commands_accepted', 'commands_refused', 'cells_depleted'],
         'units': [],
     }
 
@@ -86,7 +86,7 @@ def test_a_tick_writes_its_commands_itself_and_its_events(service: Service) -> N
     }
     assert lines[2]['t'] == 'tick'
     assert lines[2]['tick'] == lines[2]['parts'] == 1
-    assert lines[2]['counters'] == [0, 1]
+    assert lines[2]['counters'] == [0, 1, 0]
     assert lines[2]['units'] == []
     assert lines[3] == {
         't': 'event',

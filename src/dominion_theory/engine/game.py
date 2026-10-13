@@ -9,8 +9,9 @@ from typing import Any, Self
 import numpy as np
 from numpy.typing import NDArray
 
-from ..content import Params
-from ..planet import Planet, biome_names
+from ..content import Params, Property
+from ..planet import Planet, biome_names, place
+from .cells import Cells, Place
 from .clock import Clock, Date
 from .commands import BUILT, Command
 from .counters import Counters
@@ -18,7 +19,7 @@ from .events import COMMAND_ACCEPTED, COMMAND_REFUSED, REFUSED_UNKNOWN_COMMAND, 
 from .hashing import digest
 from .streams import Streams
 
-SNAPSHOT_FORMAT = 1
+SNAPSHOT_FORMAT = 2
 ERA = 'band'
 SEATS: tuple[str, ...] = ('player',)
 UNIT_COLUMNS: tuple[str, ...] = ()
@@ -58,6 +59,7 @@ class _Tick:
     changes: dict[str, Any] = field(default_factory=dict)
     counters: list[float] = field(default_factory=list)
     units: list[list[Any]] = field(default_factory=list)
+    cells: list[Place] = field(default_factory=list)
 
 
 class Game:
@@ -68,12 +70,16 @@ class Game:
         streams: Streams,
         window: Window,
         biomes: NDArray[np.uint8],
+        rivers: NDArray[np.bool_],
+        cells: Cells | None = None,
     ) -> None:
         self.seed = seed
         self.params = params
         self.streams = streams
         self.window = window
         self.biomes = biomes
+        self.rivers = rivers
+        self.cells = Cells() if cells is None else cells
         self.era = ERA
         self.seats = SEATS
         self.tick = 0
@@ -86,13 +92,15 @@ class Game:
         self.counters = Counters()
         for name in self._totals:
             self.counters.declare(name, partial(self._totals.__getitem__, name))
+        self.counters.declare('cells_depleted', partial(len, self.cells))
 
     @classmethod
     def create(cls, seed: int, params: Params) -> Self:
         streams = Streams(seed)
         size = params.planet.window
-        biomes = Planet(seed, params).read(0, 0, size.width, size.height, params.eras[ERA].cell_km).biomes
-        return cls(seed, params, streams, Window(0, 0, 0, size.width, size.height), biomes)
+        x, y = place(seed, params)
+        region = Planet(seed, params).read(x, y, size.width, size.height, params.eras[ERA].cell_km)
+        return cls(seed, params, streams, Window(0, x, y, size.width, size.height), region.biomes, region.rivers)
 
     @classmethod
     def restore(cls, snapshot: dict[str, Any]) -> Self:
@@ -104,6 +112,8 @@ class Game:
             Streams(snapshot['seed'], snapshot['streams']),
             Window(**snapshot['window']),
             np.array(snapshot['grids']['biomes'], dtype=np.uint8),
+            np.array(snapshot['grids']['rivers'], dtype=np.bool_),
+            Cells(snapshot['cells']),
         )
         commands = snapshot['commands']
         game.era = snapshot['era']
@@ -118,6 +128,43 @@ class Game:
     @property
     def date(self) -> Date:
         return self.clock.date
+
+    @property
+    def stocked(self) -> tuple[str, ...]:
+        """
+        The properties of the era that some biome lets recover, and so the stocks a cell is reported with.
+        """
+        biomes = self.params.biomes.values()
+        names = self.params.eras[self.era].properties
+        return tuple(name for name in names if any(biome.eras[self.era].properties[name].recovery for biome in biomes))
+
+    def value(self, name: str, x: int, y: int) -> float:
+        """
+        A property of the era at a planet cell of the window: (base + every plus) * every times * stock.
+        """
+        row, column = self._at(x, y)
+        held = self._property(name, row, column)
+        modifiers = [held.seasons.get(self.date.season)]
+        if self.rivers[row, column]:
+            modifiers.append(self.params.planet.rivers.effects.get(self.era, {}).get(name))
+        plus, times = held.base, self.cells.stock((x, y), name)
+        for modifier in modifiers:
+            if modifier is not None and modifier.kind == 'plus':
+                plus += modifier.amount
+            elif modifier is not None:
+                times *= modifier.amount
+        return min(max(plus * times, 0.0), 1.0)
+
+    def deplete(self, x: int, y: int, name: str, amount: float) -> None:
+        """
+        Lowers a stock of a cell, not below 0. For the rules of the game; it is not a command.
+        """
+        row, column = self._at(x, y)
+        if self._property(name, row, column).recovery is None:
+            raise ValueError(f'the property {name} does not recover at {x}, {y} and has no stock')
+        if amount < 0:
+            raise ValueError(f'a stock is lowered by an amount that is not negative, not by {amount}')
+        self.cells.lower((x, y), name, amount)
 
     def submit(self, command: Command) -> None:
         seq = self._sequence.get(command.seat, 0) + 1
@@ -145,10 +192,11 @@ class Game:
         )
 
     def snapshot(self) -> dict[str, Any]:
-        return {**self._plain(), 'params': self.params.tree(), 'grids': {'biomes': self.biomes.copy()}}
+        grids = {'biomes': self.biomes.copy(), 'rivers': self.rivers.copy()}
+        return {**self._plain(), 'params': self.params.tree(), 'grids': grids}
 
     def state_hash(self) -> str:
-        return digest({**self._plain(), 'params': self.params.hash}, {'biomes': self.biomes})
+        return digest({**self._plain(), 'params': self.params.hash}, {'biomes': self.biomes, 'rivers': self.rivers})
 
     def _plain(self) -> dict[str, Any]:
         pending = [{'seat': command.seat, 'seq': seq, 'command': command.envelope()} for seq, command in self._pending]
@@ -167,7 +215,31 @@ class Game:
             },
             'counters': dict(self._totals),
             'biomes': list(biome_names(self.params)),
+            'cells': self.cells.plain(),
         }
+
+    def _at(self, x: int, y: int) -> tuple[int, int]:
+        window = self.window
+        row, column = y - window.y, x - window.x
+        if not (0 <= row < window.height and 0 <= column < window.width):
+            raise ValueError(f'the cell {x}, {y} lies outside the window')
+        return row, column
+
+    def _property(self, name: str, row: int, column: int) -> Property:
+        if name not in self.params.eras[self.era].properties:
+            raise ValueError(f'the era {self.era} has no property {name}')
+        biome = biome_names(self.params)[int(self.biomes[row, column])]
+        return self.params.biomes[biome].eras[self.era].properties[name]
+
+    def _regained(self, at: Place) -> dict[str, float]:
+        row, column = self._at(*at)
+        span = self.params.eras[self.era].parts_per_tick
+        shares = {}
+        for name in self.stocked:
+            recovery = self._property(name, row, column).recovery
+            if recovery is not None:
+                shares[name] = span / self.clock.to_parts(recovery)
+        return shares
 
     def _judge(self, command: Command) -> str | None:
         if command.seat not in self.seats:
@@ -197,7 +269,7 @@ class Game:
         pass
 
     def _world(self, tick: _Tick) -> None:
-        pass
+        tick.cells = self.cells.regain(self._regained)
 
     def _calendar(self, tick: _Tick) -> None:
         self.tick += 1
@@ -205,5 +277,7 @@ class Game:
             tick.events.append(Event(boundary.key, boundary.values))
 
     def _report(self, tick: _Tick) -> None:
-        tick.changes.update({'units': [], 'gone': [], 'cells': [], 'seat': {}})
+        stocked = self.stocked
+        cells = [{'x': x, 'y': y, **{name: self.cells.stock((x, y), name) for name in stocked}} for x, y in tick.cells]
+        tick.changes.update({'units': [], 'gone': [], 'cells': cells, 'seat': {}})
         tick.counters.extend(self.counters.row())

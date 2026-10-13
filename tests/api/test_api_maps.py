@@ -21,7 +21,8 @@ def test_the_whole_window_is_given_when_nothing_is_asked(game: Game) -> None:
     whole = rectangle(game)
     names = whole['biomes']
 
-    assert (whole['scale'], whole['x'], whole['y'], whole['width'], whole['height']) == (0, 0, 0, 32, 16)
+    assert (whole['scale'], whole['x'], whole['y']) == (0, game.window.x, game.window.y)
+    assert (whole['width'], whole['height']) == (32, 16)
     assert len(whole['cells']) == 32 * 16
     assert sorted(set(whole['cells'])) == list(range(len(names)))
     assert [names[cell] for cell in whole['cells']] == [
@@ -30,11 +31,12 @@ def test_the_whole_window_is_given_when_nothing_is_asked(game: Game) -> None:
 
 
 def test_a_rectangle_is_read_row_by_row(game: Game) -> None:
-    part = rectangle(game, x=4, y=2, width=3, height=2)
+    west, north = game.window.x, game.window.y
+    part = rectangle(game, x=west + 4, y=north + 2, width=3, height=2)
     whole = rectangle(game)
     rows = [whole['cells'][row * 32 + 4 : row * 32 + 7] for row in (2, 3)]
 
-    assert (part['x'], part['y'], part['width'], part['height']) == (4, 2, 3, 2)
+    assert (part['x'], part['y'], part['width'], part['height']) == (west + 4, north + 2, 3, 2)
     assert [part['biomes'][cell] for cell in part['cells']] == [whole['biomes'][cell] for row in rows for cell in row]
 
 
@@ -50,9 +52,10 @@ def test_a_rectangle_is_read_row_by_row(game: Game) -> None:
 def test_a_rectangle_is_cut_to_the_window(
     game: Game, asked: tuple[int, int, int, int], given: tuple[int, int, int, int]
 ) -> None:
-    part = rectangle(game, *asked)
+    west, north = game.window.x, game.window.y
+    part = rectangle(game, west + asked[0], north + asked[1], *asked[2:])
 
-    assert (part['x'], part['y'], part['width'], part['height']) == given
+    assert (part['x'] - west, part['y'] - north, part['width'], part['height']) == given
     assert len(part['cells']) == given[2] * given[3]
 
 
@@ -60,7 +63,9 @@ def test_the_map_is_served_in_rectangles(client: TestClient, new_game: Callable[
     created = new_game(seed=42)
     address = f'{PREFIX}/games/{created["id"]}/map'
 
-    part = client.get(address, params={'x': 4, 'y': 2, 'width': 3, 'height': 2})
+    window = client.get(f'{PREFIX}/games/{created["id"]}/snapshot').json()['window']
+
+    part = client.get(address, params={'x': window['x'] + 4, 'y': window['y'] + 2, 'width': 3, 'height': 2})
 
     assert part.status_code == 200
     assert set(part.json()) == {'scale', 'x', 'y', 'width', 'height', 'biomes', 'cells'}

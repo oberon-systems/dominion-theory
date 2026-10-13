@@ -238,7 +238,9 @@ ___
 ## Look at a map
 
 Draw the first window of a seed and show it in a window. Close it with
-Escape. A panel beside the map holds the legend with the share of every
+Escape. The wheel of the mouse, or plus and minus, zoom in and out on the
+cell under the pointer; a drag with the left button or the arrows move
+the map. A panel beside the map holds the legend with the share of every
 biome, and under it the cell the pointer is on: its place, its biome,
 whether a river crosses it, its properties and the layers. The
 terminal gets the shares as well.
@@ -267,7 +269,7 @@ make map MAP='--preset harsh-winter --set planet.sea=0.5'
 | `--cell-km` | the cell of the whole planet, 50 km unless given            |
 | `--show`    | `biomes`, one property of the era, or `all` of them         |
 | `--season`  | the season the properties are worked out for                |
-| `--scale`   | pixels to a side of a cell, 2 unless given                  |
+| `--scale`   | pixels to a side of a cell at the start, 2 unless given     |
 | `--out`     | writes the picture to a file and opens no window            |
 
 Expected output:

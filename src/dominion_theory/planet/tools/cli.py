@@ -121,18 +121,16 @@ def cli(
     if whole and show != ALL:
         frame = (value * band_km // cell_km for value in (x, y, window.width, window.height))
         picture = pictures.framed(picture, *frame)
-    picture = pictures.enlarged(picture, scale)
     _report(params, region)
 
     if out is not None:
-        save(picture, out)
+        save(pictures.enlarged(picture, scale), out)
         click.echo(f'written to {out}')
         return
 
     held = {name: pictures.values(params, ERA, name, region, season) for name in params.eras[ERA].properties}
 
-    def describe(left: int, top: int) -> list[str]:
-        row, column = top // scale, left // scale
+    def describe(column: int, row: int) -> list[str]:
         if show == ALL or not (0 <= row < region.biomes.shape[0] and 0 <= column < region.biomes.shape[1]):
             return []
         return [

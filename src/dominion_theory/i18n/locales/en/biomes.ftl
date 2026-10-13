@@ -12,3 +12,4 @@ biome-dunes = dunes
 biome-floodplain = floodplain
 biome-ice = sea ice
 biome-snow = snowfield
+biome-shallows = shallows

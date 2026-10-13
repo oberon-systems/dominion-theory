@@ -43,6 +43,19 @@ def test_biomes_are_drawn_in_their_colours_with_rivers_over_them(params: Params,
     assert tuple(picture[1, 1]) == pictures.rgb(pictures.RIVER)
 
 
+def test_open_water_is_drawn_darker_the_deeper_it_lies_and_ice_is_not(params: Params) -> None:
+    names = biome_names(params)
+    codes = np.array([[names.index('water'), names.index('water'), names.index('ice')]], dtype=np.uint8)
+    flat = np.zeros((1, 3))
+    deep = Region(np.array([[-0.1, -1.0, -1.0]]), flat, flat, flat, flat, codes, np.zeros((1, 3), dtype=np.bool_))
+
+    picture = pictures.biomes(params, deep)
+
+    assert picture[0, 0].sum() > picture[0, 1].sum()
+    assert picture[0, 0].sum() < sum(pictures.rgb(params.biomes['water'].colour))
+    assert tuple(picture[0, 2]) == pictures.rgb(params.biomes['ice'].colour)
+
+
 def test_a_property_is_the_base_with_the_river_and_the_season_laid_over(params: Params, land: Region) -> None:
     forest = params.biomes['forest'].eras['band'].properties
     effects = params.planet.rivers.effects['band']

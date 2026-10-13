@@ -24,7 +24,7 @@ ___
 
 ## The starting set
 
-Fourteen biomes cover the planet. Six were named by the roadmap; `desert` and
+Fifteen biomes cover the planet. Six were named by the roadmap; `desert` and
 `tundra` are added because a whole planet has dry and cold land, and
 without them it would be grass up to the poles.
 
@@ -35,7 +35,8 @@ without them it would be grass up to the poles.
 | [`hills`](hills.md)      | the belt below the mountains            |
 | [`mountain`](mountain.md)| the highest land: poor, slow, dangerous |
 | [`outcrops`](outcrops.md)| rocky ground, in small patches          |
-| [`water`](water.md)      | sea and lakes; nobody walks here        |
+| [`water`](water.md)      | the deep sea; nobody walks here         |
+| [`shallows`](shallows.md)| the shelf, lakes, beds of great rivers  |
 | [`desert`](desert.md)    | dry and warm, nearly empty              |
 | [`tundra`](tundra.md)    | the cold belts near the poles           |
 | [`snow`](snow.md)        | land under snow all year, at the poles  |
@@ -325,7 +326,7 @@ ___
 - **Resources** - a biome lists what can be gathered on it, and for now
   the game knows two names, `water` and `forage`. Stage 2 makes them
   entries of the section `resources`, with weight and spoiling.
-- **Sea and lake** - both are `water`, and its property `water` is 1.
+- **Sea and lake** - both are water, and the property `water` is 1.
   When a band may drink from a neighbouring cell, the sea has to stop
   being drinkable.
 - **Recovery by season** - a cell recovers at the same pace all year.

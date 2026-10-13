@@ -1,0 +1,14 @@
+biomes:
+  shallows:
+    colour: '#3D9BD6'
+    generation:
+      order: 8
+      elevation: {min: -0.15, max: 0.0}
+    eras:
+      band:
+        properties:
+          water: {base: 1.0}
+          food: {base: 0.5, recovery: {days: 20}}
+          threat: {base: 0.1}
+          passability: {base: 0.0}
+        resources: [water]

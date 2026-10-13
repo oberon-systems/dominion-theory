@@ -2,9 +2,11 @@
 
 #biome #water
 
-Sea and lakes: every cell below the sea level. Nobody walks here in the
-band era. Rivers are not this biome; they are lines over the land, told in
-[Generation](generation.md#rivers). The model is in
+The deep sea: every cell well below the sea level. Nobody walks here in
+the band era. Water near the level of the sea, a lake and the bed of a
+great river are [shallows](shallows.md), and the frozen sea is
+[ice](ice.md). Rivers are not this biome; they are lines over the land,
+told in [Generation](generation.md#rivers). The model is in
 [the overview](overview.md).
 
 ___

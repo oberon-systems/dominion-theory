@@ -20,8 +20,6 @@ from .rules import classify, ordered
 from .skeleton import Skeleton, skeleton
 from .window import choose, misses
 
-WATER = 'water'
-
 
 def biome_names(params: Params) -> tuple[str, ...]:
     return ordered(params.biomes)
@@ -93,9 +91,7 @@ class Planet:
         east, south = np.meshgrid((columns + 0.5) * cell_km, (y + np.arange(height) + 0.5) * cell_km)
         layers = self.rivers.restate(self.skeleton, east, south)
         biomes = classify(self.params.biomes, layers)
-        marks = self.rivers.marks(x, y, width, height, cell_km)
-        if WATER in self.biomes:
-            marks &= biomes != self.biomes.index(WATER)
+        marks = self.rivers.marks(x, y, width, height, cell_km) & (layers['elevation'] > 0)
         return Region(
             elevation=layers['elevation'],
             relief=layers['relief'],

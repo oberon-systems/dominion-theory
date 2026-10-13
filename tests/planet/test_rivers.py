@@ -154,7 +154,7 @@ def test_lake_is_water_and_stays_in_its_basin() -> None:
 
     assert lakes.any()
     assert not ((drowned.elevation > 0) & (world.elevation <= 0)).any()
-    frozen = [Planet(5, wet).biomes.index(name) for name in ('water', 'ice')]
+    frozen = [Planet(5, wet).biomes.index(name) for name in ('water', 'shallows', 'ice')]
     assert np.isin(drowned.biomes[lakes], frozen).all()
     assert np.array_equal(levels > -np.inf, laid.lakes[9])
     assert levels[laid.lakes[9]].tolist() == pytest.approx(laid.surface[9][laid.lakes[9]].tolist(), abs=1e-6)
@@ -332,7 +332,7 @@ def test_larger_cell_finds_the_same_river(params: Params) -> None:
 def test_cell_of_water_carries_no_mark(params: Params) -> None:
     planet = Planet(5, params)
     world = planet.read(0, 0, 400, 200, 10)
-    water = world.biomes == planet.biomes.index('water')
+    water = world.elevation <= 0
     lines = planet.rivers.marks(0, 0, 400, 200, 10)
 
     assert (lines & water).any()

@@ -16,6 +16,7 @@ type NewGame = Callable[..., dict[str, Any]]
 SMALL = {'planet.circumference_km': 4000, 'planet.window.width': 32, 'planet.window.height': 16}
 ORDER = [
     'ice',
+    'shallows',
     'water',
     'mountain',
     'snow',
@@ -48,7 +49,7 @@ def test_the_biomes_are_those_of_the_default_tree_in_generation_order(client: Te
     assert answer.status_code == 200
     assert answer.json()['era'] == 'band'
     assert [biome['id'] for biome in biomes] == ORDER
-    assert biomes[12] == FOREST
+    assert biomes[13] == FOREST
     for biome in biomes:
         held = params.biomes[biome['id']]
         era = held.eras['band']
@@ -63,8 +64,8 @@ def test_an_overridden_base_is_the_one_given(client: TestClient, new_game: NewGa
 
     biomes = client.get(f'{PREFIX}/games/{created["id"]}/biomes').json()['biomes']
 
-    assert biomes[12]['properties'] == {**BASES, 'food': 0.5}
-    assert biomes[13]['properties']['food'] == load_params().biomes['grass'].eras['band'].properties['food'].base
+    assert biomes[13]['properties'] == {**BASES, 'food': 0.5}
+    assert biomes[14]['properties']['food'] == load_params().biomes['grass'].eras['band'].properties['food'].base
 
 
 @pytest.mark.parametrize('lang', LANGUAGES)

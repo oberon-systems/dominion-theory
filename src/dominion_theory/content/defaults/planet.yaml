@@ -51,7 +51,7 @@ planet:
     x: null
     y: null
     latitude: {min: 0.38, max: 0.6}
-    tries: 64
+    tries: 128
     needs:
       land: 0.5
       rivers: 1

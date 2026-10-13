@@ -34,9 +34,9 @@ def tries(seed: int, params: Params) -> list[Place]:
     return [(int(column), int(row)) for column, row in zip(columns, rows, strict=True)]
 
 
-def misses(skeleton: Skeleton, rivers: Rivers, params: Params, x: int, y: int) -> int:
+def unmet(skeleton: Skeleton, rivers: Rivers, params: Params, x: int, y: int) -> tuple[str, ...]:
     """
-    How many needs a window at x, y does not meet, judged on a coarse sample of its cells.
+    The needs a window at x, y does not meet, by name, judged on a coarse sample of its cells.
     """
     window = params.planet.window
     needs = window.needs
@@ -50,11 +50,18 @@ def misses(skeleton: Skeleton, rivers: Rivers, params: Params, x: int, y: int) -
     codes = classify(params.biomes, layers)
     names = ordered(params.biomes)
 
-    met = [float((layers['elevation'] > 0).mean()) >= needs.land]
-    met += [float((codes == names.index(name)).mean()) >= share for name, share in needs.biomes.items()]
+    met = {'land': float((layers['elevation'] > 0).mean()) >= needs.land}
+    met |= {name: float((codes == names.index(name)).mean()) >= share for name, share in needs.biomes.items()}
     lines = rivers.crossing(x * cell_km, y * cell_km, (x + window.width) * cell_km, (y + window.height) * cell_km)
-    met.append(lines >= needs.rivers)
-    return met.count(False)
+    met['rivers'] = lines >= needs.rivers
+    return tuple(name for name, held in met.items() if not held)
+
+
+def misses(skeleton: Skeleton, rivers: Rivers, params: Params, x: int, y: int) -> int:
+    """
+    How many needs a window at x, y does not meet.
+    """
+    return len(unmet(skeleton, rivers, params, x, y))
 
 
 def choose(seed: int, params: Params, judge: Judge) -> Place:

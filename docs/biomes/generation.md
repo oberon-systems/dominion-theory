@@ -240,7 +240,8 @@ ranges all hold.
 | Order | Biome      | Rule                                  | Reads as                   |
 |-------|------------|---------------------------------------|----------------------------|
 | 5     | `ice`      | elevation up to 0, temperature up to 0.08 | the frozen sea at the poles |
-| 10    | `water`    | elevation up to 0                     | sea and lakes              |
+| 8     | `shallows` | elevation from -0.15 to 0             | the shelf, lakes, river beds |
+| 10    | `water`    | elevation up to 0                     | the deep sea               |
 | 20    | `mountain` | elevation from 0.92                   | highest 8 percent of land  |
 | 25    | `snow`     | temperature up to 0.07                | the caps of the poles      |
 | 30    | `tundra`   | temperature up to 0.15                | the cold belts             |
@@ -363,7 +364,7 @@ need is taken.
 - **The river need counts lines** that touch the rectangle of the window,
   not marked cells.
 - **The latitude of a place** is that of the centre row of the window.
-- **The tries are limited**, 64 by default. When none meets every need,
+- **The tries are limited**, 128 by default. When none meets every need,
   the place that misses the fewest is taken, the earlier of two equals.
 - **The north is not a taste.** The calendar has one set of seasons, and
   they are true for one hemisphere only.
@@ -459,7 +460,7 @@ planet:
     x: null
     y: null
     latitude: {min: 0.38, max: 0.6}
-    tries: 64
+    tries: 128
     needs:
       land: 0.5
       rivers: 1

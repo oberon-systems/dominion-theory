@@ -14,6 +14,7 @@ def test_defaults_hold_the_biomes_in_generation_order() -> None:
 
     assert sorted(biomes, key=lambda name: biomes[name].generation.order) == [
         'ice',
+        'shallows',
         'water',
         'mountain',
         'snow',
@@ -95,7 +96,7 @@ def test_planet_is_the_one_of_the_document() -> None:
     assert planet.rivers.model_dump()['effects'] == {
         'band': {'water': {'plus': 0.5}, 'food': {'plus': 0.1}, 'passability': {'times': 0.7}}
     }
-    assert (planet.window.x, planet.window.y, planet.window.tries) == (None, None, 64)
+    assert (planet.window.x, planet.window.y, planet.window.tries) == (None, None, 128)
     assert planet.window.latitude.model_dump() == {'min': 0.38, 'max': 0.6}
     assert planet.window.needs.model_dump() == {
         'land': 0.5,

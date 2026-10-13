@@ -12,3 +12,4 @@ biome-dunes = дюны
 biome-floodplain = пойма
 biome-ice = льды
 biome-snow = снега
+biome-shallows = мелководье

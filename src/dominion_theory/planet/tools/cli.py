@@ -6,6 +6,7 @@ Dominion Theory: Maps: Tools: CLI
 
 import json
 import secrets
+from collections import Counter
 from pathlib import Path
 from typing import Any
 
@@ -14,7 +15,7 @@ import click
 from ...content import LAYERS, Params, load_params
 from ...core.errors import DominionError
 from .. import Planet, Region, place
-from ..window import misses, tries
+from ..window import misses, tries, unmet
 from . import pictures
 from .screen import save
 from .screen import show as opened
@@ -108,6 +109,11 @@ def cli(
     lines = len(planet.rivers.lines)
     click.echo(f'{preset or "default"}, seed {seed}: the window at {x}, {y}, {order}, {missed} needs missed')
     click.echo(f'rivers: {lines}')
+    tried = places[: places.index((x, y)) + 1] if (x, y) in places else []
+    failed: Counter[str] = Counter()
+    for tried_x, tried_y in tried:
+        failed.update(unmet(planet.skeleton, planet.rivers, params, tried_x, tried_y))
+    click.echo(f'needs missed by the tries so far: {dict(failed) or "none"}')
 
     if whole:
         if planet.circumference_km % (2 * cell_km):

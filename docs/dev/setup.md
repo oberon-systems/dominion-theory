@@ -244,7 +244,8 @@ Escape. The wheel of the mouse, or plus and minus, zoom in and out on the
 cell under the pointer; a drag with the left button or the arrows move
 the map. A panel beside the map holds the legend with the share of every
 biome, and under it the cell the pointer is on: its place, its biome,
-whether a river crosses it, its properties and the layers. The
+whether a river crosses it, its properties and the layers. Open water is
+painted darker the deeper it lies. The
 terminal gets the shares as well.
 
 ```bash
@@ -286,7 +287,7 @@ make map MAP='--preset harsh-winter --set planet.sea=0.5'
 Expected output:
 
 ```text
-default, seed 42: the window at 1730, 540, try 2 of 64, 0 needs missed
+default, seed 42: the window at 1730, 540, try 2 of 128, 0 needs missed
 rivers: 310
 biome       of all  of land
 water        60.0%

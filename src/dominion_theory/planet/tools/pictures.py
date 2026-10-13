@@ -19,6 +19,7 @@ LOW = '#101028'
 HIGH = '#FFE66D'
 PADDING = 4
 LONG = 8
+DEPTH = 0.6
 
 Picture = NDArray[np.uint8]
 Values = NDArray[np.float64]
@@ -32,8 +33,14 @@ def biomes(params: Params, region: Region) -> Picture:
     """
     Every cell in the colour of its biome, the cells a river crosses in the colour of rivers.
     """
-    palette = np.array([rgb(params.biomes[name].colour) for name in biome_names(params)], dtype=np.uint8)
-    picture: Picture = palette[region.biomes]
+    names = biome_names(params)
+    palette = np.array([rgb(params.biomes[name].colour) for name in names], dtype=np.uint8)
+    # Open water is painted darker the deeper it lies; water that is frozen keeps its colour.
+    rules = [params.biomes[name].generation for name in names]
+    sea = [rule.elevation is not None and rule.elevation.max is not None and rule.elevation.max <= 0 for rule in rules]
+    open_water = np.array([wet and rule.temperature is None for wet, rule in zip(sea, rules, strict=True)])
+    deep = np.where(open_water[region.biomes], np.clip(-region.elevation, 0.0, 1.0), 0.0)
+    picture: Picture = np.rint(palette[region.biomes] * (1.0 - DEPTH * deep[..., None])).astype(np.uint8)
     picture[region.rivers] = rgb(RIVER)
     return picture
 

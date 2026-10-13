@@ -15,6 +15,19 @@ from dominion_theory.runner import RECORD_UNREADABLE, STEP, Runner, Service, rea
 from dominion_theory.store import ValkeyStore
 
 SMALL = {'planet.circumference_km': 4000, 'planet.window.width': 32, 'planet.window.height': 16}
+COUNTERS = (
+    'commands_accepted',
+    'commands_refused',
+    'cells_depleted',
+    'population',
+    'food',
+    'water',
+    'moves',
+    'gathers',
+    'camps',
+    'deaths',
+)
+COUNTED = {'commands_refused': 1, 'population': 15, 'food': 15.0, 'water': 30.0, 'camps': 1}
 DAY = 5
 
 
@@ -57,8 +70,8 @@ def test_the_header_names_the_game_and_its_columns(service: Service) -> None:
         'params_hash': runner.game.params.hash,
         'params': runner.game.params.tree(),
         'seats': [{'seat': 'player', 'kind': 'scripted'}],
-        'counters': ['commands_accepted', 'commands_refused', 'cells_depleted'],
-        'units': [],
+        'counters': list(COUNTERS),
+        'units': ['id', 'x', 'y', 'state', 'action', 'people', 'food', 'water'],
     }
 
 
@@ -73,8 +86,11 @@ def test_a_tick_writes_its_commands_itself_and_its_events(service: Service) -> N
     runner.submit(CallCouncil(seat='player', proposal='rest', id='c-1'))
     for _ in range(DAY - 1):
         runner.step()
+    band = runner.game.band
 
     lines = read(runner.record_path)
+
+    assert band is not None
 
     assert lines[1] == {
         't': 'command',
@@ -86,8 +102,8 @@ def test_a_tick_writes_its_commands_itself_and_its_events(service: Service) -> N
     }
     assert lines[2]['t'] == 'tick'
     assert lines[2]['tick'] == lines[2]['parts'] == 1
-    assert lines[2]['counters'] == [0, 1, 0]
-    assert lines[2]['units'] == []
+    assert dict(zip(COUNTERS, lines[2]['counters'], strict=True)) == {**dict.fromkeys(COUNTERS, 0), **COUNTED}
+    assert lines[2]['units'] == [[1, band.x, band.y, 'normal', 'camp', 15, 15.0, 30.0]]
     assert lines[3] == {
         't': 'event',
         'tick': 1,

@@ -188,11 +188,11 @@ def test_the_counter_follows_the_kept_cells(game: Game) -> None:
     game.deplete(*GRASS, 'food', 0.9)
     game.deplete(*GRASS, 'water', 0.9)
 
-    first = game.step().counters[-1]
+    first = game.step().counters[2]
     for _ in range(DAY):
-        later = game.step().counters[-1]
+        later = game.step().counters[2]
 
-    assert game.counters.names[-1] == 'cells_depleted'
+    assert game.counters.names[2] == 'cells_depleted'
     assert (first, later) == (2, 1)
     assert depleted(game) == len(game.cells) == 1
 

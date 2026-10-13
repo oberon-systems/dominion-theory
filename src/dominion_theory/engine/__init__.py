@@ -1,3 +1,4 @@
+from .band import Band
 from .clock import Clock, Date
 from .commands import CallCouncil, Command, Pass
 from .events import EVENTS, REASONS, Event
@@ -7,6 +8,7 @@ __all__ = [
     'EVENTS',
     'PHASES',
     'REASONS',
+    'Band',
     'CallCouncil',
     'Clock',
     'Command',

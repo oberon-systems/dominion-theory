@@ -10,7 +10,7 @@ from dominion_theory.runner import Update as Handed
 def test_what_a_runner_hands_out_fits_the_schema_of_the_stream() -> None:
     date = Date(1, 1, 2, 'morning', 'spring')
     events = [Event('command-accepted', {'id': 'c-1'})]
-    handed = Handed(5, date, events, {'units': [], 'gone': [], 'cells': [], 'seat': {}}, ['player'])
+    handed = Handed(5, date, events, {'units': [], 'gone': [], 'cells': [], 'known': [], 'seat': {}}, ['player'])
 
     assert isinstance(STREAM.validate_python(handed.data()), Update)
     assert isinstance(STREAM.validate_python(Behind(5).data()), Resync)

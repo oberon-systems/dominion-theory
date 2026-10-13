@@ -2,6 +2,7 @@
 The game: state and rules, advanced one tick at a time and by nothing else.
 """
 
+from collections.abc import Callable
 from dataclasses import asdict, dataclass, field
 from functools import partial
 from typing import Any, Self
@@ -11,18 +12,34 @@ from numpy.typing import NDArray
 
 from ..content import Params, Property
 from ..planet import Planet, biome_names, place
+from . import band as bands
+from .band import Action, Band
 from .cells import Cells, Place
 from .clock import Clock, Date
 from .commands import BUILT, Command
 from .counters import Counters
-from .events import COMMAND_ACCEPTED, COMMAND_REFUSED, REFUSED_UNKNOWN_COMMAND, REFUSED_UNKNOWN_SEAT, Event
+from .events import (
+    BAND_DIED,
+    BAND_STATE_BEGAN,
+    BAND_STATE_ENDED,
+    COMMAND_ACCEPTED,
+    COMMAND_REFUSED,
+    PEOPLE_BORN,
+    PEOPLE_LOST,
+    REFUSED_UNKNOWN_COMMAND,
+    REFUSED_UNKNOWN_SEAT,
+    STATE,
+    Event,
+)
 from .hashing import digest
 from .streams import Streams
 
-SNAPSHOT_FORMAT = 2
+SNAPSHOT_FORMAT = 3
+DIED = 'died'
 ERA = 'band'
 SEATS: tuple[str, ...] = ('player',)
-UNIT_COLUMNS: tuple[str, ...] = ()
+UNIT_COLUMNS: tuple[str, ...] = bands.COLUMNS
+TOTALS = ('moves', 'gathers', 'camps', 'deaths')
 
 # The order is part of the rules: docs/architecture/overview.md, One tick.
 PHASES = ('commands', 'councils', 'decisions', 'actions', 'world', 'calendar', 'report')
@@ -60,6 +77,14 @@ class _Tick:
     counters: list[float] = field(default_factory=list)
     units: list[list[Any]] = field(default_factory=list)
     cells: list[Place] = field(default_factory=list)
+    known: list[dict[str, Any]] = field(default_factory=list)
+    gone: list[int] = field(default_factory=list)
+    shown: dict[str, Any] | None = None
+    action: Action | None = None
+
+
+def _camps(game: Game, band: Band) -> Action:
+    return bands.camp()
 
 
 class Game:
@@ -72,6 +97,7 @@ class Game:
         biomes: NDArray[np.uint8],
         rivers: NDArray[np.bool_],
         cells: Cells | None = None,
+        band: Band | None = None,
     ) -> None:
         self.seed = seed
         self.params = params
@@ -80,6 +106,10 @@ class Game:
         self.biomes = biomes
         self.rivers = rivers
         self.cells = Cells() if cells is None else cells
+        self.band = band
+        self.over = False
+        self.outcome: str | None = None
+        self.choose: Callable[[Game, Band], Action] = _camps
         self.era = ERA
         self.seats = SEATS
         self.tick = 0
@@ -88,11 +118,16 @@ class Game:
         self._pending: list[tuple[int, Command]] = []
         self._sequence: dict[str, int] = {}
         self._seen: set[str] = set()
-        self._totals = {'commands_accepted': 0, 'commands_refused': 0}
+        self._totals = {'commands_accepted': 0, 'commands_refused': 0, **dict.fromkeys(TOTALS, 0)}
         self.counters = Counters()
-        for name in self._totals:
+        for name in ('commands_accepted', 'commands_refused'):
             self.counters.declare(name, partial(self._totals.__getitem__, name))
         self.counters.declare('cells_depleted', partial(len, self.cells))
+        self.counters.declare('population', lambda: 0 if self.band is None else self.band.population)
+        for name in bands.SHORTAGES:
+            self.counters.declare(name, partial(self._held, name))
+        for name in TOTALS:
+            self.counters.declare(name, partial(self._totals.__getitem__, name))
 
     @classmethod
     def create(cls, seed: int, params: Params) -> Self:
@@ -100,7 +135,11 @@ class Game:
         size = params.planet.window
         x, y = place(seed, params)
         region = Planet(seed, params).read(x, y, size.width, size.height, params.eras[ERA].cell_km)
-        return cls(seed, params, streams, Window(0, x, y, size.width, size.height), region.biomes, region.rivers)
+        game = cls(seed, params, streams, Window(0, x, y, size.width, size.height), region.biomes, region.rivers)
+        found = game._start()
+        if found is not None:
+            game.band = bands.start(game, *found, game.day)
+        return game
 
     @classmethod
     def restore(cls, snapshot: dict[str, Any]) -> Self:
@@ -114,7 +153,9 @@ class Game:
             np.array(snapshot['grids']['biomes'], dtype=np.uint8),
             np.array(snapshot['grids']['rivers'], dtype=np.bool_),
             Cells(snapshot['cells']),
+            next((Band.read(unit) for unit in snapshot['units']), None),
         )
+        game.over, game.outcome = snapshot['over'], snapshot['outcome']
         commands = snapshot['commands']
         game.era = snapshot['era']
         game.tick = snapshot['tick']
@@ -137,6 +178,25 @@ class Game:
         biomes = self.params.biomes.values()
         names = self.params.eras[self.era].properties
         return tuple(name for name in names if any(biome.eras[self.era].properties[name].recovery for biome in biomes))
+
+    @property
+    def day(self) -> int:
+        """
+        The days gone since the start of the game.
+        """
+        return self.clock.parts // self.params.time.parts_per_day
+
+    def inside(self, x: int, y: int) -> bool:
+        window = self.window
+        return window.x <= x < window.x + window.width and window.y <= y < window.y + window.height
+
+    def biome(self, x: int, y: int) -> str:
+        row, column = self._at(x, y)
+        return biome_names(self.params)[int(self.biomes[row, column])]
+
+    def river(self, x: int, y: int) -> bool:
+        row, column = self._at(x, y)
+        return bool(self.rivers[row, column])
 
     def value(self, name: str, x: int, y: int) -> float:
         """
@@ -216,7 +276,34 @@ class Game:
             'counters': dict(self._totals),
             'biomes': list(biome_names(self.params)),
             'cells': self.cells.plain(),
+            'units': [] if self.band is None else [self.band.plain()],
+            'over': self.over,
+            'outcome': self.outcome,
         }
+
+    def _held(self, prop: str) -> float:
+        if self.band is None:
+            return 0.0
+        resources = self.params.resources
+        return sum(self.band.held(name) for name in self.band.stores if resources[name].property == prop)
+
+    def _start(self) -> Place | None:
+        """
+        Where the band starts: the cell nearest the centre of the window among the start biomes,
+        among all that can be entered when there is none; the smaller y, then x, of two equally near.
+        """
+        window, names = self.window, biome_names(self.params)
+        eras = [self.params.biomes[name].eras[self.era] for name in names]
+        walked = np.array([not era.shore and era.properties[bands.PASSABILITY].base > 0 for era in eras])
+        wanted = walked & np.array([name in self.params.units.band.start.biomes for name in names])
+        centre = (window.width - 1) / 2, (window.height - 1) / 2
+        for fits in (wanted, walked):
+            rows, columns = np.nonzero(fits[self.biomes])
+            if rows.size:
+                far = (columns - centre[0]) ** 2 + (rows - centre[1]) ** 2
+                first = np.lexsort((columns, rows, far))[0]
+                return window.x + int(columns[first]), window.y + int(rows[first])
+        return None
 
     def _at(self, x: int, y: int) -> tuple[int, int]:
         window = self.window
@@ -233,12 +320,13 @@ class Game:
 
     def _regained(self, at: Place) -> dict[str, float]:
         row, column = self._at(*at)
-        span = self.params.eras[self.era].parts_per_tick
+        era = self.params.eras[self.era]
         shares = {}
         for name in self.stocked:
             recovery = self._property(name, row, column).recovery
             if recovery is not None:
-                shares[name] = span / self.clock.to_parts(recovery)
+                pace = era.recovery.get(name, {}).get(self.date.season, 1.0)
+                shares[name] = pace * era.parts_per_tick / self.clock.to_parts(recovery)
         return shares
 
     def _judge(self, command: Command) -> str | None:
@@ -263,13 +351,48 @@ class Game:
         pass
 
     def _decisions(self, tick: _Tick) -> None:
-        pass
+        if self.band is not None:
+            tick.shown = self.band.shown(self.window.scale)
+            tick.action = self.choose(self, self.band)
 
     def _actions(self, tick: _Tick) -> None:
-        pass
+        band = self.band
+        if band is None or tick.action is None:
+            return
+        done = bands.act(self, band, tick.action, self.day)
+        self._totals[f'{done["kind"]}s'] += 1
+        self._states(tick, *bands.tire(self.params.units.band, band))
+        tick.known = [{'x': x, 'y': y, **band.known[x, y]} for x, y in bands.look(self, band, self.day)]
 
     def _world(self, tick: _Tick) -> None:
         tick.cells = self.cells.regain(self._regained)
+        band = self.band
+        if band is None:
+            return
+        per_day, span = self.params.time.parts_per_day, self.params.eras[self.era].parts_per_tick
+        parts = self.clock.parts
+        if parts % per_day < span:
+            bands.spoil(self.params, band, self.day)
+        if (parts + span) // per_day > parts // per_day:
+            self._day_ends(tick, band)
+
+    def _day_ends(self, tick: _Tick, band: Band) -> None:
+        began, ended, lost = bands.suffer(self.params, band, bands.eat(self.params, band))
+        self._states(tick, began, ended)
+        for cause, count in lost:
+            self._totals['deaths'] += count
+            tick.events.append(Event(PEOPLE_LOST, {'count': count, 'cause': cause}))
+        born = bands.grow(self.params, band)
+        if born:
+            tick.events.append(Event(PEOPLE_BORN, {'count': born}))
+        if band.population < self.params.units.band.population.least:
+            tick.events.append(Event(BAND_DIED, {}))
+            tick.gone.append(band.id)
+            self.band, self.over, self.outcome = None, True, DIED
+
+    def _states(self, tick: _Tick, began: list[str], ended: list[str]) -> None:
+        tick.events.extend(Event(BAND_STATE_ENDED, {'state': f'{STATE}{state}'}) for state in ended)
+        tick.events.extend(Event(BAND_STATE_BEGAN, {'state': f'{STATE}{state}'}) for state in began)
 
     def _calendar(self, tick: _Tick) -> None:
         self.tick += 1
@@ -279,5 +402,10 @@ class Game:
     def _report(self, tick: _Tick) -> None:
         stocked = self.stocked
         cells = [{'x': x, 'y': y, **{name: self.cells.stock((x, y), name) for name in stocked}} for x, y in tick.cells]
-        tick.changes.update({'units': [], 'gone': [], 'cells': cells, 'seat': {}})
+        units = []
+        if self.band is not None:
+            shown = self.band.shown(self.window.scale)
+            units = [shown] if shown != tick.shown else []
+            tick.units.append(self.band.row(self.params))
+        tick.changes.update({'units': units, 'gone': tick.gone, 'cells': cells, 'known': tick.known, 'seat': {}})
         tick.counters.extend(self.counters.row())

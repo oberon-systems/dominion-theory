@@ -34,7 +34,7 @@ def test_the_stream_joins_right_after_the_snapshot(client: TestClient, new_game:
     assert [update['seq'] for update in updates] == [3, 4, 5]
     assert all(isinstance(STREAM.validate_python(update), Update) for update in updates)
     assert updates[2]['events'] == [{'key': 'day-started', 'values': {'year': 1, 'month': 1, 'day': 2}}]
-    assert updates[2]['changes'] == {'units': [], 'gone': [], 'cells': [], 'seat': {}}
+    assert {**updates[2]['changes'], 'units': []} == {'units': [], 'gone': [], 'cells': [], 'known': [], 'seat': {}}
 
 
 def test_a_client_that_returns_in_time_is_sent_what_it_missed(client: TestClient, new_game: NewGame) -> None:

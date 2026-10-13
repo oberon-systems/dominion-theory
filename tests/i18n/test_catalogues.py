@@ -8,6 +8,8 @@ from dominion_theory.content.model import PARAMS_INVALID
 from dominion_theory.core.errors import DominionError
 from dominion_theory.db.profiles import LOCALE_UNKNOWN, LOCALES, PROFILE_NOT_FOUND
 from dominion_theory.engine import EVENTS, REASONS
+from dominion_theory.engine.band import STATES
+from dominion_theory.engine.events import STATE
 from dominion_theory.i18n import DATE, LANGUAGES, catalogue
 from dominion_theory.runner import ERRORS
 
@@ -55,6 +57,7 @@ def in_use() -> set[str]:
     names = {f'time-part-{part}' for part in time.day_parts} | {f'time-season-{season.name}' for season in time.seasons}
     names |= {f'biome-{biome}' for biome in params.biomes}
     names |= {f'resource-{resource}' for resource in params.resources}
+    names |= {f'{STATE}{state}' for state in STATES}
     names |= {f'encounter-{kind}' for kind in params.encounters.kinds}
     errors = {*ERRORS, PRESET_NOT_FOUND, PARAMS_INVALID, LOCALE_UNKNOWN, PROFILE_NOT_FOUND}
     return {*EVENTS, *REASONS, DATE} | errors | names | SPECIFIED

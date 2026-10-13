@@ -247,7 +247,7 @@ of them. Both views of the API show the same for now.
 {
   "units": [
     {
-      "id": "band-1",
+      "id": 1,
       "kind": "band",
       "place": {"scale": 0, "x": 2301, "y": 744},
       "population": 15,
@@ -258,13 +258,13 @@ of them. Both views of the API show the same for now.
       "intent": null
     }
   ],
-  "seat": {"name": "player", "unit": "band-1", "status": 50.0, "council_from": 40}
+  "seat": {"name": "player", "unit": 1, "status": 50.0, "council_from": 40}
 }
 ```
 
 `council_from` is the tick from which the next council may be called.
 What the band knows is read as a map: the rectangle of the map address
-takes `known=band-1` and answers only with the cells that band knows, as
+takes `known=1` and answers only with the cells that band knows, as
 it remembers them.
 
 ___

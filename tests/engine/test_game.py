@@ -36,8 +36,8 @@ def test_overview_example_runs_as_written() -> None:
     copy = Game.restore(game.snapshot())
 
     assert [event.key for event in result.events] == ['command-refused']
-    assert result.changes == {'units': [], 'gone': [], 'cells': [], 'seat': {}}
-    assert result.counters == [0, 1, 0]
+    assert result.changes == {'units': [], 'gone': [], 'cells': [], 'known': [], 'seat': {}}
+    assert result.counters == [0, 1, 0, 15, 15.0, 30.0, 0, 0, 1, 0]
     assert copy.state_hash() == game.state_hash() == result.hash
 
 
@@ -117,7 +117,7 @@ def test_snapshot_does_not_share_its_arrays(params: Params) -> None:
 def test_unreadable_snapshot_is_refused(params: Params) -> None:
     snapshot = Game.create(seed=11, params=params).snapshot()
 
-    assert snapshot['format'] == 2
+    assert snapshot['format'] == 3
     with pytest.raises(ValueError, match='format 1'):
         Game.restore({**snapshot, 'format': 1})
 
@@ -146,6 +146,13 @@ def test_repeated_command_id_is_judged_once(params: Params) -> None:
         'commands_accepted': 1,
         'commands_refused': 0,
         'cells_depleted': 0,
+        'population': 15,
+        'food': 15.0,
+        'water': 30.0,
+        'moves': 0,
+        'gathers': 0,
+        'camps': 2,
+        'deaths': 0,
     }
 
 

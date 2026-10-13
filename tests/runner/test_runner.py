@@ -70,7 +70,7 @@ def test_a_step_game_waits_for_the_seat_and_advances_on_pass(service: Service) -
             'seq': 1,
             'date': {'year': 1, 'month': 1, 'day': 1, 'part': 'midday', 'season': 'spring'},
             'events': [{'key': 'command-accepted', 'values': {'id': 'c-1'}}],
-            'changes': {'units': [], 'gone': [], 'cells': [], 'seat': {}},
+            'changes': {'units': [], 'gone': [], 'cells': [], 'known': [], 'seat': {}},
             'waiting': ['player'],
         }
     ]
@@ -165,9 +165,9 @@ def test_the_store_holds_a_snapshot_of_the_day_and_the_ticks_since(service: Serv
     assert held.meta.mode == STEP
     assert held.meta.params == runner.game.params.hash
     assert held.changes == [
-        {'changes': {'units': [], 'gone': [], 'cells': [], 'seat': {}}},
+        {'changes': {'units': [], 'gone': [], 'cells': [], 'known': [], 'seat': {}}},
         {'seat': 'player', 'command': {'id': 'c-1', 'kind': 'pass'}},
-        {'changes': {'units': [], 'gone': [], 'cells': [], 'seat': {}}},
+        {'changes': {'units': [], 'gone': [], 'cells': [], 'known': [], 'seat': {}}},
     ]
 
 

@@ -10,6 +10,12 @@ from .clock import DAY_STARTED, MONTH_STARTED, SEASON_STARTED, YEAR_STARTED
 COMMAND_ACCEPTED = 'command-accepted'
 COMMAND_REFUSED = 'command-refused'
 
+BAND_STATE_BEGAN = 'band-state-began'
+BAND_STATE_ENDED = 'band-state-ended'
+PEOPLE_LOST = 'people-lost'
+PEOPLE_BORN = 'people-born'
+BAND_DIED = 'band-died'
+
 REFUSED_UNKNOWN_COMMAND = 'refused-unknown-command'
 REFUSED_UNKNOWN_SEAT = 'refused-unknown-seat'
 
@@ -20,9 +26,15 @@ EVENTS: dict[str, tuple[str, ...]] = {
     MONTH_STARTED: ('year', 'month', 'season'),
     SEASON_STARTED: ('year', 'season'),
     YEAR_STARTED: ('year', 'seasons'),
+    BAND_STATE_BEGAN: ('state',),
+    BAND_STATE_ENDED: ('state',),
+    PEOPLE_LOST: ('count', 'cause'),
+    PEOPLE_BORN: ('count',),
+    BAND_DIED: (),
 }
 
 REASONS: tuple[str, ...] = (REFUSED_UNKNOWN_COMMAND, REFUSED_UNKNOWN_SEAT)
+STATE = 'state-'
 
 
 @dataclass(frozen=True)

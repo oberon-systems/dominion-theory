@@ -31,7 +31,7 @@ is no number of a band in the code.
 
 | Field        | Holds                                                   |
 |--------------|---------------------------------------------------------|
-| `id`         | the identifier of the unit, `band-1` for the player's   |
+| `id`         | the number of the unit, 1 for the player's band         |
 | `place`      | planet coordinates of its cell, with the scale          |
 | `population` | how many people, a whole number                         |
 | `stores`     | what it carries, per resource, in lots by day gathered  |

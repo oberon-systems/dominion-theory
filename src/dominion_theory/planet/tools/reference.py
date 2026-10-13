@@ -22,21 +22,34 @@ SEEDS = (1, 2, 3)
 SOURCE = Path(__file__).parents[1]
 
 
+def shaping(params: Params) -> str:
+    """
+    What of a tree a map follows from: the planet, where each biome appears and the size of a cell.
+    """
+    held = {
+        'planet': params.planet.model_dump(mode='json'),
+        'biomes': {name: biome.generation.model_dump(mode='json') for name, biome in params.biomes.items()},
+        'cells': {era: held.cell_km for era, held in params.eras},
+    }
+    return json.dumps(held, sort_keys=True)
+
+
 def shaped(params: Params) -> dict[str, Params]:
     """
-    The presets that make another planet of the same seed: those that change the planet or a biome.
+    The presets that make another planet of the same seed: those that change what shapes it.
     """
     trees = {name: load_params(name) for name in presets()}
-    return {name: tree for name, tree in trees.items() if (tree.planet, tree.biomes) != (params.planet, params.biomes)}
+    return {name: tree for name, tree in trees.items() if shaping(tree) != shaping(params)}
 
 
 def inputs(params: Params) -> str:
     """
-    One hash of all a map follows from: the tree of parameters, those of the presets and the code of the planet.
+    One hash of all a map follows from: what shapes the planet in the tree and in the trees of the presets,
+    and the code of the planet.
     """
-    held = sha256(params.hash.encode())
+    held = sha256(shaping(params).encode())
     for tree in shaped(params).values():
-        held.update(tree.hash.encode())
+        held.update(shaping(tree).encode())
     for path in sorted(SOURCE.glob('*.py')):
         held.update(path.read_bytes())
     return held.hexdigest()

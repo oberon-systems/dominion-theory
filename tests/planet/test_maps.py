@@ -51,3 +51,13 @@ def test_a_survey_is_the_same_for_the_same_seed_and_can_be_written(params: Param
 def test_inputs_follow_the_parameters(params: Params) -> None:
     assert reference.inputs(params) == reference.inputs(params)
     assert reference.inputs(params) != reference.inputs(load_params())
+
+
+def test_inputs_follow_only_what_shapes_the_planet() -> None:
+    kept = reference.inputs(load_params())
+    threat = 'biomes.forest.eras.band.properties.threat.base'
+    fed = {'units.band.carry_kg': 7.0, 'council.status.start': 60, threat: 0.5}
+
+    assert reference.inputs(load_params(overrides=fed)) == kept
+    assert reference.inputs(load_params(overrides={'biomes.forest.generation.moisture': {'min': 0.6}})) != kept
+    assert reference.inputs(load_params(overrides={'planet.sea': 0.5})) != kept

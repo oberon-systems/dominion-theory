@@ -83,8 +83,9 @@ After them it keeps the reference of the maps,
 every preset that shapes the planet, where the first window lies,
 how many rivers run, the share of every biome, how many square corners
 the shore has and a hash of every cell, with a hash of what a map follows
-from, the default parameters and the
-code of the planet.
+from: the section `planet`, where each biome appears, the size of a cell
+and the code of the planet. A change of anything else in the tree, a
+number of the band for one, redraws nothing.
 
 - **Nothing changed** - the hashes of the inputs agree and nothing is
   built.

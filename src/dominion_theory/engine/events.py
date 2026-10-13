@@ -15,6 +15,7 @@ BAND_STATE_ENDED = 'band-state-ended'
 PEOPLE_LOST = 'people-lost'
 PEOPLE_BORN = 'people-born'
 BAND_DIED = 'band-died'
+ENCOUNTER = 'encounter'
 
 REFUSED_UNKNOWN_COMMAND = 'refused-unknown-command'
 REFUSED_UNKNOWN_SEAT = 'refused-unknown-seat'
@@ -31,10 +32,12 @@ EVENTS: dict[str, tuple[str, ...]] = {
     PEOPLE_LOST: ('count', 'cause'),
     PEOPLE_BORN: ('count',),
     BAND_DIED: (),
+    ENCOUNTER: ('kind', 'lost'),
 }
 
 REASONS: tuple[str, ...] = (REFUSED_UNKNOWN_COMMAND, REFUSED_UNKNOWN_SEAT)
 STATE = 'state-'
+KIND = 'encounter-'
 
 
 @dataclass(frozen=True)

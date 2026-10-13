@@ -45,9 +45,9 @@ A need is a number from 0, nothing wanted, to 1, nothing else matters.
 | `rest`    | the fatigue, plus `night` in the evening and at night       |
 
 Each is held between 0 and 1. Days of food are the stores over what the
-people eat in a day; `comfort` is two days, all that a band can carry.
-A state doubles its need before the hold: a starving band is hungrier
-than its stores alone say.
+people eat in a day; `comfort` is three days, all that a band can carry
+of food and water together. A state doubles its need before the hold: a
+starving band is hungrier than its stores alone say.
 
 ___
 
@@ -77,19 +77,21 @@ need it serves.
 | Action          | Score                                                        |
 |-----------------|--------------------------------------------------------------|
 | `camp`          | `weights.rest` times rest                                    |
-| `gather` forage | `weights.hunger` times hunger, food of the cell and room     |
-| `gather` water  | `weights.thirst` times thirst, water of the cell and room    |
+| `gather` forage | `weights.hunger` times hunger, food of the cell and fit      |
+| `gather` water  | `weights.thirst` times thirst, water of the cell and fit     |
 | `move` to a cell| see below                                                    |
 
 ```text
 move = weights.move * (pull - worth of the own cell) - weights.rest * rest * effort
 ```
 
-- **Room** is the share of the carrying weight still free, so a loaded
-  band does not gather.
+- **Fit** is the share of a tick's haul that the free carrying weight
+  takes, 1 when all of it fits, so a loaded band does not gather.
 - **Pull** of a neighbour is the best worth among the known cells that
   lie closer to it than to the band, each divided by 1 plus its distance
-  in cells times `distance`. The neighbour itself is one of them.
+  in cells times `distance`. The neighbour itself is one of them. A
+  worth below zero is multiplied instead, so that distance never makes
+  bad land look better.
 - **Effort** is 1 over the passability of the neighbour, held at 4: a
   tired band does not start into a swamp.
 
@@ -163,18 +165,18 @@ ___
 units:
   band:
     decisions:
-      comfort: {days: 2}
+      comfort: {days: 3}
       night: 0.5
       night_parts: [evening, night]
       distance: 0.25
       idle: 0.05
       wander: {days: 1}
       weights:
-        hunger: 1.0
+        hunger: 1.5
         thirst: 1.2
-        rest: 1.0
+        rest: 0.7
         safety: 0.3
-        move: 1.0
+        move: 3.0
         momentum: 0.1
         intent: 0.6
 ```
@@ -186,37 +188,39 @@ ___
 
 ## Examples
 
-A band of 15 at midday in a summer forest, rested, with half a day of
-food and a day of water: 37.5 kg of the 90 it can carry, so the room is
-0.58. Hunger is 0.75, thirst 0.5, rest 0.1.
+A band of 15 at midday in a summer forest, rested, with a day and a half
+of food and two days of water: 52.5 kg of the 90 it can carry. Hunger is
+0.5, thirst 0.33, rest 0.1. A tick of forage would be 40.5 kg and 37.5
+fit, so the fit is 0.93.
 
 ```text
-camp            1.0 * 0.1                  = 0.10
-gather forage   1.0 * 0.75 * 0.9 * 0.58    = 0.39
-gather water    1.2 * 0.5  * 0.6 * 0.58    = 0.21
-move east       grass beyond, worth lower  < 0
+camp            0.7 * 0.1                  = 0.07
+gather forage   1.5 * 0.5  * 0.9 * 0.93    = 0.63
+gather water    1.2 * 0.33 * 0.6 * 1.0     = 0.24
 -> gather forage
 ```
 
-The same band at night with fatigue 0.55, a day and a half of food and
-a room of 0.3. Hunger is 0.25, rest is 0.55 plus 0.5, held at 1.
+The same band at night with fatigue 0.55 and two and a half days of
+food. Hunger is 0.17, rest is 0.55 plus 0.5, held at 1; 22.5 kg are
+free.
 
 ```text
-camp            1.0 * 1.0                  = 1.00
-gather forage   1.0 * 0.25 * 0.9 * 0.3     = 0.07
+camp            0.7 * 1.0                  = 0.70
+gather forage   1.5 * 0.17 * 0.9 * 0.56    = 0.13
+gather water    1.2 * 0.33 * 0.6 * 0.63    = 0.15
 -> camp
 ```
 
-The same band on a stripped forest cell, food at a stock of 0.1, with
-a full forest remembered three cells to the east. Hunger is 0.75, thirst
-0, rest 0.1; the threat of 0.4 takes 0.12 from the worth of both cells.
+A band on a stripped forest cell, food at a stock of 0.1, with a full
+forest remembered three cells to the east. Hunger is 0.75, thirst 0,
+rest 0.1; the threat of 0.4 takes 0.12 from the worth of both cells.
 
 ```text
-gather forage   1.0 * 0.75 * 0.09 * 0.6          = 0.04
+gather forage   1.5 * 0.75 * 0.09 * 1.0           = 0.10
 move east       pull   (0.75 * 0.9 - 0.12) / 1.75 = 0.32
                 own     0.75 * 0.09 - 0.12        = -0.05
-                effort  1.0 * 0.1 * 1.67          = 0.17
-                1.0 * (0.32 + 0.05) - 0.17        = 0.20
+                effort  0.7 * 0.1 * 1.67          = 0.12
+                3.0 * (0.32 + 0.05) - 0.12        = 0.99
 -> move east
 ```
 

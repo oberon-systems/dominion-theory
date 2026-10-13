@@ -1,0 +1,109 @@
+from typing import Any
+
+import numpy as np
+import pytest
+
+from dominion_theory.content import Params, load_params
+from dominion_theory.engine import Game, encounters
+from dominion_theory.engine.band import camp, gathering, moving
+
+SMALL = {'planet.circumference_km': 4000, 'planet.window.width': 32, 'planet.window.height': 16}
+LIKELY = {**SMALL, 'encounters.chance': 1.0}
+
+
+class Dice:
+    """
+    A stream that gives the numbers it was handed: whether it happens, which kind, what share.
+    """
+
+    def __init__(self, *numbers: float) -> None:
+        self.numbers = numbers
+
+    def random(self, count: int) -> Any:
+        assert count == len(self.numbers)
+        return np.array(self.numbers)
+
+
+def dice(*numbers: float) -> Any:
+    return Dice(*numbers)
+
+
+def fitting(params: Params, biome: str, river: bool, action: dict[str, Any]) -> list[str]:
+    kinds = params.encounters.kinds
+    return [name for name in sorted(kinds) if encounters.fits(kinds[name], biome, river, action)]
+
+
+def test_a_kind_fits_its_biomes_its_actions_and_its_resources(params: Params) -> None:
+    assert fitting(params, 'forest', False, camp()) == ['predator']
+    assert fitting(params, 'forest', True, moving('east')) == ['drowning', 'predator']
+    assert fitting(params, 'forest', True, camp()) == ['predator']
+    assert fitting(params, 'mountain', False, moving('east')) == ['accident', 'predator']
+    assert fitting(params, 'mountain', False, gathering('forage')) == ['predator']
+    assert fitting(params, 'shallows', False, gathering('water')) == ['drowning', 'predator']
+    assert fitting(params, 'swamp', False, gathering('water')) == ['poisoning', 'predator']
+    assert fitting(params, 'swamp', False, gathering('forage')) == ['predator']
+
+
+def test_the_chance_follows_the_threat_and_the_action(params: Params) -> None:
+    def met(happens: float, threat: float, action: dict[str, Any]) -> bool:
+        return encounters.strike(params, 15, 'forest', False, threat, action, dice(happens, 0.0, 0.0)) is not None
+
+    assert (met(0.0049, 0.5, camp()), met(0.005, 0.5, camp())) == (True, False)
+    assert (met(0.0149, 0.5, moving('east')), met(0.015, 0.5, moving('east'))) == (True, False)
+    assert (met(0.0199, 1.0, gathering('forage')), met(0.02, 1.0, gathering('forage'))) == (True, False)
+    assert not met(0.0, 0.0, camp())
+
+
+def test_the_kind_is_drawn_by_weight_among_those_that_fit(params: Params) -> None:
+    def kind(which: float) -> str:
+        met = encounters.strike(params, 15, 'swamp', False, 1.0, gathering('water'), dice(0.0, which, 0.0))
+        assert met is not None
+        return met[0]
+
+    assert [kind(which) for which in (0.0, 0.5, 0.58, 0.99)] == ['poisoning', 'poisoning', 'predator', 'predator']
+
+
+@pytest.mark.parametrize(('share', 'lost'), [(0.0, 0), (0.3, 0), (0.34, 1), (0.99, 1)])
+def test_the_share_lost_is_drawn_between_the_bounds_and_may_be_a_scare(params: Params, share: float, lost: int) -> None:
+    assert encounters.strike(params, 15, 'forest', False, 1.0, camp(), dice(0.0, 0.0, share)) == ('predator', lost)
+
+
+def test_a_drowning_always_takes_somebody(params: Params) -> None:
+    met = encounters.strike(params, 15, 'shallows', False, 1.0, gathering('water'), dice(0.0, 0.0, 0.0))
+
+    assert met == ('drowning', 1)
+
+
+def played(seed: int, overrides: dict[str, Any], ticks: int = 100) -> tuple[Game, list[tuple[str, dict[str, Any]]]]:
+    game = Game.create(seed=seed, params=load_params(overrides=overrides))
+    told = []
+    for _ in range(ticks):
+        told += [(event.key, event.values) for event in game.step().events if event.key in ('encounter', 'people-lost')]
+    return game, told
+
+
+def test_encounters_strike_a_band_in_the_game_and_are_counted() -> None:
+    game, told = played(7, LIKELY)
+    counted = dict(zip(game.counters.names, game.counters.row(), strict=True))
+    struck = [values for key, values in told if key == 'encounter']
+    lost = [values['count'] for key, values in told if key == 'people-lost' and values['cause'] == 'encounter']
+
+    assert struck
+    assert all(values['kind'].startswith('encounter-') for values in struck)
+    assert counted['encounters'] == len(struck)
+    assert sum(values['lost'] for values in struck) == sum(lost) <= counted['deaths']
+
+
+def test_encounters_are_the_same_for_the_same_seed() -> None:
+    first, second = played(7, LIKELY), played(7, LIKELY)
+
+    assert first[1] == second[1]
+    assert first[0].state_hash() == second[0].state_hash()
+
+
+def test_no_chance_means_no_encounter_and_the_stream_is_drawn_all_the_same() -> None:
+    quiet, told = played(7, {**SMALL, 'encounters.chance': 0.0}, 20)
+    loud, _ = played(7, LIKELY, 20)
+
+    assert [key for key, _ in told if key == 'encounter'] == []
+    assert quiet.streams.states()['encounters'] == loud.streams.states()['encounters']

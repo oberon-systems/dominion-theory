@@ -14,7 +14,15 @@ from dominion_theory.engine import CallCouncil, Pass
 from dominion_theory.runner import RECORD_UNREADABLE, STEP, Runner, Service, read, replay
 from dominion_theory.store import ValkeyStore
 
-SMALL = {'planet.circumference_km': 4000, 'planet.window.width': 32, 'planet.window.height': 16}
+# A band that needs nothing, sees nothing and meets nothing: it camps, so the frame is tested alone.
+QUIET = {
+    'units.band.sight': 0,
+    'units.band.consumption_per_day.forage': 0.0,
+    'units.band.consumption_per_day.water': 0.0,
+    'units.band.population.growth_per_year': 0.0,
+    'encounters.chance': 0.0,
+}
+SMALL = {'planet.circumference_km': 4000, 'planet.window.width': 32, 'planet.window.height': 16, **QUIET}
 COUNTERS = (
     'commands_accepted',
     'commands_refused',
@@ -26,8 +34,9 @@ COUNTERS = (
     'gathers',
     'camps',
     'deaths',
+    'encounters',
 )
-COUNTED = {'commands_refused': 1, 'population': 15, 'food': 15.0, 'water': 30.0, 'camps': 1}
+COUNTED = {'commands_refused': 1, 'population': 15, 'food': 15.0, 'water': 15.0, 'camps': 1}
 DAY = 5
 
 
@@ -103,7 +112,7 @@ def test_a_tick_writes_its_commands_itself_and_its_events(service: Service) -> N
     assert lines[2]['t'] == 'tick'
     assert lines[2]['tick'] == lines[2]['parts'] == 1
     assert dict(zip(COUNTERS, lines[2]['counters'], strict=True)) == {**dict.fromkeys(COUNTERS, 0), **COUNTED}
-    assert lines[2]['units'] == [[1, band.x, band.y, 'normal', 'camp', 15, 15.0, 30.0]]
+    assert lines[2]['units'] == [[1, band.x, band.y, 'normal', 'camp', 15, 15.0, 15.0]]
     assert lines[3] == {
         't': 'event',
         'tick': 1,

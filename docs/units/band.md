@@ -93,7 +93,7 @@ taken = population * rate * value(property, cell)
 
 | Resource | Property | Rate per person per tick |
 |----------|----------|--------------------------|
-| `forage` | `food`   | 1.0                      |
+| `forage` | `food`   | 3.0                      |
 | `water`  | `water`  | 4.0                      |
 
 The cell pays for it. A cell at full stock holds a fixed amount per
@@ -119,13 +119,14 @@ the day.
 | Resource | Per person per day |
 |----------|--------------------|
 | `forage` | 1.0                |
-| `water`  | 2.0                |
+| `water`  | 1.0                |
 
-So 15 people need 15 kg of food and 30 litres of water a day, 45 kg of
-the 90 kg they can carry: a band holds two days of supplies at most. One
-gathering tick in a summer forest brings 13.5 kg of food, close to a
-day's worth; in a winter forest it takes three ticks, and in the desert
-no day is long enough.
+So 15 people need 15 kg of food and 15 litres of water a day, 30 kg of
+the 90 kg they can carry: a band holds three days of supplies at most,
+and its food spoils on the third. One gathering tick in a summer forest
+brings 40 kg of food, in a winter forest 16, and in the desert no day is
+long enough. The cell is what gives out: a forest cell holds 200 kg, a
+fortnight for 15 people, and needs a month to grow back.
 
 What is missing is counted per resource as a share of the day's need.
 That share drives hunger and thirst below.
@@ -216,7 +217,7 @@ units:
   band:
     start:
       population: 15
-      stores: {water: 30, forage: 15}
+      stores: {water: 15, forage: 15}
       biomes: [grass, forest, floodplain]
     population:
       least: 5
@@ -224,11 +225,11 @@ units:
       rest_growth: 3.0
     carry_kg: 6.0
     gathering:
-      forage: 1.0
+      forage: 3.0
       water: 4.0
     consumption_per_day:
       forage: 1.0
-      water: 2.0
+      water: 1.0
     speed:
       base: 1.2
       slowdown: 0.03

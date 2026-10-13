@@ -24,7 +24,15 @@ from dominion_theory.runner import (
 )
 from dominion_theory.store import GameStore, ValkeyStore
 
-SMALL = {'planet.circumference_km': 4000, 'planet.window.width': 32, 'planet.window.height': 16}
+# A band that needs nothing, sees nothing and meets nothing: it camps, so the frame is tested alone.
+QUIET = {
+    'units.band.sight': 0,
+    'units.band.consumption_per_day.forage': 0.0,
+    'units.band.consumption_per_day.water': 0.0,
+    'units.band.population.growth_per_year': 0.0,
+    'encounters.chance': 0.0,
+}
+SMALL = {'planet.circumference_km': 4000, 'planet.window.width': 32, 'planet.window.height': 16, **QUIET}
 DAY = 5
 KEPT = 4
 WAIT = 5
@@ -64,8 +72,12 @@ def test_a_step_game_waits_for_the_seat_and_advances_on_pass(service: Service) -
 
     runner.submit(Pass(seat='player', id='c-1'))
 
+    sent = [update.data() for update in seen if isinstance(update, Update)]
+    (decided,) = sent[0]['changes']['units']
+
     assert runner.game.tick == 1
-    assert [update.data() for update in seen if isinstance(update, Update)] == [
+    assert (decided['action'], decided['reason']['action']) == ({'kind': 'camp'}, 'camp')
+    assert [{**update, 'changes': {**update['changes'], 'units': []}} for update in sent] == [
         {
             'seq': 1,
             'date': {'year': 1, 'month': 1, 'day': 1, 'part': 'midday', 'season': 'spring'},
@@ -164,7 +176,8 @@ def test_the_store_holds_a_snapshot_of_the_day_and_the_ticks_since(service: Serv
     assert held.meta.tick == DAY + 2
     assert held.meta.mode == STEP
     assert held.meta.params == runner.game.params.hash
-    assert held.changes == [
+    kept = [{'changes': {**entry['changes'], 'units': []}} if 'changes' in entry else entry for entry in held.changes]
+    assert kept == [
         {'changes': {'units': [], 'gone': [], 'cells': [], 'known': [], 'seat': {}}},
         {'seat': 'player', 'command': {'id': 'c-1', 'kind': 'pass'}},
         {'changes': {'units': [], 'gone': [], 'cells': [], 'known': [], 'seat': {}}},

@@ -2,15 +2,15 @@ units:
   band:
     start:
       population: 15
-      stores: {water: 30, forage: 15}
+      stores: {water: 15, forage: 15}
       biomes: [grass, forest, floodplain]
     population:
       least: 5
       growth_per_year: 0.3
       rest_growth: 3.0
     carry_kg: 6.0
-    gathering: {forage: 1.0, water: 4.0}
-    consumption_per_day: {forage: 1.0, water: 2.0}
+    gathering: {forage: 3.0, water: 4.0}
+    consumption_per_day: {forage: 1.0, water: 1.0}
     speed:
       base: 1.2
       slowdown: 0.03
@@ -27,17 +27,17 @@ units:
     sight: 2
     memory: {days: 20}
     decisions:
-      comfort: {days: 2}
+      comfort: {days: 3}
       night: 0.5
       night_parts: [evening, night]
       distance: 0.25
       idle: 0.05
       wander: {days: 1}
       weights:
-        hunger: 1.0
+        hunger: 1.5
         thirst: 1.2
-        rest: 1.0
+        rest: 0.7
         safety: 0.3
-        move: 1.0
+        move: 3.0
         momentum: 0.1
         intent: 0.6

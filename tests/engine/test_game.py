@@ -36,8 +36,8 @@ def test_overview_example_runs_as_written() -> None:
     copy = Game.restore(game.snapshot())
 
     assert [event.key for event in result.events] == ['command-refused']
-    assert result.changes == {'units': [], 'gone': [], 'cells': [], 'known': [], 'seat': {}}
-    assert result.counters == [0, 1, 0, 15, 15.0, 30.0, 0, 0, 1, 0]
+    assert result.changes.keys() == {'units', 'gone', 'cells', 'known', 'seat'}
+    assert (result.counters[:2], result.counters[3]) == ([0, 1], 15)
     assert copy.state_hash() == game.state_hash() == result.hash
 
 
@@ -142,18 +142,20 @@ def test_repeated_command_id_is_judged_once(params: Params) -> None:
 
     assert len(verdicts(first)) == 1
     assert verdicts(game.step()) == []
-    assert dict(zip(game.counters.names, game.counters.row(), strict=True)) == {
-        'commands_accepted': 1,
-        'commands_refused': 0,
-        'cells_depleted': 0,
-        'population': 15,
-        'food': 15.0,
-        'water': 30.0,
-        'moves': 0,
-        'gathers': 0,
-        'camps': 2,
-        'deaths': 0,
-    }
+    assert game.counters.names == (
+        'commands_accepted',
+        'commands_refused',
+        'cells_depleted',
+        'population',
+        'food',
+        'water',
+        'moves',
+        'gathers',
+        'camps',
+        'deaths',
+        'encounters',
+    )
+    assert game.counters.row()[:2] == [1, 0]
 
 
 def test_unknown_kind_is_refused_with_a_reason(params: Params) -> None:

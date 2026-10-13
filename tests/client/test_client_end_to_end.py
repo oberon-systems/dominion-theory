@@ -4,7 +4,16 @@ from click.testing import CliRunner
 from dominion_theory.client import cli
 
 YEAR = 500
-SMALL = ('--set', 'planet.circumference_km=4000', '--set', 'planet.window.width=32', '--set', 'planet.window.height=16')
+# A band that needs nothing, sees nothing and meets nothing: it camps, so the frame is tested alone.
+QUIET = (
+    'units.band.sight=0',
+    'units.band.consumption_per_day.forage=0',
+    'units.band.consumption_per_day.water=0',
+    'units.band.population.growth_per_year=0',
+    'encounters.chance=0',
+)
+PLANET = ('planet.circumference_km=4000', 'planet.window.width=32', 'planet.window.height=16')
+SMALL = tuple(part for given in (*PLANET, *QUIET) for part in ('--set', given))
 SPOKEN = {
     'en': {
         4: 'morning, day 2, month 1, year 1, spring: Command pass-4 was accepted. Day 2 of month 1, year 1, begins.',

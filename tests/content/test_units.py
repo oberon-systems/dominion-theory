@@ -29,13 +29,13 @@ def test_band_is_the_one_of_its_document() -> None:
     band = params.units.band
 
     assert band is params.units['band']
-    assert (band.start.population, band.start.stores) == (15, {'water': 30.0, 'forage': 15.0})
+    assert (band.start.population, band.start.stores) == (15, {'water': 15.0, 'forage': 15.0})
     assert band.start.biomes == ('grass', 'forest', 'floodplain')
     assert (band.population.least, band.population.growth_per_year, band.population.rest_growth) == (5, 0.3, 3.0)
     assert (band.carry_kg, band.gathering, band.consumption_per_day) == (
         6.0,
-        {'forage': 1.0, 'water': 4.0},
-        {'forage': 1.0, 'water': 2.0},
+        {'forage': 3.0, 'water': 4.0},
+        {'forage': 1.0, 'water': 1.0},
     )
     assert (band.speed.base, band.speed.slowdown, band.speed.slowest) == (1.2, 0.03, 0.3)
     assert (band.fatigue.move, band.fatigue.gather, band.fatigue.camp) == (0.15, 0.08, -0.35)
@@ -47,7 +47,8 @@ def test_band_is_the_one_of_its_document() -> None:
     assert (band.states.tiredness.begins, band.states.tiredness.ends, band.states.tiredness.slows) == (0.8, 0.3, 0.5)
     assert (band.sight, band.memory.model_dump()) == (2, {'days': 20})
     assert band.decisions.night_parts == ('evening', 'night')
-    assert band.decisions.weights.thirst == 1.2
+    assert (band.decisions.weights.hunger, band.decisions.weights.move) == (1.5, 3.0)
+    assert band.decisions.comfort.model_dump() == {'days': 3}
 
 
 def test_unknown_unit_is_a_key_error() -> None:
@@ -85,7 +86,7 @@ def test_encounters_are_those_of_their_document() -> None:
     encounters = load_params().encounters
     drowning, predator = encounters.kinds['drowning'], encounters.kinds['predator']
 
-    assert (encounters.chance, encounters.actions) == (0.1, {'camp': 0.5, 'gather': 1.0, 'move': 1.5})
+    assert (encounters.chance, encounters.actions) == (0.02, {'camp': 0.5, 'gather': 1.0, 'move': 1.5})
     assert set(encounters.actions) == set(ACTIONS)
     assert list(encounters.kinds) == ['predator', 'accident', 'drowning', 'poisoning']
     assert (predator.biomes, predator.rivers, predator.actions, predator.resources) == ((), False, (), ())

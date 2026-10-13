@@ -12,7 +12,15 @@ from dominion_theory.runner import Service
 
 type NewGame = Callable[..., dict[str, Any]]
 
-SMALL = {'planet.circumference_km': 4000, 'planet.window.width': 32, 'planet.window.height': 16}
+# A band that needs nothing, sees nothing and meets nothing: it camps, so the frame is tested alone.
+QUIET = {
+    'units.band.sight': 0,
+    'units.band.consumption_per_day.forage': 0.0,
+    'units.band.consumption_per_day.water': 0.0,
+    'units.band.population.growth_per_year': 0.0,
+    'encounters.chance': 0.0,
+}
+SMALL = {'planet.circumference_km': 4000, 'planet.window.width': 32, 'planet.window.height': 16, **QUIET}
 STEP = {'action': 'step'}
 
 

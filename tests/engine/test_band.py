@@ -11,7 +11,12 @@ from dominion_theory.engine.band import Action, camp, gathering, moving
 from dominion_theory.engine.streams import Streams
 from dominion_theory.planet import biome_names
 
-SMALL = {'planet.circumference_km': 4000, 'planet.window.width': 32, 'planet.window.height': 16}
+SMALL = {
+    'planet.circumference_km': 4000,
+    'planet.window.width': 32,
+    'planet.window.height': 16,
+    'encounters.chance': 0.0,
+}
 WEST = 100
 NORTH = 50
 ROWS = (
@@ -28,6 +33,11 @@ WINTER = 350
 DAY = 5
 PACE = 1.2 - 0.03 * 1.5
 CALENDAR = ('day-started', 'month-started', 'season-started', 'year-started')
+
+
+@pytest.fixture
+def params() -> Params:
+    return load_params(overrides=SMALL)
 
 
 def land(
@@ -88,7 +98,7 @@ def test_a_created_game_has_a_band_as_its_document_starts_it(params: Params) -> 
 
     assert game.biome(*held.place) in params.units.band.start.biomes
     assert (held.id, held.population, held.fatigue, held.states, held.action) == (1, 15, 0.0, [], {'kind': 'camp'})
-    assert (held.held('forage'), held.held('water')) == (15.0, 30.0)
+    assert (held.held('forage'), held.held('water')) == (15.0, 15.0)
     assert (game.over, game.outcome) == (False, None)
 
 
@@ -175,12 +185,13 @@ def test_gathering_fills_the_stores_and_empties_the_cell(params: Params) -> None
 
     first = do(game, gathering('forage'))
     once = band(game).held('forage')
-    do(game, gathering('forage'))
     do(game, gathering('water'))
+    do(game, gathering('forage'))
 
-    assert once == pytest.approx(15 + 15 * 1.0 * 0.8)
-    assert band(game).held('forage') == pytest.approx(27 + 15 * 0.8 * 0.95)
-    assert band(game).held('water') == pytest.approx(30 + 15 * 4.0 * 0.4 * 0.7)
+    assert once == pytest.approx(15 + 15 * 3.0 * 0.8)
+    assert band(game).held('water') == pytest.approx(15 + 15 * 4.0 * 0.4 * 0.7)
+    assert band(game).held('forage') == pytest.approx(51 + 90 - 51 - 31.8)
+    assert bands.room(params, band(game)) == pytest.approx(0.0)
     assert first.changes['units'][0]['action'] == {'kind': 'gather', 'resource': 'forage'}
     assert first.changes['units'][0]['place'] == {'scale': 0, 'x': WEST, 'y': NORTH + 1}
     assert first.changes['cells'][0]['food'] < 1.0
@@ -192,7 +203,7 @@ def test_a_cell_pays_the_share_of_its_capacity_that_was_taken(params: Params) ->
 
     do(game, gathering('forage'))
 
-    assert game.cells.stock(HOME, 'food') == pytest.approx(1 - 12 / 200 + 1 / (20 * DAY))
+    assert game.cells.stock(HOME, 'food') == pytest.approx(1 - 36 / 200 + 1 / (20 * DAY))
     assert game.cells.stock(HOME, 'water') == 1.0
 
 
@@ -213,7 +224,7 @@ def test_water_that_does_not_run_out_keeps_no_cell(params: Params) -> None:
 
     do(game, gathering('water'))
 
-    assert band(game).held('water') == pytest.approx(30 + 45)
+    assert band(game).held('water') == pytest.approx(15 + 60)
     assert len(game.cells) == 0
 
 
@@ -275,7 +286,7 @@ def test_news_of_the_land_come_with_the_tick_and_old_memories_go(params: Params)
     assert quiet.changes['known'] == []
     assert (WEST + 4, NORTH) not in band(game).known
     assert [(cell['x'], cell['y']) for cell in gathered.changes['known']] == [HOME]
-    assert gathered.changes['known'][0]['food'] == pytest.approx(0.8 * 0.94)
+    assert gathered.changes['known'][0]['food'] == pytest.approx(0.8 * 0.82)
     assert {(cell['x'], cell['y']) for cell in walked.changes['known']} == {HOME, (WEST + 3, NORTH), DEEPER}
 
 
@@ -298,7 +309,7 @@ def test_people_eat_the_oldest_lot_first(params: Params) -> None:
     met = bands.eat(params, held)
 
     assert held.stores == {'forage': [[1.0, 3.0]], 'water': []}
-    assert met == {'forage': 1.0, 'water': 0.25}
+    assert met == {'forage': 1.0, 'water': 0.5}
 
 
 def test_a_band_with_no_food_starves_on_the_day_its_document_says() -> None:
@@ -371,19 +382,20 @@ def test_a_tick_carries_the_row_of_the_band(params: Params) -> None:
     result = do(game, gathering('forage'))
 
     assert game.unit_columns == ('id', 'x', 'y', 'state', 'action', 'people', 'food', 'water')
-    assert result.units == [[1, WEST, NORTH + 1, 'normal', 'gather', 15, pytest.approx(27.0), 30.0]]
+    assert result.units == [[1, WEST, NORTH + 1, 'normal', 'gather', 15, pytest.approx(51.0), 15.0]]
     assert counted(game) == pytest.approx(
         {
             'commands_accepted': 0,
             'commands_refused': 0,
             'cells_depleted': 1,
             'population': 15,
-            'food': 27.0,
-            'water': 30.0,
+            'food': 51.0,
+            'water': 15.0,
             'moves': 0,
             'gathers': 1,
             'camps': 0,
             'deaths': 0,
+            'encounters': 0,
         }
     )
 
@@ -395,6 +407,7 @@ def test_a_restored_game_carries_the_band_in_the_middle_of_a_day(params: Params)
     do(game, camp(), 4)
 
     copy = Game.restore(carried(game))
+    copy.choose = game.choose
 
     assert copy.state_hash() == game.state_hash()
     assert band(copy).plain() == json.loads(json.dumps(band(game).plain()))

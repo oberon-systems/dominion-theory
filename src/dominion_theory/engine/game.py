@@ -13,6 +13,7 @@ from numpy.typing import NDArray
 from ..content import Params, Property
 from ..planet import Planet, biome_names, place
 from . import band as bands
+from . import decisions, encounters
 from .band import Action, Band
 from .cells import Cells, Place
 from .clock import Clock, Date
@@ -24,6 +25,8 @@ from .events import (
     BAND_STATE_ENDED,
     COMMAND_ACCEPTED,
     COMMAND_REFUSED,
+    ENCOUNTER,
+    KIND,
     PEOPLE_BORN,
     PEOPLE_LOST,
     REFUSED_UNKNOWN_COMMAND,
@@ -39,7 +42,7 @@ DIED = 'died'
 ERA = 'band'
 SEATS: tuple[str, ...] = ('player',)
 UNIT_COLUMNS: tuple[str, ...] = bands.COLUMNS
-TOTALS = ('moves', 'gathers', 'camps', 'deaths')
+TOTALS = ('moves', 'gathers', 'camps', 'deaths', 'encounters')
 
 # The order is part of the rules: docs/architecture/overview.md, One tick.
 PHASES = ('commands', 'councils', 'decisions', 'actions', 'world', 'calendar', 'report')
@@ -83,8 +86,11 @@ class _Tick:
     action: Action | None = None
 
 
-def _camps(game: Game, band: Band) -> Action:
-    return bands.camp()
+def _decides(game: Game, band: Band) -> Action:
+    def pick(count: int) -> int:
+        return int(game.streams['decisions'].integers(count))
+
+    return decisions.decide(game.params, band, game.date.part, game.day, game.era, pick)
 
 
 class Game:
@@ -109,7 +115,7 @@ class Game:
         self.band = band
         self.over = False
         self.outcome: str | None = None
-        self.choose: Callable[[Game, Band], Action] = _camps
+        self.choose: Callable[[Game, Band], Action] = _decides
         self.era = ERA
         self.seats = SEATS
         self.tick = 0
@@ -373,8 +379,28 @@ class Game:
         parts = self.clock.parts
         if parts % per_day < span:
             bands.spoil(self.params, band, self.day)
+        self._encounter(tick, band)
         if (parts + span) // per_day > parts // per_day:
             self._day_ends(tick, band)
+        if band.population < self.params.units.band.population.least:
+            tick.events.append(Event(BAND_DIED, {}))
+            tick.gone.append(band.id)
+            self.band, self.over, self.outcome = None, True, DIED
+
+    def _encounter(self, tick: _Tick, band: Band) -> None:
+        threat = self.value('threat', band.x, band.y)
+        biome, river = self.biome(band.x, band.y), self.river(band.x, band.y)
+        rng = self.streams['encounters']
+        met = encounters.strike(self.params, band.population, biome, river, threat, band.action, rng)
+        if met is None:
+            return
+        kind, lost = met
+        self._totals['encounters'] += 1
+        tick.events.append(Event(ENCOUNTER, {'kind': f'{KIND}{kind}', 'lost': lost}))
+        if lost:
+            band.population -= lost
+            self._totals['deaths'] += lost
+            tick.events.append(Event(PEOPLE_LOST, {'count': lost, 'cause': bands.ENCOUNTER}))
 
     def _day_ends(self, tick: _Tick, band: Band) -> None:
         began, ended, lost = bands.suffer(self.params, band, bands.eat(self.params, band))
@@ -385,10 +411,6 @@ class Game:
         born = bands.grow(self.params, band)
         if born:
             tick.events.append(Event(PEOPLE_BORN, {'count': born}))
-        if band.population < self.params.units.band.population.least:
-            tick.events.append(Event(BAND_DIED, {}))
-            tick.gone.append(band.id)
-            self.band, self.over, self.outcome = None, True, DIED
 
     def _states(self, tick: _Tick, began: list[str], ended: list[str]) -> None:
         tick.events.extend(Event(BAND_STATE_ENDED, {'state': f'{STATE}{state}'}) for state in ended)

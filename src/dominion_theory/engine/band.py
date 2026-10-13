@@ -19,6 +19,7 @@ STARVATION = 'starvation'
 THIRST = 'thirst'
 TIREDNESS = 'tiredness'
 HUNGER = 'hunger'
+ENCOUNTER = 'encounter'
 PASSABILITY = 'passability'
 
 # Clockwise from the north; y grows to the south.
@@ -76,6 +77,8 @@ class Band:
     target: Place | None = None
     short: dict[str, int] = field(default_factory=dict)
     camped: int = 0
+    reason: dict[str, Any] | None = None
+    wander: dict[str, Any] | None = None
 
     @classmethod
     def read(cls, plain: dict[str, Any]) -> Band:
@@ -100,6 +103,8 @@ class Band:
             target=None if target is None else (target[0], target[1]),
             short=dict(plain['short']),
             camped=plain['camped'],
+            reason=plain['reason'],
+            wander=plain['wander'],
         )
 
     @property
@@ -130,6 +135,8 @@ class Band:
             'target': None if self.target is None else list(self.target),
             'short': dict(sorted(self.short.items())),
             'camped': self.camped,
+            'reason': self.reason,
+            'wander': self.wander,
         }
 
     def shown(self, scale: int) -> dict[str, Any]:
@@ -146,6 +153,7 @@ class Band:
             'states': list(self.states),
             'action': dict(self.action),
             'intent': self.intent,
+            'reason': self.reason,
         }
 
     def row(self, params: Params) -> list[Any]:

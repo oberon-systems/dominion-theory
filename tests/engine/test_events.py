@@ -5,7 +5,8 @@ from dominion_theory.engine import EVENTS, REASONS, Event, clock, events
 
 def test_every_key_is_declared_once_with_its_values() -> None:
     held = {name: value for module in (clock, events) for name, value in vars(module).items() if name.isupper()}
-    declared = {key for name, key in held.items() if isinstance(key, str) and name != 'STATE'} - set(REASONS)
+    prefixes = ('STATE', 'KIND')
+    declared = {key for name, key in held.items() if isinstance(key, str) and name not in prefixes} - set(REASONS)
 
     assert declared == set(EVENTS)
     assert EVENTS['command-refused'] == ('id', 'reason')

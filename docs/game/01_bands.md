@@ -129,12 +129,12 @@ chance = encounters.chance * value(threat, cell) * factor(action)
 ```
 
 A camp is watched and a walking band is exposed: the factor is 0.5 for
-`camp`, 1 for `gather` and 1.5 for `move`. With a chance of 0.1 a band
-gathering in a forest meets something about once in five days.
+`camp`, 1 for `gather` and 1.5 for `move`. With a chance of 0.02 a band
+gathering in a forest meets something about once in twenty-five days.
 
 When an encounter happens, its kind is drawn by weight among the kinds
 that fit the biome and the action. A kind takes a share of the people,
-drawn between its two bounds and rounded up to whole people.
+drawn between its two bounds and rounded to whole people.
 
 | Kind        | Where                 | During   | Weight | People lost  |
 |-------------|-----------------------|----------|--------|--------------|
@@ -149,7 +149,7 @@ so a new one is a block of the tree and a message in two catalogues.
 
 ```yaml
 encounters:
-  chance: 0.1
+  chance: 0.02
   actions: {camp: 0.5, gather: 1.0, move: 1.5}
   kinds:
     predator: {weight: 3, loss: {min: 0.0, max: 0.1}}

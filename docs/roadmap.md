@@ -125,6 +125,23 @@ What is already settled and binds every stage.
 - **The year has four seasons**: spring two months, summer three, autumn
   two, winter three, on the year of ten months. The lengths are
   parameters, and later a season may come early or run long.
+- **A biome is data with a generation rule**: ranges over elevation,
+  relief, moisture and temperature that must all hold, and an order; the
+  first biome by order takes the cell. A new biome is a data file, its
+  name in both catalogues, a document and a test.
+- **The starting biomes are nine**: grass, forest, hills, mountain,
+  outcrops, water, desert, tundra and swamp.
+- **A threshold of generation is a share of the planet**, not a number of
+  the noise: the sea is the share of the planet under water, and a height
+  is the share of land lying lower.
+- **A river is a line and a mark**, not a biome: it is traced by flow down
+  to the sea, a cell it crosses keeps its biome, can be crossed and gets
+  the river's modifiers.
+- **A property is a base with modifiers**: what is added first, what
+  multiplies after, held between 0 and 1, worked out when asked and stored
+  nowhere. A season, a river and the state of a cell are modifiers.
+- **A cell remembers a stock per property that recovers**, and only cells
+  that were touched are kept.
 - **One person per game.** Multiplayer comes much later; nothing is built
   for it now.
 - **A running game lives in a key-value store**, not in the database:
@@ -246,8 +263,9 @@ The starting biome types, built so that more can be added later.
 - Properties are keyed by era: each era opens its own set of properties on
   the same biome. Era 0 has `water`, `food`, `threat`, `passability`.
 - The starting set: grass, forest, hills, mountain, rocky outcrops, water,
-  with rivers as lines across them. Whether swamp, desert or tundra join
-  the first set is decided in the design doc.
+  with rivers as lines across them. Desert and tundra joined it in the
+  design, because a whole planet has dry and cold land; swamp was added
+  last, to close the stage.
 - The planet: the skeleton of continents and climate, the window of the
   band era on it, and the rule that picks a habitable place for it.
 - A property is a base value with modifiers on top, so that a season or
@@ -269,6 +287,11 @@ biome, `docs/biomes/generation.md`. `docs/biomes.md` is folded in.
 
 **Done**: a fifth biome is added by one data file and one test. The same
 seed gives the same map, rivers included.
+
+Swamp was the proof: it arrived by its data file, its name in two
+catalogues, its document and one test. The numbers of the
+planet were tuned on maps drawn by the developer tool; see
+[Setup](dev/setup.md#look-at-a-map).
 
 ___
 
@@ -466,9 +489,15 @@ How the map relates to the world, and how it changes from era to era.
   coordinates, so any window at any cell size can be produced, and rivers
   are lines on the planet rather than chains of cells.
 - **The world is as close to a planet as it can be**: it wraps from east to
-  west, and latitude drives temperature.
+  west, and latitude drives temperature. It is a cylinder, not a sphere:
+  every row is as long as the equator.
+- **The planet is 40000 km around and 20000 km from pole to pole**, 4000
+  by 2000 cells of the band era. A skeleton with a node every 100 km is
+  worked out once per game for what needs the whole planet: the sea
+  level, the shares, the rivers. It is not part of the state.
 - **The first window is habitable**: forest, hills, a river, some rocky
-  outcrops.
+  outcrops. It is 512 by 256 cells, placed in the temperate north by
+  tries drawn from the seed, or by hand.
 - **In a single-player game the player's transition moves the era.**
 - **Layers, for multiplayer later.** The fine map is kept as a layer below
   the coarse one, and what happens above is merged down onto it. A tribe
@@ -494,5 +523,17 @@ Each is answered in the design doc of the stage named.
   how status weighs in, and what a refusal does to status.
 - **Land that comes into view** (stage 5) - whether the peoples placed
   there are raised bands only, or new ones as well.
-- **Seasons** (stage 1, stage 2) - what they change first: food, water,
-  movement.
+- **Seasons** (stage 2) - they change food first, per biome, since
+  stage 1. What they do to water and movement, and whether a cell
+  recovers in winter, is set with the band's rates.
+- **The sea** (stage 2) - sea and lake are one biome whose water is 1.
+  When a band may drink from a neighbouring cell, the sea has to stop
+  being drinkable.
+- **The size of the first window** (stage 3) - 5120 km across is a lot of
+  land for one band and five to ten others. It is set again when it is
+  known how often bands should meet.
+- **The seam and the south** (stage 5) - the first window keeps clear of
+  the seam and lies in the north, where the seasons are true. A window
+  that grows may have to cross the seam and the equator.
+- **Valleys and lakes** (not set) - a river is not cut into the land and a
+  filled hollow is not a lake.

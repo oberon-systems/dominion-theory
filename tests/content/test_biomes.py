@@ -9,7 +9,7 @@ from dominion_theory.content import LAYERS, RESOURCES, Modifier, Params, Range, 
 FOOD = 'biomes.forest.eras.band.properties.food'
 
 
-def test_defaults_hold_the_eight_biomes_in_generation_order() -> None:
+def test_defaults_hold_the_biomes_in_generation_order() -> None:
     biomes = load_params().biomes
 
     assert sorted(biomes, key=lambda name: biomes[name].generation.order) == [
@@ -19,6 +19,7 @@ def test_defaults_hold_the_eight_biomes_in_generation_order() -> None:
         'outcrops',
         'hills',
         'desert',
+        'swamp',
         'forest',
         'grass',
     ]
@@ -51,7 +52,7 @@ def test_spot_checks_of_the_other_biomes() -> None:
     assert desert.generation.ranges == {'moisture': Range(max=0.15), 'temperature': Range(min=0.5)}
     assert desert.eras['band'].properties['food'].seasons == {}
     assert biomes['tundra'].eras['band'].properties['food'].seasons['summer'].amount == 1.5
-    assert biomes['mountain'].generation.elevation == Range(min=0.88)
+    assert biomes['mountain'].generation.elevation == Range(min=0.92)
     assert biomes['grass'].eras['band'].properties['food'].model_dump()['recovery'] == {'days': 20}
 
 
@@ -68,9 +69,9 @@ def test_planet_is_the_one_of_the_document() -> None:
     planet = load_params().planet
 
     assert (planet.circumference_km, planet.skeleton_km, planet.sea) == (40000, 100, 0.6)
-    assert planet.elevation.model_dump() == {'scale_km': 4000, 'octaves': 6, 'persistence': 0.6}
-    assert planet.temperature.lapse == 0.4
-    assert (planet.rivers.share, planet.rivers.meander_km) == (0.08, 30)
+    assert planet.elevation.model_dump() == {'scale_km': 6000, 'octaves': 6, 'persistence': 0.5}
+    assert planet.temperature.lapse == 0.25
+    assert (planet.rivers.share, planet.rivers.meander_km) == (0.05, 30)
     assert planet.rivers.model_dump()['effects'] == {
         'band': {'water': {'plus': 0.5}, 'food': {'plus': 0.1}, 'passability': {'times': 0.7}}
     }

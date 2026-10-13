@@ -1,0 +1,22 @@
+biomes:
+  swamp:
+    colour: '#4A6B5D'
+    generation:
+      order: 65
+      elevation: {max: 0.15}
+      moisture: {min: 0.85}
+      temperature: {min: 0.3}
+    eras:
+      band:
+        properties:
+          water: {base: 0.9, recovery: {days: 3}}
+          food:
+            base: 0.7
+            recovery: {days: 30}
+            seasons:
+              spring: {times: 0.7}
+              autumn: {times: 1.1}
+              winter: {times: 0.3}
+          threat: {base: 0.6}
+          passability: {base: 0.3}
+        resources: [water, forage]

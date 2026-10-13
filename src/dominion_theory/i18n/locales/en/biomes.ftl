@@ -6,3 +6,4 @@ biome-outcrops = rocky outcrops
 biome-water = water
 biome-desert = desert
 biome-tundra = tundra
+biome-swamp = swamp

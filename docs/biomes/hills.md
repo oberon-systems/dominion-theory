@@ -10,14 +10,14 @@ ___
 
 ## Where it appears
 
-Hills are a fifth of all land, the part just below the mountains: a belt
+Hills are about a quarter of all land, the part just below the mountains: a belt
 around every range, and the tops of lower country.
 
 | Order | Rule                |
 |-------|---------------------|
 | 50    | elevation from 0.68 |
 
-Mountains come earlier in the order and take the land above 0.88, so the
+Mountains come earlier in the order and take the land above 0.92, so the
 rule needs no upper end.
 
 ___

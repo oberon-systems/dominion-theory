@@ -3,7 +3,7 @@ biomes:
     colour: '#A9B8A0'
     generation:
       order: 30
-      temperature: {max: 0.2}
+      temperature: {max: 0.15}
     eras:
       band:
         properties:

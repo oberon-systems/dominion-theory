@@ -74,6 +74,6 @@ def test_mountains_are_the_highest_land(params: Params) -> None:
     water = world.biomes == planet.biomes.index('water')
 
     assert mountain.any()
-    assert np.array_equal(mountain, world.elevation >= 0.88)
+    assert np.array_equal(mountain, world.elevation >= 0.92)
     assert np.array_equal(water, world.elevation <= 0.0)
     assert world.elevation[mountain].min() > world.elevation[~mountain].max()

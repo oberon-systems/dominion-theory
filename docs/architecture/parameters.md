@@ -54,21 +54,20 @@ ___
 ## What the tree holds
 
 The tree has a fixed set of top-level sections. Each later stage fills its
-own; stage 0 defines the frame and the first two. It also takes the size of
-the first window from `planet`, because the map generator cannot run
-without it.
+own: stage 0 defined the frame and `time`, stage 1 filled `planet` and
+`biomes` and gave an era its cell and its properties.
 
-| Section      | Holds                                               | Filled in  |
-|--------------|-----------------------------------------------------|------------|
-| `time`       | parts of a day, days in a month, seasons            | stage 0    |
-| `eras`       | per era: parts per tick, size of a cell             | stage 0, 5 |
-| `planet`     | size, shape of continents, rivers, the first window | stage 0, 1 |
-| `biomes`     | one entry per biome: properties per era, resources  | stage 1    |
-| `resources`  | weight, how fast each one spoils                    | stage 2    |
-| `units`      | one entry per kind of unit: the band first          | stage 2    |
-| `council`    | gaps, windows, what a proposal does to status       | stage 2    |
-| `encounters` | chance and cost of what a band may run into         | stage 2    |
-| `peoples`    | how many other bands, how they are spawned          | stage 3    |
+| Section      | Holds                                               | Filled in     |
+|--------------|-----------------------------------------------------|---------------|
+| `time`       | parts of a day, days in a month, seasons            | stage 0       |
+| `eras`       | per era: parts per tick, size of a cell, properties | stage 0, 1, 5 |
+| `planet`     | size, the layers, the sea, rivers, the first window | stage 1       |
+| `biomes`     | one entry per biome: its rule, properties per era   | stage 1       |
+| `resources`  | weight, how fast each one spoils                    | stage 2       |
+| `units`      | one entry per kind of unit: the band first          | stage 2       |
+| `council`    | gaps, windows, what a proposal does to status       | stage 2       |
+| `encounters` | chance and cost of what a band may run into         | stage 2       |
+| `peoples`    | how many other bands, how they are spawned          | stage 3       |
 
 Content and balance are the same thing here. A biome is an entry in the
 tree, so adding a biome and changing how much food a forest gives are both
@@ -101,7 +100,10 @@ question the lab asks most: what exactly differs between these two trees.
 `diff(a, b)` of the `content` package gives that answer by dotted path.
 
 The files are [YAML](https://yaml.org/): `content/defaults` holds one file
-per section and `content/presets` one file per preset.
+per section and `content/presets` one file per preset. The section
+`biomes` is a directory instead, `content/defaults/biomes`, with one file
+per biome named as the biome, so that a new biome is a new file; see
+[Biomes](../biomes/overview.md#adding-a-biome).
 
 ___
 
@@ -115,8 +117,11 @@ it.
 - **Types and ranges are checked**: a chance lies between 0 and 1, a count
   is not negative, a duration names a known unit.
 - **The sections must agree**: an era's tick divides a day or covers whole
-  days, a biome names only resources that exist, a unit names only actions
-  that exist.
+  days, a biome gives exactly the properties its era names and only
+  resources that exist, the planet is made of whole cells and the first
+  window fits it. [Biomes](../biomes/overview.md#checks) and
+  [Generation](../biomes/generation.md#parameters) list the checks of
+  their sections.
 - **Names in a list do not repeat**: two seasons or two parts of a day
   with one name are refused.
 
@@ -157,6 +162,7 @@ game = Game.create(seed=42, params=params)
 params.time.days_per_month          # 10
 params.eras['band'].parts_per_tick  # 1
 params.planet.window.width          # 256
+params.biomes['forest'].colour      # '#006400'
 params.hash                         # 'b41f...'
 ```
 
@@ -182,7 +188,13 @@ A few conventions keep the tree readable and the overrides predictable.
 - **A chance** is a number from 0 to 1.
 - **A value that differs by era** sits under the name of the era.
 - **A value that changes through the year** is a base with modifiers by
-  season, so that weather can later add its own without a new shape.
+  season, so that weather can later add its own without a new shape. A
+  modifier is `{plus: 0.1}` or `{times: 0.7}`.
+- **A range** is a mapping with `min`, `max` or both, closed at both ends:
+  `{min: 0.5}`.
+- **An override reaches what the defaults write.** A side of a range or a
+  season that a biome leaves out has no path; override the mapping above
+  it instead: `biomes.forest.generation.moisture`.
 
 ___
 
@@ -225,7 +237,8 @@ stage 2 adds it.
   "preset": "harsh-winter",
   "overrides": {
     "time.seasons.autumn.months": 1,
-    "planet.window.width": 256
+    "planet.window.width": 256,
+    "biomes.forest.eras.band.properties.food.base": 0.8
   }
 }
 ```

@@ -10,12 +10,12 @@ ___
 
 ## Where it appears
 
-Tundra is the coldest fifth of the range of temperature: the land near
+Tundra is the coldest part of the range of temperature: the land near
 both poles, and land that height has made as cold.
 
-| Order | Rule                  |
-|-------|-----------------------|
-| 30    | temperature up to 0.2 |
+| Order | Rule                   |
+|-------|------------------------|
+| 30    | temperature up to 0.15 |
 
 It comes before outcrops, hills, desert and forest in the order, so cold
 decides first; only water and mountains win against it.

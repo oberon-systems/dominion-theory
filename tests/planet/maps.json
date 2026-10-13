@@ -1,0 +1,74 @@
+{
+  "inputs": "fdf007967ca7a9af5dfe87a21fb564942b7b9db26eabea39a714a3286b3d9c55",
+  "seeds": {
+    "1": {
+      "window": [
+        2454,
+        480
+      ],
+      "try": 9,
+      "missed": 0,
+      "rivers": 265,
+      "river_cells": 0.0304,
+      "shares": {
+        "water": 0.6,
+        "mountain": 0.032,
+        "tundra": 0.0698,
+        "outcrops": 0.015,
+        "hills": 0.0658,
+        "desert": 0.0167,
+        "swamp": 0.0072,
+        "forest": 0.103,
+        "grass": 0.0904
+      },
+      "planet": "16e4ede2a88006d7283b4bc371634fe887b53ee69ca731a3a9a6b6fe8da3184a",
+      "played": "307e9affce1b5bc384f75909cfa9c8949e8ac2fc8a9eabf6b687b52faf367d44"
+    },
+    "2": {
+      "window": [
+        2914,
+        413
+      ],
+      "try": 2,
+      "missed": 0,
+      "rivers": 274,
+      "river_cells": 0.0305,
+      "shares": {
+        "water": 0.6,
+        "mountain": 0.032,
+        "tundra": 0.0752,
+        "outcrops": 0.0145,
+        "hills": 0.0628,
+        "desert": 0.0204,
+        "swamp": 0.0066,
+        "forest": 0.0974,
+        "grass": 0.0912
+      },
+      "planet": "3f248ee87428f3ba1ef390b5cacf242bb395ec214a34eb2aae25755495f5c482",
+      "played": "ac22fc401e981964b58752a9f708e4e692373de007235307088db76ea6f38201"
+    },
+    "3": {
+      "window": [
+        116,
+        407
+      ],
+      "try": 8,
+      "missed": 0,
+      "rivers": 285,
+      "river_cells": 0.0304,
+      "shares": {
+        "water": 0.6,
+        "mountain": 0.032,
+        "tundra": 0.0608,
+        "outcrops": 0.0152,
+        "hills": 0.0701,
+        "desert": 0.0192,
+        "swamp": 0.005,
+        "forest": 0.1067,
+        "grass": 0.0908
+      },
+      "planet": "5998df79d6a1f6e49308209b815de9e3be70f2d9cacd8f8dfd857e6283f0fe22",
+      "played": "3b43c350e89c6f842dec1bbba308896782472e303cef3e47051621ab35de42a4"
+    }
+  }
+}

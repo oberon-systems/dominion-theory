@@ -29,15 +29,17 @@ included.
 
 ## State of the project
 
-Stage 0 of [the roadmap](docs/roadmap.md) is built: the frame the game
-hangs on. A game is created over the API, advances by ticks through days,
-months and seasons, and tells its clients what happened in English or
-Russian; every run is recorded and replays to the same state.
+Stages 0 and 1 of [the roadmap](docs/roadmap.md) are built: the frame the
+game hangs on and the land. A game is created over the API, advances by
+ticks through days, months and seasons, and tells its clients what
+happened in English or Russian; every run is recorded and replays to the
+same state. It is played in a window on a planet made from the seed, with
+nine biomes that are data, rivers, and cells that are worn out and
+recover.
 
-There is nothing to play yet. The map has four biomes and rivers, no band
-walks it, and the only client is a console one that prints the calendar.
-Biomes come in stage 1, the band and the council in stage 2, the browser
-client in stage 4.
+There is nothing to play yet. No band walks the map, and the only client
+is a console one that prints the calendar. The band and the council come
+in stage 2, the browser client in stage 4.
 
 ## Quick start
 
@@ -69,9 +71,9 @@ morning, day 2, month 1, year 1, spring: Day 2 of month 1, year 1, begins.
 ```
 
 `make watch WATCH='--lang ru'` prints the same in Russian. `make map`
-opens a [pygame-ce](https://pyga.me/) window with a generated map, a bare
-`make` opens a subshell with the virtualenv active, and `make help` lists
-every target.
+draws the first window of a seed in a [pygame-ce](https://pyga.me/)
+window or into a file, a bare `make` opens a subshell with the virtualenv
+active, and `make help` lists every target.
 
 ## Documentation
 
@@ -82,5 +84,7 @@ every target.
   packages and what one tick does.
 - [Protocol](docs/api/protocol.md) - how a client talks to the game.
 - [Biomes](docs/biomes/overview.md) - kinds of land and their properties.
+- [Generation](docs/biomes/generation.md) - the planet, its layers, the
+  rivers and the first window.
 - [Band](docs/units/band.md) - the first unit.
 - [Game process](docs/game/01_bands.md) - how the band era plays.

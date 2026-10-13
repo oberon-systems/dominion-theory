@@ -105,8 +105,12 @@ above. Later it is drawn with some chance, so that winter can come early
 or summer run long, and nothing else has to change: every rule asks the
 schedule which season it is.
 
-Stage 0 only tells the season. What it does to food, water and movement is
-set with the biomes in stage 1 and the band in stage 2.
+The season changes what the land gives. A property of a biome may name a
+modifier per season, and the first to do so is food: less in spring, more
+in autumn, little in winter, each biome with its own numbers; see
+[Biomes](../biomes/overview.md#seasons). One season holds for the whole
+window. What the seasons do to water and movement is set with the band in
+stage 2.
 
 ___
 

@@ -58,6 +58,7 @@ Every address starts with `/api/v1`.
 | DELETE | `/games/{id}`                 | ends a game                               |
 | GET    | `/games/{id}/params`          | the resolved tree of parameters           |
 | GET    | `/games/{id}/snapshot`        | the state, as the caller may see it       |
+| GET    | `/games/{id}/biomes`          | the biomes of the game, for the era       |
 | GET    | `/games/{id}/map`             | a rectangle of the map                    |
 | POST   | `/games/{id}/commands`        | sends a command                           |
 | POST   | `/games/{id}/clock`           | pause, resume, speed, step                |
@@ -126,9 +127,10 @@ after it.
 
 The map is not in the snapshot: it is large and is fetched in pieces.
 
-Stage 0 answers with the frame of this. `seat` holds the name alone and
-`units` is empty until stage 2 brings the band, and the window starts at
-the origin until stage 1 places it on a planet.
+The game answers with the frame of this. `seat` holds the name alone and
+`units` is empty until stage 2 brings the band. The window is where the
+first window was placed on the planet, so it does not start at the origin;
+see [Generation](../biomes/generation.md#the-first-window).
 
 ___
 
@@ -155,7 +157,7 @@ Each message on the stream is one update.
       {"id": 1, "kind": "band", "at": {"x": 2301, "y": 744}, "state": "normal", "action": "camp", "people": 18}
     ],
     "gone": [],
-    "cells": [],
+    "cells": [{"x": 2301, "y": 744, "water": 1.0, "food": 0.4}],
     "seat": {"status": 48}
   },
   "waiting": ["player"]
@@ -168,6 +170,10 @@ Each message on the stream is one update.
 - **`events`** are what happened, in order.
 - **`changes`** hold the whole new value of each thing that changed, not
   the fields that differ, so a client replaces what it has.
+- **`changes.cells`** lists every cell whose stock moved, with its place
+  and one number per stock of the era: `water` and `food` in the band
+  era. A cell that is back to full is listed once more, with every stock
+  at 1.
 - **`waiting`** names the seats a game in step mode is waiting for.
 
 An update is not a tick. The client is never told how many steps of the
@@ -228,27 +234,62 @@ scale.
 /api/v1/games/7f3a9c1e/map?x=2040&y=610&width=64&height=64
 ```
 
-The answer gives the biome of every cell, row by row, as indexes into a
-short list of the biomes present, and the state of the cells in the same
-order.
+The answer gives the biome of every cell, row by row, as indexes into the
+list of the biomes of the game, and the rivers and the stocks of the cells
+in the same order.
 
 ```json
 {
   "scale": 0,
   "x": 2040, "y": 610, "width": 64, "height": 64,
-  "biomes": ["grass", "forest", "hills", "water"],
-  "cells": [0, 0, 1, 1, 3],
+  "biomes": ["water", "mountain", "hills", "forest", "grass"],
+  "cells": [4, 4, 3, 3, 0],
+  "rivers": [0, 0, 1, 0, 0],
+  "water": [1.0, 1.0, 1.0, 1.0, 1.0],
   "food": [1.0, 0.8, 1.0, 0.4, 1.0]
 }
 ```
 
-Biomes do not change during an era, so a client fetches each rectangle
-once. What does change - a cell being exhausted and recovering - comes in
-the `cells` of an update.
+- **`biomes`** is every biome of the game in its order of generation,
+  present in the rectangle or not, so an index means the same in every
+  answer.
+- **`rivers`** is 1 where a river crosses the cell and 0 elsewhere.
+- **A stock** is one list per property that recovers in the era, `water`
+  and `food` for a band: 1 for an untouched cell, 0 for one stripped bare.
+  The names come from the era, so the schema lists them as additional
+  fields.
+
+Biomes and rivers do not change during an era, so a client fetches each
+rectangle once. What does change - a cell being exhausted and recovering -
+comes in the `cells` of an update.
 
 The answer holds the part of the asked rectangle that lies in the window,
-and a request with no rectangle gets the whole window. The state of the
-cells, `food` here, is not sent yet: cells get a state in stage 1.
+and a request with no rectangle gets the whole window.
+
+What a biome is worth is read once per game.
+
+```text
+/api/v1/games/7f3a9c1e/biomes
+```
+
+```json
+{
+  "era": "band",
+  "biomes": [
+    {
+      "id": "forest",
+      "name": {"key": "biome-forest", "values": {}},
+      "colour": "#006400",
+      "properties": {"water": 0.6, "food": 0.9, "threat": 0.4, "passability": 0.6},
+      "resources": ["water", "forage"]
+    }
+  ]
+}
+```
+
+The list is in the same order as `biomes` of the map. The properties are
+the bases of the current era; what a season, a river and a stock make of
+them is told in [Biomes](../biomes/overview.md#base-and-modifiers).
 
 ___
 
@@ -261,8 +302,8 @@ The same game can be looked at in two ways.
 - **`spectator`** - everything. It is for watching a game of bots and for
   finding faults, and it sends no commands.
 
-The view is asked for with `?view=` on the snapshot, the map and the
-stream. Whether a server offers the spectator view is the setting
+The view is asked for with `?view=` on the snapshot, the biomes, the map
+and the stream. Whether a server offers the spectator view is the setting
 `DT_SPECTATOR`, on by default; a view that is not offered is answered
 with 400. Until stage 2 gives a band something to know, both views show
 the same.

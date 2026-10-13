@@ -139,9 +139,11 @@ part of the rules: changing it changes the outcome of a game.
    month, season and year boundaries are noted. See [Time](time.md).
 7. **Report** - events, changes and counters are returned.
 
-Stage 0 fills the first and the last two phases. The four between them
-are empty until the rules of stages 1 to 3 arrive, and their place in the
-order is already fixed.
+The first and the last two phases are filled, and of the phase `world`
+the first part: every cell that was gathered from regains a share of its
+stock, as [Biomes](../biomes/overview.md#what-a-cell-remembers) tells.
+The rest waits for the rules of stages 2 and 3, and its place in the order
+is already fixed.
 
 ___
 
@@ -273,8 +275,10 @@ ___
 ## Open points
 
 - **Snapshot size** - the store keeps a full snapshot at the start of each
-  game day and the changes in between. Whether a snapshot is cheap enough
-  to be written every tick is measured once the map carries cell state.
+  game day and the changes in between. A snapshot now carries two grids of
+  the window, biomes and rivers, and the cells whose stock is not full, so
+  it grows with the cells in use. Whether it is cheap enough to be written
+  every tick is measured in stage 2, when a band starts to use cells.
 - **Folding updates** - whether a fast game puts several ticks into one
   update, and from which speed.
 - **Splitting the server** - the API and the runner share one process. If

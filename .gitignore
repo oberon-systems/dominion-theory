@@ -29,3 +29,6 @@ dist/
 
 # Local data: the SQLite file and the run records
 /data/
+
+# Pictures of make maps; the report of a run beside them is kept
+/maps/**/*.png

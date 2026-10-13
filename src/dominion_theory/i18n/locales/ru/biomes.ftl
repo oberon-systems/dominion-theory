@@ -6,3 +6,4 @@ biome-outcrops = скальные выходы
 biome-water = вода
 biome-desert = пустыня
 biome-tundra = тундра
+biome-swamp = болото

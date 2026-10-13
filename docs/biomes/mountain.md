@@ -10,11 +10,11 @@ ___
 
 ## Where it appears
 
-Mountains are the highest 12 percent of land, wherever it lies.
+Mountains are the highest 8 percent of land, wherever it lies.
 
 | Order | Rule                |
 |-------|---------------------|
-| 20    | elevation from 0.88 |
+| 20    | elevation from 0.92 |
 
 Only water comes before it in the order, so a peak is a mountain even in
 the cold belts and in the desert.

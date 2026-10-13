@@ -3,7 +3,7 @@ biomes:
     colour: '#8B8989'
     generation:
       order: 20
-      elevation: {min: 0.88}
+      elevation: {min: 0.92}
     eras:
       band:
         properties:

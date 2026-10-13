@@ -24,7 +24,7 @@ ___
 
 ## The starting set
 
-Eight biomes cover the planet. Six were named by the roadmap; `desert` and
+Nine biomes cover the planet. Six were named by the roadmap; `desert` and
 `tundra` are added because a whole planet has dry and cold land, and
 without them it would be grass up to the poles.
 
@@ -38,9 +38,10 @@ without them it would be grass up to the poles.
 | [`water`](water.md)      | sea and lakes; nobody walks here        |
 | [`desert`](desert.md)    | dry and warm, nearly empty              |
 | [`tundra`](tundra.md)    | the cold belts near the poles           |
+| [`swamp`](swamp.md)      | low, wet, warm ground: rich and slow    |
 
-Swamp is left out of the first set on purpose. It is the biome that
-closes the stage: added last, by one data file, to prove that nothing else
+Swamp was left out of the first set on purpose. It is the biome that
+closed the stage: added last, by one data file, to prove that nothing else
 has to change.
 
 ___
@@ -204,8 +205,15 @@ cell is untouched, 0 when it is stripped bare.
 
 Properties without a `recovery`, such as `threat`, have no stock.
 
-A cell that changed in a tick is listed in `changes.cells` of the update,
-and the stocks are part of the hash of the state.
+A cell whose stock moved in a tick is listed in `changes.cells` of the
+update, and the stocks are part of the hash of the state. Every kept cell
+recovers in every tick, so a cell is listed from the tick it was gathered
+from until it is full again, and then dropped.
+
+The engine lowers a stock through `Game.deplete` and reads a property
+through `Game.value`; neither is a command. A stock counts as full a hair
+below 1, because shares of a recovery time do not always add up to exactly
+1.
 
 ___
 
@@ -219,6 +227,8 @@ message `error-params-invalid` with the path of the value.
 - A season named by a modifier exists in `time.seasons`.
 - A resource named by a biome is one the game knows.
 - Orders of generation do not repeat, and one biome has no ranges.
+- A range names `min`, `max` or both, and `min` is not above `max`.
+- A recovery takes time: a length of zero is refused.
 - A colour is written as `#rrggbb`.
 
 ___
@@ -246,27 +256,35 @@ A client reads the biomes of a game and then the map in rectangles.
 }
 ```
 
-The properties here are the bases of the current era. The rectangle of the
-map gains the rivers and the stocks, each in the order of `cells`.
+The properties here are the bases of the current era, and the biomes come
+in their order of generation. The rectangle of the map carries the rivers
+and the stocks, each in the order of `cells`.
 
 ```json
 {
   "scale": 0,
   "x": 2040, "y": 610, "width": 64, "height": 64,
-  "biomes": ["grass", "forest", "hills", "water"],
-  "cells": [0, 0, 1, 1, 3],
+  "biomes": ["water", "mountain", "hills", "forest", "grass"],
+  "cells": [4, 4, 3, 3, 0],
   "rivers": [0, 0, 1, 0, 0],
-  "food": [1.0, 0.8, 1.0, 0.4, 1.0],
-  "water": [1.0, 1.0, 1.0, 1.0, 1.0]
+  "water": [1.0, 1.0, 1.0, 1.0, 1.0],
+  "food": [1.0, 0.8, 1.0, 0.4, 1.0]
 }
 ```
 
+`biomes` lists every biome of the game, so an index is the same in every
+rectangle. A stock is one list per property that some biome lets recover,
+`water` and `food` in the band era.
+
 A change of a stock arrives in an update, as the whole new state of the
-cell.
+cell: every stock of the era, 1 for one that is full or that the biome
+does not keep.
 
 ```json
-{"cells": [{"x": 2301, "y": 744, "food": 0.4, "water": 1.0}]}
+{"cells": [{"x": 2301, "y": 744, "water": 1.0, "food": 0.4}]}
 ```
+
+[The protocol](../api/protocol.md#the-map) holds the full description.
 
 ___
 
@@ -283,7 +301,11 @@ Nothing in the engine, the generator or the API is edited.
 4. Add one test: layers that meet the rule give the biome.
 
 The tests that every biome has all its properties and its name in both
-catalogues take the new file in by themselves.
+catalogues take the new file in by themselves. The tests that spell out
+the whole list of biomes in order gain the new name.
+
+[`swamp`](swamp.md) was added this way, and `make map` shows where a new
+biome lands; see [Setup](../dev/setup.md#look-at-a-map).
 
 ___
 

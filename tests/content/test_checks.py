@@ -149,9 +149,9 @@ def test_river_effects_name_properties_of_their_era() -> None:
 
 
 def test_need_names_a_biome_that_exists() -> None:
-    values = refused({'planet.window.needs.biomes': {'swamp': 0.1}})
+    values = refused({'planet.window.needs.biomes': {'alpha': 0.1}})
 
-    assert (values['path'], values['found']) == ('planet.window.needs.biomes', 'swamp')
+    assert (values['path'], values['found']) == ('planet.window.needs.biomes', 'alpha')
 
 
 @pytest.mark.parametrize(

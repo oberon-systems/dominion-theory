@@ -13,7 +13,7 @@ def biome(params: Params, **given: float) -> str:
 
 
 def test_biomes_are_ordered_by_generation(params: Params) -> None:
-    names = ('water', 'mountain', 'tundra', 'outcrops', 'hills', 'desert', 'forest', 'grass')
+    names = ('water', 'mountain', 'tundra', 'outcrops', 'hills', 'desert', 'swamp', 'forest', 'grass')
 
     assert ordered(params.biomes) == names
 
@@ -34,6 +34,13 @@ def test_first_biome_by_order_wins(params: Params, given: dict[str, float], expe
     assert biome(params, **given) == expected
 
 
+def test_low_wet_warm_land_is_swamp(params: Params) -> None:
+    assert biome(params, elevation=0.1, moisture=0.9) == 'swamp'
+    assert biome(params, elevation=0.1, moisture=0.9, temperature=0.25) == 'forest'
+    assert biome(params, elevation=0.2, moisture=0.9) == 'forest'
+    assert biome(params, elevation=0.1, moisture=0.8) == 'forest'
+
+
 def test_all_ranges_of_a_rule_must_hold(params: Params) -> None:
     assert biome(params, moisture=0.1, temperature=0.6) == 'desert'
     assert biome(params, moisture=0.1, temperature=0.4) == 'grass'
@@ -42,8 +49,8 @@ def test_all_ranges_of_a_rule_must_hold(params: Params) -> None:
 
 def test_ranges_are_closed(params: Params) -> None:
     assert biome(params, elevation=0.0) == 'water'
-    assert biome(params, elevation=0.88) == 'mountain'
-    assert biome(params, temperature=0.2) == 'tundra'
+    assert biome(params, elevation=0.92) == 'mountain'
+    assert biome(params, temperature=0.15) == 'tundra'
 
 
 def test_every_cell_gets_a_biome(params: Params) -> None:

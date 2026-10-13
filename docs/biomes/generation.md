@@ -69,7 +69,9 @@ before the detail.
   same functions the skeleton sampled.
 
 The skeleton is not part of the state of a game. It follows from the seed
-and the parameters, so it is rebuilt when a game is restored.
+and the parameters and is kept in the process, for the last few planets
+asked for. A game keeps the biomes and the rivers of its window in its
+snapshot, so restoring it builds no skeleton.
 
 ___
 
@@ -96,7 +98,16 @@ from four of them.
 
 Every noise layer has its own stream of the seed, so a change to one
 never moves another. Noise is laid so that it closes around the planet
-with no seam.
+with no seam: every octave has a whole number of squares around, so the
+largest shapes are close to `scale_km` and not exactly it.
+
+```text
+temperature = 1 - latitude - lapse * elevation + noise * belts
+```
+
+Latitude is 0 at the equator and 1 at a pole, elevation is the restated
+one and counts on land only, `belts` is one octave of noise from -1 to 1,
+and the result is held between 0 and 1.
 
 ___
 
@@ -114,9 +125,11 @@ planet before any rule reads them.
   runs the same way from 0 down to -1.
 - **Relief and moisture** are the share of land with a lower value.
 
-So `elevation: {min: 0.88}` reads as "the highest 12 percent of land",
-whatever the noise under it. The shares are measured on the skeleton.
-Temperature is left as it is: it already has a meaning.
+So `elevation: {min: 0.92}` reads as "the highest 8 percent of land",
+whatever the noise under it. The shares are measured on the skeleton, and
+a cell between nodes is read off the same tables. The sea level lies
+between two nodes, so no node sits on it. Temperature is left as it is: it
+already has a meaning.
 
 ___
 
@@ -128,12 +141,13 @@ ranges all hold.
 
 | Order | Biome      | Rule                                  | Reads as                   |
 |-------|------------|---------------------------------------|----------------------------|
-| 10    | `water`    | elevation below 0                     | sea and lakes              |
-| 20    | `mountain` | elevation from 0.88                   | highest 12 percent of land |
-| 30    | `tundra`   | temperature up to 0.2                 | the cold belts             |
+| 10    | `water`    | elevation up to 0                     | sea and lakes              |
+| 20    | `mountain` | elevation from 0.92                   | highest 8 percent of land  |
+| 30    | `tundra`   | temperature up to 0.15                | the cold belts             |
 | 40    | `outcrops` | relief from 0.95                      | most broken 5 percent      |
 | 50    | `hills`    | elevation from 0.68                   | the belt below mountains   |
 | 60    | `desert`   | moisture up to 0.15, temperature from 0.5 | dry and warm           |
+| 65    | `swamp`    | elevation up to 0.15, moisture from 0.85, temperature from 0.3 | low, wet and not cold |
 | 70    | `forest`   | moisture from 0.5                     | the wetter half            |
 | 90    | `grass`    | none                                  | everything else            |
 
@@ -160,11 +174,17 @@ Rivers are traced on the skeleton, in four steps.
 2. **Flow** - water runs from a node to the lowest of its eight
    neighbours. Hollows are filled first, so every drop reaches the sea.
 3. **Gathering** - a node carries its own rain and all that flows into it.
-   The nodes that carry the most, 8 percent of land by default, are river
+   The nodes that carry the most, 5 percent of land by default, are river
    nodes.
-4. **The line** - river nodes are joined downstream into lines. A node is
-   moved off the centre of its square, and the line between two nodes
-   bends, so that a river does not show the grid it was traced on.
+4. **The line** - river nodes are joined downstream into lines, each to
+   the sea or into a larger river. A node is moved off the centre of its
+   square, and the line between two nodes bends by up to `meander_km`, so
+   that a river does not show the grid it was traced on. How far a node
+   is moved and in how many pieces a bend is drawn are constants of the
+   code, not parameters.
+
+Of two nodes that carry the same, the lower is taken first, so a river is
+never cut on its way down.
 
 A cell of any size has a river when a line crosses it. That is a mark on
 the cell beside its biome: forest with a river is still forest. What the
@@ -194,8 +214,11 @@ need is taken.
 | `outcrops`      | 0.01    | share of cells                       |
 | rivers          | 1       | this many lines cross the window     |
 
-- **A place is judged on a coarse sample** of its cells, not on all of
-  them, so that many places can be tried quickly.
+- **A place is judged on a coarse sample** of its cells, at most 32 by
+  32 of them spread evenly, so that many places can be tried quickly.
+- **The river need counts lines** that touch the rectangle of the window,
+  not marked cells.
+- **The latitude of a place** is that of the centre row of the window.
 - **The tries are limited**, 64 by default. When none meets every need,
   the place that misses the fewest is taken, the earlier of two equals.
 - **The north is not a taste.** The calendar has one set of seasons, and
@@ -239,12 +262,12 @@ planet:
   circumference_km: 40000
   skeleton_km: 100
   sea: 0.6
-  elevation: {scale_km: 4000, octaves: 6, persistence: 0.6}
+  elevation: {scale_km: 6000, octaves: 6, persistence: 0.5}
   relief: {scale_km: 150, octaves: 3, persistence: 0.5}
   moisture: {scale_km: 1500, octaves: 4, persistence: 0.5}
-  temperature: {lapse: 0.4, noise: 0.05, scale_km: 1000}
+  temperature: {lapse: 0.25, noise: 0.05, scale_km: 1000}
   rivers:
-    share: 0.08
+    share: 0.05
     meander_km: 30
     effects:
       band:
@@ -269,6 +292,7 @@ eras:
   band:
     parts_per_tick: 1
     cell_km: 10
+    properties: [water, food, threat, passability]
 ```
 
 - **`scale_km`** is the size of the largest shapes of a layer.
@@ -277,8 +301,9 @@ eras:
 - **`latitude`** runs from 0 at the equator to 1 at the north pole.
 
 A tree is refused when the planet is not made of whole cells and whole
-skeleton squares, when the window does not fit the planet, or when a need
-names a biome that does not exist.
+skeleton squares, when the window does not fit the planet, when only one
+of `window.x` and `window.y` is given, or when a need names a biome that
+does not exist.
 
 ___
 

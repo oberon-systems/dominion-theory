@@ -173,6 +173,14 @@ snapshots and hands out updates to whoever subscribed. It is also the only
 thing that touches the store, where it keeps a copy of the game so that a
 game outlives a restart of the server.
 
+The store keeps a full snapshot at the start of each game day and the
+commands in between. The reference of lives measures what that costs: a
+snapshot of the band era packs to 21 to 28 KB, of which the band's memory
+is up to 7 KB, and packing takes about 3 ms against 2.5 ms for a tick.
+Once a day that is nothing. Every tick it would still be cheap in real
+time, 3 ms of a 500 ms tick, but would double the cost of a tick in step
+mode, so the snapshot stays once a day.
+
 What leaves the runner is an **update**, not a tick: a sequence number,
 the game date, the events and the changes. As built, one update covers
 one tick; the contract leaves the runner free to fold several into one at
@@ -278,12 +286,6 @@ ___
 
 ## Open points
 
-- **Snapshot size** - the store keeps a full snapshot at the start of each
-  game day and the changes in between. A snapshot now carries two grids of
-  the window, biomes and rivers, and the cells whose stock is not full, so
-  it grows with the cells in use. A band adds its memory, up to some
-  thousands of cells. Whether it is cheap enough to be written every tick
-  is measured at the close of stage 2.
 - **Folding updates** - whether a fast game puts several ticks into one
   update, and from which speed.
 - **Splitting the server** - the API and the runner share one process. If

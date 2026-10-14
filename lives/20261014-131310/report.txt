@@ -1,0 +1,56 @@
+seed 1
+year  people  growth   rate  least  born  deaths  of-hunger  of-thirst  of-encounter  food  water  moves  gathers  camps  starving  thirsty  tired  encounters  status  known  snapshot
+   1      17       2   13.3     15     4       2          0          0             2     5   60.7     91      133    276         0        0      0           2      50     44      27.3
+   2      13      -4  -23.5     13     5       9          6          0             3   6.6   19.4    104      129    267        30        0      0           2      50     30      25.6
+   3      10      -3  -23.1      9     5       8          5          0             3  12.9   23.1    100      126    274        25        0      0           4      50     35      26.2
+   4       7      -3    -30      7     2       5          2          0             3     0    9.9     86      129    285        10        0      0           6      50     30      25.5
+   5       7       0      0      7     2       2          0          0             2     5   12.1     73      135    292         0        0      0           5      50     30      25.6
+   6       6      -1  -14.3      6     3       4          4          0             0     0   22.4     81      137    282        16        0      0           0      50     30      25.6
+   7       0      -6   -100      0     1       3          3          0             0     0      0     68      102    230        14        0      0           1      50      0      21.3
+died at tick 3400: no growth, 150 people never
+took 8.4 s, 2.48 ms a tick, 2.9 ms a pack
+
+seed 2
+year  people  growth  rate  least  born  deaths  of-hunger  of-thirst  of-encounter  food  water  moves  gathers  camps  starving  thirsty  tired  encounters  status  known  snapshot
+   1       0     -15  -100      0     3      15          5         10             0     0      0     50      114    226        20       20      0           0      50      0      23.6
+died at tick 390: no growth, 150 people never
+took 2.5 s, 6.41 ms a tick, 3.5 ms a pack
+
+seed 3
+year  people  growth   rate  least  born  deaths  of-hunger  of-thirst  of-encounter  food  water  moves  gathers  camps  starving  thirsty  tired  encounters  status  known  snapshot
+   1      13      -2  -13.3     12     4       6          5          0             1   2.9   49.1    120      120    260        25        0      0           1      50     45      28.5
+   2       5      -8  -61.5      5     3      11          6          0             5     0     17    106      131    263        26        0      0           5      50     25      25.9
+   3       7       2     40      5     2       0          0          0             0   7.5   10.3     88      136    276         4        0      0           1      50     25      25.9
+   4       5      -2  -28.6      5     1       3          1          2             0   2.4   17.4    103      126    271         5        5      0           2      50     25      25.9
+   5       5       0      0      5     2       2          1          0             1   6.6     10     96      128    276         5        0      0           4      50     30      26.6
+   6       0      -5   -100      0     2       3          2          0             1     0      0    109      122    259         5        0      0           4      50      0      22.3
+died at tick 2990: no growth, 150 people never
+took 7.5 s, 2.52 ms a tick, 3.1 ms a pack
+
+seed 4
+year  people  growth   rate  least  born  deaths  of-hunger  of-thirst  of-encounter  food  water  moves  gathers  camps  starving  thirsty  tired  encounters  status  known  snapshot
+   1      16       1    6.7     15     4       3          1          0             2  35.5   27.5     95      128    277         5        0      0           1      50     40      27.2
+   2      13      -3  -18.8     13     5       8          4          0             4     0   27.1    101      127    272        16        0      0           3      50     35      26.6
+   3      15       2   15.4     13     4       2          0          0             2     0     44     92      132    276         4        0      0           2      50     35      26.7
+   4      18       3     20     15     6       3          3          0             0     0   60.9    107      126    267         6        0      0           2      50     43      27.6
+   5      15      -3  -16.7     15     5       8          2          0             6  16.1   40.5    101      130    269        14        0      0           5      50     49      28.4
+   6      18       3     20     15     5       2          1          0             1     9   16.7     96      131    273         5        0      0           1      50     44      27.9
+   7      17      -1   -5.6     17     5       6          4          0             2   6.5   61.5    107      127    266        15        0      0           1      50     44      27.9
+   8      16      -1   -5.9     15     5       6          1          0             5     0   31.7     99      129    272         1        0      0           6      50     35      26.7
+   9      11      -5  -31.2     11     4       9          9          0             0     0   20.5    106      127    267        45        0      0           2      50     44      27.6
+  10       0     -11   -100      0     3      10          8          0             2     0      0     84      112    249        39        0      0           3      50      0      21.8
+died at tick 4945: no growth, 150 people never
+took 12.6 s, 2.55 ms a tick, 3.1 ms a pack
+
+seed 5
+year  people  growth   rate  least  born  deaths  of-hunger  of-thirst  of-encounter  food  water  moves  gathers  camps  starving  thirsty  tired  encounters  status  known  snapshot
+   1      17       2   13.3     14     4       2          0          0             2  21.3   29.1     82      136    282         0        0      0           3      50     44      27.3
+   2       9      -8  -47.1      9     4      12          7          0             5     0     45    102      126    272        31        0      0           5      50     34      25.8
+   3       6      -3  -33.3      6     4       7          7          0             0     0   13.9     93      130    277        35        0      0           4      50     34      25.8
+   4       0      -6   -100      0     1       3          3          0             0     0      0     78      110    242        14        0      0           1      50      0      21.1
+died at tick 1930: no growth, 150 people never
+took 5.2 s, 2.72 ms a tick, 2.7 ms a pack
+
+first year: 9 of 50 bands died, took 154.9 s
+
+tests/runner/lives.json is rewritten: 0 values moved

@@ -282,6 +282,3 @@ ___
   lab.
 - **Encounters that give** - every kind takes. Finding a carcass or a
   spring would be the same block of data with a gain in place of a loss.
-- **The snapshot every tick** - a band adds its memory to the snapshot,
-  up to some thousands of cells. The size is measured before the store
-  is changed, as the architecture overview left open.

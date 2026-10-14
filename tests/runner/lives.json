@@ -1,5 +1,5 @@
 {
-  "inputs": "98a26026c757f5e4564a8911df0cfa980500a7ac2a07334c4c72a086170a2e3d",
+  "inputs": "b6721ceef203a785be83d796c31b062591c0fb1fa4bbd60e5cb88f6aee6231b8",
   "seeds": {
     "1": {
       "outcome": "died",
@@ -27,7 +27,9 @@
           "thirsty": 0.0,
           "tired": 0.0,
           "encounters": 2,
-          "status": 50.0
+          "status": 50.0,
+          "known": 44,
+          "snapshot": 27.3
         },
         {
           "year": 2,
@@ -49,7 +51,9 @@
           "thirsty": 0.0,
           "tired": 0.0,
           "encounters": 2,
-          "status": 50.0
+          "status": 50.0,
+          "known": 30,
+          "snapshot": 25.6
         },
         {
           "year": 3,
@@ -71,7 +75,9 @@
           "thirsty": 0.0,
           "tired": 0.0,
           "encounters": 4,
-          "status": 50.0
+          "status": 50.0,
+          "known": 35,
+          "snapshot": 26.2
         },
         {
           "year": 4,
@@ -93,7 +99,9 @@
           "thirsty": 0.0,
           "tired": 0.0,
           "encounters": 6,
-          "status": 50.0
+          "status": 50.0,
+          "known": 30,
+          "snapshot": 25.5
         },
         {
           "year": 5,
@@ -115,7 +123,9 @@
           "thirsty": 0.0,
           "tired": 0.0,
           "encounters": 5,
-          "status": 50.0
+          "status": 50.0,
+          "known": 30,
+          "snapshot": 25.6
         },
         {
           "year": 6,
@@ -137,7 +147,9 @@
           "thirsty": 0.0,
           "tired": 0.0,
           "encounters": 0,
-          "status": 50.0
+          "status": 50.0,
+          "known": 30,
+          "snapshot": 25.6
         },
         {
           "year": 7,
@@ -159,8 +171,19 @@
           "thirsty": 0.0,
           "tired": 0.0,
           "encounters": 1,
-          "status": 50.0
+          "status": 50.0,
+          "known": 0,
+          "snapshot": 21.3
         }
+      ],
+      "hashes": [
+        "4b848a9f8663acb2af8a931fcbdc14a97cd7cb6d26d3e1f94ac51cd248f6fc88",
+        "df6ac735d333427e8a46b3285ed06e84483f27f1f83271cbc2ef4fb1ae214980",
+        "87c49bbef612012caa89ab19dcf9684f6e41019e89db053ee06789f75fd51511",
+        "d8d504d3af548178a94cecee4ec98c395962b55fe1b01345a56741c8af5318a6",
+        "52b6570def4279c8a56b068b8f6a96711aaa8cf636d8161daf0be25d322d85fd",
+        "de11a6e09bb92eb6508eda0df3f296d45b2697515aa81f1aaeb129ff1b74fcc2",
+        "450b994f058a9962414c84c0eddc202e8d3fa34b66c74cc38ef1a5ce51bb2e37"
       ]
     },
     "2": {
@@ -189,8 +212,13 @@
           "thirsty": 20.0,
           "tired": 0.0,
           "encounters": 0,
-          "status": 50.0
+          "status": 50.0,
+          "known": 0,
+          "snapshot": 23.6
         }
+      ],
+      "hashes": [
+        "fcc6862f15b5470a8244945685463cb70a148e3f76343c33421abb9f7ea443e9"
       ]
     },
     "3": {
@@ -219,7 +247,9 @@
           "thirsty": 0.0,
           "tired": 0.0,
           "encounters": 1,
-          "status": 50.0
+          "status": 50.0,
+          "known": 45,
+          "snapshot": 28.5
         },
         {
           "year": 2,
@@ -241,7 +271,9 @@
           "thirsty": 0.0,
           "tired": 0.0,
           "encounters": 5,
-          "status": 50.0
+          "status": 50.0,
+          "known": 25,
+          "snapshot": 25.9
         },
         {
           "year": 3,
@@ -263,7 +295,9 @@
           "thirsty": 0.0,
           "tired": 0.0,
           "encounters": 1,
-          "status": 50.0
+          "status": 50.0,
+          "known": 25,
+          "snapshot": 25.9
         },
         {
           "year": 4,
@@ -285,7 +319,9 @@
           "thirsty": 5.0,
           "tired": 0.0,
           "encounters": 2,
-          "status": 50.0
+          "status": 50.0,
+          "known": 25,
+          "snapshot": 25.9
         },
         {
           "year": 5,
@@ -307,7 +343,9 @@
           "thirsty": 0.0,
           "tired": 0.0,
           "encounters": 4,
-          "status": 50.0
+          "status": 50.0,
+          "known": 30,
+          "snapshot": 26.6
         },
         {
           "year": 6,
@@ -329,8 +367,18 @@
           "thirsty": 0.0,
           "tired": 0.0,
           "encounters": 4,
-          "status": 50.0
+          "status": 50.0,
+          "known": 0,
+          "snapshot": 22.3
         }
+      ],
+      "hashes": [
+        "c058f88ee24cec0286b9a9f9b0811e6ee021d81d0d8b6257142f3dfa2a2ca1fc",
+        "25e5b2fa274b158dbd3fbda661e22adba3e3317981c43b4d21b2bc1f560cdf34",
+        "70d450050ad471bf9868f44575fe94ccfef0ac27f3f04203e458f388acdb0aec",
+        "3affb6d7d048fd02730e381440411a4265f39e4aa3f699da644bd8ebd9558c51",
+        "5933ffc525fdca515bbb4e9dfa65f484580c295cd5e07051ccda398e9e6ba936",
+        "e16aaa6c09f99357b21f3d99087a899f6c2c1dd0ec1be16bd73eeb567ea5c45d"
       ]
     },
     "4": {
@@ -359,7 +407,9 @@
           "thirsty": 0.0,
           "tired": 0.0,
           "encounters": 1,
-          "status": 50.0
+          "status": 50.0,
+          "known": 40,
+          "snapshot": 27.2
         },
         {
           "year": 2,
@@ -381,7 +431,9 @@
           "thirsty": 0.0,
           "tired": 0.0,
           "encounters": 3,
-          "status": 50.0
+          "status": 50.0,
+          "known": 35,
+          "snapshot": 26.6
         },
         {
           "year": 3,
@@ -403,7 +455,9 @@
           "thirsty": 0.0,
           "tired": 0.0,
           "encounters": 2,
-          "status": 50.0
+          "status": 50.0,
+          "known": 35,
+          "snapshot": 26.7
         },
         {
           "year": 4,
@@ -425,7 +479,9 @@
           "thirsty": 0.0,
           "tired": 0.0,
           "encounters": 2,
-          "status": 50.0
+          "status": 50.0,
+          "known": 43,
+          "snapshot": 27.6
         },
         {
           "year": 5,
@@ -447,7 +503,9 @@
           "thirsty": 0.0,
           "tired": 0.0,
           "encounters": 5,
-          "status": 50.0
+          "status": 50.0,
+          "known": 49,
+          "snapshot": 28.4
         },
         {
           "year": 6,
@@ -469,7 +527,9 @@
           "thirsty": 0.0,
           "tired": 0.0,
           "encounters": 1,
-          "status": 50.0
+          "status": 50.0,
+          "known": 44,
+          "snapshot": 27.9
         },
         {
           "year": 7,
@@ -491,7 +551,9 @@
           "thirsty": 0.0,
           "tired": 0.0,
           "encounters": 1,
-          "status": 50.0
+          "status": 50.0,
+          "known": 44,
+          "snapshot": 27.9
         },
         {
           "year": 8,
@@ -513,7 +575,9 @@
           "thirsty": 0.0,
           "tired": 0.0,
           "encounters": 6,
-          "status": 50.0
+          "status": 50.0,
+          "known": 35,
+          "snapshot": 26.7
         },
         {
           "year": 9,
@@ -535,7 +599,9 @@
           "thirsty": 0.0,
           "tired": 0.0,
           "encounters": 2,
-          "status": 50.0
+          "status": 50.0,
+          "known": 44,
+          "snapshot": 27.6
         },
         {
           "year": 10,
@@ -557,8 +623,22 @@
           "thirsty": 0.0,
           "tired": 0.0,
           "encounters": 3,
-          "status": 50.0
+          "status": 50.0,
+          "known": 0,
+          "snapshot": 21.8
         }
+      ],
+      "hashes": [
+        "705b4d3ccacdc4dc446cb25d68982b7b8b30fed5cab18d94ed1cd8dfd3378d71",
+        "ec038a3993f2fe5b428c114c5ae06d0a85377652e072cfad288fc00bc0991039",
+        "e905f900a5dd4d519ba431f8964d3f0229a12d6437e79f7961caf196205c8b56",
+        "9ccbda11beed960cddbf88b7a7fa2ed353124c1ffaa65a1fc66298bfbed65ce0",
+        "8d9e5ad8a1dfb24f0ddecf66cb24ff33fc2ac21083b11c923a57884c2b45340d",
+        "30db438481a18b119bddefe176a96b01dae5baad0afdff2d18674c55cbfbae78",
+        "3e979ed46bfa3806dec6e033cfcbc03dec1fe772e04b2aecd41c2dc0d5c0822a",
+        "662e4adf6ec69525ff5079fe4994a9012c83e54addac1761063f605b79a7b954",
+        "6e70f6cd1db35245361ae236bd7ed3ec7f2af2afe529b92dce76767eb6b72e14",
+        "3ed648061a7ead355cf48b05832beb1e8f7338b6d98f027831065c68ece986f2"
       ]
     },
     "5": {
@@ -587,7 +667,9 @@
           "thirsty": 0.0,
           "tired": 0.0,
           "encounters": 3,
-          "status": 50.0
+          "status": 50.0,
+          "known": 44,
+          "snapshot": 27.3
         },
         {
           "year": 2,
@@ -609,7 +691,9 @@
           "thirsty": 0.0,
           "tired": 0.0,
           "encounters": 5,
-          "status": 50.0
+          "status": 50.0,
+          "known": 34,
+          "snapshot": 25.8
         },
         {
           "year": 3,
@@ -631,7 +715,9 @@
           "thirsty": 0.0,
           "tired": 0.0,
           "encounters": 4,
-          "status": 50.0
+          "status": 50.0,
+          "known": 34,
+          "snapshot": 25.8
         },
         {
           "year": 4,
@@ -653,9 +739,31 @@
           "thirsty": 0.0,
           "tired": 0.0,
           "encounters": 1,
-          "status": 50.0
+          "status": 50.0,
+          "known": 0,
+          "snapshot": 21.1
         }
+      ],
+      "hashes": [
+        "f79c710ca406298e504f2d51f0f7fc49e7d8abe7e7a23e54aa822e8dd3119f0b",
+        "92763c76138a5968ee5a8f7a5bea61d28da27c14fc964e9ff6369a871dca034e",
+        "5fbf4d18dd4f253ceb605af98f9d029736daa826bd0348b21afde9f72a2d4e97",
+        "528e2bf082ff917bfee2aa944f87b218c364859ff77d473ed6f12a7fa49af1dc"
       ]
+    }
+  },
+  "first_year": {
+    "seeds": 50,
+    "died": {
+      "2": 390,
+      "17": 420,
+      "19": 390,
+      "21": 440,
+      "22": 480,
+      "29": 435,
+      "41": 445,
+      "42": 450,
+      "46": 435
     }
   }
 }

@@ -59,6 +59,11 @@ times as fast, which is what makes a long rest worth proposing.
 People die of hunger, of thirst and in chance encounters. See
 [States](#states) and [Bands](../game/01_bands.md#chance-encounters).
 
+With the first-guess numbers a band left to itself does not last: 9 of
+50 die in the first year, and none of the five reference seeds lives
+ten years. `first_year` in `tests/runner/lives.json` keeps the count;
+the numbers are tuned once the band era is whole.
+
 ___
 
 ## Stores
@@ -198,6 +203,9 @@ that was stripped bare stays bare in its memory until it is seen again.
 Older memories are dropped. The decision function reads nothing but what
 is known, and so does the observation of the seat.
 
+In the reference runs a band remembers 25 to 50 cells, up to 7 KB of the
+snapshot; `known` and `snapshot` in `tests/runner/lives.json` follow it.
+
 ___
 
 ## Parameters
@@ -280,7 +288,8 @@ ___
 - **Gathering both at once** - a tick is spent on one resource. Whether a
   band splits its people between food and water is seen in the lab.
 - **Who dies** - a band counts heads. Age and sex are not kept, so growth
-  does not depend on who was lost.
+  does not depend on who was lost. Children, adults and elders are a later
+  item of [the roadmap](../roadmap.md#ages-in-a-band).
 - **Carrying against speed** - a loaded band walks as fast as an empty
   one.
 - **Drinking on the spot** - a band on a river still drinks from its

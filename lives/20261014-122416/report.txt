@@ -1,0 +1,118 @@
+seed 1
+year  people  growth   rate  least  born  deaths  of-hunger  of-thirst  of-encounter  food  water  moves  gathers  camps  starving  thirsty  tired  encounters  status  known  snapshot
+   1      17       2   13.3     15     4       2          0          0             2     5   60.7     91      133    276         0        0      0           2      50     44      27.3
+   2      13      -4  -23.5     13     5       9          6          0             3   6.6   19.4    104      129    267        30        0      0           2      50     30      25.6
+   3      10      -3  -23.1      9     5       8          5          0             3  12.9   23.1    100      126    274        25        0      0           4      50     35      26.2
+   4       7      -3    -30      7     2       5          2          0             3     0    9.9     86      129    285        10        0      0           6      50     30      25.5
+   5       7       0      0      7     2       2          0          0             2     5   12.1     73      135    292         0        0      0           5      50     30      25.6
+   6       6      -1  -14.3      6     3       4          4          0             0     0   22.4     81      137    282        16        0      0           0      50     30      25.6
+   7       0      -6   -100      0     1       3          3          0             0     0      0     68      102    230        14        0      0           1      50      0      21.3
+died at tick 3400: no growth, 150 people never
+took 10.8 s, 3.18 ms a tick, 3.4 ms a pack
+
+seed 2
+year  people  growth  rate  least  born  deaths  of-hunger  of-thirst  of-encounter  food  water  moves  gathers  camps  starving  thirsty  tired  encounters  status  known  snapshot
+   1       0     -15  -100      0     3      15          5         10             0     0      0     50      114    226        20       20      0           0      50      0      23.6
+died at tick 390: no growth, 150 people never
+took 3.6 s, 9.22 ms a tick, 3.9 ms a pack
+
+seed 3
+year  people  growth   rate  least  born  deaths  of-hunger  of-thirst  of-encounter  food  water  moves  gathers  camps  starving  thirsty  tired  encounters  status  known  snapshot
+   1      13      -2  -13.3     12     4       6          5          0             1   2.9   49.1    120      120    260        25        0      0           1      50     45      28.5
+   2       5      -8  -61.5      5     3      11          6          0             5     0     17    106      131    263        26        0      0           5      50     25      25.9
+   3       7       2     40      5     2       0          0          0             0   7.5   10.3     88      136    276         4        0      0           1      50     25      25.9
+   4       5      -2  -28.6      5     1       3          1          2             0   2.4   17.4    103      126    271         5        5      0           2      50     25      25.9
+   5       5       0      0      5     2       2          1          0             1   6.6     10     96      128    276         5        0      0           4      50     30      26.6
+   6       0      -5   -100      0     2       3          2          0             1     0      0    109      122    259         5        0      0           4      50      0      22.3
+died at tick 2990: no growth, 150 people never
+took 10.4 s, 3.47 ms a tick, 4.0 ms a pack
+
+seed 4
+year  people  growth   rate  least  born  deaths  of-hunger  of-thirst  of-encounter  food  water  moves  gathers  camps  starving  thirsty  tired  encounters  status  known  snapshot
+   1      16       1    6.7     15     4       3          1          0             2  35.5   27.5     95      128    277         5        0      0           1      50     40      27.2
+   2      13      -3  -18.8     13     5       8          4          0             4     0   27.1    101      127    272        16        0      0           3      50     35      26.6
+   3      15       2   15.4     13     4       2          0          0             2     0     44     92      132    276         4        0      0           2      50     35      26.7
+   4      18       3     20     15     6       3          3          0             0     0   60.9    107      126    267         6        0      0           2      50     43      27.6
+   5      15      -3  -16.7     15     5       8          2          0             6  16.1   40.5    101      130    269        14        0      0           5      50     49      28.4
+   6      18       3     20     15     5       2          1          0             1     9   16.7     96      131    273         5        0      0           1      50     44      27.9
+   7      17      -1   -5.6     17     5       6          4          0             2   6.5   61.5    107      127    266        15        0      0           1      50     44      27.9
+   8      16      -1   -5.9     15     5       6          1          0             5     0   31.7     99      129    272         1        0      0           6      50     35      26.7
+   9      11      -5  -31.2     11     4       9          9          0             0     0   20.5    106      127    267        45        0      0           2      50     44      27.6
+  10       0     -11   -100      0     3      10          8          0             2     0      0     84      112    249        39        0      0           3      50      0      21.8
+died at tick 4945: no growth, 150 people never
+took 14.0 s, 2.83 ms a tick, 3.4 ms a pack
+
+seed 5
+year  people  growth   rate  least  born  deaths  of-hunger  of-thirst  of-encounter  food  water  moves  gathers  camps  starving  thirsty  tired  encounters  status  known  snapshot
+   1      17       2   13.3     14     4       2          0          0             2  21.3   29.1     82      136    282         0        0      0           3      50     44      27.3
+   2       9      -8  -47.1      9     4      12          7          0             5     0     45    102      126    272        31        0      0           5      50     34      25.8
+   3       6      -3  -33.3      6     4       7          7          0             0     0   13.9     93      130    277        35        0      0           4      50     34      25.8
+   4       0      -6   -100      0     1       3          3          0             0     0      0     78      110    242        14        0      0           1      50      0      21.1
+died at tick 1930: no growth, 150 people never
+took 6.6 s, 3.44 ms a tick, 3.4 ms a pack
+
+first year: 9 of 50 bands died, took 157.0 s
+
+tests/runner/lives.json is rewritten: 62 values moved
+  1.hashes: None -> ['4b848a9f8663acb2af8a931fcbdc14a97cd7cb6d26d3e1f94ac51cd248f6fc88', 'df6ac735d333427e8a46b3285ed06e84483f27f1f83271cbc2ef4fb1ae214980', '87c49bbef612012caa89ab19dcf9684f6e41019e89db053ee06789f75fd51511', 'd8d504d3af548178a94cecee4ec98c395962b55fe1b01345a56741c8af5318a6', '52b6570def4279c8a56b068b8f6a96711aaa8cf636d8161daf0be25d322d85fd', 'de11a6e09bb92eb6508eda0df3f296d45b2697515aa81f1aaeb129ff1b74fcc2', '450b994f058a9962414c84c0eddc202e8d3fa34b66c74cc38ef1a5ce51bb2e37']
+  1.years.1.known: None -> 44
+  1.years.1.snapshot: None -> 27.3
+  1.years.2.known: None -> 30
+  1.years.2.snapshot: None -> 25.6
+  1.years.3.known: None -> 35
+  1.years.3.snapshot: None -> 26.2
+  1.years.4.known: None -> 30
+  1.years.4.snapshot: None -> 25.5
+  1.years.5.known: None -> 30
+  1.years.5.snapshot: None -> 25.6
+  1.years.6.known: None -> 30
+  1.years.6.snapshot: None -> 25.6
+  1.years.7.known: None -> 0
+  1.years.7.snapshot: None -> 21.3
+  2.hashes: None -> ['fcc6862f15b5470a8244945685463cb70a148e3f76343c33421abb9f7ea443e9']
+  2.years.1.known: None -> 0
+  2.years.1.snapshot: None -> 23.6
+  3.hashes: None -> ['c058f88ee24cec0286b9a9f9b0811e6ee021d81d0d8b6257142f3dfa2a2ca1fc', '25e5b2fa274b158dbd3fbda661e22adba3e3317981c43b4d21b2bc1f560cdf34', '70d450050ad471bf9868f44575fe94ccfef0ac27f3f04203e458f388acdb0aec', '3affb6d7d048fd02730e381440411a4265f39e4aa3f699da644bd8ebd9558c51', '5933ffc525fdca515bbb4e9dfa65f484580c295cd5e07051ccda398e9e6ba936', 'e16aaa6c09f99357b21f3d99087a899f6c2c1dd0ec1be16bd73eeb567ea5c45d']
+  3.years.1.known: None -> 45
+  3.years.1.snapshot: None -> 28.5
+  3.years.2.known: None -> 25
+  3.years.2.snapshot: None -> 25.9
+  3.years.3.known: None -> 25
+  3.years.3.snapshot: None -> 25.9
+  3.years.4.known: None -> 25
+  3.years.4.snapshot: None -> 25.9
+  3.years.5.known: None -> 30
+  3.years.5.snapshot: None -> 26.6
+  3.years.6.known: None -> 0
+  3.years.6.snapshot: None -> 22.3
+  4.hashes: None -> ['705b4d3ccacdc4dc446cb25d68982b7b8b30fed5cab18d94ed1cd8dfd3378d71', 'ec038a3993f2fe5b428c114c5ae06d0a85377652e072cfad288fc00bc0991039', 'e905f900a5dd4d519ba431f8964d3f0229a12d6437e79f7961caf196205c8b56', '9ccbda11beed960cddbf88b7a7fa2ed353124c1ffaa65a1fc66298bfbed65ce0', '8d9e5ad8a1dfb24f0ddecf66cb24ff33fc2ac21083b11c923a57884c2b45340d', '30db438481a18b119bddefe176a96b01dae5baad0afdff2d18674c55cbfbae78', '3e979ed46bfa3806dec6e033cfcbc03dec1fe772e04b2aecd41c2dc0d5c0822a', '662e4adf6ec69525ff5079fe4994a9012c83e54addac1761063f605b79a7b954', '6e70f6cd1db35245361ae236bd7ed3ec7f2af2afe529b92dce76767eb6b72e14', '3ed648061a7ead355cf48b05832beb1e8f7338b6d98f027831065c68ece986f2']
+  4.years.1.known: None -> 40
+  4.years.1.snapshot: None -> 27.2
+  4.years.10.known: None -> 0
+  4.years.10.snapshot: None -> 21.8
+  4.years.2.known: None -> 35
+  4.years.2.snapshot: None -> 26.6
+  4.years.3.known: None -> 35
+  4.years.3.snapshot: None -> 26.7
+  4.years.4.known: None -> 43
+  4.years.4.snapshot: None -> 27.6
+  4.years.5.known: None -> 49
+  4.years.5.snapshot: None -> 28.4
+  4.years.6.known: None -> 44
+  4.years.6.snapshot: None -> 27.9
+  4.years.7.known: None -> 44
+  4.years.7.snapshot: None -> 27.9
+  4.years.8.known: None -> 35
+  4.years.8.snapshot: None -> 26.7
+  4.years.9.known: None -> 44
+  4.years.9.snapshot: None -> 27.6
+  5.hashes: None -> ['f79c710ca406298e504f2d51f0f7fc49e7d8abe7e7a23e54aa822e8dd3119f0b', '92763c76138a5968ee5a8f7a5bea61d28da27c14fc964e9ff6369a871dca034e', '5fbf4d18dd4f253ceb605af98f9d029736daa826bd0348b21afde9f72a2d4e97', '528e2bf082ff917bfee2aa944f87b218c364859ff77d473ed6f12a7fa49af1dc']
+  5.years.1.known: None -> 44
+  5.years.1.snapshot: None -> 27.3
+  5.years.2.known: None -> 34
+  5.years.2.snapshot: None -> 25.8
+  5.years.3.known: None -> 34
+  5.years.3.snapshot: None -> 25.8
+  5.years.4.known: None -> 0
+  5.years.4.snapshot: None -> 21.1
+  first_year: None -> {'seeds': 50, 'died': {'2': 390, '17': 420, '19': 390, '21': 440, '22': 480, '29': 435, '41': 445, '42': 450, '46': 435}}

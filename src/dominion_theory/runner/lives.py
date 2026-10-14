@@ -6,6 +6,7 @@ of a few seeds kept in a file, so that a change of how a band lives is seen.
 import json
 import math
 import secrets
+import time
 from dataclasses import dataclass
 from hashlib import sha256
 from pathlib import Path
@@ -16,15 +17,22 @@ import click
 from ..content import Params, load_params
 from ..engine import Game
 from ..engine.events import PEOPLE_BORN, PEOPLE_LOST
+from ..store.codec import pack
 from .service import SEED_BITS
 
 SEEDS = (1, 2, 3, 4, 5)
 YEARS = 10
+FIRST = tuple(range(1, 51))
+KB = 1024
 # The size at which a band becomes a tribe, from the notes of stage 5 in docs/roadmap.md; not a rule yet.
 TRIBE = 150
 ALIVE = 'alive'
 PACKAGE = Path(__file__).parents[1]
-SOURCES = (Path(__file__), *(path for name in ('engine', 'planet') for path in sorted((PACKAGE / name).glob('*.py'))))
+SOURCES = (
+    Path(__file__),
+    PACKAGE / 'store' / 'codec.py',
+    *(path for name in ('content', 'engine', 'planet') for path in sorted((PACKAGE / name).glob('*.py'))),
+)
 LEVELS = {'people': 'population', 'food': 'food', 'water': 'water', 'status': 'status'}
 TOTALS = ('deaths', 'moves', 'gathers', 'camps', 'encounters')
 STATES = {'starvation': 'starving', 'thirst': 'thirsty', 'tiredness': 'tired'}
@@ -46,6 +54,8 @@ YEAR = (
     *STATES.values(),
     'encounters',
     'status',
+    'known',
+    'snapshot',
 )
 
 
@@ -56,6 +66,8 @@ class Lived:
     years: list[dict[str, float]]
     outcome: str
     tick: int
+    hashes: tuple[str, ...] = ()
+    packing: float = 0.0
 
     @property
     def growth(self) -> float | None:
@@ -84,6 +96,7 @@ class Lived:
             'growth': None if growth is None else round(growth, 4),
             'tribe': None if tribe is None else round(tribe, 1),
             'years': self.years,
+            'hashes': list(self.hashes),
         }
 
     def lines(self) -> list[str]:
@@ -97,17 +110,21 @@ def live(seed: int | None, years: int, preset: str | None = None, overrides: dic
     params = load_params(preset, overrides)
     game = Game.create(seed=secrets.randbits(SEED_BITS) if seed is None else seed, params=params)
     start = 0 if game.band is None else game.band.population
-    rows = lived(game, years)
-    return Lived(game.seed, start, rows, game.outcome or ALIVE, game.tick)
+    rows, hashes, packing = lived(game, years)
+    return Lived(game.seed, start, rows, game.outcome or ALIVE, game.tick, hashes, packing)
 
 
-def lived(game: Game, years: int) -> list[dict[str, float]]:
+def lived(game: Game, years: int) -> tuple[list[dict[str, float]], tuple[str, ...], float]:
     """
-    A row a year: levels at its last tick, totals over it, the ticks spent in each state.
+    A row a year: levels at its last tick, totals over it, the ticks spent in each state,
+    the cells the band remembers and the size of the snapshot the store would keep, in KB;
+    the hash of the state at the end of every year; the mean seconds a snapshot took to pack.
     """
     per_year = game.clock.parts_per_year
     names, columns = game.counters.names, game.unit_columns
     rows: dict[int, dict[str, float]] = {}
+    hashes: list[str] = []
+    packing: list[float] = []
     before = after = dict(zip(names, game.counters.row(), strict=True))
     row: dict[str, float] = {}
     while not game.over and game.clock.parts < years * per_year:
@@ -132,7 +149,22 @@ def lived(game: Game, years: int) -> list[dict[str, float]]:
             elif event.key == PEOPLE_LOST:
                 cause = f'of-{event.values["cause"]}'
                 row[cause] = row.get(cause, 0.0) + event.values['count']
-    return list(rows.values())
+        if result.parts % per_year == 0 or game.over:
+            snapshot = game.snapshot()
+            began = time.perf_counter()
+            packed = pack(snapshot)
+            packing.append(time.perf_counter() - began)
+            row['known'] = 0 if game.band is None else len(game.band.known)
+            row['snapshot'] = round(len(packed) / KB, 1)
+            hashes.append(hashed(snapshot))
+    return list(rows.values()), tuple(hashes), sum(packing) / len(packing) if packing else 0.0
+
+
+def hashed(snapshot: dict[str, Any]) -> str:
+    """
+    The hash of a snapshot but its tree, which a change of the council alone would move.
+    """
+    return sha256(pack({name: value for name, value in snapshot.items() if name != 'params'})).hexdigest()
 
 
 def table(years: list[dict[str, float]]) -> list[str]:
@@ -147,21 +179,32 @@ def _shown(value: float) -> str:
 
 def following(params: Params) -> str:
     """
-    What of a tree the life of a band with no player follows from: all of it but the council.
+    What of a tree the life of a band with no player follows from: all of it but the council,
+    of which only the status the player starts with is kept in the state.
     """
     tree = params.tree()
-    tree.pop('council')
+    tree['council'] = {'status': {'start': tree['council']['status']['start']}}
     return json.dumps(tree, sort_keys=True)
 
 
 def inputs(params: Params) -> str:
     """
-    One hash of all a reference life follows from: the tree, the code of the engine and of the planet, this file.
+    One hash of all a reference life follows from: the tree, the code of the content, the engine and the planet,
+    the codec of the snapshot, this file.
     """
     held = sha256(following(params).encode())
     for path in SOURCES:
         held.update(path.read_bytes())
     return held.hexdigest()
+
+
+def first_year() -> dict[str, Any]:
+    """
+    Every seed of FIRST lived one year: the tick each band that died in it died at.
+    """
+    click.echo(f'  living the first year of {len(FIRST)} seeds', err=True)
+    died = {str(seed): life.tick for seed in FIRST if (life := live(seed, 1)).outcome != ALIVE}
+    return {'seeds': len(FIRST), 'died': died}
 
 
 def moved(old: Any, new: Any, path: str = '') -> list[str]:
@@ -185,26 +228,38 @@ def moved(old: Any, new: Any, path: str = '') -> list[str]:
 @click.pass_context
 def cli(ctx: click.Context, path: Path, check: bool, out: Path | None) -> None:
     """
-    Live every seed of SEEDS for YEARS on the default tree, rewrite the reference and say what moved.
+    Live every seed of SEEDS for YEARS and of FIRST for one on the default tree,
+    rewrite the reference and say what moved.
     """
     params = load_params()
     kept = json.loads(path.read_text(encoding='utf-8')) if path.exists() else {'inputs': None, 'seeds': {}}
     if check:
         if kept['inputs'] != inputs(params):
-            click.echo(f'the band changed: {len(SEEDS)} seeds are lived {YEARS} years anew', err=True)
+            click.echo(f'the band changed: {len(SEEDS)} seeds are lived {YEARS} years anew, {len(FIRST)} one', err=True)
             ctx.exit(1)
         return
 
     report: list[str] = []
     found: dict[str, Any] = {}
     for seed in SEEDS:
+        began = time.perf_counter()
         life = live(seed, YEARS)
+        took = time.perf_counter() - began
         found[str(seed)] = life.data()
-        told = [f'seed {seed}', *life.lines(), '']
+        tick, packed = 1000 * took / max(life.tick, 1), 1000 * life.packing
+        timed = f'took {took:.1f} s, {tick:.2f} ms a tick, {packed:.1f} ms a pack'
+        told = [f'seed {seed}', *life.lines(), timed, '']
         click.echo('\n'.join(told))
         report += told
-    path.write_text(json.dumps({'inputs': inputs(params), 'seeds': found}, indent=2) + '\n', encoding='utf-8')
-    lines = moved(kept['seeds'], found)
+    began = time.perf_counter()
+    first = first_year()
+    took = time.perf_counter() - began
+    told = [f'first year: {len(first["died"])} of {first["seeds"]} bands died, took {took:.1f} s', '']
+    click.echo('\n'.join(told))
+    report += told
+    held = {'inputs': inputs(params), 'seeds': found, 'first_year': first}
+    path.write_text(json.dumps(held, indent=2) + '\n', encoding='utf-8')
+    lines = moved(kept['seeds'], found) + moved(kept.get('first_year'), first, 'first_year.')
     told = [f'{path} is rewritten: {len(lines)} values moved', *(f'  {line}' for line in lines)]
     click.echo('\n'.join(told))
     report += told

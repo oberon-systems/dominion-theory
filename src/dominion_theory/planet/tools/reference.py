@@ -19,7 +19,12 @@ from . import pictures
 
 ERA = 'band'
 SEEDS = (1, 2, 3)
-SOURCE = Path(__file__).parents[1]
+PACKAGE = Path(__file__).parents[2]
+SOURCES = (
+    Path(__file__),
+    Path(pictures.__file__),
+    *(path for name in ('content', 'planet') for path in sorted((PACKAGE / name).glob('*.py'))),
+)
 
 
 def shaping(params: Params) -> str:
@@ -45,12 +50,12 @@ def shaped(params: Params) -> dict[str, Params]:
 def inputs(params: Params) -> str:
     """
     One hash of all a map follows from: what shapes the planet in the tree and in the trees of the presets,
-    and the code of the planet.
+    the code of the content and of the planet, the pictures that count shares and corners, this file.
     """
     held = sha256(shaping(params).encode())
     for tree in shaped(params).values():
         held.update(shaping(tree).encode())
-    for path in sorted(SOURCE.glob('*.py')):
+    for path in SOURCES:
         held.update(path.read_bytes())
     return held.hexdigest()
 

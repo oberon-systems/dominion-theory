@@ -97,10 +97,38 @@ def test_a_band_with_no_food_is_lived_headless_into_a_row_for_its_last_year() ->
 
     assert result.exit_code == 0
     assert result.stderr == 'seed 42\n'
-    assert result.stdout.splitlines() == [
-        'year  people  growth  rate  least  born  deaths  of-hunger  of-thirst  of-encounter  food  water'
-        '  moves  gathers  camps  starving  thirsty  tired  encounters  status',
-        '   1       0     -15  -100      0     0      11         11          0             0     0      0'
-        '     19        5     36        50        0      0           0      50',
-        'died at tick 60: no growth, 150 people never',
+    header, row, end = result.stdout.splitlines()
+    *counted, snapshot = row.split()
+    assert len(header) == len(row)
+    assert header.split() == [
+        *('year', 'people', 'growth', 'rate', 'least', 'born', 'deaths', 'of-hunger', 'of-thirst', 'of-encounter'),
+        *('food', 'water', 'moves', 'gathers', 'camps', 'starving', 'thirsty', 'tired', 'encounters', 'status'),
+        *('known', 'snapshot'),
     ]
+    assert counted == [
+        *[
+            '1',
+            '0',
+            '-15',
+            '-100',
+            '0',
+            '0',
+            '11',
+            '11',
+            '0',
+            '0',
+            '0',
+            '0',
+            '19',
+            '5',
+            '36',
+            '50',
+            '0',
+            '0',
+            '0',
+            '50',
+            '0',
+        ]
+    ]
+    assert float(snapshot) > 0
+    assert end == 'died at tick 60: no growth, 150 people never'

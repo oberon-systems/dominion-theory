@@ -20,14 +20,21 @@ def test_the_reference_is_the_one_of_this_band() -> None:
     for life in kept['seeds'].values():
         assert [row['year'] for row in life['years']] == list(range(1, len(life['years']) + 1))
         assert life['outcome'] != lives.ALIVE or len(life['years']) == lives.YEARS
+        assert all(row['snapshot'] > 0 for row in life['years'])
+        assert len(life['hashes']) == len(life['years'])
+    assert kept['first_year']['seeds'] == len(lives.FIRST)
+    assert set(kept['first_year']['died']) <= {str(seed) for seed in lives.FIRST}
 
 
-def test_inputs_follow_the_band_and_not_the_council() -> None:
+def test_inputs_follow_the_band_and_of_the_council_only_the_status_it_starts_with() -> None:
     kept = lives.inputs(load_params())
 
-    assert lives.inputs(load_params(overrides={'council.status.start': 60})) == kept
-    for changed in ({'units.band.carry_kg': 7.0}, {'encounters.chance': 0.1}, {'planet.sea': 0.5}):
+    for council in ({'council.status.move_worked': 9}, {'council.min_gap': {'days': 5}}):
+        assert lives.inputs(load_params(overrides=council)) == kept
+    band = ({'units.band.carry_kg': 7.0}, {'encounters.chance': 0.1}, {'planet.sea': 0.5})
+    for changed in (*band, {'council.status.start': 60}):
         assert lives.inputs(load_params(overrides=changed)) != kept
+    assert {lives.PACKAGE / 'store' / 'codec.py', lives.PACKAGE / 'content' / 'loader.py'} <= set(lives.SOURCES)
 
 
 def test_a_year_counts_every_tick_once_and_every_person_born_or_lost() -> None:
@@ -38,6 +45,18 @@ def test_a_year_counts_every_tick_once_and_every_person_born_or_lost() -> None:
     assert year['moves'] + year['gathers'] + year['camps'] == life.tick
     assert year['growth'] == year['people'] - life.start == year['born'] - year['deaths']
     assert life.growth == pytest.approx(year['people'] / life.start - 1)
+    assert year['known'] > 0
+    assert year['snapshot'] > 0
+    assert len(life.hashes) == 1
+    assert life.packing > 0
+
+
+def test_the_same_seed_ends_every_year_in_the_same_state_and_another_seed_does_not() -> None:
+    life = lives.live(7, 2, overrides=SMALL)
+
+    assert lives.live(7, 2, overrides=SMALL).hashes == life.hashes
+    assert lives.live(7, 2, overrides={**SMALL, 'council.status.move_worked': 9}).hashes == life.hashes
+    assert lives.live(8, 2, overrides=SMALL).hashes != life.hashes
 
 
 def test_growth_is_compounded_and_tells_the_year_of_a_tribe() -> None:

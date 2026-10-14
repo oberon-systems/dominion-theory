@@ -18,6 +18,7 @@ documents it produces and what "done" means.
 - [Stage 4 - web](#stage-4---web)
 - [Stage 5 - era transition](#stage-5---era-transition)
 - [World scale](#world-scale)
+- [Later](#later)
 - [Open questions](#open-questions)
 
 ___
@@ -92,25 +93,28 @@ What is already settled and binds every stage.
   and the player is one voice in it. The weight of that voice is the
   player's status: decisions that end in hunger or loss lower it, and a
   player whose status is gone is banished, which ends the game.
-- **A band acts on its own, and the player speaks by calling a council.**
-  The player gathers everybody and proposes something; the council votes.
-  Status moves only with what the player proposed.
+- **A band acts on its own, and the council meets every morning.** The
+  others put their votes on what the band could do, the player sees how
+  they lie and backs an option, proposes another or does not vote, which
+  costs status. Status moves only with what the player changed.
 - **A proposal is said the way a nomad would say it**: "we go where the sun
   rises", "we follow the pole star", "we rest here", "we stay, we are
   short of food".
-- **A proposal to move is judged by what follows**, over the next one to
-  three days. If it worked out, status rises; if not, it falls; if it
-  ended in disaster, a large loss of people, it falls hard.
+- **A proposal the player carried is judged by what follows**, at the
+  next council. If it worked out, status rises; if not, it falls; if it
+  ended in disaster, a large loss of people, it falls hard. Backing what
+  the band would have done anyway moves nothing.
 - **A long rest always raises status** and makes the band grow, but nobody
   gathers, so food and water run down.
 - **Staying to gather raises status**, unless a chance encounter, a bear
   for one, takes people.
-- **A council cannot be called too often.** The shortest gap between two
-  councils is a parameter, somewhere between a day and a month.
-- **The council can vote a proposal down**, and that costs a little
-  status. The others vote by how close the proposal is to what the band
-  would have done itself; the player's voice always weighs more than
-  one, and more with status.
+- **The council meets once a day**, decided by the user on 2026-10-14 in
+  place of a council called by the player with a gap between two. The
+  others' votes lie by how good each option looks to the band; the
+  player's voice always weighs more than one, and more with status. A
+  player outvoted pays a little, a player who does not vote pays more.
+- **A meeting with another band is an emergency council**, outside the
+  morning: attack, ally or ignore. It is designed with stage 3.
 - **A proposal is judged by supplies and people**: the days of food and
   water in the stores at the call and at the close of the window, and
   the share of people lost. A fifth of the band lost is a disaster.
@@ -125,6 +129,13 @@ What is already settled and binds every stage.
   words come from a catalogue per language. Documentation and code stay in
   English.
 - **Everybody starts as a band**, the player and every other people alike.
+- **The game is not about humanity.** Its peoples are invented races, not
+  humans, and nothing in the rules or the words assumes they are.
+- **Balance is tuned once the band era is whole**, decided by the user on
+  2026-10-14: bands with encounters between them, skills, seasons,
+  weather, and a seat an assistant can play through an MCP server. Until
+  then the numbers stay first guesses, and the references only show that
+  they moved.
 - **Other peoples are simulated by a simplified model.** A map holds the
   player and five to ten other bands; when one of them dies, a new one is
   spawned. When the player becomes a tribe, some of the bands, chosen at
@@ -327,9 +338,11 @@ The first unit, and the rules of indirect control.
 - Movement: eight directions, no water, no occupied cell, cost from
   passability and band size.
 - Population growth and loss.
-- Indirect control: the player calls a council and proposes - to move in
-  a direction, to rest, to stay and gather. How the vote goes, how the
-  outcome is judged and moves status, banishment at zero.
+- Indirect control: a council every morning. The others' votes are laid
+  out over the options - to move in a direction, to rest, to stay and
+  gather - and the player backs one, proposes another or abstains. How
+  the vote goes, how what the player carried is judged and moves status,
+  what abstaining costs, banishment at zero.
 - Chance encounters, driven by the threat of the biome.
 
 **How:**
@@ -366,6 +379,22 @@ Other bands on the same map: rivals or allies.
 - Relations: neutral, rival, ally, and what moves a band between them.
 - Interaction: competing for a depleted cell, avoiding, following, and
   whichever of conflict, exchange and merging the design doc keeps.
+- A meeting of two bands is an emergency council at once, whatever the
+  part of the day: attack, ally or ignore. Ignoring may still be answered
+  by an attack.
+- A band's own threat: every band carries a level of how dangerous it is
+  known to be. Attacking raises it, allying and ignoring lower it; what
+  other bands do on a meeting follows from it and from their temperament.
+  A band with a low threat that meets an aggressive one is attacked.
+- An attack is decided by strength: the people who can fight, so a band
+  of many children and elders is weaker and a poor target to provoke;
+  dogs, once they exist, add to it. The attacked band flees and loses
+  people and stores, or stands and may be destroyed.
+- A band that wins may carry off young or females, and two bands may
+  merge. Their offspring may take traits of the other race, as far as
+  the two races are compatible; see [Races](#races).
+- Races that cannot mix attack each other more often, and races that can
+  less often.
 
 **How:**
 
@@ -374,7 +403,8 @@ Other bands on the same map: rivals or allies.
 - Bots are stepped inside the tick, in a fixed order, from the game's own
   random source, so a run stays reproducible.
 
-**Docs**: `docs/game/bots.md`, `docs/game/relations.md`.
+**Docs**: `docs/game/bots.md`, `docs/game/relations.md`,
+`docs/game/indirect_control.md` (the emergency council).
 
 **Done**: a headless game with many bands runs a long session without
 errors, and a summary shows that temperaments give different outcomes.
@@ -390,6 +420,9 @@ design and tune every later stage.
 
 - An LLM player: it takes a seat, receives the observation as text, and
   answers with one of the commands on offer.
+- An MCP server over the API, so that an assistant such as Claude can sit
+  in the player's seat: read the band, the table of the council and the
+  map it knows, and vote. It is how the band era is played for balance.
 - A runner: many games in step mode from one description - seeds, player
   kinds, parameter overrides.
 - Statistics over run records: survival time, population curves, how often
@@ -412,10 +445,11 @@ design and tune every later stage.
   engine.
 
 **Docs**: `docs/lab/llm_player.md`, `docs/lab/runs.md` (SOP: describe a
-batch, run it, read the result), `docs/lab/metrics.md`.
+batch, run it, read the result), `docs/lab/metrics.md`, `docs/lab/mcp.md`.
 
 **Done**: one command runs a batch of games with LLM and scripted players
-and prints a table that compares two parameter sets.
+and prints a table that compares two parameter sets, and an assistant plays
+a game through the MCP server.
 
 ___
 
@@ -527,6 +561,115 @@ How the map relates to the world, and how it changes from era to era.
   plays on the larger map and acts with more force; it does not see the
   bands below. The bands go on growing in the same world, and they do see
   the tribe and what it does.
+
+___
+
+## Later
+
+Wanted, agreed and on no stage yet, raised by the user on 2026-10-14. Each
+gets its design doc before it is placed. Every number is data, as
+everywhere.
+
+### Ages in a band
+
+A band counts young, adults and elders, and males and females, instead
+of heads alone.
+
+- They are born young, grow into adults and age into elders by the
+  calendar; elders die faster.
+- The young and elders eat and drink less than adults.
+- The young and elders slow the band: speed falls with their share.
+- Only adults fight: a band of many young and elders is weaker in the
+  conflicts of stage 3.
+- Females and the young are what a winning band may carry off, and what
+  carries a race into the next generation.
+- Answers the open point "who dies" of the band.
+
+### Races
+
+Six invented races, none of them human. A race is data: a set of traits,
+each a modifier over the band's rates.
+
+- Some are cleverer: they learn faster, see further or remember longer.
+- Some are stronger: they carry more and fight better.
+- Some are faster: they walk further in a day.
+- A race costs something for what it gives, so that none is best
+  everywhere.
+
+Two races are compatible, partly compatible or not compatible, and that
+decides what young or females carried off, or a merged band, bring into
+the next generations.
+
+| Pair             | Offspring inherit                                      |
+|------------------|--------------------------------------------------------|
+| compatible       | one trait of the other race with a high chance, and one more with a low chance |
+| partly compatible| one trait with a low chance                            |
+| not compatible   | nothing; they cannot continue the population           |
+
+Races that cannot mix attack each other more often, and compatible races
+less often. The table of pairs is data too.
+
+### Skills learned by doing
+
+A band learns by living, not by a tree of research: what it does, where
+it does it and what happens to it add experience, and a skill comes when
+enough of it is gathered. A skill may need another first. Skills are
+data: what teaches them, what they need and what they change.
+
+Raised by the user:
+
+- **Spears of sticks** - from long time in a forest. Better hunting and
+  defence; needed for traps.
+- **Litters** - from long walking with full loads. A band carries more.
+- **Cages and traps** - from a forest, with spears. A predator met can be
+  caught instead of only fought, by chance.
+- **Dogs** - from caught wolves. A band with dogs meets predators less
+  often and is stronger in a fight with a band, and the dogs eat and
+  drink.
+
+To weigh for the band era, each learned the same way:
+
+- **Fire** - from camping, most in the cold. Food goes further, and the
+  cold of winter costs less.
+- **Drying and smoking** - from fire and much gathering of food. Forage
+  spoils later.
+- **Skins for water** - from gathering water often. More water is
+  carried and it keeps longer.
+- **Stone tools** - from outcrops and hills. Gathering is faster; needed
+  for spears.
+- **Fishing** - from gathering in shallows and on rivers. Food from
+  water cells.
+- **Swimming and rafts** - from time at the shore and on rivers. Fewer
+  drownings; the bed of a great river can be crossed.
+- **Herb lore** - from gathering in swamps, marshes and forests. Fewer
+  poisonings, and hunger and thirst kill fewer.
+- **Hides and shelters** - from winters in tundra and snow. Winter costs
+  less, and camping rests better.
+- **Climbing** - from hills and mountains. Fewer accidents, faster on
+  steep land.
+- **Tracking** - from encounters with predators survived. Hunting gives
+  more food, and a predator is seen before it strikes.
+- **Desert lore** - from time in deserts and dunes. Water is found in
+  dry land.
+- **Stars** - from long walks. A band remembers longer and keeps its
+  way at night.
+
+Open: whether a skill is lost when the people who held it die, and
+whether a skill crosses to the tribe of stage 5.
+
+### Weather
+
+Weather is one more source of modifiers over the properties of a cell,
+beside the season, the river and the stock, as the biomes were shaped
+for: a dry spell, a wet one, a cold snap. It goes with frost, a later
+item of its own.
+
+### Balance of the band era
+
+Once bands meet, skills, seasons, weather and the MCP seat are built,
+the numbers of the band era are tuned: by the references of lives, by
+the lab and by an assistant playing the seat. Until then nothing is
+tuned.
 
 ___
 

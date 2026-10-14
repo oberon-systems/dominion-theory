@@ -83,9 +83,10 @@ After them it keeps the reference of the maps,
 every preset that shapes the planet, where the first window lies,
 how many rivers run, the share of every biome, how many square corners
 the shore has and a hash of every cell, with a hash of what a map follows
-from: the section `planet`, where each biome appears, the size of a cell
-and the code of the planet. A change of anything else in the tree, a
-number of the band for one, redraws nothing.
+from: the section `planet`, where each biome appears, the size of a cell,
+the code of the content and of the planet, and the code that counts the
+reference itself. A change of anything else in the tree, a number of the
+band for one, redraws nothing.
 
 - **Nothing changed** - the hashes of the inputs agree and nothing is
   built.
@@ -106,6 +107,28 @@ which happens when the tests are run past `make test`, and when the shore
 of a first window has square corners: water cut by the grid of the
 skeleton instead of by the land. The numbers say that a map moved, not
 whether it is better, so the pictures are still looked at.
+
+The life of a band is kept the same way, in `tests/runner/lives.json`.
+Five seeds live ten years with no player, a row a year: people, births and
+deaths by cause, stores, actions, states, encounters, the cells the band
+remembers (`known`) and the size of the snapshot the store would keep, in
+KB (`snapshot`), with a hash of the state at the end of every year, so a
+band that walks another way to the same totals still moves the reference.
+Fifty more seeds live one year each, and the reference keeps the tick
+every band that died in it died at.
+
+The reference follows the tree but the section `council`, of which only
+the status the player starts with is kept, and the code of
+the content, the engine, the planet and the codec of the snapshot. When
+any of it changed, `make test` runs `make lives`: the seeds are lived anew,
+the reference is rewritten, every value that moved is printed as
+`old -> new`, and the tables go to `lives/<moment>/report.txt` with the
+time every seed took, a tick and a snapshot packed. The times are not kept
+in the reference, since they move from one run to the next.
+
+```bash
+git diff tests/runner/lives.json
+```
 
 ___
 

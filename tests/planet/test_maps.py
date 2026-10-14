@@ -61,3 +61,10 @@ def test_inputs_follow_only_what_shapes_the_planet() -> None:
     assert reference.inputs(load_params(overrides=fed)) == kept
     assert reference.inputs(load_params(overrides={'biomes.forest.generation.moisture': {'min': 0.6}})) != kept
     assert reference.inputs(load_params(overrides={'planet.sea': 0.5})) != kept
+
+
+def test_inputs_follow_the_code_that_counts_the_reference() -> None:
+    package = reference.PACKAGE
+    counted = {package / 'planet' / 'tools' / 'pictures.py', package / 'planet' / 'tools' / 'reference.py'}
+
+    assert counted | {package / 'content' / 'loader.py', package / 'planet' / 'rivers.py'} <= set(reference.SOURCES)

@@ -3,13 +3,14 @@
 #dev #sop
 
 How to bring a fresh clone to a working state, check it and run what
-exists: the server, the console client and the map tool.
+exists: the server, the console client, a game to play and the map tool.
 
 - [What this covers](#what-this-covers)
 - [Install](#install)
 - [Check](#check)
 - [Run the server](#run-the-server)
 - [Run the client](#run-the-client)
+- [Play a band](#play-a-band)
 - [Settings](#settings)
 - [The data directory](#the-data-directory)
 - [Look at a map](#look-at-a-map)
@@ -208,6 +209,86 @@ Expected output:
 
 ```text
 the record of 7f3a9c1e replays: 500 ticks, every hash matches
+```
+
+___
+
+## Play a band
+
+Play a band from one terminal. The target starts a server of its own on
+a free port, waits for it and stops it when the game ends, so `make run`
+is not needed; the server logs into `data/play-server.log`. The game is
+new, in step mode, and you sit in the seat of its council.
+
+```bash
+make play
+```
+
+The terminal becomes a screen of two panes, drawn with
+[Textual](https://textual.textualize.io/). The left pane is for playing:
+
+- **the map** - the land the band knows around it, a cell as two
+  characters on the colour of its biome, a glyph for the biome, `~` for a
+  river and `@` for the band;
+- **the band** - its people, stores, states, action, fatigue and intent,
+  and your standing;
+- **its place** - the biome of the band's cell and its properties as the
+  band knows them, as bars;
+- **the council** - while the council of the day sits, its question and a
+  menu of every option: the ones the others voted for first, with their
+  votes, the leader marked and under the pointer, then the rest, and
+  saying nothing last.
+
+The right pane is the log: a line per update with something to tell, the
+date, the standing and what happened.
+
+| Key        | Does                                             |
+|------------|--------------------------------------------------|
+| arrows     | move the pointer in the council's menu           |
+| Enter      | picks the option under the pointer               |
+| q, Ctrl-C  | leaves the game                                  |
+
+Backing an option with votes and proposing one without are the same
+pick; saying nothing costs standing.
+[Indirect control](../game/indirect_control.md) tells what each answer
+does to the band and to your standing. Every other tick is answered with
+`pass`, one each `--pace` seconds, so the band is seen to move between two
+councils.
+
+Options go through `PLAY`:
+
+```bash
+make play PLAY='--lang ru --seed 42'
+make play PLAY='--debug'
+make play PLAY='--preset harsh-winter --updates 200'
+```
+
+| Option       | Does                                                       |
+|--------------|------------------------------------------------------------|
+| `--lang`     | plays in `en` or `ru`                                      |
+| `--seed`     | the seed of the game                                       |
+| `--preset`   | the preset of the game                                     |
+| `--set`      | overrides one parameter, as `PATH=VALUE`                   |
+| `--updates`  | stops after that many updates                              |
+| `--pace`     | seconds between two ticks on the screen, 0.2 by default    |
+| `--debug`    | adds the stocks of the cell and the band's reason          |
+| `--server`   | plays on that server instead; `make play` sets it          |
+| `--wait`     | seconds to wait for the server to answer, 0 by default     |
+
+With `--debug` the panel of the place also shows when the band saw the
+cell, the stocks of the cell as the game holds them, what every value
+moved by in the last update, and the reason of the band's last decision.
+Those words are the names of the parameter tree and are not translated.
+
+When the input or the output is not a terminal, as in a pipe, the game
+is played as lines instead: a coloured line per update, and at every
+council the map and a numbered list. The answer is then read as a line: a
+number, a name of the API (`east`, `ne`, `rest`, `stay`, `abstain`) or an
+empty line, which says nothing. Colour is dropped when the output is not
+a terminal.
+
+```bash
+printf 'rest\n\n' | make play PLAY='--updates 10'
 ```
 
 ___

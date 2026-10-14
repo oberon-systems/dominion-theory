@@ -1,9 +1,11 @@
 """
-The command line of the console client: watch a game, replay its record, or live one headless.
+The command line of the console client: play or watch a game, replay its record, or live one headless.
 """
 
 import json
 import logging
+import sys
+import time
 from collections.abc import Iterator
 from contextlib import closing, contextmanager
 from pathlib import Path
@@ -20,11 +22,15 @@ from ..runner import lives
 from ..runner import replay as replay_record
 from .api import SERVER, Api, Refused
 from .lines import words
+from .player import Player
+from .screen import PACE_S, Screen
+from .session import Session
 from .watcher import watch as lines_of
 
 STEP = 'step'
 REAL_TIME = 'real-time'
-NOISY = ('httpx', 'httpcore', 'websockets')
+NOISY = ('httpx', 'httpcore', 'websockets', 'asyncio')
+POLL_S = 0.2
 
 server_option = click.option('--server', default=SERVER, show_default=True, help='Address of the server.')
 
@@ -39,6 +45,21 @@ def _reported(lang: list[str]) -> Iterator[None]:
         raise click.ClickException(words(error.message(), lang[0])) from error
     except (httpx.HTTPError, WebSocketException, OSError) as error:
         raise click.ClickException(str(error)) from error
+
+
+def _awaited(api: Api, seconds: float) -> None:
+    """
+    Ask the server's health until it answers or the seconds run out; the last failure is raised.
+    """
+    deadline = time.monotonic() + seconds
+    while True:
+        try:
+            api.health()
+            return
+        except httpx.TransportError:
+            if time.monotonic() >= deadline:
+                raise
+            time.sleep(POLL_S)
 
 
 def _overrides(given: tuple[str, ...]) -> dict[str, Any]:
@@ -98,6 +119,50 @@ def watch(
         run = game_id is None and game['mode'] == REAL_TIME
         for line in lines_of(api, game['id'], tongue[0], step, limit, run):
             click.echo(line)
+
+
+@cli.command()
+@server_option
+@click.option('--lang', type=click.Choice(LANGUAGES), help='Language of the game; the one of the profile if left out.')
+@click.option('--updates', 'limit', type=click.IntRange(min=1), help='Stop after this many updates.')
+@click.option('--seed', type=click.IntRange(min=0), help='Seed of the game.')
+@click.option('--preset', help='Preset of the game.')
+@click.option('--set', 'given', multiple=True, metavar='PATH=VALUE', help='Override one parameter of the game.')
+@click.option('--debug', is_flag=True, help="After every update, the band's cell, what moved in it and the reason.")
+@click.option('--wait', type=click.FloatRange(min=0), default=0, help='Seconds to wait for the server to come up.')
+@click.option('--pace', type=click.FloatRange(min=0), default=PACE_S, help='Seconds between ticks on the screen.')
+def play(
+    server: str,
+    lang: str | None,
+    limit: int | None,
+    seed: int | None,
+    preset: str | None,
+    given: tuple[str, ...],
+    debug: bool,
+    wait: float,
+    pace: float,
+) -> None:
+    """
+    Play a band in step mode: in a terminal a screen with the map, the band, the council and the log;
+    otherwise a coloured line per update, and the map and a numbered list at every council.
+    """
+    overrides = _overrides(given)
+    tongue = [lang or FALLBACK]
+    with closing(Api(server)) as api, _reported(tongue):
+        _awaited(api, wait)
+        tongue[0] = lang or api.language()
+        game = api.create(STEP, seed, preset, overrides, seated=True)
+        click.echo(f'game {game["id"]}', err=True)
+        if sys.stdin.isatty() and sys.stdout.isatty():
+            failed = Screen(Session(api, game['id']), tongue[0], debug, pace, limit).run()
+            if failed:
+                raise click.ClickException(failed)
+            return
+        try:
+            for line in Player(api, game['id'], tongue[0], debug=debug).lines(limit):
+                click.echo(line)
+        except click.Abort, KeyboardInterrupt, EOFError:
+            click.echo(err=True)
 
 
 @cli.command()

@@ -38,6 +38,7 @@ dependencies = [
     "pygame-ce>=2.5.8",
     "PyYAML>=6.0.3",
     "sqlmodel>=0.0.48",
+    "textual>=8.2",
     "uvicorn[standard]>=0.54",
     "valkey>=6.1",
     "websockets>=17.2",

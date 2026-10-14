@@ -77,7 +77,7 @@ packages by layer.
 | `runner`  | live games, the two clocks, run records and replay       | `engine`, `store`, `content`|
 | `api`     | the application, routes, the update stream               | `runner`, `engine`, `db`, `i18n` |
 | `lab`     | the batch runner, the LLM player, statistics             | the API as a client        |
-| `client`  | the console client: watch, step and replay a game        | `i18n`, `runner`           |
+| `client`  | the console client: play, watch, step and replay a game  | `i18n`, `runner`           |
 
 Every package may import `core`. `players` and `lab` are not built yet, and
 the browser client will live in a top-level `web` directory, not in a

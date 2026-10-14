@@ -70,7 +70,10 @@ night, day 1, month 1, year 1, spring
 morning, day 2, month 1, year 1, spring: Day 2 of month 1, year 1, begins.
 ```
 
-`make watch WATCH='--lang ru'` prints the same in Russian. `make map`
+`make watch WATCH='--lang ru'` prints the same in Russian. `make play`
+lets you play a band instead, on a server of its own: the same lines in
+colour, and every morning a map of what the band knows and a menu to vote
+in its council. `make map`
 draws the first window of a seed in a [pygame-ce](https://pyga.me/)
 window or into a file, a bare `make` opens a subshell with the virtualenv
 active, and `make help` lists every target.

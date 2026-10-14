@@ -2,7 +2,8 @@ from typing import Any
 
 import pytest
 
-from dominion_theory.client import band_words, follow, line, words
+from dominion_theory.client import band_words, follow, line, parts, words
+from dominion_theory.client.lines import Look
 from dominion_theory.engine import EVENTS
 
 DATE = {'year': 1, 'month': 3, 'day': 1, 'part': 'morning', 'season': 'summer'}
@@ -157,3 +158,27 @@ def test_every_event_is_spoken_in_both_languages(key: str, lang: str) -> None:
 
     assert said != key
     assert [value for value in keyed if value in said] == []
+
+
+def test_the_parts_of_a_line_carry_how_each_looks() -> None:
+    update = {
+        'seq': 7,
+        'date': DATE,
+        'events': [MONTH, {'key': 'people-lost', 'values': {'count': 2, 'cause': 'hunger'}}],
+        'changes': {'seat': {'status': 48.0}},
+    }
+
+    said = parts(update, 'en', {**BAND, 'states': ['thirst']})
+
+    assert ''.join(part.text for part in said) == line(update, 'en', {**BAND, 'states': ['thirst']})
+    assert [part.look for part in said if part.look != Look.PLAIN] == [
+        Look.DATE,
+        Look.BAND,
+        Look.BAND,
+        Look.BAND,
+        Look.STATE,
+        Look.BAND,
+        Look.STATUS,
+        Look.EVENT,
+        Look.LOSS,
+    ]

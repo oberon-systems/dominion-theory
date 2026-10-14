@@ -24,7 +24,7 @@ export PRE_COMMIT_HOME := $(CURDIR)/.pre-commit
 
 .DEFAULT_GOAL := shell
 
-.PHONY: help install lint test run watch live lives map planet maps bump major release-rc release clean shell $(PRESETS:%=planet-%) $(PRESETS:%=map-%)
+.PHONY: help install lint test run play watch live lives map planet maps bump major release-rc release clean shell $(PRESETS:%=planet-%) $(PRESETS:%=map-%)
 
 help:  ## Show the available targets
 	@echo "$(PROJECT)"
@@ -68,6 +68,16 @@ test:  ## Run the tests of the code, then redo the maps and the lives of the ban
 
 run:  ## Start the server on the loopback address
 	$(VENV)/bin/uvicorn --factory dominion_theory.api:create_app --host 127.0.0.1 --port $(PORT)
+
+# PLAY carries options of the client: make play PLAY='--lang ru --seed 42 --debug'
+# The server of the game runs on a free port for as long as the game, its log in the data directory.
+play:  ## Play a band on a server of its own: lines in colour, a map and a vote at every council
+	@port=$$($(VENV)/bin/python -c 'import socket; s = socket.socket(); s.bind(("127.0.0.1", 0)); print(s.getsockname()[1])'); \
+	data=$${DT_DATA_DIR:-data}; mkdir -p $$data; \
+	$(VENV)/bin/uvicorn --factory dominion_theory.api:create_app --host 127.0.0.1 --port $$port \
+		>$$data/play-server.log 2>&1 & \
+	server=$$!; trap 'kill $$server 2>/dev/null' EXIT; \
+	$(VENV)/bin/python -m dominion_theory.client play --server http://127.0.0.1:$$port --wait 30 $(PLAY)
 
 # WATCH carries options of the client: make watch WATCH='--lang ru --step --updates 50'
 watch:  ## Watch a new game on the running server, a line per update

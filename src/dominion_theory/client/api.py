@@ -41,6 +41,9 @@ class Api:
     def close(self) -> None:
         self._http.close()
 
+    def health(self) -> Body:
+        return self._read('GET', '/health')
+
     def language(self) -> str:
         return str(self._read('GET', '/profile')['language'])
 
@@ -60,6 +63,14 @@ class Api:
 
     def snapshot(self, game_id: str) -> Body:
         return self._read('GET', f'/games/{game_id}/snapshot')
+
+    def biomes(self, game_id: str) -> Body:
+        return self._read('GET', f'/games/{game_id}/biomes')
+
+    def map(self, game_id: str, x: int, y: int, width: int, height: int, known: int | None = None) -> Body:
+        asked = {'x': x, 'y': y, 'width': width, 'height': height, 'known': known}
+        query = '&'.join(f'{name}={value}' for name, value in asked.items() if value is not None)
+        return self._read('GET', f'/games/{game_id}/map?{query}')
 
     def clock(self, game_id: str, action: str) -> Body:
         return self._read('POST', f'/games/{game_id}/clock', {'action': action})

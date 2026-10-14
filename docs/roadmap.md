@@ -391,10 +391,10 @@ Other bands on the same map: rivals or allies.
   dogs, once they exist, add to it. The attacked band flees and loses
   people and stores, or stands and may be destroyed.
 - A band that wins may carry off young or females, and two bands may
-  merge. Their offspring may take traits of the other race, as far as
-  the two races are compatible; see [Races](#races).
-- Races that cannot mix attack each other more often, and races that can
-  less often.
+  merge. Every band is of one race until races are added at the end; then
+  offspring may take traits of the other race, as far as the two races
+  are compatible, and races that cannot mix attack each other more often;
+  see [Races](#races).
 
 **How:**
 
@@ -588,7 +588,9 @@ of heads alone.
 ### Races
 
 Six invented races, none of them human. A race is data: a set of traits,
-each a modifier over the band's rates.
+each a modifier over the band's rates. Decided by the user on 2026-10-14:
+everything is built for one race, and races are added last, when all the
+rest of the band era is ready.
 
 - Some are cleverer: they learn faster, see further or remember longer.
 - Some are stronger: they carry more and fight better.
@@ -627,7 +629,8 @@ Raised by the user:
   often and is stronger in a fight with a band, and the dogs eat and
   drink.
 
-To weigh for the band era, each learned the same way:
+Proposed for the band era and agreed in principle by the user on
+2026-10-14; the list is discussed when the item is reached:
 
 - **Fire** - from camping, most in the cold. Food goes further, and the
   cold of winter costs less.

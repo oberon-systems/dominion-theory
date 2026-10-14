@@ -1,5 +1,5 @@
 """
-The command line of the console client: watch a game, or replay its record.
+The command line of the console client: watch a game, replay its record, or live one headless.
 """
 
 import json
@@ -16,6 +16,7 @@ from websockets.exceptions import WebSocketException
 
 from ..core.errors import DominionError
 from ..i18n import FALLBACK, LANGUAGES
+from ..runner import lives
 from ..runner import replay as replay_record
 from .api import SERVER, Api, Refused
 from .lines import words
@@ -113,3 +114,19 @@ def replay(server: str, game_id: str) -> None:
     if not played.matched:
         raise click.ClickException(f'the record of {game_id} diverges at tick {played.diverged_at}')
     click.echo(f'the record of {game_id} replays: {played.game.tick} ticks, every hash matches')
+
+
+@cli.command()
+@click.option('--years', type=click.IntRange(min=1), default=lives.YEARS, show_default=True, help='Years to live.')
+@click.option('--seed', type=click.IntRange(min=0), help='Seed of the game; a random one if left out.')
+@click.option('--preset', help='Preset of the game.')
+@click.option('--set', 'given', multiple=True, metavar='PATH=VALUE', help='Override one parameter of the game.')
+def live(years: int, seed: int | None, preset: str | None, given: tuple[str, ...]) -> None:
+    """
+    Live a game with no player and no server, and print a row per year from its counters.
+    """
+    with _reported([FALLBACK]):
+        life = lives.live(seed, years, preset, _overrides(given))
+    click.echo(f'seed {life.seed}', err=True)
+    for text in life.lines():
+        click.echo(text)

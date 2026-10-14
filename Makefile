@@ -10,6 +10,9 @@ STAMP   := $(shell date +%Y%m%d-%H%M%S)
 MAPS    ?= maps/$(STAMP)
 MAPPED  := tests/planet/maps.json
 MAPS_TEST := tests/planet/test_maps.py
+LIVES   ?= lives/$(STAMP)
+LIVED   := tests/runner/lives.json
+LIVES_TEST := tests/runner/test_lives.py
 PIP     := $(VENV)/bin/pip
 
 # lint reads NUL-separated names with `read -d`, which dash's read lacks.
@@ -20,7 +23,7 @@ export PRE_COMMIT_HOME := $(CURDIR)/.pre-commit
 
 .DEFAULT_GOAL := shell
 
-.PHONY: help install lint test run watch map planet maps clean shell $(PRESETS:%=planet-%) $(PRESETS:%=map-%)
+.PHONY: help install lint test run watch live lives map planet maps clean shell $(PRESETS:%=planet-%) $(PRESETS:%=map-%)
 
 help:  ## Show the available targets
 	@echo "$(PROJECT)"
@@ -51,12 +54,16 @@ lint:  ## Run the pre-commit hooks over every file
 	xargs -0 $(VENV)/bin/pre-commit run --files
 
 # Code first: a failing test stops the run before any map is built. Then, if the planet
-# changed, its reference is rewritten and the maps are drawn; the tests of the maps come last.
-test:  ## Run the tests of the code, then redraw the maps and their reference if the planet changed
-	$(VENV)/bin/pytest -q --ignore=$(MAPS_TEST)
+# changed, its reference is rewritten and the maps are drawn; then, if the band changed,
+# its seeds are lived again. The tests of both references come last.
+test:  ## Run the tests of the code, then redo the maps and the lives of the band where they changed
+	$(VENV)/bin/pytest -q --ignore=$(MAPS_TEST) --ignore=$(LIVES_TEST)
 	@$(VENV)/bin/python -m dominion_theory.planet.tools.reference $(MAPPED) \
 		|| $(MAKE) --no-print-directory maps
 	$(VENV)/bin/pytest -q $(MAPS_TEST)
+	@$(VENV)/bin/python -m dominion_theory.runner.lives --check $(LIVED) \
+		|| $(MAKE) --no-print-directory lives
+	$(VENV)/bin/pytest -q $(LIVES_TEST)
 
 run:  ## Start the server on the loopback address
 	$(VENV)/bin/uvicorn --factory dominion_theory.api:create_app --host 127.0.0.1 --port $(PORT)
@@ -64,6 +71,15 @@ run:  ## Start the server on the loopback address
 # WATCH carries options of the client: make watch WATCH='--lang ru --step --updates 50'
 watch:  ## Watch a new game on the running server, a line per update
 	$(VENV)/bin/python -m dominion_theory.client watch --server http://127.0.0.1:$(PORT) $(WATCH)
+
+# LIVE carries options of the command: make live SEEDS='7 42' LIVE='--years 20 --set encounters.chance=0'
+live:  ## Live a game with no player for every seed of SEEDS, a row per year from its counters
+	@for seed in $(SEEDS); do \
+		$(VENV)/bin/python -m dominion_theory.client live --seed $$seed $(LIVE) || exit 1; \
+	done
+
+lives:  ## Live the reference seeds of the band anew, rewrite their reference, the tables into LIVES/report.txt
+	$(VENV)/bin/python -m dominion_theory.runner.lives $(LIVED) --out $(LIVES)
 
 # MAP carries options of the tool: make map MAP='--seed 42 --planet --out ../alpha.png'
 map:  ## Draw the first window of a seed, in a window or into a file

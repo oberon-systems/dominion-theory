@@ -89,3 +89,18 @@ def test_the_record_of_an_unknown_game_is_refused(server: str) -> None:
 
     assert result.exit_code == 1
     assert result.stderr == 'Error: There is no game alpha.\n'
+
+
+def test_a_band_with_no_food_is_lived_headless_into_a_row_for_its_last_year() -> None:
+    hungry = ('units.band.gathering.forage=0', 'units.band.start.stores.forage=0', 'encounters.chance=0')
+    result = run('live', '--years', '3', '--seed', '42', *SET, *(part for item in hungry for part in ('--set', item)))
+
+    assert result.exit_code == 0
+    assert result.stderr == 'seed 42\n'
+    assert result.stdout.splitlines() == [
+        'year  people  growth  rate  least  born  deaths  of-hunger  of-thirst  of-encounter  food  water'
+        '  moves  gathers  camps  starving  thirsty  tired  encounters  status',
+        '   1       0     -15  -100      0     0      11         11          0             0     0      0'
+        '     19        5     36        50        0      0           0      50',
+        'died at tick 60: no growth, 150 people never',
+    ]

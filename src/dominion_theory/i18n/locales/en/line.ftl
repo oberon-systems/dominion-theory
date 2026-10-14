@@ -5,6 +5,8 @@ line-people =
     }
 line-store = { NAME("resource", $resource) } { NUMBER($amount, maximumFractionDigits: 1) }
 line-status = Your standing is { NUMBER($status, maximumFractionDigits: 0) }.
+line-council = The votes: { $table }.
+line-votes = { $proposal } - { $votes }
 
 line-action-camp = camps
 line-action-gather = gathers { NAME("resource", $resource) }

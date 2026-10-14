@@ -48,7 +48,7 @@ def client(settings: Settings, service: Service) -> Iterator[TestClient]:
 @pytest.fixture
 def new_game(client: TestClient) -> Callable[..., dict[str, Any]]:
     def create(**asked: Any) -> dict[str, Any]:
-        answer = client.post(f'{PREFIX}/games', json={'overrides': SMALL, 'mode': 'step', **asked})
+        answer = client.post(f'{PREFIX}/games', json={'overrides': SMALL, 'mode': 'step', 'seated': False, **asked})
         assert answer.status_code == 201
         created: dict[str, Any] = answer.json()
         return created

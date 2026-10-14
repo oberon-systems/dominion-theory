@@ -50,8 +50,9 @@ class Api:
         seed: int | None = None,
         preset: str | None = None,
         overrides: Body | None = None,
+        seated: bool = False,
     ) -> Body:
-        asked = {'mode': mode, 'seed': seed, 'preset': preset, 'overrides': overrides or None}
+        asked = {'mode': mode, 'seed': seed, 'preset': preset, 'overrides': overrides or None, 'seated': seated}
         return self._read('POST', '/games', {name: value for name, value in asked.items() if value is not None})
 
     def game(self, game_id: str) -> Body:

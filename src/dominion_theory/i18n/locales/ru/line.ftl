@@ -6,6 +6,8 @@ line-people =
     }
 line-store = { NAME("resource", $resource) } { NUMBER($amount, maximumFractionDigits: 1) }
 line-status = Ваш вес { NUMBER($status, maximumFractionDigits: 0) }.
+line-council = Голоса: { $table }.
+line-votes = { $proposal } - { $votes }
 
 line-action-camp = стоит лагерем
 line-action-gather = собирает { NAME("resource", $resource, form: "accusative") }

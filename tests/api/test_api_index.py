@@ -19,7 +19,7 @@ SMALL = {'planet.circumference_km': 4000, 'planet.window.width': 32, 'planet.win
 DYING = {**SMALL, 'units.band.consumption_per_day.water': 100.0, 'units.band.states.thirst.loss_per_day': 0.9}
 DOOMED = {**SMALL, 'council.status.start': 1}
 STEP = ('clock', {'action': 'step'})
-REST = ('commands', {'id': 'c-1', 'kind': 'call-council', 'proposal': {'kind': 'rest'}})
+SILENT = ('commands', {'id': 'c-1', 'kind': 'vote', 'proposal': {'kind': 'abstain'}})
 
 
 @pytest.fixture
@@ -67,7 +67,7 @@ def test_the_row_follows_the_life_of_the_game(client: TestClient, new_game: NewG
 
 @pytest.mark.parametrize(
     ('overrides', 'asked', 'outcome', 'event'),
-    [(DYING, [STEP] * 5, 'died', 'band-died'), (DOOMED, [REST], 'banished', 'seat-banished')],
+    [(DYING, [STEP] * 5, 'died', 'band-died'), (DOOMED, [SILENT], 'banished', 'seat-banished')],
 )
 def test_a_game_the_rules_end_reaches_the_index(
     client: TestClient,
@@ -78,7 +78,7 @@ def test_a_game_the_rules_end_reaches_the_index(
     event: str,
 ) -> None:
     before = int(time.time())
-    game = new_game(seed=42, overrides=overrides)['id']
+    game = new_game(seed=42, overrides=overrides, seated=True)['id']
 
     with client.websocket_connect(f'{PREFIX}/games/{game}/updates?after=0') as stream:
         for address, body in asked:

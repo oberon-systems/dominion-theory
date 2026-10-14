@@ -29,7 +29,7 @@ def test_the_reference_is_the_one_of_this_band() -> None:
 def test_inputs_follow_the_band_and_of_the_council_only_the_status_it_starts_with() -> None:
     kept = lives.inputs(load_params())
 
-    for council in ({'council.status.move_worked': 9}, {'council.min_gap': {'days': 5}}):
+    for council in ({'council.status.move_worked': 9}, {'council.status.abstained': -5}):
         assert lives.inputs(load_params(overrides=council)) == kept
     band = ({'units.band.carry_kg': 7.0}, {'encounters.chance': 0.1}, {'planet.sea': 0.5})
     for changed in (*band, {'council.status.start': 60}):

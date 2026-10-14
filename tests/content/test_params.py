@@ -12,7 +12,11 @@ def months(preset: str | None = None, overrides: dict[str, object] | None = None
     return {season.name: season.months for season in load_params(preset, overrides).time.seasons}
 
 
-HALVES = {'time.day_parts': ['day', 'night'], 'units.band.decisions.night_parts': ['night']}
+HALVES = {
+    'time.day_parts': ['day', 'night'],
+    'units.band.decisions.night_parts': ['night'],
+    'council.part': 'day',
+}
 
 
 def refused(overrides: dict[str, object]) -> dict[str, object]:

@@ -9,7 +9,7 @@ import pytest
 
 from dominion_theory.core.errors import DominionError
 from dominion_theory.core.settings import Settings
-from dominion_theory.engine import Command, Pass
+from dominion_theory.engine import Command, Pass, Vote
 from dominion_theory.runner import (
     CLOCK_RUNNING,
     GAME_ENDED,
@@ -130,7 +130,7 @@ def test_the_snapshot_carries_the_last_update(service: Service) -> None:
         'seq': 3,
         'date': {'year': 1, 'month': 1, 'day': 1, 'part': 'evening', 'season': 'spring'},
         'window': asdict(runner.game.window),
-        'seat': {'name': 'player', 'unit': 1, 'status': 50.0, 'council_from': 0},
+        'seat': {'name': 'player', 'unit': 1, 'status': 50.0, 'seated': False, 'council': None},
         'units': [band.shown(0)],
         'waiting': ['player'],
     }
@@ -280,6 +280,28 @@ def test_real_time_advances_stops_on_pause_and_resumes(service: Service) -> None
         assert runner.game.tick >= stopped + 2
         assert runner.running is False
         assert runner.waiting == []
+
+    asyncio.run(scenario())
+
+
+def test_a_council_stops_the_clock_until_the_seat_votes_or_the_wait_runs_out(store: GameStore, tmp_path: Path) -> None:
+    async def scenario() -> None:
+        settings = Settings(records_dir=tmp_path, tick_ms=2, council_wait_s=0.2)
+        runner = Service(store, settings).create(seed=1, overrides=SMALL, seated=True)
+        assert isinstance(runner, RealTimeRunner)
+        assert runner.asked == ['player']
+
+        runner.resume()
+        await asyncio.sleep(0.05)
+        held = runner.game.tick
+        runner.submit(Vote(seat='player', proposal={'kind': 'abstain'}, id='c-1'))
+        voted = runner.asked
+        await updates(runner, DAY + 1)
+        runner.pause()
+
+        assert (held, voted) == (0, [])
+        assert runner.game.tick >= DAY + 1
+        assert runner.game.status == 46.0
 
     asyncio.run(scenario())
 

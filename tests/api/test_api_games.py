@@ -126,7 +126,7 @@ def test_the_snapshot_is_what_the_caller_may_see(client: TestClient, new_game: N
     assert shown == {
         'seq': 0,
         'date': START,
-        'seat': {'name': 'player', 'unit': 1, 'status': 50.0, 'council_from': 0},
+        'seat': {'name': 'player', 'unit': 1, 'status': 50.0, 'seated': False, 'council': None},
         'waiting': ['player'],
     }
     assert band == {

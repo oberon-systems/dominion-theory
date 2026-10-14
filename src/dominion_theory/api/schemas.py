@@ -70,6 +70,7 @@ class NewGame(Asked):
     preset: str | None = None
     overrides: dict[str, Any] | None = None
     mode: Mode = 'real-time'
+    seated: bool = True
 
 
 class Game(BaseModel):
@@ -146,11 +147,10 @@ Proposal = Annotated[MoveProposal | RestProposal | StayProposal, Field(discrimin
 
 class Intent(BaseModel):
     """
-    A proposal that passed, held while the tick of the game is below until.
+    A proposal the player carried against the leader, held until the next council.
     """
 
     proposal: Proposal
-    until: int
 
 
 class Reason(BaseModel):
@@ -184,20 +184,35 @@ class Unit(BaseModel):
     reason: Reason | None
 
 
+class Votes(BaseModel):
+    proposal: Proposal
+    votes: int
+
+
+class Council(BaseModel):
+    """
+    The council of the day while it sits: the others' votes and the option they lead with.
+    """
+
+    leader: Proposal | None
+    table: list[Votes]
+
+
 class Seat(BaseModel):
     name: str
     unit: int | None
     status: float
-    council_from: int
+    seated: bool
+    council: Council | None
 
 
 class SeatChange(BaseModel):
     """
-    Only what moved in the update; a key that did not move is left out.
+    Only what moved in the update; a key that did not move is left out. A council of null has risen.
     """
 
     status: float | None = None
-    council_from: int | None = None
+    council: Council | None = None
 
 
 class Snapshot(BaseModel):

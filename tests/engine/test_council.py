@@ -5,7 +5,7 @@ import numpy as np
 import pytest
 
 from dominion_theory.content import Params, load_params
-from dominion_theory.engine import CallCouncil, Game, Pass, StepResult, Window, council, decisions
+from dominion_theory.engine import Game, Pass, StepResult, Vote, Window, council, decisions
 from dominion_theory.engine import band as bands
 from dominion_theory.engine.streams import Streams
 from dominion_theory.planet import biome_names
@@ -24,13 +24,13 @@ HOME = (WEST, NORTH + 1)
 STRIPPED = [(x, y) for x in (WEST, WEST + 1) for y in range(NORTH, NORTH + 3)]
 SUMMER = 100
 NIGHT = SUMMER + 4
+DAY = 5
 CALENDAR = ('day-started', 'month-started', 'season-started', 'year-started')
 EAST = {'kind': 'move', 'towards': 'east'}
+NORTHWARD = {'kind': 'move', 'towards': 'north'}
 REST = {'kind': 'rest'}
 STAY = {'kind': 'stay-and-gather'}
-JUDGED = 15
-MOVE_HOLDS = 5
-GAP = 10
+ABSTAIN = {'kind': 'abstain'}
 
 
 @pytest.fixture
@@ -46,18 +46,27 @@ def land(
     parts: int = SUMMER,
 ) -> Game:
     """
-    A game on a hand-made window in summer, the cells of the band stripped where asked.
+    A game with a player in the seat on a hand-made window in summer, the cells of the band stripped where asked.
     """
     names = biome_names(params)
     biomes = np.array([[names.index(name) for name in row] for row in rows], dtype=np.uint8)
     rivers = np.zeros(biomes.shape, dtype=np.bool_)
-    game = Game(7, params, Streams(7), Window(0, WEST, NORTH, len(rows[0]), len(rows)), biomes, rivers)
+    window = Window(0, WEST, NORTH, len(rows[0]), len(rows))
+    game = Game(7, params, Streams(7), window, biomes, rivers, seated=True)
     game.clock.parts = parts
     for cell in stripped or []:
         for prop in ('food', 'water'):
             game.cells.lower(cell, prop, 0.9)
     game.band = bands.start(game, *at, game.day)
     return game
+
+
+def sit(game: Game, *laid: tuple[dict[str, Any], int]) -> None:
+    """
+    A council of the day with the table given, as if the morning had opened it.
+    """
+    table = [{'proposal': proposal, 'votes': votes} for proposal, votes in laid]
+    game.council = {'leader': council.leader(table), 'table': table}
 
 
 def band(game: Game) -> bands.Band:
@@ -69,8 +78,8 @@ def told(result: StepResult) -> list[tuple[str, dict[str, Any]]]:
     return [(event.key, event.values) for event in result.events if event.key not in CALENDAR]
 
 
-def call(game: Game, proposal: Any, id: str = 'c-1') -> StepResult:
-    game.submit(CallCouncil(seat='player', proposal=proposal, id=id))
+def vote(game: Game, proposal: Any, id: str = 'c-1') -> StepResult:
+    game.submit(Vote(seat='player', proposal=proposal, id=id))
     return game.step()
 
 
@@ -82,161 +91,207 @@ def said(results: list[StepResult]) -> list[tuple[str, dict[str, Any]]]:
     return [held for result in results for held in told(result)]
 
 
-def test_the_voice_and_the_agreement_needed_follow_the_document(params: Params) -> None:
-    def needed(status: float) -> float:
-        voice = council.voice(params, 15, status)
-        return (14 + voice) / 2 / 14 - voice / 14
+def judged(result: StepResult) -> list[tuple[str, dict[str, Any]]]:
+    return [held for held in told(result) if held[0].startswith('proposal-')]
 
+
+def test_the_voice_follows_the_document(params: Params) -> None:
     assert council.voice(params, 15, 50.0) == pytest.approx(3.75)
     assert council.voice(params, 15, 100.0) == pytest.approx(7.5)
     assert council.voice(params, 15, 10.0) == params.council.voice.least
-    assert (round(needed(50.0), 2), round(needed(100.0), 2)) == (0.37, 0.23)
 
 
-def test_the_second_example_of_the_document_is_voted_down(params: Params) -> None:
-    agreement = council.agreement(0.1, 0.6)
-    voice = council.voice(params, 15, 50.0)
-
-    yes, every = agreement * 14 + voice, 14 + voice
-
-    assert agreement == pytest.approx(1 / 6)
-    assert yes == pytest.approx(6.083, abs=1e-3)
-    assert every == 17.75
-    assert not yes > every / 2
+def test_the_votes_of_the_example_lie_by_the_largest_remainder() -> None:
+    assert council.votes([0.63, 0.40, 0.07], 14) == [8, 5, 1]
+    assert council.votes([0.5, 0.5], 3) == [2, 1]
+    assert council.votes([0.6, -0.2, 0.0, 0.3], 14) == [9, 0, 0, 5]
+    assert council.votes([-0.1, 0.0], 14) == [0, 0]
+    assert sum(council.votes([0.1, 0.2, 0.3, 0.4, 0.5], 14)) == 14
 
 
-@pytest.mark.parametrize(
-    ('proposed', 'best', 'agreement'),
-    [(0.7, 0.6, 1.0), (0.6, 0.6, 1.0), (-0.2, -0.2, 1.0), (-0.3, -0.2, 0.0), (-0.1, 0.5, 0.0), (0.3, 0.6, 0.5)],
-)
-def test_agreement_is_held_between_none_and_all(proposed: float, best: float, agreement: float) -> None:
-    assert council.agreement(proposed, best) == pytest.approx(agreement)
-
-
-def test_the_first_example_of_the_document_passes_walks_east_and_works(params: Params) -> None:
+def test_the_table_of_a_band_gives_every_other_one_vote_and_names_the_leader(params: Params) -> None:
     game = land(params, stripped=STRIPPED)
 
-    first = call(game, EAST, 'c-7')
-    walked = band(game).action
-    held = band(game).intent
-    later = steps(game, JUDGED - 1)
-
-    assert told(first) == [
-        ('command-accepted', {'id': 'c-7'}),
-        ('council-accepted', {'proposal': 'proposal-move-east', 'yes': 17.75, 'all': 17.75}),
-    ]
-    assert first.changes['seat'] == {'council_from': GAP}
-    assert walked == {'kind': 'move', 'towards': 'east'}
-    assert held == {'proposal': EAST, 'until': MOVE_HOLDS}
-    assert band(game).intent is None
-    assert told(later[-1]) == [('proposal-worked', {'proposal': 'proposal-move-east', 'status': 54.0})]
-    assert later[-1].changes['seat'] == {'status': 54.0}
-    assert [held for result in later[:-1] for held in told(result) if held[0].startswith('proposal-')] == []
-    assert game.counters.names[-2:] == ('status', 'councils')
-    assert later[-1].counters[-2:] == [54.0, 1]
-
-
-def own(params: Params, game: Game) -> dict[str, Any]:
+    laid = council.table(params, band(game), game.date.part, ERA)
     best = max(decisions.options(params, band(game), game.date.part, ERA), key=lambda held: held.score)
-    if best.action['kind'] == 'move':
-        return {'kind': 'move', 'towards': best.action['towards']}
-    return REST if best.action['kind'] == 'camp' else STAY
+
+    assert sum(entry['votes'] for entry in laid) == band(game).population - 1
+    assert all(entry['votes'] > 0 for entry in laid)
+    assert council.leader(laid) == {'kind': 'move', 'towards': best.action['towards']}
+    assert council.leader([]) is None
+    assert council.key(None) == 'proposal-none'
+
+
+def test_the_decisions_of_the_example() -> None:
+    laid = [{'proposal': STAY, 'votes': 8}, {'proposal': EAST, 'votes': 5}, {'proposal': REST, 'votes': 1}]
+
+    assert council.decide(laid, EAST, 3.75) == (EAST, 8.75)
+    assert council.decide(laid, NORTHWARD, 3.75) == (STAY, 3.75)
+    assert council.decide(laid, STAY, 3.75) == (STAY, 11.75)
+
+
+def test_a_tie_goes_to_the_player_and_among_the_others_to_the_fixed_order() -> None:
+    assert council.decide([{'proposal': REST, 'votes': 4}, {'proposal': EAST, 'votes': 2}], EAST, 2.0)[0] == EAST
+    others = [{'proposal': STAY, 'votes': 3}, {'proposal': REST, 'votes': 3}]
+    assert council.decide(others, NORTHWARD, 2.0)[0] == REST
+    assert council.leader(others) == STAY
+
+
+def test_the_morning_opens_the_council_and_the_seat_shows_its_table(params: Params) -> None:
+    game = land(params, stripped=STRIPPED, parts=NIGHT)
+
+    opened = game.step()
+
+    assert game.date.part == 'morning'
+    assert game.council is not None
+    assert told(opened)[-1] == ('council-opened', {'leader': council.key(game.council['leader'])})
+    assert opened.changes['seat'] == {'council': game.council}
+    assert game.seat['council'] == game.council
+    assert game.counters.row()[-1] == 1
+
+
+def test_the_council_rises_in_the_morning_tick_and_the_band_camps_through_it(params: Params) -> None:
+    game = land(params, stripped=STRIPPED)
+    sit(game, (EAST, 14))
+
+    result = vote(game, EAST)
+
+    assert told(result) == [
+        ('command-accepted', {'id': 'c-1'}),
+        ('council-followed', {'proposal': 'proposal-move-east'}),
+    ]
+    assert result.changes['seat'] == {'council': None}
+    assert band(game).action == {'kind': 'camp'}
+    assert (band(game).intent, game.judgement, game.status) == (None, None, 50.0)
+
+
+def test_silence_and_abstaining_cost_two(params: Params) -> None:
+    game = land(params)
+    sit(game, (STAY, 14))
+    silent = game.step()
+    sit(game, (STAY, 14))
+    abstained = vote(game, ABSTAIN)
+
+    assert told(silent) == [('council-abstained', {'status': 48.0})]
+    assert told(abstained)[-1] == ('council-abstained', {'status': 46.0})
+    assert abstained.changes['seat'] == {'council': None, 'status': 46.0}
+
+
+def test_an_outvoted_player_pays_one_and_the_band_decides_freely(params: Params) -> None:
+    game = land(params)
+    sit(game, (STAY, 8), (EAST, 5), (REST, 1))
+
+    result = vote(game, NORTHWARD)
+
+    assert told(result)[-1] == (
+        'council-outvoted',
+        {'proposal': 'proposal-move-north', 'winner': 'proposal-stay-and-gather', 'status': 49.0},
+    )
+    assert (band(game).intent, game.judgement) == (None, None)
+
+
+def test_the_first_example_turns_the_band_east_and_is_judged_at_the_next_council(params: Params) -> None:
+    game = land(params, stripped=STRIPPED)
+    sit(game, (STAY, 8), (EAST, 5), (REST, 1))
+
+    turned = vote(game, EAST, 'c-7')
+    later = steps(game, DAY - 1)
+
+    assert told(turned) == [
+        ('command-accepted', {'id': 'c-7'}),
+        ('council-turned', {'proposal': 'proposal-move-east', 'yes': 8.75, 'all': 17.75}),
+    ]
+    assert turned.units[0][4] == 'camp'
+    assert later[0].units[0][4] == 'move'
+    assert judged(later[-1]) == [('proposal-worked', {'proposal': 'proposal-move-east', 'status': 54.0})]
+    assert told(later[-1])[-1][0] == 'council-opened'
+    assert band(game).intent is None
+    assert game.judgement is None
+
+
+def test_an_empty_seat_has_no_council_and_the_band_never_stops_for_one(params: Params) -> None:
+    game = land(params, stripped=STRIPPED, parts=NIGHT)
+    game.seated = False
+
+    night, morning = game.step(), game.step()
+
+    assert game.council is None
+    assert 'council-opened' not in [key for key, _ in told(night)]
+    assert (night.changes['seat'], morning.changes['seat']) == ({}, {})
+    assert morning.units[0][4] != 'camp'
+    assert (game.status, game.asking) == (50.0, [])
+    assert told(vote(game, REST))[0] == ('command-refused', {'id': 'c-1', 'reason': 'refused-no-council'})
 
 
 @pytest.mark.parametrize(
-    ('stripped', 'parts', 'fed', 'kind'),
-    [(STRIPPED, SUMMER, False, 'move'), (None, SUMMER, False, 'stay-and-gather'), (None, NIGHT, True, 'rest')],
+    ('proposal', 'reason'),
+    [
+        ('rest', 'refused-unknown-command'),
+        ({'kind': 'abstain', 'towards': 'east'}, 'refused-unknown-command'),
+        ({'kind': 'move', 'towards': 'west'}, 'refused-no-such-direction'),
+    ],
 )
-def test_a_proposal_the_band_would_choose_itself_always_passes(
-    params: Params, stripped: list[tuple[int, int]] | None, parts: int, fed: bool, kind: str
-) -> None:
-    game = land(params, stripped=stripped, parts=parts)
-    if fed:
-        band(game).stores = {'forage': [[0.0, 45.0]], 'water': [[0.0, 45.0]]}
-    proposal = own(params, game)
-
-    for status in (1.0, 50.0):
-        yes, every = council.vote(params, band(game), proposal, status, game.date.part, ERA)
-        assert yes == every
-    assert proposal['kind'] == kind
-    assert told(call(game, proposal))[1][0] == 'council-accepted'
-
-
-def test_a_council_too_soon_is_refused_and_starts_no_gap(params: Params) -> None:
+def test_a_vote_the_rules_do_not_take_is_refused(params: Params, proposal: Any, reason: str) -> None:
     game = land(params)
-    call(game, REST)
+    sit(game, (STAY, 14))
 
-    refused = call(game, REST, 'c-2')
-    steps(game, GAP - 3)
-    still = call(game, REST, 'c-3')
+    result = vote(game, proposal)
 
-    assert told(refused) == [('command-refused', {'id': 'c-2', 'reason': 'refused-council-too-soon'})]
-    assert refused.changes['seat'] == {}
-    assert told(still)[0][1]['reason'] == 'refused-council-too-soon'
-    assert game.council_from == GAP
+    assert told(result)[0] == ('command-refused', {'id': 'c-1', 'reason': reason})
 
 
-def test_a_council_while_a_proposal_waits_for_its_judgement_is_refused(params: Params) -> None:
-    game = land(params, stripped=STRIPPED)
-    call(game, EAST)
-    steps(game, GAP - 1)
-
-    refused = call(game, REST, 'c-2')
-
-    assert game.judgement is not None
-    assert told(refused) == [('command-refused', {'id': 'c-2', 'reason': 'refused-proposal-pending'})]
-
-
-def test_a_way_closed_on_three_sides_is_refused_and_the_next_council_may_follow(params: Params) -> None:
+def test_a_vote_without_a_council_or_a_second_vote_is_refused(params: Params) -> None:
     game = land(params)
+    alone = vote(game, REST)
+    sit(game, (STAY, 14))
+    game.submit(Vote(seat='player', proposal=STAY, id='c-2'))
+    game.submit(Vote(seat='player', proposal=REST, id='c-3'))
 
-    refused = call(game, {'kind': 'move', 'towards': 'west'})
-    accepted = call(game, {'kind': 'move', 'towards': 'north-west'}, 'c-2')
+    twice = game.step()
 
-    assert told(refused) == [('command-refused', {'id': 'c-1', 'reason': 'refused-no-such-direction'})]
-    assert (refused.changes['seat'], told(accepted)[0]) == ({}, ('command-accepted', {'id': 'c-2'}))
-
-
-def test_a_proposal_the_rules_do_not_know_is_an_unknown_command(params: Params) -> None:
-    game = land(params)
-
-    refused = call(game, 'rest')
-
-    assert told(refused) == [('command-refused', {'id': 'c-1', 'reason': 'refused-unknown-command'})]
+    assert told(alone) == [('command-refused', {'id': 'c-1', 'reason': 'refused-no-council'})]
+    assert told(twice)[:3] == [
+        ('command-accepted', {'id': 'c-2'}),
+        ('command-refused', {'id': 'c-3', 'reason': 'refused-already-voted'}),
+        ('council-followed', {'proposal': 'proposal-stay-and-gather'}),
+    ]
 
 
 def test_a_banished_seat_is_refused_whatever_it_asks(params: Params) -> None:
     game = land(params)
     game.status = 0.0
+    sit(game, (STAY, 14))
     game.submit(Pass(seat='player', id='c-1'))
-    game.submit(CallCouncil(seat='player', proposal=REST, id='c-2'))
+    game.submit(Vote(seat='player', proposal=REST, id='c-2'))
 
     result = game.step()
 
-    assert [values['reason'] for _, values in told(result)] == ['refused-seat-banished'] * 2
+    reasons = [values['reason'] for key, values in told(result) if key == 'command-refused']
+
+    assert reasons == ['refused-seat-banished'] * 2
+    assert game.asking == []
 
 
-def test_a_rest_holds_while_the_food_runs_out_and_always_works(params: Params) -> None:
-    game = land(params, parts=NIGHT)
-    call(game, REST)
+def test_a_rest_carried_holds_while_the_food_runs_out_and_always_works(params: Params) -> None:
+    game = land(params)
+    sit(game, (STAY, 2))
     band(game).stores = {}
 
-    results = steps(game, 9)
+    results = [vote(game, REST), *steps(game, DAY - 1)]
 
     assert {result.units[0][4] for result in results} == {'camp'}
     assert ('band-state-began', {'state': 'state-thirst'}) in said(results)
-    assert told(results[-1])[-1] == ('proposal-worked', {'proposal': 'proposal-rest', 'status': 52.0})
-    assert band(game).intent is None
+    assert judged(results[-1]) == [('proposal-worked', {'proposal': 'proposal-rest', 'status': 52.0})]
 
 
 def test_an_intent_to_stay_never_moves_and_one_to_rest_never_gathers(params: Params) -> None:
-    game = land(params, stripped=STRIPPED)
-    hungry = land(params)
-    band(game).intent = {'proposal': STAY, 'until': 100}
-    band(hungry).intent = {'proposal': REST, 'until': 100}
+    game = land(params, stripped=STRIPPED, parts=SUMMER + 1)
+    hungry = land(params, parts=SUMMER + 1)
+    band(game).intent = {'proposal': STAY}
+    band(hungry).intent = {'proposal': REST}
 
-    kinds = {result.units[0][4] for result in steps(game, 10)}
-    rested = {result.units[0][4] for result in steps(hungry, 10)}
+    kinds = {result.units[0][4] for result in steps(game, DAY - 1)}
+    rested = {result.units[0][4] for result in steps(hungry, DAY - 1)}
 
     assert 'move' not in kinds
     assert rested == {'camp'}
@@ -244,14 +299,14 @@ def test_an_intent_to_stay_never_moves_and_one_to_rest_never_gathers(params: Par
 
 def test_a_move_goes_round_a_closed_way_and_ends_when_all_three_are_closed(params: Params) -> None:
     rows = (('grass', 'grass', 'water'), ('grass', 'grass', 'water'), ('grass', 'grass', 'grass'))
-    game = land(params, at=(WEST + 1, NORTH + 1), rows=rows, stripped=STRIPPED)
-    band(game).intent = {'proposal': EAST, 'until': 100}
+    game = land(params, at=(WEST + 1, NORTH + 1), rows=rows, stripped=STRIPPED, parts=SUMMER + 1)
+    band(game).intent = {'proposal': EAST}
 
     way = decisions.way(params, band(game), 'east', ERA)
     game.step()
     walked = band(game).action
     band(game).x, band(game).y = WEST + 1, NORTH
-    band(game).intent = {'proposal': EAST, 'until': 100}
+    band(game).intent = {'proposal': EAST}
     band(game).progress, band(game).target = 0.0, None
     ended = game.step()
 
@@ -264,10 +319,10 @@ def test_a_move_goes_round_a_closed_way_and_ends_when_all_three_are_closed(param
 @pytest.mark.parametrize(
     ('proposal', 'lost', 'now', 'verdict'),
     [
-        (EAST, {}, 1.0, 'worked'),
-        (EAST, {}, 0.7, 'failed'),
-        (EAST, {'hunger': 1}, 2.0, 'failed'),
-        (EAST, {'encounter': 2, 'thirst': 1}, 2.0, 'disaster'),
+        (EAST, {}, 0.5, 'worked'),
+        (EAST, {}, 0.2, 'failed'),
+        (EAST, {'hunger': 1}, 0.9, 'failed'),
+        (EAST, {'encounter': 2, 'thirst': 1}, 0.9, 'disaster'),
         (REST, {'hunger': 5}, 0.0, 'worked'),
         (STAY, {'hunger': 5}, 0.0, 'worked'),
         (STAY, {'encounter': 1}, 2.0, 'failed'),
@@ -277,7 +332,7 @@ def test_a_move_goes_round_a_closed_way_and_ends_when_all_three_are_closed(param
 def test_the_verdicts_of_the_document(
     params: Params, proposal: dict[str, Any], lost: dict[str, int], now: float, verdict: str
 ) -> None:
-    judgement = {'proposal': proposal, 'closes': 0, 'population': 15, 'supply': 1.0, 'lost': lost}
+    judgement = {'proposal': proposal, 'population': 15, 'worth': 0.3, 'lost': lost}
 
     assert council.verdict(params, judgement, now) == verdict
 
@@ -298,60 +353,60 @@ def test_what_moves_status(params: Params, proposal: dict[str, Any], verdict: st
     assert council.amount(params, proposal, verdict) == amount
 
 
-def test_supply_is_the_lesser_of_food_and_water_held_at_the_cap(params: Params) -> None:
-    game = land(params)
+def test_the_worth_of_the_land_is_weighed_by_the_needs_given(params: Params) -> None:
+    game = land(params, stripped=STRIPPED)
+    hungry = {'hunger': 1.0, 'thirst': 0.0, 'rest': 0.0}
+    stripped = council.worth(params, band(game), hungry)
+    band(game).x = WEST + 3
+    bands.look(game, band(game), game.day)
 
-    full = council.supply(params, band(game))
-    band(game).stores = {'forage': [[0.0, 7.5]], 'water': [[0.0, 60.0]]}
-
-    assert (full, council.supply(params, band(game))) == (1.0, 0.5)
-    band(game).stores = {'forage': [[0.0, 90.0]], 'water': [[0.0, 90.0]]}
-    assert council.supply(params, band(game)) == 2.0
+    assert council.worth(params, band(game), hungry) > stripped
+    assert council.worth(params, band(game), {'hunger': 0.0, 'thirst': 0.0, 'rest': 0.0}) < 0
 
 
-def test_staying_fails_on_an_encounter(params: Params) -> None:
+def test_staying_carried_fails_on_an_encounter(params: Params) -> None:
     struck = load_params(
         overrides={
             **SMALL,
             'encounters.chance': 1.0,
             'encounters.kinds.predator.loss.min': 0.05,
             'encounters.kinds.predator.loss.max': 0.05,
+            'biomes.forest.eras.band.properties.threat.base': 1.0,
             'council.judgement.disaster': 1.0,
         }
     )
     game = land(struck, at=(WEST + 3, NORTH + 1))
+    sit(game, (REST, 2))
 
-    results = [call(game, STAY), *steps(game, 9)]
+    results = [vote(game, STAY), *steps(game, DAY - 1)]
     taken = sum(values['lost'] for key, values in said(results) if key == 'encounter')
+    verdict = ('proposal-failed', {'proposal': 'proposal-stay-and-gather', 'lost': taken, 'status': 44.0})
 
-    assert said(results)[1][0] == 'council-accepted'
+    assert said(results)[1][0] == 'council-turned'
     assert taken > 0
-    assert told(results[-1])[-1] == (
-        'proposal-failed',
-        {'proposal': 'proposal-stay-and-gather', 'lost': taken, 'status': 44.0},
-    )
+    assert judged(results[-1]) == [verdict]
 
 
 def test_status_is_held_at_a_hundred(params: Params) -> None:
-    game = land(params, parts=NIGHT)
+    game = land(params)
     game.status = 99.0
-    call(game, REST)
+    sit(game, (STAY, 2))
 
-    results = steps(game, 9)
+    results = [vote(game, REST), *steps(game, DAY - 1)]
 
-    assert told(results[-1])[-1] == ('proposal-worked', {'proposal': 'proposal-rest', 'status': 100.0})
-    assert results[-1].changes['seat'] == {'status': 100.0}
+    assert judged(results[-1]) == [('proposal-worked', {'proposal': 'proposal-rest', 'status': 100.0})]
+    assert results[-1].changes['seat']['status'] == 100.0
 
 
-def test_banishment_ends_the_game_and_spares_the_band(params: Params) -> None:
+def test_banishment_by_silence_ends_the_game_and_spares_the_band(params: Params) -> None:
     game = land(params)
     game.status = 2.0
+    sit(game, (STAY, 14))
 
-    result = call(game, {'kind': 'move', 'towards': 'south'})
-    later = call(game, REST, 'c-2')
+    result = game.step()
+    later = vote(game, REST, 'c-2')
 
-    assert [key for key, _ in told(result)] == ['command-accepted', 'council-declined', 'seat-banished']
-    assert told(result)[1][1]['status'] == 0.0
+    assert told(result) == [('council-abstained', {'status': 0.0}), ('seat-banished', {})]
     assert (game.over, game.outcome, game.status) == (True, 'banished', 0.0)
     assert game.band is not None
     assert told(later) == [('command-refused', {'id': 'c-2', 'reason': 'refused-seat-banished'})]
@@ -359,32 +414,37 @@ def test_banishment_ends_the_game_and_spares_the_band(params: Params) -> None:
 
 def test_the_seat_judgement_and_intent_are_in_the_snapshot_and_restore_to_the_same_verdict(params: Params) -> None:
     game = land(params, stripped=STRIPPED)
-    call(game, EAST)
-    steps(game, 3)
+    sit(game, (STAY, 8), (EAST, 5), (REST, 1))
+    vote(game, EAST)
+    steps(game, 2)
 
     snapshot = json.loads(json.dumps(game.snapshot(), default=lambda grid: grid.tolist()))
     copy = Game.restore(snapshot)
 
-    assert snapshot['seat'] == {'name': 'player', 'unit': 1, 'status': 50.0, 'council_from': GAP}
+    assert snapshot['seat'] == {'name': 'player', 'unit': 1, 'status': 50.0, 'seated': True, 'council': None}
     assert snapshot['judgement']['proposal'] == EAST
-    assert snapshot['units'][0]['intent'] == {'proposal': EAST, 'until': MOVE_HOLDS}
+    assert snapshot['units'][0]['intent'] == {'proposal': EAST}
     assert copy.state_hash() == game.state_hash()
-    assert [told(result) for result in steps(copy, JUDGED - 4)] == [told(result) for result in steps(game, JUDGED - 4)]
+    assert [told(result) for result in steps(copy, 2)] == [told(result) for result in steps(game, 2)]
     assert copy.state_hash() == game.state_hash()
+    assert copy.council == game.council is not None
 
 
-def test_a_year_with_councils_gives_the_same_hashes_twice(params: Params) -> None:
-    said_here = [EAST, REST, STAY, {'kind': 'move', 'towards': 'south-west'}]
+def test_a_year_of_votes_gives_the_same_hashes_twice(params: Params) -> None:
+    said_here = [EAST, REST, STAY, ABSTAIN, {'kind': 'move', 'towards': 'south-west'}]
 
     def year(game: Game) -> tuple[list[str], float, int]:
         found = []
         for tick in range(params.time.parts_per_day * params.time.days_per_year):
-            if tick % 37 == 0:
-                game.submit(CallCouncil(seat='player', proposal=said_here[tick // 37 % len(said_here)]))
+            if game.council is not None and tick % 3:
+                game.submit(Vote(seat='player', proposal=said_here[tick // 5 % len(said_here)]))
             found.append(game.step().hash)
+            if game.over:
+                break
         return found, game.status, int(game.counters.row()[-1])
 
-    first = year(Game.create(seed=7, params=params))
+    first = year(Game.create(seed=7, params=params, seated=True))
 
-    assert first == year(Game.create(seed=7, params=params))
+    assert first == year(Game.create(seed=7, params=params, seated=True))
     assert first[2] > 0
+    assert first[1] != params.council.status.start

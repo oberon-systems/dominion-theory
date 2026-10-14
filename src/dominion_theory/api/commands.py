@@ -8,7 +8,7 @@ from typing import Any
 from ..core.errors import DominionError
 from ..engine import Command
 from ..engine.band import DIRECTIONS
-from ..engine.commands import CALL_COUNCIL, MOVE, PASS, PROPOSALS
+from ..engine.commands import ABSTAIN, MOVE, PASS, PROPOSALS, VOTE
 from .errors import COMMAND_INVALID
 
 
@@ -16,17 +16,19 @@ def _nothing(fields: Mapping[str, Any]) -> bool:
     return not fields
 
 
-def _council(fields: Mapping[str, Any]) -> bool:
+def _vote(fields: Mapping[str, Any]) -> bool:
     proposal = fields.get('proposal')
     if set(fields) != {'proposal'} or not isinstance(proposal, Mapping):
         return False
     kind = proposal.get('kind')
+    if kind == ABSTAIN:
+        return set(proposal) == {'kind'}
     if not isinstance(kind, str) or kind not in PROPOSALS or set(proposal) != {'kind', *PROPOSALS[kind]}:
         return False
     return kind != MOVE or (isinstance(proposal['towards'], str) and proposal['towards'] in DIRECTIONS)
 
 
-FORMS: dict[str, Callable[[Mapping[str, Any]], bool]] = {PASS: _nothing, CALL_COUNCIL: _council}
+FORMS: dict[str, Callable[[Mapping[str, Any]], bool]] = {PASS: _nothing, VOTE: _vote}
 
 
 def read_command(seat: str, envelope: Mapping[str, Any]) -> Command:

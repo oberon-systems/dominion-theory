@@ -1,6 +1,6 @@
 from .band import Band
 from .clock import Clock, Date
-from .commands import CallCouncil, Command, Pass
+from .commands import Command, Pass, Vote
 from .events import EVENTS, REASONS, Event
 from .game import PHASES, Game, StepResult, Window
 
@@ -9,7 +9,6 @@ __all__ = [
     'PHASES',
     'REASONS',
     'Band',
-    'CallCouncil',
     'Clock',
     'Command',
     'Date',
@@ -17,5 +16,6 @@ __all__ = [
     'Game',
     'Pass',
     'StepResult',
+    'Vote',
     'Window',
 ]

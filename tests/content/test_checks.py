@@ -3,7 +3,11 @@ import pytest
 from dominion_theory.content import load_params
 from dominion_theory.core.errors import DominionError
 
-HALVES = {'time.day_parts': ['day', 'night'], 'units.band.decisions.night_parts': ['night']}
+HALVES = {
+    'time.day_parts': ['day', 'night'],
+    'units.band.decisions.night_parts': ['night'],
+    'council.part': 'day',
+}
 
 
 def refused(overrides: dict[str, object]) -> dict[str, object]:

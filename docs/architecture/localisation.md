@@ -71,9 +71,9 @@ belongs to.
 | `time-`     | `time-season-winter`         | name of a season                 |
 | `biome-`    | `biome-forest`               | name of a biome                  |
 | `unit-`     | `unit-band-state-thirst`     | name of a state of a band        |
-| `council-`  | `council-accepted`           | an event                         |
+| `council-`  | `council-turned`             | an event                         |
 | `proposal-` | `proposal-move-east`         | "we go where the sun rises"      |
-| `refused-`  | `refused-council-too-soon`   | why a command was refused        |
+| `refused-`  | `refused-no-council`         | why a command was refused        |
 | `error-`    | `error-game-not-found`       | an error of the API              |
 | `ui-`       | `ui-pause`                   | a word of the client             |
 

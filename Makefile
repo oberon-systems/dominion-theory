@@ -14,6 +14,7 @@ LIVES   ?= lives/$(STAMP)
 LIVED   := tests/runner/lives.json
 LIVES_TEST := tests/runner/test_lives.py
 PIP     := $(VENV)/bin/pip
+CZ      := $(VENV)/bin/cz
 
 # lint reads NUL-separated names with `read -d`, which dash's read lacks.
 SHELL := /bin/bash
@@ -23,7 +24,7 @@ export PRE_COMMIT_HOME := $(CURDIR)/.pre-commit
 
 .DEFAULT_GOAL := shell
 
-.PHONY: help install lint test run watch live lives map planet maps clean shell $(PRESETS:%=planet-%) $(PRESETS:%=map-%)
+.PHONY: help install lint test run watch live lives map planet maps bump major release-rc release clean shell $(PRESETS:%=planet-%) $(PRESETS:%=map-%)
 
 help:  ## Show the available targets
 	@echo "$(PROJECT)"
@@ -111,6 +112,30 @@ maps:  ## Write the planet and the first window as pictures, timed: the default 
 			done; \
 		done; \
 	done 2>&1 | tee $(MAPS)/report.txt
+
+# Versions are 0.MILESTONE.PATCH until 1.0.0: 0.1 is the band era with the console client, 0.2 the web.
+# A bump shows its dry run first and asks; .cz.yaml refuses a cz bump that does not come from here.
+define bump
+	@$(CZ) bump --yes --changelog --dry-run $(1) && \
+	read -r -p 'Bump the version as shown above? [N/y] ' answer && \
+	if [ "$$answer" = y ] || [ "$$answer" = Y ]; then DT_BUMP=make $(CZ) bump --yes --changelog $(1); \
+	else echo 'Nothing was bumped.'; fi
+endef
+
+bump:  ## Bump the patch of the version, write the changelog, commit and tag, after a dry run
+	$(call bump,--increment PATCH)
+
+major:  ## Bump the milestone of the version (0.1, 0.2 and on), after a dry run
+	$(call bump,--increment MINOR)
+
+# Closed until the game is ready for 1.0.0; opening it also turns major_version_zero off in .cz.yaml.
+release-rc:  ## Bump to the next candidate of 1.0.0: rc0, rc1 and on (closed for now)
+	@echo 'release-rc is closed until the game is ready for 1.0.0' >&2; exit 1
+	$(call bump,--increment MAJOR --prerelease rc)
+
+release:  ## Bump the major version: 1.0.0 and on (closed for now)
+	@echo 'release is closed until the game is ready for 1.0.0' >&2; exit 1
+	$(call bump,--increment MAJOR)
 
 clean:  ## Remove the virtualenv, the hook environments and the build output
 	rm -rf $(VENV) .pre-commit build dist src/*.egg-info

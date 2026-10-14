@@ -14,6 +14,7 @@ exists: the server, the console client and the map tool.
 - [The data directory](#the-data-directory)
 - [Look at a map](#look-at-a-map)
 - [Commit](#commit)
+- [Version](#version)
 - [Clean up](#clean-up)
 
 ___
@@ -224,6 +225,7 @@ The server reads its settings from the environment, with the prefix
 | `DT_STORE_URL`    | empty                       | empty is the in-process store          |
 | `DT_STORE_TTL`    | `7d`                        | how long an untouched game is kept     |
 | `DT_TICK_MS`      | `500`                       | length of a tick in real time          |
+| `DT_COUNCIL_WAIT_S` | `30`                      | how long a council waits for the player |
 | `DT_UPDATES_KEPT` | `512`                       | updates kept for clients that return   |
 | `DT_SPECTATOR`    | `true`                      | whether the spectator view is offered  |
 
@@ -375,6 +377,34 @@ a hook. From the subshell:
 
 ```bash
 cz commit
+```
+
+___
+
+## Version
+
+The version is `0.MILESTONE.PATCH` until the game reaches 1.0.0: 0.1 is
+the band era with the console client and some gameplay, 0.2 the web. A
+bump first shows its dry run with the changelog it would write, asks
+`[N/y]`, and only on `y` writes the changelog, the version in `.cz.yaml`
+and `pyproject.toml`, commits and tags.
+
+A version is moved only through `make`. A `cz bump` run by hand is
+refused by a hook of `.cz.yaml`, which puts the version back.
+
+| Target            | Moves                         | Example         |
+|-------------------|-------------------------------|-----------------|
+| `make bump`       | the patch                     | 0.1.3 to 0.1.4  |
+| `make major`      | the milestone                 | 0.1.4 to 0.2.0  |
+| `make release-rc` | the next candidate of 1.0.0   | 1.0.0-rc0, rc1  |
+| `make release`    | the major version             | 1.0.0           |
+
+`release-rc` and `release` are closed and stop with a message until the
+game is ready for 1.0.0. Opening them also sets `major_version_zero` to
+false in `.cz.yaml`.
+
+```bash
+make bump
 ```
 
 ___

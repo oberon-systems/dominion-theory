@@ -10,7 +10,8 @@ from dominion_theory.client import Api, cli, follow, line
 YEAR = 500
 STEP_MODE = 'step'
 WINDOW = 10
-STAY = {'id': 'c-1', 'kind': 'call-council', 'proposal': {'kind': 'stay-and-gather'}}
+DAY = 5
+REST = {'id': 'c-1', 'kind': 'vote', 'proposal': {'kind': 'rest'}}
 # A band that needs nothing, sees nothing and meets nothing: it camps, so the frame is tested alone.
 QUIET = (
     'units.band.sight=0',
@@ -22,6 +23,8 @@ QUIET = (
 PLANET = ('planet.circumference_km=4000', 'planet.window.width=32', 'planet.window.height=16')
 SMALL = tuple(part for given in (*PLANET, *QUIET) for part in ('--set', given))
 SIZE = {'planet.circumference_km': 4000, 'planet.window.width': 32, 'planet.window.height': 16}
+# A voice that outweighs the whole band, so that what the player says is what the council does.
+LOUD = {**SIZE, 'council.voice.least': 20.0}
 SPOKEN = {
     'en': {
         4: (
@@ -81,20 +84,8 @@ def test_a_game_year_is_played_printed_and_replayed(server: str, lang: str) -> N
 
 
 COUNCIL = {
-    'en': (
-        'midday, day 1, month 1, year 1, spring: 15 people, forage 43.4, water 15, gathers forage. '
-        'Command c-1 was accepted. The council agreed: we stay, we are short of food. 17.8 voices of 17.8 were for it.',
-        'morning, day 3, month 1, year 1, spring: 15 people, forage 38.6, water 21.4, camps. Your standing is 53. '
-        'Command pass-9 was accepted. It went well: we stay, we are short of food. Your standing is now 53. '
-        'Day 3 of month 1, year 1, begins.',
-    ),
-    'ru': (
-        'полдень, день 1, месяц 1, год 1, весна: 15 человек, подножный корм 43,4, вода 15, собирает подножный корм. '
-        'Команда c-1 принята. Совет согласился: остаёмся: нам не хватает еды. За — 17,8 голосов из 17,8.',
-        'утро, день 3, месяц 1, год 1, весна: 15 человек, подножный корм 38,6, вода 21,4, стоит лагерем. Ваш вес 53. '
-        'Команда pass-9 принята. Всё вышло хорошо: остаёмся: нам не хватает еды. Ваш вес теперь 53. '
-        'Начался день 3 месяца 1, год 1.',
-    ),
+    'en': ('You turned the band: we rest here.', 'It went well: we rest here. Your standing is now 52.', 'The votes: '),
+    'ru': ('Вы повернули общину: отдыхаем здесь.', 'Всё вышло хорошо: отдыхаем здесь. Ваш вес теперь 52.', 'Голоса: '),
 }
 
 
@@ -114,9 +105,9 @@ def played(api: Api, game: str, lang: str) -> tuple[list[dict[str, Any]], list[s
 
 
 @pytest.mark.parametrize('lang', ['en', 'ru'])
-def test_a_proposal_bends_the_band_and_its_verdict_moves_the_status(api: Api, lang: str) -> None:
-    called, free = (api.create(STEP_MODE, 42, overrides=SIZE)['id'] for _ in range(2))
-    api.command(called, STAY)
+def test_a_vote_that_turns_the_band_bends_it_and_its_verdict_moves_the_status(api: Api, lang: str) -> None:
+    called, free = (api.create(STEP_MODE, 42, overrides=LOUD, seated=True)['id'] for _ in range(2))
+    api.command(called, REST)
     api.command(free, {'id': 'pass-0', 'kind': 'pass'})
     for seq in range(1, WINDOW):
         for game in (called, free):
@@ -124,11 +115,12 @@ def test_a_proposal_bends_the_band_and_its_verdict_moves_the_status(api: Api, la
 
     updates, lines, actions = played(api, called, lang)
     alone = played(api, free, lang)[2]
+    turned, judged, table = COUNCIL[lang]
 
-    assert {action['kind'] for action in actions} <= {'gather', 'camp'}
-    assert 'move' in {action['kind'] for action in alone}
-    assert actions != alone
-    assert updates[0]['changes']['seat'] == {'council_from': WINDOW}
-    assert updates[-1]['changes']['seat'] == {'status': 53.0}
-    assert (lines[0], lines[-1]) == COUNCIL[lang]
-    assert api.snapshot(called)['seat']['status'] == 53.0
+    assert {action['kind'] for action in actions[:DAY]} == {'camp'}
+    assert {action['kind'] for action in alone[1:DAY]} != {'camp'}
+    assert updates[0]['changes']['seat'] == {'council': None}
+    assert updates[DAY - 1]['changes']['seat']['status'] == 52.0
+    assert turned in lines[0]
+    assert judged in lines[DAY - 1] and table in lines[DAY - 1]
+    assert api.snapshot(called)['seat']['seated'] is True

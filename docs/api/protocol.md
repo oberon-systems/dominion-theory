@@ -117,7 +117,7 @@ after it.
   "seq": 311,
   "date": {"year": 1, "month": 7, "day": 3, "part": "evening", "season": "autumn"},
   "window": {"scale": 0, "x": 2040, "y": 610, "width": 512, "height": 256},
-  "seat": {"name": "player", "unit": 1, "status": 47.0, "council_from": 318},
+  "seat": {"name": "player", "unit": 1, "status": 47.0, "seated": true, "council": null},
   "units": [
     {
       "id": 1,
@@ -146,7 +146,24 @@ not start at the origin; see
 - **`unit`** - the id of the seat's band, `null` once the band is gone.
 - **`status`** - the player's weight in the council, 0 to 100; see
   [Indirect control](../game/indirect_control.md#status).
-- **`council_from`** - the tick from which the next council may be called.
+- **`seated`** - whether a player sits in the seat; a game with an empty
+  seat has no council.
+- **`council`** - the council of the day while it sits, `null` otherwise:
+  the `leader`, the option the others lean to or `null`, and the `table`,
+  every option with its votes, as
+  [Indirect control](../game/indirect_control.md#the-table-of-votes)
+  lays them out.
+
+```json
+{
+  "leader": {"kind": "stay-and-gather"},
+  "table": [
+    {"proposal": {"kind": "stay-and-gather"}, "votes": 8},
+    {"proposal": {"kind": "move", "towards": "east"}, "votes": 5},
+    {"proposal": {"kind": "rest"}, "votes": 1}
+  ]
+}
+```
 
 ### A unit
 
@@ -190,7 +207,7 @@ Each message on the stream is one update.
   "seq": 312,
   "date": {"year": 1, "month": 7, "day": 3, "part": "night", "season": "autumn"},
   "events": [
-    {"key": "council-accepted", "values": {"proposal": "proposal-rest", "yes": 17.0, "all": 17.5}}
+    {"key": "council-turned", "values": {"proposal": "proposal-rest", "yes": 8.75, "all": 17.75}}
   ],
   "changes": {
     "units": [
@@ -203,7 +220,7 @@ Each message on the stream is one update.
         "fatigue": 0.0,
         "states": [],
         "action": {"kind": "camp"},
-        "intent": {"proposal": {"kind": "rest"}, "until": 322},
+        "intent": {"proposal": {"kind": "rest"}},
         "reason": {"action": "camp", "need": "rest", "score": 0.42, "pull": null}
       }
     ],
@@ -213,7 +230,7 @@ Each message on the stream is one update.
       {"x": 2301, "y": 744, "biome": "forest", "river": false, "water": 0.6,
        "food": 0.36, "threat": 0.4, "passability": 0.6, "seen": 63}
     ],
-    "seat": {"council_from": 322}
+    "seat": {"council": null}
   },
   "waiting": ["player"]
 }
@@ -237,8 +254,8 @@ Each message on the stream is one update.
   from before: its biome, its river, the value of every property of the
   era as the band saw it, and the day it was seen.
 - **`changes.seat`** carries only the keys of the seat that moved:
-  `council_from` when a council was called, `status` when the status
-  changed.
+  `council` when the council of the day sat down, with its table, or
+  rose, as `null`; `status` when the status changed.
 - **`waiting`** names the seats a game in step mode is waiting for.
 
 An update is not a tick. The client is never told how many steps of the

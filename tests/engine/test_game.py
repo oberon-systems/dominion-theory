@@ -5,7 +5,7 @@ import numpy as np
 import pytest
 
 from dominion_theory.content import Params, load_params
-from dominion_theory.engine import PHASES, CallCouncil, Command, Game, Pass, StepResult, Window
+from dominion_theory.engine import PHASES, Command, Game, Pass, StepResult, Vote, Window
 from dominion_theory.engine.clock import DAY_STARTED, MONTH_STARTED, SEASON_STARTED, YEAR_STARTED, Date
 from dominion_theory.engine.game import _Tick
 from dominion_theory.planet import Planet, place
@@ -31,7 +31,7 @@ def test_overview_example_runs_as_written() -> None:
     params = load_params()
 
     game = Game.create(seed=42, params=params)
-    game.submit(CallCouncil(seat='player', proposal='rest'))
+    game.submit(Vote(seat='player', proposal='rest'))
     result = game.step()
     copy = Game.restore(game.snapshot())
 
@@ -117,7 +117,7 @@ def test_snapshot_does_not_share_its_arrays(params: Params) -> None:
 def test_unreadable_snapshot_is_refused(params: Params) -> None:
     snapshot = Game.create(seed=11, params=params).snapshot()
 
-    assert snapshot['format'] == 4
+    assert snapshot['format'] == 5
     with pytest.raises(ValueError, match='format 1'):
         Game.restore({**snapshot, 'format': 1})
 

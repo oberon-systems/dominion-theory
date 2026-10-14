@@ -1,0 +1,1150 @@
+default, seed 1: the window at 2453, 425, try 6 of 128, 0 needs missed
+rivers: 330
+needs missed by the tries so far: {'land': 4, 'forest': 4, 'hills': 4, 'outcrops': 3, 'rivers': 3}
+biome       of all  of land
+ice           7.0%
+shallows     10.1%
+water        44.7%
+mountain      3.2%     8.4%
+snow          1.0%     2.7%
+tundra        1.2%     3.0%
+outcrops      1.6%     4.3%
+hills         8.6%    22.5%
+swamp         0.3%     0.7%
+floodplain    0.6%     1.5%
+dunes         0.6%     1.6%
+desert        2.2%     5.7%
+marsh         2.7%     7.0%
+forest        9.5%    24.8%
+grass         6.8%    17.9%
+cells with a river: 2.1%
+square corners of the shore: 0
+written to maps/20261014-141334/planet-1.png
+planet of seed 1 took 4 s
+default, seed 1: the window at 2453, 425, try 6 of 128, 0 needs missed
+rivers: 330
+needs missed by the tries so far: {'land': 4, 'forest': 4, 'hills': 4, 'outcrops': 3, 'rivers': 3}
+biome       of all  of land
+ice           0.0%
+shallows     16.9%
+water        14.0%
+mountain      2.6%     3.7%
+snow          0.0%     0.0%
+tundra        0.0%     0.0%
+outcrops      3.3%     4.8%
+hills         7.0%    10.2%
+swamp         0.3%     0.5%
+floodplain    1.1%     1.6%
+dunes         0.1%     0.2%
+desert        2.3%     3.4%
+marsh        10.4%    15.1%
+forest       16.3%    23.5%
+grass        25.7%    37.1%
+cells with a river: 0.5%
+square corners of the shore: 0
+written to maps/20261014-141334/window-1.png
+window of seed 1 took 3 s
+default, seed 2: the window at 2914, 443, try 2 of 128, 0 needs missed
+rivers: 323
+needs missed by the tries so far: {'land': 1, 'forest': 1, 'hills': 1, 'outcrops': 1, 'rivers': 1}
+biome       of all  of land
+ice           6.9%
+shallows      9.9%
+water        44.9%
+mountain      3.2%     8.4%
+snow          1.5%     3.9%
+tundra        1.7%     4.4%
+outcrops      1.6%     4.2%
+hills         8.5%    22.3%
+swamp         0.3%     0.7%
+floodplain    0.5%     1.4%
+dunes         0.8%     2.2%
+desert        1.8%     4.7%
+marsh         2.4%     6.2%
+forest        9.9%    25.8%
+grass         6.1%    15.8%
+cells with a river: 2.1%
+square corners of the shore: 0
+written to maps/20261014-141334/planet-2.png
+planet of seed 2 took 5 s
+default, seed 2: the window at 2914, 443, try 2 of 128, 0 needs missed
+rivers: 323
+needs missed by the tries so far: {'land': 1, 'forest': 1, 'hills': 1, 'outcrops': 1, 'rivers': 1}
+biome       of all  of land
+ice           0.0%
+shallows      8.1%
+water         0.5%
+mountain     13.8%    15.2%
+snow          0.0%     0.0%
+tundra        0.0%     0.0%
+outcrops      3.7%     4.0%
+hills        32.3%    35.4%
+swamp         1.2%     1.3%
+floodplain    2.0%     2.2%
+dunes         0.0%     0.0%
+desert        4.3%     4.8%
+marsh         3.8%     4.2%
+forest       16.4%    17.9%
+grass        13.8%    15.1%
+cells with a river: 1.0%
+square corners of the shore: 0
+written to maps/20261014-141334/window-2.png
+window of seed 2 took 2 s
+default, seed 3: the window at 918, 455, try 14 of 128, 0 needs missed
+rivers: 312
+needs missed by the tries so far: {'land': 13, 'forest': 13, 'hills': 12, 'outcrops': 10, 'rivers': 11}
+biome       of all  of land
+ice           6.7%
+shallows      9.8%
+water        45.4%
+mountain      3.2%     8.4%
+snow          2.6%     6.9%
+tundra        1.6%     4.2%
+outcrops      1.6%     4.3%
+hills         8.2%    21.4%
+swamp         0.2%     0.6%
+floodplain    0.6%     1.5%
+dunes         0.4%     1.0%
+desert        1.8%     4.8%
+marsh         2.6%     6.9%
+forest        9.8%    25.7%
+grass         5.5%    14.5%
+cells with a river: 2.2%
+square corners of the shore: 0
+written to maps/20261014-141334/planet-3.png
+planet of seed 3 took 5 s
+default, seed 3: the window at 918, 455, try 14 of 128, 0 needs missed
+rivers: 312
+needs missed by the tries so far: {'land': 13, 'forest': 13, 'hills': 12, 'outcrops': 10, 'rivers': 11}
+biome       of all  of land
+ice           0.0%
+shallows     18.6%
+water        14.4%
+mountain      1.8%     2.8%
+snow          0.0%     0.0%
+tundra        0.0%     0.0%
+outcrops      3.2%     4.8%
+hills        12.5%    18.6%
+swamp         0.4%     0.7%
+floodplain    1.2%     1.8%
+dunes         0.1%     0.1%
+desert        2.5%     3.7%
+marsh         3.9%     5.8%
+forest       28.8%    42.9%
+grass        12.6%    18.8%
+cells with a river: 0.9%
+square corners of the shore: 0
+written to maps/20261014-141334/window-3.png
+window of seed 3 took 3 s
+default, seed 4: the window at 467, 481, try 54 of 128, 0 needs missed
+rivers: 379
+needs missed by the tries so far: {'land': 52, 'forest': 44, 'hills': 52, 'outcrops': 23, 'rivers': 20}
+biome       of all  of land
+ice           7.2%
+shallows      9.8%
+water        44.4%
+mountain      3.2%     8.4%
+snow          1.4%     3.7%
+tundra        1.2%     3.2%
+outcrops      1.7%     4.5%
+hills         8.5%    22.0%
+swamp         0.3%     0.8%
+floodplain    0.7%     1.8%
+dunes         0.8%     2.1%
+desert        1.4%     3.7%
+marsh         2.7%     7.1%
+forest       10.3%    26.6%
+grass         6.2%    16.2%
+cells with a river: 2.3%
+square corners of the shore: 0
+written to maps/20261014-141334/planet-4.png
+planet of seed 4 took 6 s
+default, seed 4: the window at 467, 481, try 54 of 128, 0 needs missed
+rivers: 379
+needs missed by the tries so far: {'land': 52, 'forest': 44, 'hills': 52, 'outcrops': 23, 'rivers': 20}
+biome       of all  of land
+ice           0.0%
+shallows     13.1%
+water        20.3%
+mountain      1.1%     1.7%
+snow          0.0%     0.0%
+tundra        0.0%     0.0%
+outcrops      3.4%     5.2%
+hills        10.0%    15.1%
+swamp         0.5%     0.8%
+floodplain    1.1%     1.6%
+dunes         3.2%     4.8%
+desert       11.1%    16.6%
+marsh         4.3%     6.5%
+forest       16.2%    24.3%
+grass        15.6%    23.4%
+cells with a river: 0.5%
+square corners of the shore: 0
+written to maps/20261014-141334/window-4.png
+window of seed 4 took 4 s
+default, seed 5: the window at 561, 337, try 31 of 128, 0 needs missed
+rivers: 367
+needs missed by the tries so far: {'land': 30, 'forest': 30, 'hills': 30, 'outcrops': 24, 'rivers': 15}
+biome       of all  of land
+ice           7.7%
+shallows     10.1%
+water        43.7%
+mountain      3.2%     8.3%
+snow          0.9%     2.3%
+tundra        2.0%     5.1%
+outcrops      1.6%     4.3%
+hills         8.0%    20.9%
+swamp         0.3%     0.8%
+floodplain    0.7%     1.7%
+dunes         0.7%     1.7%
+desert        2.0%     5.1%
+marsh         2.9%     7.6%
+forest        9.7%    25.1%
+grass         6.6%    17.1%
+cells with a river: 2.3%
+square corners of the shore: 0
+written to maps/20261014-141334/planet-5.png
+planet of seed 5 took 6 s
+default, seed 5: the window at 561, 337, try 31 of 128, 0 needs missed
+rivers: 367
+needs missed by the tries so far: {'land': 30, 'forest': 30, 'hills': 30, 'outcrops': 24, 'rivers': 15}
+biome       of all  of land
+ice           0.0%
+shallows     21.1%
+water        21.0%
+mountain      1.6%     2.8%
+snow          0.0%     0.0%
+tundra        0.0%     0.0%
+outcrops      3.3%     5.6%
+hills        12.2%    21.0%
+swamp         0.3%     0.5%
+floodplain    0.4%     0.6%
+dunes         0.0%     0.0%
+desert        0.0%     0.0%
+marsh        15.9%    27.5%
+forest       20.2%    34.9%
+grass         4.0%     7.0%
+cells with a river: 0.7%
+square corners of the shore: 0
+written to maps/20261014-141334/window-5.png
+window of seed 5 took 3 s
+pangea, seed 1: the window at 442, 380, try 2 of 128, 0 needs missed
+rivers: 261
+needs missed by the tries so far: {'hills': 1}
+biome       of all  of land
+ice           5.6%
+shallows     10.1%
+water        46.3%
+mountain      3.2%     8.5%
+snow          5.0%    13.2%
+tundra        2.7%     7.1%
+outcrops      1.4%     3.7%
+hills         7.5%    19.7%
+swamp         0.2%     0.6%
+floodplain    0.5%     1.4%
+dunes         0.2%     0.4%
+desert        1.1%     2.9%
+marsh         2.9%     7.6%
+forest        8.7%    22.8%
+grass         4.5%    11.9%
+cells with a river: 2.2%
+square corners of the shore: 0
+written to maps/20261014-141334/pangea-planet-1.png
+pangea-planet of seed 1 took 4 s
+pangea, seed 1: the window at 442, 380, try 2 of 128, 0 needs missed
+rivers: 261
+needs missed by the tries so far: {'hills': 1}
+biome       of all  of land
+ice           0.0%
+shallows      8.1%
+water         0.5%
+mountain      4.7%     5.1%
+snow          0.0%     0.0%
+tundra        0.0%     0.0%
+outcrops      4.9%     5.4%
+hills        37.9%    41.5%
+swamp         0.8%     0.9%
+floodplain    1.8%     1.9%
+dunes         0.0%     0.0%
+desert        0.0%     0.0%
+marsh         5.0%     5.5%
+forest       27.6%    30.2%
+grass         8.7%     9.5%
+cells with a river: 1.5%
+square corners of the shore: 0
+written to maps/20261014-141334/pangea-window-1.png
+pangea-window of seed 1 took 3 s
+pangea, seed 2: the window at 549, 274, try 1 of 128, 0 needs missed
+rivers: 285
+needs missed by the tries so far: none
+biome       of all  of land
+ice           7.0%
+shallows     10.1%
+water        44.8%
+mountain      3.2%     8.3%
+snow          1.5%     3.8%
+tundra        1.1%     2.9%
+outcrops      1.6%     4.2%
+hills         8.7%    22.9%
+swamp         0.3%     0.7%
+floodplain    0.6%     1.6%
+dunes         0.4%     1.0%
+desert        2.0%     5.4%
+marsh         2.7%     7.1%
+forest        9.4%    24.5%
+grass         6.7%    17.6%
+cells with a river: 2.3%
+square corners of the shore: 1
+written to maps/20261014-141334/pangea-planet-2.png
+pangea-planet of seed 2 took 4 s
+pangea, seed 2: the window at 549, 274, try 1 of 128, 0 needs missed
+rivers: 285
+needs missed by the tries so far: none
+biome       of all  of land
+ice           0.0%
+shallows     14.0%
+water        20.3%
+mountain      4.4%     6.7%
+snow          0.0%     0.0%
+tundra        2.1%     3.2%
+outcrops      3.1%     4.8%
+hills         9.4%    14.3%
+swamp         0.6%     0.9%
+floodplain    1.3%     2.1%
+dunes         0.0%     0.0%
+desert        0.0%     0.0%
+marsh         6.7%    10.1%
+forest       30.5%    46.4%
+grass         7.6%    11.6%
+cells with a river: 1.0%
+square corners of the shore: 0
+written to maps/20261014-141334/pangea-window-2.png
+pangea-window of seed 2 took 3 s
+pangea, seed 3: the window at 2929, 466, try 3 of 128, 0 needs missed
+rivers: 226
+needs missed by the tries so far: {'land': 1, 'forest': 2, 'hills': 1, 'outcrops': 1, 'rivers': 1}
+biome       of all  of land
+ice           6.5%
+shallows     10.1%
+water        45.6%
+mountain      3.2%     8.4%
+snow          3.7%     9.8%
+tundra        2.4%     6.5%
+outcrops      1.5%     3.9%
+hills         7.7%    20.2%
+swamp         0.2%     0.6%
+floodplain    0.5%     1.2%
+dunes         0.4%     1.0%
+desert        1.8%     4.8%
+marsh         2.4%     6.4%
+forest        9.3%    24.4%
+grass         4.9%    12.8%
+cells with a river: 2.1%
+square corners of the shore: 0
+written to maps/20261014-141334/pangea-planet-3.png
+pangea-planet of seed 3 took 4 s
+pangea, seed 3: the window at 2929, 466, try 3 of 128, 0 needs missed
+rivers: 226
+needs missed by the tries so far: {'land': 1, 'forest': 2, 'hills': 1, 'outcrops': 1, 'rivers': 1}
+biome       of all  of land
+ice           0.0%
+shallows      5.0%
+water         2.0%
+mountain     12.7%    13.7%
+snow          0.0%     0.0%
+tundra        0.0%     0.0%
+outcrops      4.2%     4.5%
+hills        36.4%    39.1%
+swamp         0.3%     0.3%
+floodplain    0.5%     0.5%
+dunes         0.1%     0.1%
+desert        7.0%     7.5%
+marsh         0.8%     0.9%
+forest       15.0%    16.1%
+grass        16.1%    17.3%
+cells with a river: 1.4%
+square corners of the shore: 0
+written to maps/20261014-141334/pangea-window-3.png
+pangea-window of seed 3 took 2 s
+pangea, seed 4: the window at 1002, 291, try 1 of 128, 0 needs missed
+rivers: 240
+needs missed by the tries so far: none
+biome       of all  of land
+ice           7.0%
+shallows     10.0%
+water        44.9%
+mountain      3.2%     8.4%
+snow          2.1%     5.5%
+tundra        1.6%     4.3%
+outcrops      1.6%     4.3%
+hills         8.0%    21.1%
+swamp         0.2%     0.6%
+floodplain    0.6%     1.5%
+dunes         0.6%     1.5%
+desert        2.1%     5.4%
+marsh         2.8%     7.3%
+forest        9.5%    25.1%
+grass         5.7%    15.0%
+cells with a river: 2.1%
+square corners of the shore: 0
+written to maps/20261014-141334/pangea-planet-4.png
+pangea-planet of seed 4 took 4 s
+pangea, seed 4: the window at 1002, 291, try 1 of 128, 0 needs missed
+rivers: 240
+needs missed by the tries so far: none
+biome       of all  of land
+ice           0.0%
+shallows      7.5%
+water        11.9%
+mountain     13.8%    17.2%
+snow          0.0%     0.1%
+tundra        1.6%     2.0%
+outcrops      3.5%     4.3%
+hills        21.3%    26.4%
+swamp         0.4%     0.4%
+floodplain    2.2%     2.8%
+dunes         0.0%     0.0%
+desert        0.0%     0.0%
+marsh         6.0%     7.4%
+forest       23.3%    29.0%
+grass         8.4%    10.4%
+cells with a river: 1.2%
+square corners of the shore: 0
+written to maps/20261014-141334/pangea-window-4.png
+pangea-window of seed 4 took 3 s
+pangea, seed 5: the window at 1871, 385, try 2 of 128, 0 needs missed
+rivers: 296
+needs missed by the tries so far: {'land': 1, 'forest': 1, 'hills': 1, 'outcrops': 1}
+biome       of all  of land
+ice           7.0%
+shallows     10.4%
+water        44.7%
+mountain      3.2%     8.5%
+snow          1.7%     4.5%
+tundra        1.8%     4.7%
+outcrops      1.6%     4.3%
+hills         8.4%    22.1%
+swamp         0.3%     0.7%
+floodplain    0.7%     1.9%
+dunes         0.4%     1.0%
+desert        1.4%     3.7%
+marsh         2.6%     6.8%
+forest        9.8%    25.9%
+grass         6.1%    16.0%
+cells with a river: 2.3%
+square corners of the shore: 0
+written to maps/20261014-141334/pangea-planet-5.png
+pangea-planet of seed 5 took 5 s
+pangea, seed 5: the window at 1871, 385, try 2 of 128, 0 needs missed
+rivers: 296
+needs missed by the tries so far: {'land': 1, 'forest': 1, 'hills': 1, 'outcrops': 1}
+biome       of all  of land
+ice           0.0%
+shallows     14.3%
+water         4.3%
+mountain     21.6%    26.6%
+snow          0.0%     0.0%
+tundra        0.0%     0.0%
+outcrops      3.0%     3.7%
+hills        24.7%    30.4%
+swamp         0.5%     0.6%
+floodplain    1.1%     1.4%
+dunes         0.0%     0.0%
+desert        0.0%     0.0%
+marsh         5.4%     6.6%
+forest       17.1%    21.0%
+grass         8.0%     9.8%
+cells with a river: 1.3%
+square corners of the shore: 0
+written to maps/20261014-141334/pangea-window-5.png
+pangea-window of seed 5 took 2 s
+continents, seed 1: the window at 3358, 379, try 3 of 128, 0 needs missed
+rivers: 413
+needs missed by the tries so far: {'land': 2, 'forest': 1, 'hills': 2, 'outcrops': 1, 'rivers': 1}
+biome       of all  of land
+ice           6.8%
+shallows      9.6%
+water        45.1%
+mountain      3.2%     8.3%
+snow          1.5%     3.9%
+tundra        1.5%     3.8%
+outcrops      1.7%     4.3%
+hills         8.7%    22.7%
+swamp         0.3%     0.8%
+floodplain    0.6%     1.7%
+dunes         0.7%     1.9%
+desert        2.1%     5.4%
+marsh         2.1%     5.3%
+forest        9.4%    24.4%
+grass         6.8%    17.5%
+cells with a river: 2.3%
+square corners of the shore: 0
+written to maps/20261014-141334/continents-planet-1.png
+continents-planet of seed 1 took 5 s
+continents, seed 1: the window at 3358, 379, try 3 of 128, 0 needs missed
+rivers: 413
+needs missed by the tries so far: {'land': 2, 'forest': 1, 'hills': 2, 'outcrops': 1, 'rivers': 1}
+biome       of all  of land
+ice           0.0%
+shallows     10.1%
+water        23.2%
+mountain      2.7%     4.0%
+snow          0.0%     0.0%
+tundra        0.3%     0.5%
+outcrops      3.1%     4.6%
+hills        17.3%    25.9%
+swamp         1.1%     1.7%
+floodplain    2.1%     3.2%
+dunes         0.0%     0.0%
+desert        0.2%     0.3%
+marsh         1.4%     2.0%
+forest       19.9%    29.8%
+grass        18.7%    28.0%
+cells with a river: 0.9%
+square corners of the shore: 0
+written to maps/20261014-141334/continents-window-1.png
+continents-window of seed 1 took 3 s
+continents, seed 2: the window at 2914, 443, try 2 of 128, 0 needs missed
+rivers: 476
+needs missed by the tries so far: {'land': 1, 'forest': 1, 'hills': 1, 'outcrops': 1, 'rivers': 1}
+biome       of all  of land
+ice           6.9%
+shallows      9.7%
+water        45.1%
+mountain      3.2%     8.3%
+snow          2.7%     7.0%
+tundra        1.8%     4.8%
+outcrops      1.5%     3.9%
+hills         7.7%    20.0%
+swamp         0.2%     0.6%
+floodplain    0.6%     1.5%
+dunes         0.6%     1.6%
+desert        1.3%     3.4%
+marsh         2.8%     7.3%
+forest       10.2%    26.6%
+grass         5.7%    14.8%
+cells with a river: 2.4%
+square corners of the shore: 0
+written to maps/20261014-141334/continents-planet-2.png
+continents-planet of seed 2 took 5 s
+continents, seed 2: the window at 2914, 443, try 2 of 128, 0 needs missed
+rivers: 476
+needs missed by the tries so far: {'land': 1, 'forest': 1, 'hills': 1, 'outcrops': 1, 'rivers': 1}
+biome       of all  of land
+ice           0.0%
+shallows     13.5%
+water         2.4%
+mountain      3.3%     3.9%
+snow          0.0%     0.0%
+tundra        0.0%     0.0%
+outcrops      3.6%     4.3%
+hills        19.7%    23.4%
+swamp         0.7%     0.9%
+floodplain    1.6%     1.9%
+dunes         0.3%     0.3%
+desert        1.0%     1.2%
+marsh         6.5%     7.8%
+forest       27.8%    33.0%
+grass        19.7%    23.4%
+cells with a river: 1.3%
+square corners of the shore: 1
+written to maps/20261014-141334/continents-window-2.png
+continents-window of seed 2 took 3 s
+continents, seed 3: the window at 660, 454, try 15 of 128, 0 needs missed
+rivers: 519
+needs missed by the tries so far: {'land': 14, 'forest': 14, 'hills': 13, 'outcrops': 13, 'rivers': 12}
+biome       of all  of land
+ice           7.0%
+shallows      9.7%
+water        44.9%
+mountain      3.2%     8.3%
+snow          1.5%     3.8%
+tundra        1.2%     3.2%
+outcrops      1.7%     4.3%
+hills         8.7%    22.8%
+swamp         0.3%     0.8%
+floodplain    0.7%     1.8%
+dunes         0.4%     1.0%
+desert        2.0%     5.2%
+marsh         2.6%     6.7%
+forest       10.0%    26.0%
+grass         6.2%    16.0%
+cells with a river: 2.6%
+square corners of the shore: 0
+written to maps/20261014-141334/continents-planet-3.png
+continents-planet of seed 3 took 5 s
+continents, seed 3: the window at 660, 454, try 15 of 128, 0 needs missed
+rivers: 519
+needs missed by the tries so far: {'land': 14, 'forest': 14, 'hills': 13, 'outcrops': 13, 'rivers': 12}
+biome       of all  of land
+ice           0.0%
+shallows     11.4%
+water         2.5%
+mountain      5.7%     6.6%
+snow          0.0%     0.0%
+tundra        0.0%     0.0%
+outcrops      4.0%     4.7%
+hills        23.7%    27.5%
+swamp         1.0%     1.2%
+floodplain    2.2%     2.5%
+dunes         0.6%     0.7%
+desert        4.9%     5.7%
+marsh         3.3%     3.8%
+forest       20.1%    23.4%
+grass        20.6%    23.9%
+cells with a river: 1.3%
+square corners of the shore: 0
+written to maps/20261014-141334/continents-window-3.png
+continents-window of seed 3 took 4 s
+continents, seed 4: the window at 3305, 438, try 3 of 128, 0 needs missed
+rivers: 558
+needs missed by the tries so far: {'land': 2, 'forest': 2, 'hills': 2, 'outcrops': 1, 'rivers': 2}
+biome       of all  of land
+ice           6.7%
+shallows      9.5%
+water        45.1%
+mountain      3.2%     8.3%
+snow          2.9%     7.6%
+tundra        2.4%     6.2%
+outcrops      1.6%     4.1%
+hills         7.7%    19.9%
+swamp         0.3%     0.7%
+floodplain    0.7%     1.7%
+dunes         0.5%     1.2%
+desert        1.7%     4.5%
+marsh         3.3%     8.6%
+forest        9.7%    25.1%
+grass         4.7%    12.1%
+cells with a river: 2.5%
+square corners of the shore: 1
+written to maps/20261014-141334/continents-planet-4.png
+continents-planet of seed 4 took 5 s
+continents, seed 4: the window at 3305, 438, try 3 of 128, 0 needs missed
+rivers: 558
+needs missed by the tries so far: {'land': 2, 'forest': 2, 'hills': 2, 'outcrops': 1, 'rivers': 2}
+biome       of all  of land
+ice           0.0%
+shallows      6.9%
+water         0.0%
+mountain     13.0%    14.0%
+snow          0.0%     0.0%
+tundra        0.0%     0.0%
+outcrops      4.2%     4.5%
+hills        34.5%    37.0%
+swamp         1.1%     1.2%
+floodplain    2.8%     3.0%
+dunes         0.0%     0.0%
+desert        6.8%     7.3%
+marsh         0.0%     0.0%
+forest       16.8%    18.0%
+grass        13.9%    14.9%
+cells with a river: 1.5%
+square corners of the shore: 0
+written to maps/20261014-141334/continents-window-4.png
+continents-window of seed 4 took 3 s
+continents, seed 5: the window at 2102, 340, try 7 of 128, 0 needs missed
+rivers: 416
+needs missed by the tries so far: {'land': 5, 'forest': 5, 'hills': 3, 'outcrops': 2, 'rivers': 2}
+biome       of all  of land
+ice           6.9%
+shallows     10.1%
+water        44.7%
+mountain      3.2%     8.3%
+snow          3.2%     8.2%
+tundra        3.3%     8.6%
+outcrops      1.5%     3.8%
+hills         7.0%    18.2%
+swamp         0.3%     0.7%
+floodplain    0.5%     1.4%
+dunes         0.6%     1.6%
+desert        1.6%     4.2%
+marsh         2.9%     7.7%
+forest        8.9%    23.3%
+grass         5.4%    14.1%
+cells with a river: 2.4%
+square corners of the shore: 0
+written to maps/20261014-141334/continents-planet-5.png
+continents-planet of seed 5 took 5 s
+continents, seed 5: the window at 2102, 340, try 7 of 128, 0 needs missed
+rivers: 416
+needs missed by the tries so far: {'land': 5, 'forest': 5, 'hills': 3, 'outcrops': 2, 'rivers': 2}
+biome       of all  of land
+ice           0.0%
+shallows      9.9%
+water         2.7%
+mountain     12.6%    14.4%
+snow          0.0%     0.0%
+tundra        5.3%     6.1%
+outcrops      3.6%     4.2%
+hills        27.0%    30.9%
+swamp         0.8%     0.9%
+floodplain    1.7%     1.9%
+dunes         0.0%     0.0%
+desert        0.0%     0.0%
+marsh         3.6%     4.1%
+forest       23.3%    26.6%
+grass         9.4%    10.8%
+cells with a river: 1.4%
+square corners of the shore: 0
+written to maps/20261014-141334/continents-window-5.png
+continents-window of seed 5 took 3 s
+archipelago, seed 1: the window at 1313, 313, try 1 of 128, 0 needs missed
+rivers: 1889
+needs missed by the tries so far: none
+biome       of all  of land
+ice           6.3%
+shallows     11.3%
+water        62.6%
+mountain      1.6%     8.0%
+snow          2.9%    14.5%
+tundra        1.4%     7.2%
+outcrops      0.7%     3.4%
+hills         3.2%    16.0%
+swamp         0.2%     1.0%
+floodplain    0.4%     2.3%
+dunes         0.4%     1.9%
+desert        0.6%     3.1%
+marsh         1.1%     5.3%
+forest        4.5%    22.5%
+grass         2.9%    14.6%
+cells with a river: 1.5%
+square corners of the shore: 0
+written to maps/20261014-141334/archipelago-planet-1.png
+archipelago-planet of seed 1 took 5 s
+archipelago, seed 1: the window at 1313, 313, try 1 of 128, 0 needs missed
+rivers: 1889
+needs missed by the tries so far: none
+biome       of all  of land
+ice           0.0%
+shallows     15.9%
+water        58.1%
+mountain      1.1%     4.1%
+snow          0.0%     0.0%
+tundra        1.9%     7.3%
+outcrops      1.4%     5.3%
+hills         3.6%    13.8%
+swamp         0.4%     1.5%
+floodplain    1.4%     5.4%
+dunes         0.0%     0.0%
+desert        0.0%     0.0%
+marsh         2.1%     8.1%
+forest       11.9%    45.7%
+grass         2.3%     8.8%
+cells with a river: 0.7%
+square corners of the shore: 0
+written to maps/20261014-141334/archipelago-window-1.png
+archipelago-window of seed 1 took 4 s
+archipelago, seed 2: the window at 2914, 443, try 2 of 128, 0 needs missed
+rivers: 1762
+needs missed by the tries so far: {'outcrops': 1}
+biome       of all  of land
+ice           6.3%
+shallows     11.2%
+water        62.7%
+mountain      1.6%     8.0%
+snow          3.0%    15.2%
+tundra        1.6%     7.9%
+outcrops      0.7%     3.3%
+hills         3.0%    15.3%
+swamp         0.2%     0.9%
+floodplain    0.4%     2.0%
+dunes         0.4%     2.1%
+desert        0.7%     3.5%
+marsh         1.1%     5.6%
+forest        4.7%    23.6%
+grass         2.4%    12.3%
+cells with a river: 1.5%
+square corners of the shore: 0
+written to maps/20261014-141334/archipelago-planet-2.png
+archipelago-planet of seed 2 took 6 s
+archipelago, seed 2: the window at 2914, 443, try 2 of 128, 0 needs missed
+rivers: 1762
+needs missed by the tries so far: {'outcrops': 1}
+biome       of all  of land
+ice           0.0%
+shallows     11.6%
+water        61.5%
+mountain      2.3%     8.5%
+snow          0.0%     0.0%
+tundra        0.0%     0.0%
+outcrops      1.1%     4.0%
+hills         8.6%    32.1%
+swamp         1.0%     3.9%
+floodplain    1.8%     6.6%
+dunes         0.3%     1.0%
+desert        0.0%     0.1%
+marsh         1.5%     5.5%
+forest        8.5%    31.4%
+grass         1.9%     6.9%
+cells with a river: 1.7%
+square corners of the shore: 0
+written to maps/20261014-141334/archipelago-window-2.png
+archipelago-window of seed 2 took 4 s
+archipelago, seed 3: the window at 2230, 489, try 6 of 128, 0 needs missed
+rivers: 1875
+needs missed by the tries so far: {'hills': 2, 'outcrops': 4, 'land': 1, 'forest': 1}
+biome       of all  of land
+ice           6.5%
+shallows     11.4%
+water        62.2%
+mountain      1.6%     8.1%
+snow          3.1%    15.9%
+tundra        1.5%     7.5%
+outcrops      0.7%     3.4%
+hills         3.0%    15.2%
+swamp         0.2%     1.1%
+floodplain    0.5%     2.3%
+dunes         0.3%     1.7%
+desert        0.6%     2.9%
+marsh         1.1%     5.6%
+forest        4.7%    23.4%
+grass         2.6%    13.0%
+cells with a river: 1.5%
+square corners of the shore: 0
+written to maps/20261014-141334/archipelago-planet-3.png
+archipelago-planet of seed 3 took 5 s
+archipelago, seed 3: the window at 2230, 489, try 6 of 128, 0 needs missed
+rivers: 1875
+needs missed by the tries so far: {'hills': 2, 'outcrops': 4, 'land': 1, 'forest': 1}
+biome       of all  of land
+ice           0.0%
+shallows      9.5%
+water        73.3%
+mountain      3.3%    19.3%
+snow          0.0%     0.0%
+tundra        0.0%     0.0%
+outcrops      0.7%     4.3%
+hills         3.9%    22.6%
+swamp         0.2%     1.1%
+floodplain    0.2%     1.1%
+dunes         0.2%     1.1%
+desert        0.3%     1.9%
+marsh         1.6%     9.2%
+forest        5.8%    33.7%
+grass         1.0%     5.8%
+cells with a river: 0.5%
+square corners of the shore: 0
+written to maps/20261014-141334/archipelago-window-3.png
+archipelago-window of seed 3 took 4 s
+archipelago, seed 4: the window at 3305, 438, try 3 of 128, 0 needs missed
+rivers: 2015
+needs missed by the tries so far: {'land': 1, 'hills': 1, 'outcrops': 2}
+biome       of all  of land
+ice           6.1%
+shallows     11.2%
+water        62.9%
+mountain      1.6%     8.2%
+snow          3.4%    17.0%
+tundra        1.4%     6.8%
+outcrops      0.7%     3.6%
+hills         3.0%    14.9%
+swamp         0.2%     1.0%
+floodplain    0.4%     2.2%
+dunes         0.3%     1.7%
+desert        0.6%     3.0%
+marsh         1.2%     6.2%
+forest        4.7%    23.7%
+grass         2.3%    11.6%
+cells with a river: 1.5%
+square corners of the shore: 1
+written to maps/20261014-141334/archipelago-planet-4.png
+archipelago-planet of seed 4 took 7 s
+archipelago, seed 4: the window at 3305, 438, try 3 of 128, 0 needs missed
+rivers: 2015
+needs missed by the tries so far: {'land': 1, 'hills': 1, 'outcrops': 2}
+biome       of all  of land
+ice           0.0%
+shallows     14.0%
+water        65.7%
+mountain      0.9%     4.7%
+snow          0.0%     0.0%
+tundra        0.0%     0.0%
+outcrops      1.1%     5.3%
+hills         5.0%    24.5%
+swamp         0.1%     0.7%
+floodplain    0.6%     3.2%
+dunes         0.2%     1.2%
+desert        0.2%     0.9%
+marsh         1.8%     9.1%
+forest        7.9%    38.8%
+grass         2.4%    11.7%
+cells with a river: 0.8%
+square corners of the shore: 0
+written to maps/20261014-141334/archipelago-window-4.png
+archipelago-window of seed 4 took 4 s
+archipelago, seed 5: the window at 1233, 425, try 12 of 128, 0 needs missed
+rivers: 1927
+needs missed by the tries so far: {'outcrops': 11, 'land': 1, 'forest': 1, 'hills': 1}
+biome       of all  of land
+ice           6.0%
+shallows     11.0%
+water        63.0%
+mountain      1.6%     8.2%
+snow          3.7%    18.5%
+tundra        1.3%     6.6%
+outcrops      0.7%     3.6%
+hills         3.0%    15.2%
+swamp         0.2%     1.1%
+floodplain    0.5%     2.3%
+dunes         0.3%     1.7%
+desert        0.5%     2.6%
+marsh         1.2%     5.8%
+forest        4.5%    22.6%
+grass         2.4%    11.9%
+cells with a river: 1.6%
+square corners of the shore: 0
+written to maps/20261014-141334/archipelago-planet-5.png
+archipelago-planet of seed 5 took 6 s
+archipelago, seed 5: the window at 1233, 425, try 12 of 128, 0 needs missed
+rivers: 1927
+needs missed by the tries so far: {'outcrops': 11, 'land': 1, 'forest': 1, 'hills': 1}
+biome       of all  of land
+ice           0.0%
+shallows     10.9%
+water        64.9%
+mountain      3.6%    14.9%
+snow          0.0%     0.0%
+tundra        0.0%     0.0%
+outcrops      1.0%     4.0%
+hills         8.5%    35.2%
+swamp         0.5%     1.9%
+floodplain    1.1%     4.6%
+dunes         0.1%     0.3%
+desert        0.0%     0.0%
+marsh         0.6%     2.6%
+forest        7.9%    32.7%
+grass         1.0%     4.0%
+cells with a river: 1.0%
+square corners of the shore: 0
+written to maps/20261014-141334/archipelago-window-5.png
+archipelago-window of seed 5 took 5 s
+dune, seed 1: the window at 1313, 313, try 1 of 128, 0 needs missed
+rivers: 1
+needs missed by the tries so far: none
+biome       of all  of land
+ice           0.0%
+shallows      0.9%
+water         0.2%
+mountain      0.3%     0.3%
+snow          0.0%     0.0%
+tundra        0.0%     0.0%
+outcrops      4.9%     5.0%
+hills        30.1%    30.4%
+swamp         0.0%     0.0%
+floodplain    0.1%     0.1%
+dunes         3.8%     3.8%
+desert       59.7%    60.4%
+marsh         0.0%     0.0%
+forest        0.0%     0.0%
+grass         0.0%     0.0%
+cells with a river: 0.2%
+square corners of the shore: 0
+written to maps/20261014-141334/dune-planet-1.png
+dune-planet of seed 1 took 3 s
+dune, seed 1: the window at 1313, 313, try 1 of 128, 0 needs missed
+rivers: 1
+needs missed by the tries so far: none
+biome       of all  of land
+ice           0.0%
+shallows      0.1%
+water         0.7%
+mountain      0.0%     0.0%
+snow          0.0%     0.0%
+tundra        0.0%     0.0%
+outcrops      5.0%     5.0%
+hills         9.1%     9.2%
+swamp         0.0%     0.0%
+floodplain    0.0%     0.0%
+dunes         0.0%     0.0%
+desert       85.1%    85.8%
+marsh         0.0%     0.0%
+forest        0.0%     0.0%
+grass         0.0%     0.0%
+cells with a river: 0.0%
+square corners of the shore: 0
+written to maps/20261014-141334/dune-window-1.png
+dune-window of seed 1 took 3 s
+dune, seed 2: the window at 549, 274, try 1 of 128, 0 needs missed
+rivers: 2
+needs missed by the tries so far: none
+biome       of all  of land
+ice           0.0%
+shallows      0.1%
+water         0.2%
+mountain      0.3%     0.3%
+snow          0.0%     0.0%
+tundra        0.0%     0.0%
+outcrops      4.9%     4.9%
+hills        30.0%    30.1%
+swamp         0.0%     0.0%
+floodplain    0.1%     0.1%
+dunes         4.0%     4.0%
+desert       60.3%    60.5%
+marsh         0.0%     0.0%
+forest        0.0%     0.0%
+grass         0.0%     0.0%
+cells with a river: 0.2%
+square corners of the shore: 0
+written to maps/20261014-141334/dune-planet-2.png
+dune-planet of seed 2 took 4 s
+dune, seed 2: the window at 549, 274, try 1 of 128, 0 needs missed
+rivers: 2
+needs missed by the tries so far: none
+biome       of all  of land
+ice           0.0%
+shallows      0.0%
+water         0.0%
+mountain      0.4%     0.4%
+snow          0.0%     0.0%
+tundra        0.0%     0.0%
+outcrops      5.1%     5.1%
+hills        22.5%    22.5%
+swamp         0.0%     0.0%
+floodplain    0.0%     0.0%
+dunes         0.0%     0.0%
+desert       72.1%    72.1%
+marsh         0.0%     0.0%
+forest        0.0%     0.0%
+grass         0.0%     0.0%
+cells with a river: 0.0%
+square corners of the shore: 0
+written to maps/20261014-141334/dune-window-2.png
+dune-window of seed 2 took 2 s
+dune, seed 3: the window at 154, 296, try 1 of 128, 0 needs missed
+rivers: 1
+needs missed by the tries so far: none
+biome       of all  of land
+ice           0.0%
+shallows      0.3%
+water         0.2%
+mountain      0.3%     0.3%
+snow          0.0%     0.0%
+tundra        0.0%     0.0%
+outcrops      4.9%     4.9%
+hills        30.0%    30.1%
+swamp         0.0%     0.0%
+floodplain    0.1%     0.1%
+dunes         3.2%     3.3%
+desert       61.0%    61.3%
+marsh         0.0%     0.0%
+forest        0.0%     0.0%
+grass         0.0%     0.0%
+cells with a river: 0.2%
+square corners of the shore: 0
+written to maps/20261014-141334/dune-planet-3.png
+dune-planet of seed 3 took 3 s
+dune, seed 3: the window at 154, 296, try 1 of 128, 0 needs missed
+rivers: 1
+needs missed by the tries so far: none
+biome       of all  of land
+ice           0.0%
+shallows      0.1%
+water         0.7%
+mountain      0.0%     0.0%
+snow          0.0%     0.0%
+tundra        0.0%     0.0%
+outcrops      4.9%     5.0%
+hills        17.2%    17.4%
+swamp         0.0%     0.0%
+floodplain    0.0%     0.0%
+dunes         0.0%     0.0%
+desert       77.1%    77.7%
+marsh         0.0%     0.0%
+forest        0.0%     0.0%
+grass         0.0%     0.0%
+cells with a river: 0.0%
+square corners of the shore: 0
+written to maps/20261014-141334/dune-window-3.png
+dune-window of seed 3 took 3 s
+dune, seed 4: the window at 1002, 291, try 1 of 128, 0 needs missed
+rivers: 1
+needs missed by the tries so far: none
+biome       of all  of land
+ice           0.0%
+shallows      0.3%
+water         0.2%
+mountain      0.3%     0.3%
+snow          0.0%     0.0%
+tundra        0.0%     0.0%
+outcrops      5.1%     5.1%
+hills        30.0%    30.2%
+swamp         0.1%     0.1%
+floodplain    0.1%     0.1%
+dunes         4.2%     4.3%
+desert       59.7%    60.0%
+marsh         0.0%     0.0%
+forest        0.0%     0.0%
+grass         0.0%     0.0%
+cells with a river: 0.3%
+square corners of the shore: 0
+written to maps/20261014-141334/dune-planet-4.png
+dune-planet of seed 4 took 3 s
+dune, seed 4: the window at 1002, 291, try 1 of 128, 0 needs missed
+rivers: 1
+needs missed by the tries so far: none
+biome       of all  of land
+ice           0.0%
+shallows      0.0%
+water         0.0%
+mountain      0.1%     0.1%
+snow          0.0%     0.0%
+tundra        0.0%     0.0%
+outcrops      5.3%     5.3%
+hills        30.5%    30.5%
+swamp         0.0%     0.0%
+floodplain    0.0%     0.0%
+dunes         0.0%     0.0%
+desert       64.1%    64.1%
+marsh         0.0%     0.0%
+forest        0.0%     0.0%
+grass         0.0%     0.0%
+cells with a river: 0.0%
+square corners of the shore: 0
+written to maps/20261014-141334/dune-window-4.png
+dune-window of seed 4 took 3 s
+dune, seed 5: the window at 29, 412, try 1 of 128, 0 needs missed
+rivers: 1
+needs missed by the tries so far: none
+biome       of all  of land
+ice           0.0%
+shallows      1.1%
+water         0.2%
+mountain      0.3%     0.3%
+snow          0.0%     0.0%
+tundra        0.0%     0.0%
+outcrops      4.9%     5.0%
+hills        30.0%    30.4%
+swamp         0.1%     0.1%
+floodplain    0.1%     0.1%
+dunes         4.3%     4.3%
+desert       59.0%    59.8%
+marsh         0.0%     0.0%
+forest        0.0%     0.0%
+grass         0.0%     0.0%
+cells with a river: 0.4%
+square corners of the shore: 0
+written to maps/20261014-141334/dune-planet-5.png
+dune-planet of seed 5 took 4 s
+dune, seed 5: the window at 29, 412, try 1 of 128, 0 needs missed
+rivers: 1
+needs missed by the tries so far: none
+biome       of all  of land
+ice           0.0%
+shallows      3.1%
+water         0.0%
+mountain      0.0%     0.0%
+snow          0.0%     0.0%
+tundra        0.0%     0.0%
+outcrops      4.8%     4.9%
+hills        29.4%    30.3%
+swamp         0.0%     0.0%
+floodplain    0.0%     0.0%
+dunes         3.4%     3.5%
+desert       59.3%    61.2%
+marsh         0.0%     0.0%
+forest        0.0%     0.0%
+grass         0.0%     0.0%
+cells with a river: 0.5%
+square corners of the shore: 0
+written to maps/20261014-141334/dune-window-5.png
+dune-window of seed 5 took 2 s

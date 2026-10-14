@@ -71,7 +71,7 @@ morning. Nobody calls it, and it cannot be called at another time.
 The band does not act while the council sits: the morning tick is spent
 in it, as a camp. In step mode the game waits for the seat as it always
 does. In real time the clock stops while the council waits, for at most
-`council_wait` seconds of real time, a setting of the server, 30 by
+`DT_COUNCIL_WAIT_S` seconds of real time, a setting of the server, 30 by
 default; a player who has not answered by then did not vote.
 
 ___
@@ -104,7 +104,7 @@ band would do if the player said nothing. When no option scores above
 zero the table is empty and there is no leader.
 
 The table is part of the seat while the council sits, as
-[What the API shows](01_bands.md#what-the-api-shows) will give it, so a
+[What the API shows](01_bands.md#what-the-api-shows) gives it, so a
 client shows the options with their votes before the player answers.
 
 ___
@@ -181,18 +181,22 @@ ___
 An intent is judged at the next council, before the new table. The game
 compares the band at the decision with the band at the judgement.
 
-| Measure  | Is                                                            |
-|----------|---------------------------------------------------------------|
-| `supply` | the lesser of the days of food and the days of water in the stores, held at 2 |
-| `lost`   | the people who died since the decision, of any cause, as a share of the people at the decision |
+| Measure | Is                                                            |
+|---------|---------------------------------------------------------------|
+| `worth` | what the cell the band stands on is worth to it, as [Decisions](decisions.md#what-a-cell-is-worth) counts it, weighed by the needs the band had at the decision |
+| `lost`  | the people who died since the decision, of any cause, as a share of the people at the decision |
 
 A `move` gets one of three verdicts, the first that fits.
 
 | Verdict    | When                                                     |
 |------------|----------------------------------------------------------|
 | `disaster` | `lost` is at least `council.judgement.disaster`, 0.2     |
-| `failed`   | anybody died, or `supply` fell by more than `tolerance`, a quarter of a day |
+| `failed`   | anybody died, or the cell reached is worth less than the cell left |
 | `worked`   | otherwise                                                |
+
+A move is judged by the land it reached and not by the stores: a band
+that walks for a day gathers nothing and eats a day of food, so its
+stores always fall, and a measure of stores would fail every move.
 
 - **A rest always worked.** It raises status whatever it cost; the cost
   is the food and water nobody gathered.
@@ -225,11 +229,13 @@ ___
 
 ## A seat with nobody in it
 
-A game created with no player - a headless run, a run of the lab - has an
-empty seat. The council meets and draws its table as always, nobody
-answers, nobody pays for it, and the band decides freely. A band with an
-empty seat therefore lives exactly as it did before the council was
-daily, and the reference of lives does not move for it.
+A game created with no player - a headless run, a run of the lab, a game
+watched by the console client - has an empty seat, and no council sits
+in it: no table, no wait, no cost, and the band decides freely in every
+tick. A band with an empty seat lives exactly as it did before the
+council was daily, and the reference of lives does not move for it. A
+game is created with the seat taken unless it asks for `seated: false`;
+a vote in a game with an empty seat is refused with `refused-no-council`.
 
 ___
 
@@ -276,8 +282,6 @@ council:
     share: 0.5
     least: 2.0
   judgement:
-    supply_cap: {days: 2}
-    tolerance: 0.25
     disaster: 0.2
   status:
     start: 50
@@ -293,9 +297,9 @@ council:
 ```
 
 `part` must be one of `time.day_parts`. `least` must be above 1, so that
-the player's voice is never an ordinary one. `council_wait` is a setting
-of the server, not of the game: it changes how long a person may think,
-never the outcome of a run in step mode.
+the player's voice is never an ordinary one. `DT_COUNCIL_WAIT_S` is a
+setting of the server, not of the game: it changes how long a person may
+think, never the outcome of a run in step mode.
 
 ___
 

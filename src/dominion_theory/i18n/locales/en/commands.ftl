@@ -3,7 +3,7 @@ command-refused = Command { $id } was refused: { $reason }.
 
 refused-unknown-command = there is no such command
 refused-unknown-seat = there is no such seat in the game
-refused-council-too-soon = the council met too recently
-refused-proposal-pending = the last proposal has not been judged yet
+refused-no-council = no council sits now
+refused-already-voted = you have already spoken at this council
 refused-no-such-direction = the band cannot go that way
 refused-seat-banished = the player is no longer in the band

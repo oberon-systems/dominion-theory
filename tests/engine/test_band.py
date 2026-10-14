@@ -419,7 +419,7 @@ def test_a_restored_game_carries_the_band_in_the_middle_of_a_day(params: Params)
 def test_a_snapshot_of_the_format_before_the_band_is_refused(params: Params) -> None:
     snapshot = land(params).snapshot()
 
-    assert snapshot['format'] == 4
+    assert snapshot['format'] == 5
     with pytest.raises(ValueError, match='format 2'):
         Game.restore({**snapshot, 'format': 2})
 

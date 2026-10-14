@@ -32,9 +32,10 @@ class Service:
         overrides: dict[str, Any] | None = None,
         mode: str = REAL_TIME,
         seats: dict[str, str] | None = None,
+        seated: bool = False,
     ) -> Runner:
         params = load_params(preset, overrides)
-        game = Game.create(seed=secrets.randbits(SEED_BITS) if seed is None else seed, params=params)
+        game = Game.create(seed=secrets.randbits(SEED_BITS) if seed is None else seed, params=params, seated=seated)
         runner = self._runner(self._new_id(), game, mode, seats=seats)
         runner.save()
         return runner

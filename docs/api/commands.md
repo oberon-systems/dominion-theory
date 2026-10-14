@@ -39,7 +39,7 @@ Every command has the same outside and its own inside.
 ```json
 {
   "id": "c-0192",
-  "kind": "call-council",
+  "kind": "vote",
   "proposal": {"kind": "move", "towards": "east"}
 }
 ```
@@ -92,7 +92,7 @@ The verdict is an event.
 ```
 
 ```json
-{"key": "command-refused", "values": {"id": "c-0192", "reason": "refused-council-too-soon"}}
+{"key": "command-refused", "values": {"id": "c-0192", "reason": "refused-no-council"}}
 ```
 
 A reason is itself a message key, so the client shows it in the player's
@@ -107,13 +107,15 @@ ___
 Two commands exist. The frame was built in stage 0 and the rules of the
 council in stage 2.
 
-| Kind           | Does                                           | Built in |
-|----------------|------------------------------------------------|----------|
-| `pass`         | says the seat has nothing to ask this step     | stage 0  |
-| `call-council` | gathers the band and puts a proposal to it     | stage 2  |
+| Kind   | Does                                               | Built in |
+|--------|----------------------------------------------------|----------|
+| `pass` | says the seat has nothing to ask this step         | stage 0  |
+| `vote` | answers the council of the day with a proposal     | stage 2  |
 
 The API checks the form of a command; the rules are the engine's, and it
-judges a `call-council` when the game next steps.
+judges a `vote` when the game next steps. A vote backs an option of the
+table, proposes one that has no votes, or abstains with
+`{"kind": "abstain"}`.
 
 A proposal is one of three.
 
@@ -126,17 +128,17 @@ A proposal is one of three.
 A direction is one of eight: `north`, `north-east`, `east`, `south-east`,
 `south`, `south-west`, `west`, `north-west`.
 
-Reasons a council may be refused, checked in this order:
+Reasons a vote may be refused, checked in this order:
 
 | Reason                       | When                                         |
 |------------------------------|----------------------------------------------|
-| `refused-council-too-soon`   | the gap since the last council has not passed |
-| `refused-proposal-pending`   | the last proposal that passed is not judged yet |
-| `refused-no-such-direction`  | the band cannot go that way at all           |
 | `refused-seat-banished`      | the player is no longer in the band          |
+| `refused-no-council`         | no council sits now, or the seat is empty    |
+| `refused-already-voted`      | the seat has answered this council           |
+| `refused-no-such-direction`  | the band cannot go that way at all           |
 
 The rules behind them are in
-[Indirect control](../game/indirect_control.md#calling-a-council).
+[Indirect control](../game/indirect_control.md#the-players-answer).
 
 Two reasons belong to the frame and are built in stage 0.
 
@@ -153,31 +155,32 @@ In step mode the game waits until every seat it names in `waiting` has
 answered, and a seat answers by sending any command.
 
 `pass` is the command for having nothing to say. Without it a seat that
-does not want to call a council would hold the game for ever.
+has nothing to ask would hold the game for ever. A `pass` while a
+council sits is a seat that did not vote.
 
-In real-time mode nothing waits. `pass` is accepted and does nothing.
+In real-time mode only a council waits, for the vote or for
+`DT_COUNCIL_WAIT_S` seconds. `pass` is accepted and does nothing.
 
 ___
 
 ## Examples
 
-A seat that rests when its band is tired and passes otherwise, in step
-mode. The addresses are shortened.
+A seat that turns the band east at the council of the morning and passes
+for the rest of the day, in step mode. The addresses are shortened.
 
 ```text
-GET  /games/7f3a9c1e/snapshot       -> seq 311, waiting ["player"]
-POST /games/7f3a9c1e/commands       {"id": "c-1", "kind": "call-council", "proposal": {"kind": "rest"}}
-WS   /games/7f3a9c1e/updates        <- seq 312: command-accepted c-1, council-accepted
+GET  /games/7f3a9c1e/snapshot       -> seq 310, waiting ["player"], seat.council with its table
+POST /games/7f3a9c1e/commands       {"id": "c-1", "kind": "vote", "proposal": {"kind": "move", "towards": "east"}}
+WS   /games/7f3a9c1e/updates        <- seq 311: command-accepted c-1, council-turned
 POST /games/7f3a9c1e/commands       {"id": "c-2", "kind": "pass"}
-WS   /games/7f3a9c1e/updates        <- seq 313: command-accepted c-2
+WS   /games/7f3a9c1e/updates        <- seq 312: command-accepted c-2
 ```
 
-A council called too soon after the last one, in a game that does not
-wait for the seat.
+A vote at midday, when no council sits.
 
 ```text
-POST /games/7f3a9c1e/commands       {"id": "c-3", "kind": "call-council", "proposal": {"kind": "move", "towards": "east"}}
-WS   /games/7f3a9c1e/updates        <- seq 314: command-refused c-3, refused-council-too-soon
+POST /games/7f3a9c1e/commands       {"id": "c-3", "kind": "vote", "proposal": {"kind": "rest"}}
+WS   /games/7f3a9c1e/updates        <- seq 313: command-refused c-3, refused-no-council
 ```
 
 ___
@@ -188,9 +191,9 @@ ___
   pole star, the command of compass points. A proposal that names a thing
   seen on the map, such as a river, waits for the browser client.
 - **More than one command in a step** - they are judged in order, and the
-  rules of the council stop a second council anyway. Whether a limit is
+  rules of the council refuse a second vote anyway. Whether a limit is
   needed is seen when there are more kinds of command.
 
-A council the band votes down is settled: the command is accepted, the
-event `council-declined` follows and status falls a little, as
-[Indirect control](../game/indirect_control.md#the-vote) tells.
+A vote the council goes against is settled: the command is accepted, the
+event `council-outvoted` follows and status falls a little, as
+[Indirect control](../game/indirect_control.md#the-decision) tells.

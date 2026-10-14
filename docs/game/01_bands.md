@@ -203,20 +203,23 @@ ___
 What stage 2 puts into the phases of
 [one tick](../architecture/overview.md#one-tick).
 
-1. **Commands** - a `call-council` is checked: the gap, the direction,
-   the seat.
-2. **Councils** - the vote is held. A proposal that passes becomes the
-   band's intent.
+1. **Commands** - a `vote` is checked: the seat, the council, a second
+   vote, the direction.
+2. **Councils** - a council that sits is decided with the player's
+   answer, and rises. An option the player carried against the leader
+   becomes the band's intent.
 3. **Decisions** - the band picks its action, among all three or among
-   those its intent allows.
+   those its intent allows; in the tick of a council it camps.
 4. **Actions** - the band moves, gathers or camps; fatigue and what it
    knows are brought up to date.
 5. **World** - cells recover; on the first tick of a day stores spoil;
    an encounter is drawn; on the last tick of a day people eat, states
-   begin and end, people die and are born; an intent whose time is over
-   ends; a proposal whose window closed is judged.
-6. **Calendar**, 7. **Report** - as before. The report gains the band in
-   `changes` and one counter per thing the lab will ask about.
+   begin and end, people die and are born.
+6. **Calendar** - as before; when the new part of the day is
+   `council.part`, yesterday's intent ends and is judged, and the
+   council of the day sits down with its table.
+7. **Report** - as before. The report gains the band in `changes` and
+   one counter per thing the lab will ask about.
 
 The counters added: `population`, `food`, `water`, `status`, `moves`,
 `gathers`, `camps`, `encounters`, `deaths`, `councils`.
@@ -258,12 +261,12 @@ of them. Both views of the API show the same for now.
       "intent": null
     }
   ],
-  "seat": {"name": "player", "unit": 1, "status": 50.0, "council_from": 40}
+  "seat": {"name": "player", "unit": 1, "status": 50.0, "seated": true, "council": null}
 }
 ```
 
-`council_from` is the tick from which the next council may be called.
-What the band knows is read as a map: the rectangle of the map address
+`council` is the table of the council of the day while it sits; see
+[The snapshot](../api/protocol.md#the-seat). What the band knows is read as a map: the rectangle of the map address
 takes `known=1` and answers only with the cells that band knows, as
 it remembers them.
 

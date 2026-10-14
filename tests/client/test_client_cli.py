@@ -14,11 +14,11 @@ def run(*args: str) -> Result:
 
 
 def test_overrides_are_read_as_values_and_as_text_otherwise() -> None:
-    given = ('planet.window.width=32', 'council.min_gap={"days": 5}', 'alpha.beta=gamma=delta')
+    given = ('planet.window.width=32', 'council.part="evening"', 'alpha.beta=gamma=delta')
 
     assert _overrides(given) == {
         'planet.window.width': 32,
-        'council.min_gap': {'days': 5},
+        'council.part': 'evening',
         'alpha.beta': 'gamma=delta',
     }
 

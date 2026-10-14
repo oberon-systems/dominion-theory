@@ -14,6 +14,7 @@ from ..core import logger
 from ..core.errors import DominionError
 from ..core.settings import Settings
 from ..engine import Command, Game, StepResult
+from ..engine.commands import VOTE
 from ..engine.events import COMMAND_ACCEPTED, COMMAND_REFUSED
 from ..store import GameStore, Meta
 from .record import Judged, RecordWriter, footer_line, tick_lines
@@ -23,6 +24,8 @@ STEP = 'step'
 REAL_TIME = 'real-time'
 STOPPED = 'stopped'
 VERDICTS = (COMMAND_ACCEPTED, COMMAND_REFUSED)
+# How often a clock that waits for a council looks for the vote, in seconds.
+LOOK_S = 0.05
 
 GAME_ENDED = 'error-game-ended'
 CLOCK_RUNNING = 'error-clock-running'
@@ -71,6 +74,14 @@ class Runner:
     @property
     def record_path(self) -> Path:
         return self._record.path
+
+    @property
+    def asked(self) -> list[str]:
+        """
+        The seats the council of the day still waits for: asked, and with no vote held yet.
+        """
+        voted = {command.seat for _, command in self._held.values() if command.kind == VOTE}
+        return [seat for seat in self.game.asking if seat not in voted]
 
     def submit(self, command: Command) -> None:
         self._alive()
@@ -210,7 +221,8 @@ class StepRunner(Runner):
 
 class RealTimeRunner(Runner):
     """
-    A tick every tick_ms of the settings, divided by the speed, while not paused.
+    A tick every tick_ms of the settings, divided by the speed, while not paused; a council stops the clock
+    until the seat votes or council_wait_s runs out.
     """
 
     mode = REAL_TIME
@@ -247,6 +259,10 @@ class RealTimeRunner(Runner):
     async def _run(self) -> None:
         while True:
             await asyncio.sleep(self._settings.tick_ms / 1000 / self._speed)
+            waited = 0.0
+            while self.asked and waited < self._settings.council_wait_s:
+                await asyncio.sleep(LOOK_S)
+                waited += LOOK_S
             try:
                 self._tick()
             except Exception:

@@ -23,7 +23,7 @@ BAND = {
 # One of every event the engine declares, with the values it carries.
 SAMPLES: dict[str, dict[str, Any]] = {
     'command-accepted': {'id': 'c-1'},
-    'command-refused': {'id': 'c-1', 'reason': 'refused-council-too-soon'},
+    'command-refused': {'id': 'c-1', 'reason': 'refused-no-council'},
     'day-started': {'year': 1, 'month': 1, 'day': 2},
     'month-started': {'year': 1, 'month': 2, 'season': 'spring'},
     'season-started': {'year': 1, 'season': 'summer'},
@@ -34,8 +34,11 @@ SAMPLES: dict[str, dict[str, Any]] = {
     'people-born': {'count': 1},
     'band-died': {},
     'encounter': {'kind': 'encounter-predator', 'lost': 1},
-    'council-accepted': {'proposal': 'proposal-move-east', 'yes': 15.25, 'all': 17.75},
-    'council-declined': {'proposal': 'proposal-rest', 'yes': 3.8, 'all': 17.75, 'status': 48.0},
+    'council-opened': {'leader': 'proposal-stay-and-gather'},
+    'council-followed': {'proposal': 'proposal-stay-and-gather'},
+    'council-turned': {'proposal': 'proposal-move-east', 'yes': 8.75, 'all': 17.75},
+    'council-outvoted': {'proposal': 'proposal-move-north', 'winner': 'proposal-rest', 'status': 49.0},
+    'council-abstained': {'status': 48.0},
     'proposal-worked': {'proposal': 'proposal-stay-and-gather', 'status': 53.0},
     'proposal-failed': {'proposal': 'proposal-move-west', 'lost': 0, 'status': 44.0},
     'proposal-disaster': {'proposal': 'proposal-move-north', 'lost': 4, 'status': 24.0},
@@ -104,7 +107,7 @@ def test_the_band_is_its_people_stores_states_and_action(band: dict[str, object]
 
 def test_a_line_carries_the_band_and_the_status_when_it_moved() -> None:
     moved = {'seq': 7, 'date': DATE, 'events': [SEASON], 'changes': {'seat': {'status': 52.0}}}
-    still = {'seq': 8, 'date': DATE, 'events': [], 'changes': {'seat': {'council_from': 40}}}
+    still = {'seq': 8, 'date': DATE, 'events': [], 'changes': {'seat': {'council': None}}}
 
     assert line(moved, 'en', BAND) == (
         'morning, day 1, month 3, year 1, summer: '
@@ -117,6 +120,23 @@ def test_a_line_carries_the_band_and_the_status_when_it_moved() -> None:
     assert line(still, 'en', BAND) == (
         'morning, day 1, month 3, year 1, summer: 15 people, forage 22.5, water 30, camps.'
     )
+
+
+def test_a_line_shows_the_table_of_a_council_that_sits() -> None:
+    table = [
+        {'proposal': {'kind': 'stay-and-gather'}, 'votes': 8},
+        {'proposal': {'kind': 'move', 'towards': 'east'}, 'votes': 5},
+    ]
+    sitting = {'leader': {'kind': 'stay-and-gather'}, 'table': table}
+    opened = {'seq': 9, 'date': DATE, 'events': [], 'changes': {'seat': {'council': sitting}}}
+    empty = {'seq': 9, 'date': DATE, 'events': [], 'changes': {'seat': {'council': {'leader': None, 'table': []}}}}
+
+    assert line(opened, 'en') == (
+        'morning, day 1, month 3, year 1, summer: '
+        'The votes: we stay, we are short of food - 8; we go where the sun rises - 5.'
+    )
+    assert line(opened, 'ru').endswith('Голоса: остаёмся: нам не хватает еды - 8; идём туда, где встаёт солнце - 5.')
+    assert line(empty, 'en') == 'morning, day 1, month 3, year 1, summer'
 
 
 def test_the_band_follows_the_changes_and_leaves_when_gone() -> None:

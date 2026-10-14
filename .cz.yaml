@@ -1,7 +1,15 @@
+---
 commitizen:
   major_version_zero: true
   name: wyld_cz
+  pre_bump_hooks:
+  - 'test "$DT_BUMP" = make || { sed -i "s/^  version: $CZ_PRE_NEW_VERSION\$/  version:
+    $CZ_PRE_CURRENT_VERSION/" .cz.yaml; sed -i "s/^version = \"$CZ_PRE_NEW_VERSION\"\$/version
+    = \"$CZ_PRE_CURRENT_VERSION\"/" pyproject.toml; echo ''cz bump runs only through
+    make bump or make major'' >&2; exit 1; }'
   tag_format: $version
-  update_changelog_on_bump: true
+  update_changelog_on_bump: false
   version: 0.0.1
+  version_files:
+  - pyproject.toml:^version
   version_type: semver

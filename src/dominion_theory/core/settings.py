@@ -36,6 +36,7 @@ class Settings(BaseSettings):
     database_url: str = Field(default_factory=_database_url)
     records_dir: Path = Field(default_factory=_records_dir)
     tick_ms: int = Field(default=500, gt=0)
+    council_wait_s: float = Field(default=30.0, gt=0)
     updates_kept: int = Field(default=512, gt=0)
     spectator: bool = True
 

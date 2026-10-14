@@ -66,12 +66,12 @@ def test_era_holds_what_a_cell_gives_and_how_winter_slows_it() -> None:
 def test_council_is_the_one_of_its_document() -> None:
     council = load_params().council
 
-    assert (council.min_gap.model_dump(), council.voice.share, council.voice.least) == ({'days': 2}, 0.5, 2.0)
-    assert council.intent.model_dump() == {'move': {'days': 1}, 'rest': {'days': 2}, 'stay_and_gather': {'days': 2}}
-    assert (council.judgement.tolerance, council.judgement.disaster) == (0.25, 0.2)
+    assert (council.part, council.voice.share, council.voice.least) == ('morning', 0.5, 2.0)
+    assert council.judgement.disaster == 0.2
     assert council.status.model_dump() == {
         'start': 50.0,
-        'declined': -2.0,
+        'abstained': -2.0,
+        'outvoted': -1.0,
         'move_worked': 4.0,
         'move_failed': -6.0,
         'move_disaster': -20.0,
@@ -207,15 +207,13 @@ def test_voice_of_the_player_is_never_an_ordinary_one() -> None:
     assert refused({'council.voice.least': 1.0})['path'] == 'council.voice.least'
 
 
-def test_move_is_not_judged_before_its_intent_ends() -> None:
-    assert refused({'council.judgement.move_after': {'parts': 4}}) == {
-        'path': 'council.judgement.move_after',
-        'found': {'parts': 4},
-        'expected': 'not shorter than council.intent.move',
+def test_the_council_sits_in_a_part_of_the_day() -> None:
+    assert refused({'council.part': 'dusk'}) == {
+        'path': 'council.part',
+        'found': 'dusk',
+        'expected': 'one of morning, midday, afternoon, evening, night',
     }
-    assert (
-        load_params(overrides={'council.judgement.move_after': {'parts': 5}}).council.judgement.move_after.amount == 5
-    )
+    assert load_params(overrides={'council.part': 'evening'}).council.part == 'evening'
 
 
 def test_status_starts_within_its_scale() -> None:

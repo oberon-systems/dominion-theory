@@ -14,12 +14,17 @@ STATE = 'state-'
 PEOPLE = 'line-people'
 STORE = 'line-store'
 STATUS = 'line-status'
+COUNCIL = 'line-council'
+VOTES = 'line-votes'
+PROPOSAL = 'proposal-'
 ACTION = 'line-action-'
 DIRECTION = 'line-direction-'
 MESSAGES: tuple[str, ...] = (
     PEOPLE,
     STORE,
     STATUS,
+    COUNCIL,
+    VOTES,
     *(f'{ACTION}{kind}' for kind in ACTIONS),
     *(f'{DIRECTION}{towards}' for towards in DIRECTIONS),
 )
@@ -41,6 +46,18 @@ def band_words(band: Unit, lang: str) -> str:
     return ', '.join(parts) + '.'
 
 
+def council_words(council: Mapping[str, Any], lang: str) -> str:
+    """
+    The table of the council of the day: every option the others voted for, with its votes.
+    """
+    told = []
+    for entry in council['table']:
+        proposal = entry['proposal']
+        name = f'{PROPOSAL}{proposal["kind"]}' + (f'-{proposal["towards"]}' if 'towards' in proposal else '')
+        told.append(render(VOTES, {'proposal': name, 'votes': entry['votes']}, lang))
+    return render(COUNCIL, {'table': '; '.join(told)}, lang)
+
+
 def follow(band: Unit | None, update: Mapping[str, Any]) -> Unit | None:
     """
     The band after an update, from the one before it.
@@ -59,8 +76,10 @@ def line(update: Mapping[str, Any], lang: str, band: Unit | None = None) -> str:
     """
     date = render(DATE, update['date'], lang)
     told = [] if band is None else [band_words(band, lang)]
-    status = update.get('changes', {}).get('seat', {}).get('status')
-    if status is not None:
-        told.append(render(STATUS, {'status': status}, lang))
+    seat = update.get('changes', {}).get('seat', {})
+    if seat.get('status') is not None:
+        told.append(render(STATUS, {'status': seat['status']}, lang))
     told += [words(event, lang) for event in update['events']]
+    if seat.get('council') and seat['council']['table']:
+        told.append(council_words(seat['council'], lang))
     return f'{date}: {" ".join(told)}' if told else date

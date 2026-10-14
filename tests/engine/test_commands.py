@@ -1,26 +1,26 @@
-from dominion_theory.engine import CallCouncil, Command, Pass
+from dominion_theory.engine import Command, Pass, Vote
 from dominion_theory.engine.commands import BUILT
 
 
-def test_pass_and_the_council_are_built() -> None:
-    assert {'pass', 'call-council'} == BUILT
+def test_pass_and_the_vote_are_built() -> None:
+    assert {'pass', 'vote'} == BUILT
 
 
 def test_envelope_is_the_id_the_kind_and_the_rest() -> None:
     assert Pass(seat='player', id='c-1').envelope() == {'id': 'c-1', 'kind': 'pass'}
-    assert CallCouncil(seat='player', proposal={'kind': 'move', 'towards': 'east'}, id='c-2').envelope() == {
+    assert Vote(seat='player', proposal={'kind': 'move', 'towards': 'east'}, id='c-2').envelope() == {
         'id': 'c-2',
-        'kind': 'call-council',
+        'kind': 'vote',
         'proposal': {'kind': 'move', 'towards': 'east'},
     }
 
 
 def test_command_is_read_back_from_its_envelope() -> None:
-    sent = CallCouncil(seat='player', proposal='rest', id='c-2')
+    sent = Vote(seat='player', proposal='rest', id='c-2')
 
     read = Command.read('player', sent.envelope())
 
-    assert (read.seat, read.kind, read.id, read.fields) == ('player', 'call-council', 'c-2', {'proposal': 'rest'})
+    assert (read.seat, read.kind, read.id, read.fields) == ('player', 'vote', 'c-2', {'proposal': 'rest'})
     assert read.envelope() == sent.envelope()
 
 

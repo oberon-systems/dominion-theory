@@ -65,7 +65,7 @@ own: stage 0 defined the frame and `time`, stage 1 filled `planet` and
 | `biomes`     | one entry per biome: its rule, properties per era   | stage 1       |
 | `resources`  | weight, how fast each one spoils                    | stage 2       |
 | `units`      | one entry per kind of unit: the band first          | stage 2       |
-| `council`    | gaps, windows, what a proposal does to status       | stage 2       |
+| `council`    | when it sits, the voice, what a vote does to status | stage 2       |
 | `encounters` | chance and cost of what a band may run into         | stage 2       |
 | `peoples`    | how many other bands, how they are spawned          | stage 3       |
 
@@ -205,18 +205,18 @@ A piece of the defaults, as it would stand in the file for the council.
 
 ```yaml
 council:
-  min_gap: {days: 1}
-  judge_after: {days: 3}
+  part: morning
+  voice:
+    share: 0.5
+    least: 2.0
   status:
     start: 50
-    move_worked: 2
-    move_failed: -6
-    move_disaster: -20
-    rest: 1
-    stay_and_gather: 1
+    abstained: -2
+    outvoted: -1
 ```
 
-The numbers are placeholders; stage 2 sets the real ones.
+The whole section and its numbers are in
+[Indirect control](../game/indirect_control.md#parameters).
 
 A preset is the same shape with only what differs. This one moves a month
 from summer to winter and leaves the other seasons alone.
@@ -229,8 +229,8 @@ time:
 ```
 
 A game is created over the API with a preset and overrides. Only paths of
-the sections built so far are taken; `council.min_gap` is refused until
-stage 2 adds it.
+the sections built so far are taken; `peoples.count` is refused until
+stage 3 adds it.
 
 ```json
 {

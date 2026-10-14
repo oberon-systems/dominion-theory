@@ -476,22 +476,14 @@ class Voice(Node):
     least: Annotated[float, Field(strict=True, gt=1, allow_inf_nan=False)]
 
 
-class Intent(Node):
-    move: Duration
-    rest: Duration
-    stay_and_gather: Duration
-
-
 class Judgement(Node):
-    move_after: Duration
-    supply_cap: Duration
-    tolerance: Factor
     disaster: Share
 
 
 class Status(Node):
     start: Points
-    declined: Amount
+    abstained: Amount
+    outvoted: Amount
     move_worked: Amount
     move_failed: Amount
     move_disaster: Amount
@@ -502,9 +494,8 @@ class Status(Node):
 
 
 class Council(Node):
-    min_gap: Duration
+    part: Name
     voice: Voice
-    intent: Intent
     judgement: Judgement
     status: Status
 
@@ -718,10 +709,8 @@ class Params(Node):
                 raise _invalid('units.band.decisions.night_parts', part, expected)
 
     def _check_council(self) -> None:
-        intent, judgement = self.council.intent, self.council.judgement
-        if self.parts(judgement.move_after) < self.parts(intent.move):
-            found = judgement.move_after.model_dump()
-            raise _invalid('council.judgement.move_after', found, 'not shorter than council.intent.move')
+        if self.council.part not in self.time.day_parts:
+            raise _invalid('council.part', self.council.part, f'one of {", ".join(self.time.day_parts)}')
 
     def _check_encounters(self) -> None:
         for action in self.encounters.actions:

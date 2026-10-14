@@ -42,7 +42,8 @@ def _row(context: Context, game_id: str) -> schemas.Row:
 
 @router.post('', status_code=201)
 async def create(body: schemas.NewGame, context: Ctx) -> schemas.Game:
-    runner = context.service.create(seed=body.seed, preset=body.preset, overrides=body.overrides, mode=body.mode)
+    service = context.service
+    runner = service.create(body.seed, body.preset, body.overrides, body.mode, seated=body.seated)
     context.index.add(runner, body.preset)
     return _described(runner)
 

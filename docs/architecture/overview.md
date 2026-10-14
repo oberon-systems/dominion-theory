@@ -251,13 +251,14 @@ The path of one player action, from the browser and back. The council is
 a rule of stage 2; today `pass` travels the same path and comes back as
 `command-accepted`.
 
-1. The client sends "call a council and propose a rest" to the API.
+1. The client sends "at the council of the day, I propose a rest" to the
+   API.
 2. The API takes the caller for the one seat of the game, since there is
    no sign-in yet, and hands the command to the runner of that game.
 3. The runner submits it to the engine before the next tick.
-4. The engine checks the command against the rules - the gap since the
-   last council, for one - and holds the vote.
-5. `step()` returns an event with the key `council-accepted` and the
+4. The engine checks the command against the rules - whether a council
+   sits, for one - and counts the votes with the player's voice.
+5. `step()` returns an event with the key `council-turned` and the
    values of the proposal.
 6. The runner writes the changes to the store, appends the row of counters
    to the run record and hands an update to its subscribers.

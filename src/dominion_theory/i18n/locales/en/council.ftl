@@ -8,9 +8,13 @@ proposal-move-west = we go where the sun sets
 proposal-move-north-west = we go between the sunset and the unmoving star
 proposal-rest = we rest here
 proposal-stay-and-gather = we stay, we are short of food
+proposal-none = nothing in particular
 
-council-accepted = The council agreed: { $proposal }. { NUMBER($yes, maximumFractionDigits: 1) } voices of { NUMBER($all, maximumFractionDigits: 1) } were for it.
-council-declined = The council would not have it: { $proposal }. Only { NUMBER($yes, maximumFractionDigits: 1) } voices of { NUMBER($all, maximumFractionDigits: 1) } were for it. Your standing is now { NUMBER($status, maximumFractionDigits: 0) }.
+council-opened = The council of the day sits. Most lean to: { $leader }.
+council-followed = You spoke with the others: { $proposal }.
+council-turned = You turned the band: { $proposal }. { NUMBER($yes, maximumFractionDigits: 1) } voices of { NUMBER($all, maximumFractionDigits: 1) } were for it.
+council-outvoted = The council would not have it: { $proposal }; it chose { $winner }. Your standing is now { NUMBER($status, maximumFractionDigits: 0) }.
+council-abstained = You said nothing at the council. Your standing is now { NUMBER($status, maximumFractionDigits: 0) }.
 proposal-worked = It went well: { $proposal }. Your standing is now { NUMBER($status, maximumFractionDigits: 0) }.
 proposal-failed =
     { $lost ->

@@ -14,7 +14,7 @@ from ..content import Params
 from ..core.errors import DominionError
 from ..engine import Command, Game, StepResult
 
-FORMAT = 1
+FORMAT = 2
 SUFFIX = '.jsonl.gz'
 HEADER = 'header'
 COMMAND = 'command'
@@ -42,6 +42,7 @@ def header_line(game_id: str, game: Game, kinds: dict[str, str] | None = None) -
         'params_hash': game.params.hash,
         'params': game.params.tree(),
         'seats': [{'seat': seat, 'kind': (kinds or {}).get(seat, PERSON)} for seat in game.seats],
+        'seated': game.seated,
         'counters': list(game.counters.names),
         'units': list(game.unit_columns),
     }
@@ -150,7 +151,8 @@ def replay(path: str | Path, params: Params | None = None) -> Replay:
     if not lines or lines[0].get('t') != HEADER or lines[0].get('format') != FORMAT:
         raise DominionError(RECORD_UNREADABLE, path=str(path))
     header = lines[0]
-    game = Game.create(seed=header['seed'], params=params or Params.model_validate(header['params']))
+    tree = params or Params.model_validate(header['params'])
+    game = Game.create(seed=header['seed'], params=tree, seated=header['seated'])
     diverged_at = None
     for line in lines[1:]:
         kind = line.get('t')

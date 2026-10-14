@@ -6,7 +6,7 @@ from collections.abc import Iterator
 from contextlib import closing, suppress
 
 from .api import Api, Refused
-from .lines import line
+from .lines import follow, line
 
 PASS = 'pass'  # noqa: S105
 
@@ -28,6 +28,7 @@ def watch(
     with run, the clock is started once the snapshot is read and stopped when the watch ends.
     """
     snapshot = api.snapshot(game_id)
+    band = next(iter(snapshot.get('units', [])), None)
     if step and snapshot['waiting']:
         _answer(api, game_id, snapshot['seq'])
     if run:
@@ -37,9 +38,11 @@ def watch(
         with closing(api.updates(game_id, snapshot['seq'])) as stream:
             for message in stream:
                 if message.get('resync'):
-                    waiting = api.snapshot(game_id)['waiting']
+                    snapshot = api.snapshot(game_id)
+                    band, waiting = next(iter(snapshot.get('units', [])), None), snapshot['waiting']
                 else:
-                    yield line(message, lang)
+                    band = follow(band, message)
+                    yield line(message, lang, band)
                     seen += 1
                     if seen == limit:
                         return

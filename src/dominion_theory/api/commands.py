@@ -7,16 +7,9 @@ from typing import Any
 
 from ..core.errors import DominionError
 from ..engine import Command
-from ..engine.commands import CALL_COUNCIL, PASS
+from ..engine.band import DIRECTIONS
+from ..engine.commands import CALL_COUNCIL, MOVE, PASS, PROPOSALS
 from .errors import COMMAND_INVALID
-
-DIRECTIONS = ('north', 'north-east', 'east', 'south-east', 'south', 'south-west', 'west', 'north-west')
-MOVE = 'move'
-PROPOSALS: dict[str, frozenset[str]] = {
-    MOVE: frozenset({'kind', 'towards'}),
-    'rest': frozenset({'kind'}),
-    'stay-and-gather': frozenset({'kind'}),
-}
 
 
 def _nothing(fields: Mapping[str, Any]) -> bool:
@@ -28,9 +21,9 @@ def _council(fields: Mapping[str, Any]) -> bool:
     if set(fields) != {'proposal'} or not isinstance(proposal, Mapping):
         return False
     kind = proposal.get('kind')
-    if not isinstance(kind, str) or PROPOSALS.get(kind) != frozenset(proposal):
+    if not isinstance(kind, str) or kind not in PROPOSALS or set(proposal) != {'kind', *PROPOSALS[kind]}:
         return False
-    return kind != MOVE or proposal['towards'] in DIRECTIONS
+    return kind != MOVE or (isinstance(proposal['towards'], str) and proposal['towards'] in DIRECTIONS)
 
 
 FORMS: dict[str, Callable[[Mapping[str, Any]], bool]] = {PASS: _nothing, CALL_COUNCIL: _council}

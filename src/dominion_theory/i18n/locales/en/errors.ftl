@@ -8,3 +8,4 @@ error-params-invalid = The parameter { $path } is { $found }; expected { $expect
 error-record-unreadable = The record { $path } cannot be read.
 error-locale-unknown = The language { $locale } is not known.
 error-profile-not-found = There is no profile { $id }.
+error-unit-not-found = There is no unit { $id }.

@@ -14,6 +14,7 @@ from ..runner import CLOCK_RUNNING, GAME_ENDED, GAME_NOT_FOUND, RECORD_UNREADABL
 
 REQUEST_UNREADABLE = 'error-request-unreadable'
 COMMAND_INVALID = 'error-command-invalid'
+UNIT_NOT_FOUND = 'error-unit-not-found'
 # Declared by content, which the api does not import.
 PRESET_NOT_FOUND = 'error-preset-not-found'
 PARAMS_INVALID = 'error-params-invalid'
@@ -30,6 +31,7 @@ STATUSES: dict[str, int] = {
     LOCALE_UNKNOWN: NOT_FOUND,
     PROFILE_NOT_FOUND: NOT_FOUND,
     RECORD_UNREADABLE: NOT_FOUND,
+    UNIT_NOT_FOUND: NOT_FOUND,
     GAME_ENDED: ENDED,
     CLOCK_RUNNING: ENDED,
     PARAMS_INVALID: FAILED_CHECK,

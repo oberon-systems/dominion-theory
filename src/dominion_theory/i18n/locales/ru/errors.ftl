@@ -8,3 +8,4 @@ error-params-invalid = Параметр { $path }: получено { $found }, 
 error-record-unreadable = Запись { $path } не читается.
 error-locale-unknown = Язык { $locale } неизвестен.
 error-profile-not-found = Профиль { $id } не найден.
+error-unit-not-found = Отряд { $id } не найден.

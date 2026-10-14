@@ -1,6 +1,6 @@
 # Commands
 
-#api #commands #stage0
+#api #commands #stage0 #stage2
 
 A command is what a seat asks of the game. This document says what a
 command looks like, what becomes of it and which commands exist. Part of
@@ -104,16 +104,16 @@ ___
 
 ## The commands
 
-Stage 0 builds the frame and one command. The rest are listed so that the
-frame is cut to fit them; their rules are written in stage 2.
+Two commands exist. The frame was built in stage 0 and the rules of the
+council in stage 2.
 
 | Kind           | Does                                           | Built in |
 |----------------|------------------------------------------------|----------|
 | `pass`         | says the seat has nothing to ask this step     | stage 0  |
 | `call-council` | gathers the band and puts a proposal to it     | stage 2  |
 
-Until stage 2 the API checks the form of `call-council` and takes it, and
-the engine refuses it with `refused-unknown-command`.
+The API checks the form of a command; the rules are the engine's, and it
+judges a `call-council` when the game next steps.
 
 A proposal is one of three.
 
@@ -126,7 +126,7 @@ A proposal is one of three.
 A direction is one of eight: `north`, `north-east`, `east`, `south-east`,
 `south`, `south-west`, `west`, `north-west`.
 
-Reasons a council may be refused, as they stand now:
+Reasons a council may be refused, checked in this order:
 
 | Reason                       | When                                         |
 |------------------------------|----------------------------------------------|
@@ -142,7 +142,7 @@ Two reasons belong to the frame and are built in stage 0.
 
 | Reason                    | When                                        |
 |---------------------------|---------------------------------------------|
-| `refused-unknown-command` | the rules know no command of that kind      |
+| `refused-unknown-command` | the rules know no command of that kind, or the game has no band |
 | `refused-unknown-seat`    | the game has no such seat                   |
 
 ___
@@ -162,8 +162,7 @@ ___
 ## Examples
 
 A seat that rests when its band is tired and passes otherwise, in step
-mode. The addresses are shortened. Both examples show the council of
-stage 2; the lines with `pass` are what stage 0 already answers.
+mode. The addresses are shortened.
 
 ```text
 GET  /games/7f3a9c1e/snapshot       -> seq 311, waiting ["player"]
@@ -173,7 +172,8 @@ POST /games/7f3a9c1e/commands       {"id": "c-2", "kind": "pass"}
 WS   /games/7f3a9c1e/updates        <- seq 313: command-accepted c-2
 ```
 
-A council called too soon after the last one.
+A council called too soon after the last one, in a game that does not
+wait for the seat.
 
 ```text
 POST /games/7f3a9c1e/commands       {"id": "c-3", "kind": "call-council", "proposal": {"kind": "move", "towards": "east"}}

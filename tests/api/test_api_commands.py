@@ -5,8 +5,9 @@ import pytest
 from fastapi.testclient import TestClient
 
 from dominion_theory.api import PREFIX
-from dominion_theory.api.commands import DIRECTIONS, read_command
+from dominion_theory.api.commands import read_command
 from dominion_theory.core.errors import DominionError
+from dominion_theory.engine.band import DIRECTIONS
 
 type NewGame = Callable[..., dict[str, Any]]
 
@@ -24,6 +25,7 @@ MALFORMED: list[dict[str, Any]] = [
     {'id': 'c-1', 'kind': 'call-council', 'proposal': {'kind': 'alpha'}},
     {'id': 'c-1', 'kind': 'call-council', 'proposal': {'kind': 'move'}},
     {'id': 'c-1', 'kind': 'call-council', 'proposal': {'kind': 'move', 'towards': 'up'}},
+    {'id': 'c-1', 'kind': 'call-council', 'proposal': {'kind': 'move', 'towards': ['east']}},
     {'id': 'c-1', 'kind': 'call-council', 'proposal': {'kind': 'rest', 'towards': 'east'}},
     {**REST, 'unit': 1},
 ]

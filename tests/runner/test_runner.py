@@ -32,7 +32,9 @@ QUIET = {
     'units.band.population.growth_per_year': 0.0,
     'encounters.chance': 0.0,
 }
-SMALL = {'planet.circumference_km': 4000, 'planet.window.width': 32, 'planet.window.height': 16, **QUIET}
+PLANET = {'planet.circumference_km': 4000, 'planet.window.width': 32, 'planet.window.height': 16}
+SMALL = {**PLANET, **QUIET}
+DYING = {**PLANET, 'units.band.consumption_per_day.water': 100.0, 'units.band.states.thirst.loss_per_day': 0.9}
 DAY = 5
 KEPT = 4
 WAIT = 5
@@ -121,13 +123,15 @@ def test_the_snapshot_carries_the_last_update(service: Service) -> None:
     runner = service.create(seed=1, overrides=SMALL, mode=STEP)
     for _ in range(3):
         runner.step()
+    band = runner.game.band
+    assert band is not None
 
     assert runner.snapshot() == {
         'seq': 3,
         'date': {'year': 1, 'month': 1, 'day': 1, 'part': 'evening', 'season': 'spring'},
         'window': asdict(runner.game.window),
-        'seat': {'name': 'player'},
-        'units': [],
+        'seat': {'name': 'player', 'unit': 1, 'status': 50.0, 'council_from': 0},
+        'units': [band.shown(0)],
         'waiting': ['player'],
     }
 
@@ -200,6 +204,44 @@ def test_an_ended_game_leaves_the_store_and_takes_nothing(service: Service, stor
         with pytest.raises(DominionError) as error:
             refused()
         assert error.value.message() == {'key': GAME_ENDED, 'values': {'id': runner.id}}
+
+
+def test_a_game_the_engine_ends_is_ended_by_its_runner(service: Service, store: GameStore) -> None:
+    runner = service.create(seed=42, overrides=DYING, mode=STEP)
+    seen: list[Update | Ended] = []
+    runner.subscribe(seen.append)
+    for _ in range(4):
+        runner.step()
+    alive = runner.ended
+
+    last = runner.step()
+
+    assert alive is False
+    assert 'band-died' in [event.key for event in last.events]
+    assert (last.changes['gone'], last.waiting) == ([1], [])
+    assert seen[-2:] == [last, Ended('died', 5, runner.game.state_hash())]
+    assert runner.ended is True
+    assert runner.snapshot()['units'] == []
+    assert service.games() == []
+    assert store.live_games() == []
+    with pytest.raises(DominionError) as error:
+        service.find(runner.id)
+    assert error.value.key == 'error-game-not-found'
+
+
+def test_a_running_clock_stops_when_the_engine_ends_the_game(service: Service) -> None:
+    runner = service.create(seed=42, overrides=DYING, mode=REAL_TIME)
+
+    async def scenario() -> None:
+        ended = asyncio.Event()
+        runner.subscribe(lambda message: ended.set() if isinstance(message, Ended) else None)
+        runner.resume()
+        await asyncio.wait_for(ended.wait(), WAIT)
+        await asyncio.sleep(0.02)
+
+    asyncio.run(scenario())
+
+    assert (runner.ended, runner.running, runner.game.tick) == (True, False, 5)
 
 
 def test_a_step_game_has_no_clock(service: Service) -> None:

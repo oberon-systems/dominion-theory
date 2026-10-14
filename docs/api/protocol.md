@@ -1,6 +1,6 @@
 # Protocol
 
-#api #protocol #stage0
+#api #protocol #stage0 #stage2
 
 How a client talks to the game: the addresses, the messages and the stream
 of updates. It is written so that a browser, a Unity client and a program
@@ -117,20 +117,60 @@ after it.
   "seq": 311,
   "date": {"year": 1, "month": 7, "day": 3, "part": "evening", "season": "autumn"},
   "window": {"scale": 0, "x": 2040, "y": 610, "width": 512, "height": 256},
-  "seat": {"name": "player", "unit": 1, "status": 47},
+  "seat": {"name": "player", "unit": 1, "status": 47.0, "council_from": 318},
   "units": [
-    {"id": 1, "kind": "band", "at": {"x": 2301, "y": 744}, "state": "normal", "action": "camp", "people": 18}
+    {
+      "id": 1,
+      "kind": "band",
+      "place": {"scale": 0, "x": 2301, "y": 744},
+      "population": 18,
+      "stores": {"forage": 22.5, "water": 30.0},
+      "fatigue": 0.3,
+      "states": [],
+      "action": {"kind": "camp"},
+      "intent": null,
+      "reason": {"action": "camp", "need": "rest", "score": 0.42, "pull": null}
+    }
   ],
   "waiting": []
 }
 ```
 
 The map is not in the snapshot: it is large and is fetched in pieces.
+The window is where the first window was placed on the planet, so it does
+not start at the origin; see
+[Generation](../biomes/generation.md#the-first-window).
 
-The game answers with the frame of this. `seat` holds the name alone and
-`units` is empty until stage 2 brings the band. The window is where the
-first window was placed on the planet, so it does not start at the origin;
-see [Generation](../biomes/generation.md#the-first-window).
+### The seat
+
+- **`unit`** - the id of the seat's band, `null` once the band is gone.
+- **`status`** - the player's weight in the council, 0 to 100; see
+  [Indirect control](../game/indirect_control.md#status).
+- **`council_from`** - the tick from which the next council may be called.
+
+### A unit
+
+A unit is a band in stage 2, as
+[Bands](../game/01_bands.md#what-the-api-shows) shows it.
+
+| Field        | Holds                                                       |
+|--------------|-------------------------------------------------------------|
+| `place`      | the cell it stands on, with the scale                       |
+| `population` | the people in it                                            |
+| `stores`     | the amount held of each resource                            |
+| `fatigue`    | 0 for rested, growing with work                             |
+| `states`     | `starvation`, `thirst`, `tiredness`, in that order          |
+| `action`     | what it did in the last tick: `camp`, `gather` or `move`    |
+| `intent`     | the proposal it holds and the tick it holds it `until`      |
+| `reason`     | why it took that action; see [Decisions](../game/decisions.md#the-reason) |
+
+An action of `gather` names its `resource` and one of `move` its
+`towards`. An intent is `null` or a proposal as
+[Commands](commands.md#the-commands) gives it.
+
+```json
+{"proposal": {"kind": "move", "towards": "east"}, "until": 417}
+```
 
 ___
 
@@ -150,15 +190,30 @@ Each message on the stream is one update.
   "seq": 312,
   "date": {"year": 1, "month": 7, "day": 3, "part": "night", "season": "autumn"},
   "events": [
-    {"key": "council-accepted", "values": {"unit": 1, "proposal": "proposal-rest"}}
+    {"key": "council-accepted", "values": {"proposal": "proposal-rest", "yes": 17.0, "all": 17.5}}
   ],
   "changes": {
     "units": [
-      {"id": 1, "kind": "band", "at": {"x": 2301, "y": 744}, "state": "normal", "action": "camp", "people": 18}
+      {
+        "id": 1,
+        "kind": "band",
+        "place": {"scale": 0, "x": 2301, "y": 744},
+        "population": 18,
+        "stores": {"forage": 22.5, "water": 30.0},
+        "fatigue": 0.0,
+        "states": [],
+        "action": {"kind": "camp"},
+        "intent": {"proposal": {"kind": "rest"}, "until": 322},
+        "reason": {"action": "camp", "need": "rest", "score": 0.42, "pull": null}
+      }
     ],
     "gone": [],
     "cells": [{"x": 2301, "y": 744, "water": 1.0, "food": 0.4}],
-    "seat": {"status": 48}
+    "known": [
+      {"x": 2301, "y": 744, "biome": "forest", "river": false, "water": 0.6,
+       "food": 0.36, "threat": 0.4, "passability": 0.6, "seen": 63}
+    ],
+    "seat": {"council_from": 322}
   },
   "waiting": ["player"]
 }
@@ -170,16 +225,28 @@ Each message on the stream is one update.
 - **`events`** are what happened, in order.
 - **`changes`** hold the whole new value of each thing that changed, not
   the fields that differ, so a client replaces what it has.
+- **`changes.units`** holds every unit whose shown form changed, whole.
+  The `reason` changes with the part of the day, so a band is sent in
+  most updates.
+- **`changes.gone`** names the units that left the game: a band that died.
 - **`changes.cells`** lists every cell whose stock moved, with its place
   and one number per stock of the era: `water` and `food` in the band
   era. A cell that is back to full is listed once more, with every stock
   at 1.
+- **`changes.known`** lists the cells the band now remembers differently
+  from before: its biome, its river, the value of every property of the
+  era as the band saw it, and the day it was seen.
+- **`changes.seat`** carries only the keys of the seat that moved:
+  `council_from` when a council was called, `status` when the status
+  changed.
 - **`waiting`** names the seats a game in step mode is waiting for.
 
 An update is not a tick. The client is never told how many steps of the
 engine an update covers, and a fast game may cover several in one.
 
-When a game ends the server closes the stream. A stream that cannot be
+When a game ends the server closes the stream. A game the rules end - the
+band died, the player was banished - sends its last update first, with the
+event that ended it and nobody waiting. A stream that cannot be
 served - no such game, a view that is not offered - gets one message, the
 error, and is closed with the code 4000 plus the HTTP status of that
 error: 4404 for a game that is not found.
@@ -266,6 +333,39 @@ comes in the `cells` of an update.
 The answer holds the part of the asked rectangle that lies in the window,
 and a request with no rectangle gets the whole window.
 
+### What a band knows
+
+With `known` and the id of a unit, the same rectangle comes as that band
+remembers it. An id the game does not hold is answered with 404 and
+`error-unit-not-found`.
+
+```text
+/api/v1/games/7f3a9c1e/map?x=2299&y=742&width=3&height=1&known=1
+```
+
+```json
+{
+  "scale": 0,
+  "x": 2299, "y": 742, "width": 3, "height": 1,
+  "biomes": ["forest"],
+  "cells": [null, 0, 0],
+  "rivers": [null, 0, 1],
+  "water": [null, 0.6, 1.0],
+  "food": [null, 0.9, 0.36],
+  "threat": [null, 0.4, 0.4],
+  "passability": [null, 0.6, 0.6],
+  "seen": [null, 63, 63]
+}
+```
+
+- **A cell the band does not know** is `null` in every list.
+- **`biomes`** holds only the biomes of the cells it knows, in their order
+  of generation.
+- **A property** is one list per property of the era, not per stock: the
+  value as the band saw it, the season, the river and the stock applied.
+- **`seen`** is the day the band last saw the cell. What it saw longer ago
+  than its memory is forgotten and is `null` again.
+
 What a biome is worth is read once per game.
 
 ```text
@@ -305,8 +405,8 @@ The same game can be looked at in two ways.
 The view is asked for with `?view=` on the snapshot, the biomes, the map
 and the stream. Whether a server offers the spectator view is the setting
 `DT_SPECTATOR`, on by default; a view that is not offered is answered
-with 400. Until stage 2 gives a band something to know, both views show
-the same.
+with 400. Both views show the same for now: what a band knows is read with
+`known` on the map, in either view.
 
 ___
 
@@ -345,7 +445,7 @@ message, like everything else.
 | Status | When                                                      |
 |--------|-----------------------------------------------------------|
 | 400    | the request cannot be read                                |
-| 404    | no such game, preset or language; the record is gone      |
+| 404    | no such game, preset, language or unit; the record is gone |
 | 409    | the game has ended; a step was asked of a running clock   |
 | 422    | the parameters, the command or a profile fail their check |
 
@@ -379,5 +479,6 @@ ___
   is seen in stage 4.
 - **Map encoding** - plain lists are easy to read and large. A packed form
   is added if the map proves slow to load.
-- **What a seat sees** - how far a band knows the land around it is a rule
-  of the band, set in stage 2.
+- **What a seat sees** - the seat view still shows the whole map. Whether
+  it should show only what the band knows, as the known map does, is
+  settled when a person first plays from the browser.

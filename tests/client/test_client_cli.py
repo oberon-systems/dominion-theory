@@ -35,24 +35,26 @@ def test_a_real_time_game_is_created_watched_and_left_paused(server: str, api: A
 
     assert result.exit_code == 0
     assert result.stdout.splitlines() == [
-        'midday, day 1, month 1, year 1, spring',
-        'afternoon, day 1, month 1, year 1, spring',
-        'evening, day 1, month 1, year 1, spring',
+        'midday, day 1, month 1, year 1, spring: 15 people, forage 43.4, water 15, gathers forage.',
+        'afternoon, day 1, month 1, year 1, spring: 15 people, forage 43.4, water 46.6, gathers water.',
+        'evening, day 1, month 1, year 1, spring: 15 people, forage 43.4, water 46.6, camps.',
     ]
     assert (game['seed'], game['mode'], game['running']) == (42, 'real-time', False)
     assert api.snapshot(game['id'])['seq'] >= 3
 
 
 def test_a_game_is_joined_by_its_id_and_stepped(server: str, api: Api) -> None:
-    game = api.create('step', overrides=SMALL)['id']
+    game = api.create('step', seed=42, overrides=SMALL)['id']
 
     result = run('watch', '--server', server, '--game', game, '--step', '--updates', '2', '--lang', 'ru')
 
     assert result.exit_code == 0
     assert result.stderr == f'game {game}\n'
     assert result.stdout.splitlines() == [
-        'полдень, день 1, месяц 1, год 1, весна: Команда pass-0 принята.',
-        'вторая половина дня, день 1, месяц 1, год 1, весна: Команда pass-1 принята.',
+        'полдень, день 1, месяц 1, год 1, весна: '
+        '15 человек, подножный корм 43,4, вода 15, собирает подножный корм. Команда pass-0 принята.',
+        'вторая половина дня, день 1, месяц 1, год 1, весна: '
+        '15 человек, подножный корм 43,4, вода 46,6, собирает воду. Команда pass-1 принята.',
     ]
     assert api.snapshot(game)['seq'] == 2
 

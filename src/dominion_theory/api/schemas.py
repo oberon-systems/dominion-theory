@@ -3,7 +3,7 @@ The shapes of docs/api/protocol.md: what is asked, what is answered, and the mes
 """
 
 from enum import StrEnum
-from typing import Any, Literal, Self
+from typing import Annotated, Any, Literal, Self
 
 from pydantic import BaseModel, ConfigDict, Field, TypeAdapter, model_validator
 
@@ -100,12 +100,112 @@ class Games(BaseModel):
     games: list[Row]
 
 
+class Place(BaseModel):
+    scale: int
+    x: int
+    y: int
+
+
+class Spot(BaseModel):
+    x: int
+    y: int
+
+
+class Camp(BaseModel):
+    kind: Literal['camp']
+
+
+class Gather(BaseModel):
+    kind: Literal['gather']
+    resource: str
+
+
+class Walk(BaseModel):
+    kind: Literal['move']
+    towards: str
+
+
+Action = Annotated[Camp | Gather | Walk, Field(discriminator='kind')]
+
+
+class MoveProposal(BaseModel):
+    kind: Literal['move']
+    towards: str
+
+
+class RestProposal(BaseModel):
+    kind: Literal['rest']
+
+
+class StayProposal(BaseModel):
+    kind: Literal['stay-and-gather']
+
+
+Proposal = Annotated[MoveProposal | RestProposal | StayProposal, Field(discriminator='kind')]
+
+
+class Intent(BaseModel):
+    """
+    A proposal that passed, held while the tick of the game is below until.
+    """
+
+    proposal: Proposal
+    until: int
+
+
+class Reason(BaseModel):
+    """
+    Why the band does what it does; the fields of its action beside its kind are additional fields.
+    """
+
+    model_config = ConfigDict(extra='allow')
+    __pydantic_extra__: dict[str, str] = Field(init=False)
+
+    action: Literal['camp', 'gather', 'move']
+    need: str
+    score: float
+    pull: Spot | None
+
+
+class Unit(BaseModel):
+    """
+    A band as a client sees it: docs/game/01_bands.md, What the API shows.
+    """
+
+    id: int
+    kind: Literal['band']
+    place: Place
+    population: int
+    stores: dict[str, float]
+    fatigue: float
+    states: list[str]
+    action: Action
+    intent: Intent | None
+    reason: Reason | None
+
+
+class Seat(BaseModel):
+    name: str
+    unit: int | None
+    status: float
+    council_from: int
+
+
+class SeatChange(BaseModel):
+    """
+    Only what moved in the update; a key that did not move is left out.
+    """
+
+    status: float | None = None
+    council_from: int | None = None
+
+
 class Snapshot(BaseModel):
     seq: int
     date: Date
     window: Window
-    seat: dict[str, Any]
-    units: list[dict[str, Any]]
+    seat: Seat
+    units: list[Unit]
     waiting: list[str]
 
 
@@ -124,11 +224,12 @@ class Biomes(BaseModel):
 
 class Map(BaseModel):
     """
-    Beside the named fields, one list of stocks per stocked property of the era, in the order of cells.
+    Beside the named fields, one list per stocked property of the era, in the order of cells;
+    in a map of what a band knows, one per property and seen instead, null where it knows nothing.
     """
 
     model_config = ConfigDict(extra='allow')
-    __pydantic_extra__: dict[str, list[float]] = Field(init=False)
+    __pydantic_extra__: dict[str, list[float | None]] = Field(init=False)
 
     scale: int
     x: int
@@ -136,8 +237,8 @@ class Map(BaseModel):
     width: int
     height: int
     biomes: list[str]
-    cells: list[int]
-    rivers: list[int]
+    cells: list[int | None]
+    rivers: list[int | None]
 
 
 class Taken(BaseModel):
@@ -168,11 +269,27 @@ class Cell(BaseModel):
     y: int
 
 
+class Known(BaseModel):
+    """
+    A cell as the band now remembers it: one value per property of the era, and the day it was seen.
+    """
+
+    model_config = ConfigDict(extra='allow')
+    __pydantic_extra__: dict[str, float] = Field(init=False)
+
+    x: int
+    y: int
+    biome: str
+    river: bool
+    seen: int
+
+
 class Changes(BaseModel):
-    units: list[dict[str, Any]]
+    units: list[Unit]
     gone: list[int]
     cells: list[Cell]
-    seat: dict[str, Any]
+    known: list[Known]
+    seat: SeatChange
 
 
 class Update(BaseModel):

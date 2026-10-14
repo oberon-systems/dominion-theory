@@ -15,7 +15,7 @@ from .. import schemas
 from ..biomes import described
 from ..commands import read_command
 from ..context import Context, Ctx, Seen
-from ..maps import rectangle
+from ..maps import rectangle, remembered
 
 RECORD_TYPE = 'application/gzip'
 
@@ -89,8 +89,12 @@ async def map_part(
     y: Edge = None,
     width: Side = None,
     height: Side = None,
+    known: Edge = None,
 ) -> schemas.Map:
-    return schemas.Map(**rectangle(context.runner(game_id).game, x, y, width, height))
+    game = context.runner(game_id).game
+    if known is None:
+        return schemas.Map(**rectangle(game, x, y, width, height))
+    return schemas.Map(**remembered(game, known, x, y, width, height))
 
 
 @router.post('/{game_id}/commands')

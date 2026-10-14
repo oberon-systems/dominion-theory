@@ -139,11 +139,10 @@ part of the rules: changing it changes the outcome of a game.
    month, season and year boundaries are noted. See [Time](time.md).
 7. **Report** - events, changes and counters are returned.
 
-The first and the last two phases are filled, and of the phase `world`
-the first part: every cell that was gathered from regains a share of its
-stock, as [Biomes](../biomes/overview.md#what-a-cell-remembers) tells.
-The rest waits for the rules of stages 2 and 3, and its place in the order
-is already fixed.
+Every phase is filled for the one band of stage 2; what each does to it
+is told in [Bands](../game/01_bands.md#one-tick-of-a-band). What waits for
+stage 3 is the part that needs more than one unit: the order of units in
+`decisions` and the conflicts over a cell in `actions`.
 
 ___
 
@@ -204,10 +203,15 @@ sees the same observation and can send the same commands.
   other.
 - **A scripted player**, in process, for tests and batches.
 
-One game has one seat for now. The other bands are not seats: they are run
-by the engine's own decision function. An observation holds what the
-seat's band knows, not the whole state; until stage 2 there is no band,
-and the seat sees the frame of the game only.
+One game has one seat for now, and the seat speaks for one band. The
+other bands of stage 3 are not seats: they are run by the engine's own
+decision function. The seat sees its band, its status and when it may
+call the next council; what the band knows of the land is read as a map,
+as [the protocol](../api/protocol.md#what-a-band-knows) tells.
+
+A seat leaves the game in two ways. Its band dies, or the band banishes
+the player; either ends the game, the runner closes it and the index of
+games keeps the outcome, `died` or `banished`.
 
 ___
 
@@ -277,8 +281,9 @@ ___
 - **Snapshot size** - the store keeps a full snapshot at the start of each
   game day and the changes in between. A snapshot now carries two grids of
   the window, biomes and rivers, and the cells whose stock is not full, so
-  it grows with the cells in use. Whether it is cheap enough to be written
-  every tick is measured in stage 2, when a band starts to use cells.
+  it grows with the cells in use. A band adds its memory, up to some
+  thousands of cells. Whether it is cheap enough to be written every tick
+  is measured at the close of stage 2.
 - **Folding updates** - whether a fast game puts several ticks into one
   update, and from which speed.
 - **Splitting the server** - the API and the runner share one process. If

@@ -3,6 +3,7 @@ The live games of a server: created, found, ended, and picked up again after a r
 """
 
 import secrets
+from functools import partial
 from typing import Any
 
 from ..content import load_params, presets
@@ -12,7 +13,7 @@ from ..engine import Game
 from ..store import GameStore, open_store
 from .record import RecordWriter, header_line, record_path
 from .runner import REAL_TIME, RUNNERS, STOPPED, Runner
-from .updates import Ended
+from .updates import Ended, Update
 
 GAME_NOT_FOUND = 'error-game-not-found'
 SEED_BITS = 32
@@ -50,9 +51,7 @@ class Service:
         return list(self._runners.values())
 
     def end(self, game_id: str, outcome: str = STOPPED) -> Ended:
-        ended = self.find(game_id).end(outcome)
-        del self._runners[game_id]
-        return ended
+        return self.find(game_id).end(outcome)
 
     def restore(self) -> list[Runner]:
         """
@@ -89,4 +88,9 @@ class Service:
         record = RecordWriter(path, header_line(game_id, game, seats))
         runner = kind(game_id, game, self.store, record, self.settings, seq)
         self._runners[game_id] = runner
+        runner.subscribe(partial(self._heard, game_id))
         return runner
+
+    def _heard(self, game_id: str, message: Update | Ended) -> None:
+        if isinstance(message, Ended):
+            self._runners.pop(game_id, None)

@@ -1,8 +1,47 @@
-from dominion_theory.client import line, words
+from typing import Any
+
+import pytest
+
+from dominion_theory.client import band_words, follow, line, words
+from dominion_theory.engine import EVENTS
 
 DATE = {'year': 1, 'month': 3, 'day': 1, 'part': 'morning', 'season': 'summer'}
 SEASON = {'key': 'season-started', 'values': {'year': 1, 'season': 'summer'}}
 MONTH = {'key': 'month-started', 'values': {'year': 1, 'month': 3, 'season': 'summer'}}
+BAND = {
+    'id': 1,
+    'kind': 'band',
+    'place': {'scale': 0, 'x': 2301, 'y': 744},
+    'population': 15,
+    'stores': {'forage': 22.5, 'water': 30.0},
+    'fatigue': 0.3,
+    'states': [],
+    'action': {'kind': 'camp'},
+    'intent': None,
+    'reason': None,
+}
+# One of every event the engine declares, with the values it carries.
+SAMPLES: dict[str, dict[str, Any]] = {
+    'command-accepted': {'id': 'c-1'},
+    'command-refused': {'id': 'c-1', 'reason': 'refused-council-too-soon'},
+    'day-started': {'year': 1, 'month': 1, 'day': 2},
+    'month-started': {'year': 1, 'month': 2, 'season': 'spring'},
+    'season-started': {'year': 1, 'season': 'summer'},
+    'year-started': {'year': 2, 'seasons': 4},
+    'band-state-began': {'state': 'state-thirst'},
+    'band-state-ended': {'state': 'state-starvation'},
+    'people-lost': {'count': 2, 'cause': 'encounter'},
+    'people-born': {'count': 1},
+    'band-died': {},
+    'encounter': {'kind': 'encounter-predator', 'lost': 1},
+    'council-accepted': {'proposal': 'proposal-move-east', 'yes': 15.25, 'all': 17.75},
+    'council-declined': {'proposal': 'proposal-rest', 'yes': 3.8, 'all': 17.75, 'status': 48.0},
+    'proposal-worked': {'proposal': 'proposal-stay-and-gather', 'status': 53.0},
+    'proposal-failed': {'proposal': 'proposal-move-west', 'lost': 0, 'status': 44.0},
+    'proposal-disaster': {'proposal': 'proposal-move-north', 'lost': 4, 'status': 24.0},
+    'intent-ended': {'proposal': 'proposal-move-south'},
+    'seat-banished': {},
+}
 
 
 def test_a_message_becomes_words_in_the_language() -> None:
@@ -30,3 +69,71 @@ def test_a_line_without_events_is_the_date_alone() -> None:
     update = {'seq': 101, 'date': {**DATE, 'part': 'midday'}, 'events': []}
 
     assert line(update, 'en') == 'midday, day 1, month 3, year 1, summer'
+
+
+@pytest.mark.parametrize(
+    ('band', 'lang', 'said'),
+    [
+        (BAND, 'en', '15 people, forage 22.5, water 30, camps.'),
+        (BAND, 'ru', '15 человек, подножный корм 22,5, вода 30, стоит лагерем.'),
+        (
+            {**BAND, 'population': 1, 'states': ['thirst'], 'action': {'kind': 'gather', 'resource': 'water'}},
+            'en',
+            '1 person, forage 22.5, water 30, thirst, gathers water.',
+        ),
+        (
+            {**BAND, 'population': 2, 'states': ['thirst'], 'action': {'kind': 'gather', 'resource': 'water'}},
+            'ru',
+            '2 человека, подножный корм 22,5, вода 30, жажда, собирает воду.',
+        ),
+        (
+            {**BAND, 'action': {'kind': 'move', 'towards': 'north-east'}},
+            'en',
+            '15 people, forage 22.5, water 30, walks north-east.',
+        ),
+        (
+            {**BAND, 'action': {'kind': 'move', 'towards': 'north-east'}},
+            'ru',
+            '15 человек, подножный корм 22,5, вода 30, идёт на северо-восток.',
+        ),
+    ],
+)
+def test_the_band_is_its_people_stores_states_and_action(band: dict[str, object], lang: str, said: str) -> None:
+    assert band_words(band, lang) == said
+
+
+def test_a_line_carries_the_band_and_the_status_when_it_moved() -> None:
+    moved = {'seq': 7, 'date': DATE, 'events': [SEASON], 'changes': {'seat': {'status': 52.0}}}
+    still = {'seq': 8, 'date': DATE, 'events': [], 'changes': {'seat': {'council_from': 40}}}
+
+    assert line(moved, 'en', BAND) == (
+        'morning, day 1, month 3, year 1, summer: '
+        '15 people, forage 22.5, water 30, camps. Your standing is 52. Year 1: summer has come.'
+    )
+    assert line(moved, 'ru', BAND) == (
+        'утро, день 1, месяц 3, год 1, лето: '
+        '15 человек, подножный корм 22,5, вода 30, стоит лагерем. Ваш вес 52. Год 1: наступило лето.'
+    )
+    assert line(still, 'en', BAND) == (
+        'morning, day 1, month 3, year 1, summer: 15 people, forage 22.5, water 30, camps.'
+    )
+
+
+def test_the_band_follows_the_changes_and_leaves_when_gone() -> None:
+    walked = {**BAND, 'action': {'kind': 'move', 'towards': 'east'}}
+
+    assert follow(BAND, {'changes': {'units': [], 'gone': []}}) == BAND
+    assert follow(BAND, {'changes': {'units': [walked], 'gone': []}}) == walked
+    assert follow(None, {'changes': {'units': [walked], 'gone': []}}) == walked
+    assert follow(BAND, {'changes': {'units': [], 'gone': [1]}}) is None
+    assert follow(BAND, {'changes': {}}) == BAND
+
+
+@pytest.mark.parametrize('lang', ['en', 'ru'])
+@pytest.mark.parametrize('key', sorted(EVENTS))
+def test_every_event_is_spoken_in_both_languages(key: str, lang: str) -> None:
+    said = words({'key': key, 'values': SAMPLES[key]}, lang)
+    keyed = [value for name, value in SAMPLES[key].items() if name != 'id' and isinstance(value, str) and '-' in value]
+
+    assert said != key
+    assert [value for value in keyed if value in said] == []

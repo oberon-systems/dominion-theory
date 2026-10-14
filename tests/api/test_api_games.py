@@ -120,14 +120,29 @@ def test_the_snapshot_is_what_the_caller_may_see(client: TestClient, new_game: N
 
     shown = seat.json()
     window = shown.pop('window')
+    (band,) = shown.pop('units')
+    place = band.pop('place')
 
     assert shown == {
         'seq': 0,
         'date': START,
-        'seat': {'name': 'player'},
-        'units': [],
+        'seat': {'name': 'player', 'unit': 1, 'status': 50.0, 'council_from': 0},
         'waiting': ['player'],
     }
+    assert band == {
+        'id': 1,
+        'kind': 'band',
+        'population': 15,
+        'stores': {'forage': 15.0, 'water': 15.0},
+        'fatigue': 0.0,
+        'states': [],
+        'action': {'kind': 'camp'},
+        'intent': None,
+        'reason': None,
+    }
+    assert place['scale'] == 0
+    assert window['x'] <= place['x'] < window['x'] + 32
+    assert window['y'] <= place['y'] < window['y'] + 16
     assert (window['scale'], window['width'], window['height']) == (0, 32, 16)
     assert 0 <= window['x'] <= 400 - 32
     assert 0 <= window['y'] <= 200 - 16

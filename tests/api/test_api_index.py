@@ -16,6 +16,10 @@ from dominion_theory.runner import Service, record_path
 type NewGame = Callable[..., dict[str, Any]]
 
 SMALL = {'planet.circumference_km': 4000, 'planet.window.width': 32, 'planet.window.height': 16}
+DYING = {**SMALL, 'units.band.consumption_per_day.water': 100.0, 'units.band.states.thirst.loss_per_day': 0.9}
+DOOMED = {**SMALL, 'council.status.start': 1}
+STEP = ('clock', {'action': 'step'})
+REST = ('commands', {'id': 'c-1', 'kind': 'call-council', 'proposal': {'kind': 'rest'}})
 
 
 @pytest.fixture
@@ -59,6 +63,36 @@ def test_the_row_follows_the_life_of_the_game(client: TestClient, new_game: NewG
     assert finished == [ended.json()]
     assert (finished[0]['outcome'], finished[0]['last_tick']) == ('stopped', 3)
     assert finished[0]['finished_at'] >= started[0]['started_at']
+
+
+@pytest.mark.parametrize(
+    ('overrides', 'asked', 'outcome', 'event'),
+    [(DYING, [STEP] * 5, 'died', 'band-died'), (DOOMED, [REST], 'banished', 'seat-banished')],
+)
+def test_a_game_the_rules_end_reaches_the_index(
+    client: TestClient,
+    new_game: NewGame,
+    overrides: dict[str, Any],
+    asked: list[tuple[str, dict[str, Any]]],
+    outcome: str,
+    event: str,
+) -> None:
+    before = int(time.time())
+    game = new_game(seed=42, overrides=overrides)['id']
+
+    with client.websocket_connect(f'{PREFIX}/games/{game}/updates?after=0') as stream:
+        for address, body in asked:
+            assert client.post(f'{PREFIX}/games/{game}/{address}', json=body).status_code == 200
+        updates = [stream.receive_json() for _ in asked]
+    (row,) = client.get(f'{PREFIX}/games').json()['games']
+    later = client.post(f'{PREFIX}/games/{game}/commands', json={'id': 'c-9', 'kind': 'pass'})
+
+    assert event in [held['key'] for held in updates[-1]['events']]
+    assert updates[-1]['waiting'] == []
+    assert (row['outcome'], row['last_tick']) == (outcome, len(asked))
+    assert isinstance(row['finished_at'], int) and row['finished_at'] >= before
+    assert later.status_code == 409
+    assert later.json() == {'key': 'error-game-ended', 'values': {'id': game}}
 
 
 def test_the_index_lists_every_game_in_the_order_they_started(client: TestClient, new_game: NewGame) -> None:

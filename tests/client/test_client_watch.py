@@ -18,10 +18,11 @@ class Scripted(Api):
     Answers from a script instead of a server, and keeps what it was sent.
     """
 
-    def __init__(self, messages: list[Body], waiting: list[str] | None = None) -> None:
+    def __init__(self, messages: list[Body], waiting: list[str] | None = None, units: list[Body] | None = None) -> None:
         super().__init__()
         self.messages = messages
         self.waiting = waiting or []
+        self.units = units or []
         self.sent: list[str] = []
         self.clocked: list[str] = []
         self.joined: list[int] = []
@@ -29,7 +30,7 @@ class Scripted(Api):
 
     def snapshot(self, game_id: str) -> Body:
         self.snapshots += 1
-        return {'seq': 3, 'waiting': self.waiting}
+        return {'seq': 3, 'waiting': self.waiting, 'units': self.units}
 
     def command(self, game_id: str, envelope: Body) -> Body:
         assert envelope['kind'] == 'pass'
@@ -105,3 +106,19 @@ def test_a_game_that_is_only_watched_keeps_its_clock() -> None:
 
     assert len(list(watch(api, 'alpha', 'en'))) == 1
     assert api.clocked == []
+
+
+def test_the_band_of_the_snapshot_is_followed_through_the_updates() -> None:
+    band = {'id': 1, 'population': 15, 'stores': {'water': 15.0}, 'states': [], 'action': {'kind': 'camp'}}
+    walked = {**band, 'action': {'kind': 'move', 'towards': 'west'}}
+    moved = {**update(5), 'changes': {'units': [walked], 'gone': []}}
+    gone = {**update(6), 'changes': {'units': [], 'gone': [1]}}
+    api = Scripted([update(4), moved, gone], units=[band])
+
+    lines = list(watch(api, 'alpha', 'en'))
+
+    assert lines == [
+        'midday, day 1, month 1, year 1, spring: 15 people, water 15, camps.',
+        'midday, day 1, month 1, year 1, spring: 15 people, water 15, walks west.',
+        'midday, day 1, month 1, year 1, spring',
+    ]

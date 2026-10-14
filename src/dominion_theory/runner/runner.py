@@ -88,8 +88,8 @@ class Runner:
             'seq': self.seq,
             'date': asdict(self.game.date),
             'window': asdict(self.game.window),
-            'seat': {'name': self.game.seats[0]},
-            'units': [],
+            'seat': self.game.seat,
+            'units': [] if self.game.band is None else [self.game.band.shown(self.game.window.scale)],
             'waiting': self.waiting,
         }
 
@@ -182,9 +182,11 @@ class Runner:
             self.save()
         else:
             self._store.append_changes(self.id, result.tick, {'changes': result.changes})
-        update = Update(self.seq, result.date, result.events, result.changes, self.waiting)
+        update = Update(self.seq, result.date, result.events, result.changes, [] if self.game.over else self.waiting)
         self._kept.append(update)
         self._tell(update)
+        if self.game.over:
+            self.end(self.game.outcome or STOPPED)
         return update
 
 

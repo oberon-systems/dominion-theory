@@ -22,7 +22,14 @@ QUIET = {
     'units.band.population.growth_per_year': 0.0,
     'encounters.chance': 0.0,
 }
-SMALL = {'planet.circumference_km': 4000, 'planet.window.width': 32, 'planet.window.height': 16, **QUIET}
+PLANET = {'planet.circumference_km': 4000, 'planet.window.width': 32, 'planet.window.height': 16}
+SMALL = {**PLANET, **QUIET}
+DYING = {**PLANET, 'units.band.consumption_per_day.water': 100.0, 'units.band.states.thirst.loss_per_day': 0.9}
+CALLED = {
+    0: {'kind': 'stay-and-gather'},
+    12: {'kind': 'rest'},
+    24: {'kind': 'move', 'towards': 'east'},
+}
 COUNTERS = (
     'commands_accepted',
     'commands_refused',
@@ -163,6 +170,41 @@ def test_the_replay_example_of_the_documents_runs_as_written(service: Service) -
     assert result.game.tick == 4 * DAY + 3
     assert result.game.state_hash() == hashes[-1]
     assert result.game.params.hash == runner.game.params.hash
+
+
+def test_a_record_with_councils_replays_with_every_hash_and_counts_them(service: Service) -> None:
+    runner = service.create(seed=42, overrides=PLANET, mode=STEP)
+    hashes = []
+    for tick in range(6 * DAY):
+        if tick in CALLED:
+            runner.submit(CallCouncil(seat='player', proposal=CALLED[tick], id=f'c-{tick}'))
+        else:
+            runner.step()
+        hashes.append(runner.game.state_hash())
+    runner.end()
+
+    result = replay(runner.record_path)
+    ticks = [line for line in read(runner.record_path) if line['t'] == 'tick']
+    rows = [dict(zip(COUNTERS, line['counters'], strict=True)) for line in ticks]
+
+    assert result.matched is True
+    assert result.game.state_hash() == hashes[-1]
+    assert result.game.status == runner.game.status
+    assert rows[-1]['councils'] == len(CALLED)
+    assert rows[-1]['status'] == runner.game.status != 50.0
+
+
+def test_a_band_that_dies_ends_its_record(service: Service) -> None:
+    runner = service.create(seed=42, overrides=DYING, mode=STEP)
+    for _ in range(5):
+        runner.step()
+
+    lines = read(runner.record_path)
+    result = replay(runner.record_path)
+
+    assert lines[-1] == {'t': 'footer', 'outcome': 'died', 'tick': 5, 'hash': runner.game.state_hash()}
+    assert {'t': 'event', 'tick': 5, 'key': 'band-died', 'values': {}} in lines
+    assert (result.matched, result.game.over, result.game.outcome) == (True, True, 'died')
 
 
 def test_a_record_cut_off_in_the_middle_of_a_day_replays_to_the_last_full_day(service: Service) -> None:

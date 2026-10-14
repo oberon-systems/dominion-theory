@@ -2,6 +2,8 @@ import pytest
 from fluent.syntax import FluentParser, ast
 from fluent.syntax.visitor import Visitor
 
+from dominion_theory.api.errors import UNIT_NOT_FOUND
+from dominion_theory.client.lines import MESSAGES
 from dominion_theory.content import load_params
 from dominion_theory.content.loader import PRESET_NOT_FOUND
 from dominion_theory.content.model import PARAMS_INVALID
@@ -54,8 +56,8 @@ def in_use() -> set[str]:
     names |= {f'encounter-{kind}' for kind in params.encounters.kinds}
     names |= {council.key({'kind': kind}) for kind in PROPOSALS if kind != MOVE}
     names |= {council.key({'kind': MOVE, 'towards': towards}) for towards in DIRECTIONS}
-    errors = {*ERRORS, PRESET_NOT_FOUND, PARAMS_INVALID, LOCALE_UNKNOWN, PROFILE_NOT_FOUND}
-    return {*EVENTS, *REASONS, DATE} | errors | names | SPECIFIED
+    errors = {*ERRORS, PRESET_NOT_FOUND, PARAMS_INVALID, LOCALE_UNKNOWN, PROFILE_NOT_FOUND, UNIT_NOT_FOUND}
+    return {*EVENTS, *REASONS, DATE, *MESSAGES} | errors | names | SPECIFIED
 
 
 def test_languages_are_those_of_a_profile() -> None:

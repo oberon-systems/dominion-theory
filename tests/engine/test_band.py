@@ -7,7 +7,7 @@ import pytest
 from dominion_theory.content import Params, load_params
 from dominion_theory.engine import Game, StepResult, Window
 from dominion_theory.engine import band as bands
-from dominion_theory.engine.band import Action, camp, gathering, moving
+from dominion_theory.engine.band import Action, camp, gathering, moving, roaming
 from dominion_theory.engine.streams import Streams
 from dominion_theory.planet import biome_names
 
@@ -203,8 +203,34 @@ def test_a_cell_pays_the_share_of_its_capacity_that_was_taken(params: Params) ->
 
     do(game, gathering('forage'))
 
-    assert game.cells.stock(HOME, 'food') == pytest.approx(1 - 36 / 200 + 1 / (20 * DAY))
+    assert game.cells.stock(HOME, 'food') == pytest.approx(1 - 36 / 100 + 1 / (20 * DAY))
     assert game.cells.stock(HOME, 'water') == 1.0
+
+
+def test_a_roaming_band_forages_the_cell_ahead_and_walks_slower(params: Params) -> None:
+    game = land(params)
+    before = {name: band(game).held(name) for name in ('forage', 'water')}
+
+    result = do(game, roaming('east'))
+
+    taken = {name: band(game).held(name) - before[name] for name in before}
+    assert taken == pytest.approx({'forage': 15 * 3 * 0.8 * 0.5, 'water': 15 * 4 * 0.28 * 0.5})
+    assert band(game).place == HOME
+    assert band(game).progress == pytest.approx(PACE * 0.75)
+    assert game.cells.stock(MEADOW, 'food') == pytest.approx(1 - 18 / 100 + 1 / (20 * DAY))
+    assert band(game).fatigue == pytest.approx(0.08)
+    assert counted(game)['roams'] == 1
+    assert result.changes['units'][0]['action'] == {'kind': 'roam', 'towards': 'east'}
+
+
+def test_a_roam_into_water_is_a_camp_and_takes_nothing(params: Params) -> None:
+    game = land(params, at=(WEST + 3, NORTH + 1))
+    before = {name: band(game).held(name) for name in ('forage', 'water')}
+
+    do(game, roaming('east'))
+
+    assert band(game).action == {'kind': 'camp'}
+    assert {name: band(game).held(name) for name in before} == before
 
 
 def test_a_loaded_band_gathers_nothing_and_leaves_the_cell_alone(params: Params) -> None:
@@ -286,7 +312,7 @@ def test_news_of_the_land_come_with_the_tick_and_old_memories_go(params: Params)
     assert quiet.changes['known'] == []
     assert (WEST + 4, NORTH) not in band(game).known
     assert [(cell['x'], cell['y']) for cell in gathered.changes['known']] == [HOME]
-    assert gathered.changes['known'][0]['food'] == pytest.approx(0.8 * 0.82)
+    assert gathered.changes['known'][0]['food'] == pytest.approx(0.8 * 0.64)
     assert {(cell['x'], cell['y']) for cell in walked.changes['known']} == {HOME, (WEST + 3, NORTH), DEEPER}
 
 
@@ -344,20 +370,31 @@ def test_a_band_with_no_water_thirsts_a_day_sooner_and_loses_more() -> None:
         ('people-lost', {'count': 3, 'cause': 'thirst'}),
     ]
     assert (band(game).population, band(game).states) == (12, ['thirst'])
-    assert band(game).births == pytest.approx(15 * 0.3 / 100 * 3)
+    assert band(game).births == pytest.approx(15 * 0.6 / 100 * 0.55)
 
 
-def test_a_band_that_rests_grows_and_one_that_works_grows_slower() -> None:
+def test_a_rested_band_grows_and_a_tired_one_stops() -> None:
     resting, working = land(needing(forage=0.0, water=0.0)), land(needing(forage=0.0, water=0.0))
 
-    before = told(do(resting, camp(), 7 * DAY))
+    before = told(do(resting, camp(), 11 * DAY))
     born = told(do(resting, camp(), DAY))
-    do(working, gathering('forage'), 8 * DAY)
+    do(working, gathering('forage'), 12 * DAY)
 
     assert before == []
     assert born == [('people-born', {'count': 1})]
     assert (band(resting).population, band(working).population) == (16, 15)
-    assert band(working).births == pytest.approx(8 * 15 * 0.3 / 100)
+    assert band(working).states == ['tiredness']
+    assert band(working).births == pytest.approx(15 * 0.6 / 100 * (0.75 + 0.55))
+
+
+@pytest.mark.parametrize(('threat', 'births'), [(0.6, 15 * 0.6 / 100 * 0.85), (0.05, 0.0)])
+def test_nobody_is_born_on_a_cell_more_dangerous_than_the_bar(threat: float, births: float) -> None:
+    game = land(load_params(overrides={**SMALL, 'units.band.population.growth.threat': threat}))
+    band(game).stores = {'forage': [[float(game.day), 45.0]], 'water': [[float(game.day), 45.0]]}
+
+    do(game, camp(), DAY)
+
+    assert band(game).births == pytest.approx(births)
 
 
 def test_a_band_that_falls_below_its_least_dies_and_the_game_is_over() -> None:
@@ -392,6 +429,7 @@ def test_a_tick_carries_the_row_of_the_band(params: Params) -> None:
             'food': 51.0,
             'water': 15.0,
             'moves': 0,
+            'roams': 0,
             'gathers': 1,
             'camps': 0,
             'deaths': 0,
@@ -419,7 +457,7 @@ def test_a_restored_game_carries_the_band_in_the_middle_of_a_day(params: Params)
 def test_a_snapshot_of_the_format_before_the_band_is_refused(params: Params) -> None:
     snapshot = land(params).snapshot()
 
-    assert snapshot['format'] == 5
+    assert snapshot['format'] == 6
     with pytest.raises(ValueError, match='format 2'):
         Game.restore({**snapshot, 'format': 2})
 

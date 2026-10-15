@@ -34,7 +34,7 @@ SOURCES = (
     *(path for name in ('content', 'engine', 'planet') for path in sorted((PACKAGE / name).glob('*.py'))),
 )
 LEVELS = {'people': 'population', 'food': 'food', 'water': 'water', 'status': 'status'}
-TOTALS = ('deaths', 'moves', 'gathers', 'camps', 'encounters')
+TOTALS = ('deaths', 'moves', 'roams', 'gathers', 'camps', 'encounters')
 STATES = {'starvation': 'starving', 'thirst': 'thirsty', 'tiredness': 'tired'}
 CAUSES = ('hunger', 'thirst', 'encounter')
 YEAR = (
@@ -49,6 +49,7 @@ YEAR = (
     'food',
     'water',
     'moves',
+    'roams',
     'gathers',
     'camps',
     *STATES.values(),

@@ -177,7 +177,7 @@ A unit is a band in stage 2, as
 | `stores`     | the amount held of each resource                            |
 | `fatigue`    | 0 for rested, growing with work                             |
 | `states`     | `starvation`, `thirst`, `tiredness`, in that order          |
-| `action`     | what it did in the last tick: `camp`, `gather` or `move`    |
+| `action`     | what it did in the last tick: `camp`, `gather`, `move` or `roam` |
 | `intent`     | the proposal it holds and the tick it holds it `until`      |
 | `reason`     | why it took that action; see [Decisions](../game/decisions.md#the-reason) |
 

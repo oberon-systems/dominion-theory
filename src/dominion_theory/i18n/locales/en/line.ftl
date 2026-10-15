@@ -11,6 +11,7 @@ line-votes = { $proposal } - { $votes }
 line-action-camp = camps
 line-action-gather = gathers { NAME("resource", $resource) }
 line-action-move = walks { NAME("line-direction", $towards) }
+line-action-roam = roams { NAME("line-direction", $towards) }, foraging on the way
 
 line-direction-north = north
 line-direction-north-east = north-east

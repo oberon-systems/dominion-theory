@@ -3,6 +3,6 @@ eras:
     parts_per_tick: 1
     cell_km: 10
     properties: [water, food, threat, passability]
-    capacity: {food: 200, water: 2000}
+    capacity: {food: 100, water: 2000}
     recovery:
       food: {winter: 0.25}

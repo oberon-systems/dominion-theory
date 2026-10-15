@@ -11,7 +11,7 @@ from ..i18n import DATE, render
 
 # The vocabulary of the API, as docs/api/commands.md and docs/api/protocol.md state it.
 DIRECTIONS = ('north', 'north-east', 'east', 'south-east', 'south', 'south-west', 'west', 'north-west')
-ACTIONS = ('move', 'gather', 'camp')
+ACTIONS = ('move', 'roam', 'gather', 'camp')
 STATE = 'state-'
 PEOPLE = 'line-people'
 STORE = 'line-store'

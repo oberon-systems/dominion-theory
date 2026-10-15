@@ -123,7 +123,7 @@ A proposal is one of three.
 |-------------------|------------------------|---------------------------------------|
 | `move`            | `towards`: a direction | "we go where the sun rises"           |
 | `rest`            | none                   | "we rest here"                        |
-| `stay-and-gather` | none                   | "we stay, we are short of food"       |
+| `stay-and-gather` | none                   | "we stay and gather"                  |
 
 A direction is one of eight: `north`, `north-east`, `east`, `south-east`,
 `south`, `south-west`, `west`, `north-west`.

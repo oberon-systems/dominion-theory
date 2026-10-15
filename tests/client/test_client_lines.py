@@ -133,10 +133,9 @@ def test_a_line_shows_the_table_of_a_council_that_sits() -> None:
     empty = {'seq': 9, 'date': DATE, 'events': [], 'changes': {'seat': {'council': {'leader': None, 'table': []}}}}
 
     assert line(opened, 'en') == (
-        'morning, day 1, month 3, year 1, summer: '
-        'The votes: we stay, we are short of food - 8; we go where the sun rises - 5.'
+        'morning, day 1, month 3, year 1, summer: ' 'The votes: we stay and gather - 8; we go where the sun rises - 5.'
     )
-    assert line(opened, 'ru').endswith('Голоса: остаёмся: нам не хватает еды - 8; идём туда, где встаёт солнце - 5.')
+    assert line(opened, 'ru').endswith('Голоса: остаёмся собирать - 8; идём туда, где встаёт солнце - 5.')
     assert line(empty, 'en') == 'morning, day 1, month 3, year 1, summer'
 
 

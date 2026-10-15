@@ -13,6 +13,8 @@ FOREST = {'biome': 'forest', 'river': False, 'water': 0.6, 'food': 0.9, 'threat'
 STRIPPED = {**FOREST, 'food': 0.09}
 SEA = {'biome': 'water', 'river': False, 'water': 1.0, 'food': 0.3, 'threat': 0.2, 'passability': 0.0, 'seen': 0}
 SHALLOWS = {**SEA, 'biome': 'shallows', 'food': 0.5, 'threat': 0.6, 'passability': 0.3}
+GRASS = {'biome': 'grass', 'river': False, 'water': 0.28, 'food': 0.8, 'threat': 0.1, 'passability': 1.0, 'seen': 0}
+EAST = (HOME[0] + 1, HOME[1])
 
 
 def held(known: dict[tuple[int, int], dict[str, Any]], forage: float, water: float, **given: Any) -> Band:
@@ -21,8 +23,11 @@ def held(known: dict[tuple[int, int], dict[str, Any]], forage: float, water: flo
 
 
 def scores(params: Params, band: Band, part: str = 'midday') -> dict[str, float]:
-    found = decisions.options(params, band, part, ERA)
-    return {str(scored.action.get('towards', scored.action.get('resource', 'camp'))): scored.score for scored in found}
+    found = {}
+    for scored in decisions.options(params, band, part, ERA):
+        name = str(scored.action.get('towards', scored.action.get('resource', 'camp')))
+        found[f'roam-{name}' if scored.action['kind'] == 'roam' else name] = scored.score
+    return found
 
 
 def fixed(index: int) -> Any:
@@ -35,14 +40,29 @@ def test_needs_follow_the_stores_the_fatigue_and_the_night(params: Params) -> No
     by_day = decisions.needs(params, band, 'midday')
     by_night = decisions.needs(params, band, 'night')
 
-    assert by_day == pytest.approx({'hunger': 0.5, 'thirst': 1 / 3, 'rest': 0.1})
+    assert by_day == pytest.approx({'hunger': 0.4, 'thirst': 0.1, 'rest': 0.1})
     assert by_night['rest'] == pytest.approx(0.6)
 
 
-def test_a_state_doubles_its_need_and_a_need_is_held_at_one(params: Params) -> None:
+@pytest.mark.parametrize(('days', 'need'), [(5.0, 0.1), (2.0, 0.1), (1.5, 0.4), (1.0, 0.4), (0.5, 0.8), (0.0, 0.8)])
+def test_hunger_is_the_level_the_days_in_the_stores_reach(params: Params, days: float, need: float) -> None:
+    assert decisions.level(params, days) == need
+
+
+def test_a_state_makes_its_need_whole(params: Params) -> None:
     band = held({}, forage=30.0, water=0.0, fatigue=0.6, states=['starvation', 'thirst', 'tiredness'])
 
-    assert decisions.needs(params, band, 'midday') == pytest.approx({'hunger': 2 / 3, 'thirst': 1.0, 'rest': 1.0})
+    assert decisions.needs(params, band, 'midday') == pytest.approx({'hunger': 1.0, 'thirst': 1.0, 'rest': 1.0})
+
+
+def test_a_calm_band_is_one_that_neither_hunger_nor_thirst_presses() -> None:
+    assert decisions.calm({'hunger': 0.4, 'thirst': 0.1, 'rest': 0.9}) == pytest.approx(0.6)
+
+
+def test_wellbeing_is_the_mean_of_fed_watered_safe_and_rested(params: Params) -> None:
+    band = held({}, forage=22.5, water=30.0, fatigue=0.2)
+
+    assert decisions.wellbeing(params, band, 0.4) == pytest.approx((0.6 + 0.9 + 0.6 + 0.8) / 4)
 
 
 def test_a_band_that_eats_nothing_is_never_hungry() -> None:
@@ -56,46 +76,98 @@ def test_the_first_example_of_the_document_gathers_forage(params: Params) -> Non
 
     found = scores(params, band)
 
-    assert found == pytest.approx({'camp': 0.07, 'forage': 1.5 * 0.5 * 0.9 * 37.5 / 40.5, 'water': 1.2 / 3 * 0.6})
+    assert found == pytest.approx({'camp': 0.07, 'forage': 1.5 * 0.4 * 0.9 * 37.5 / 40.5, 'water': 1.2 * 0.1 * 0.6})
     assert decisions.decide(params, band, 'midday', 0, ERA) == {'kind': 'gather', 'resource': 'forage'}
     assert band.reason == {
         'action': 'gather',
         'resource': 'forage',
         'need': 'hunger',
-        'score': pytest.approx(0.625),
+        'score': pytest.approx(0.5),
         'pull': None,
     }
 
 
-def test_the_second_example_of_the_document_camps_at_night(params: Params) -> None:
+def test_a_fed_band_leaves_the_dangerous_forest_for_the_open_grass(params: Params) -> None:
+    band = held({HOME: FOREST, EAST: GRASS}, forage=22.5, water=30.0, fatigue=0.1)
+
+    found = scores(params, band)
+
+    own = 0.4 * 0.9 + 0.1 * 0.6 - 2.0 * 0.6 * 0.4
+    grass = 0.4 * 0.8 + 0.1 * 0.28 - 2.0 * 0.6 * 0.1
+    assert found['east'] == pytest.approx(3.0 * (grass / 1.25 - own) - 0.7 * 0.1)
+    assert decisions.decide(params, band, 'midday', 0, ERA) == {'kind': 'roam', 'towards': 'east'}
+
+
+def test_a_hungry_band_stays_in_the_forest_to_gather(params: Params) -> None:
+    band = held({HOME: FOREST, EAST: GRASS}, forage=7.5, water=30.0, fatigue=0.1)
+
+    found = scores(params, band)
+
+    own = 0.8 * 0.9 + 0.1 * 0.6 - 2.0 * 0.2 * 0.4
+    grass = 0.8 * 0.8 + 0.1 * 0.28 - 2.0 * 0.2 * 0.1
+    ahead = 1.5 * 0.8 * 0.8 + 1.2 * 0.1 * 0.28
+    assert found['roam-east'] == pytest.approx(0.75 * 3.0 * (grass / 1.25 - own) - 0.7 * 0.1 + 0.5 * ahead)
+    assert found['forage'] == pytest.approx(1.5 * 0.8 * 0.9)
+    assert decisions.decide(params, band, 'midday', 0, ERA) == {'kind': 'gather', 'resource': 'forage'}
+
+
+def test_a_hungry_band_only_roams_and_a_fed_one_may_walk(params: Params) -> None:
+    hungry = held({HOME: FOREST, EAST: GRASS}, forage=7.5, water=30.0, fatigue=0.1)
+    fed = held({HOME: FOREST, EAST: GRASS}, forage=22.5, water=30.0, fatigue=0.1)
+
+    kinds = {
+        name: {scored.action['kind'] for scored in decisions.options(params, band, 'midday', ERA)}
+        for name, band in (('hungry', hungry), ('fed', fed))
+    }
+
+    assert kinds == {'hungry': {'camp', 'gather', 'roam'}, 'fed': {'camp', 'gather', 'move', 'roam'}}
+
+
+def test_a_roam_is_the_slower_move_with_the_foraging_of_the_cell_ahead(params: Params) -> None:
+    band = held({HOME: FOREST, EAST: GRASS}, forage=22.5, water=30.0, fatigue=0.1)
+
+    options = decisions.options(params, band, 'midday', ERA)
+    found = {(scored.action['kind'], scored.action.get('towards')): scored.score for scored in options}
+
+    own = 0.4 * 0.9 + 0.1 * 0.6 - 2.0 * 0.6 * 0.4
+    grass = 0.4 * 0.8 + 0.1 * 0.28 - 2.0 * 0.6 * 0.1
+    ahead = 1.5 * 0.4 * 0.8 + 1.2 * 0.1 * 0.28
+    assert found['roam', 'east'] == pytest.approx(0.75 * 3.0 * (grass / 1.25 - own) - 0.07 + 0.5 * ahead)
+
+
+def test_the_night_example_of_the_document_camps(params: Params) -> None:
     band = held({HOME: FOREST}, forage=37.5, water=30.0, fatigue=0.55)
 
     found = scores(params, band, 'night')
 
     fit = {'forage': 22.5 / 40.5, 'water': 22.5 / 36}
 
-    assert found == pytest.approx({'camp': 0.7, 'forage': 1.5 / 6 * 0.9 * fit['forage'], 'water': 0.24 * fit['water']})
+    assert found == pytest.approx(
+        {'camp': 0.7, 'forage': 1.5 * 0.1 * 0.9 * fit['forage'], 'water': 1.2 * 0.1 * 0.6 * fit['water']}
+    )
     assert decisions.decide(params, band, 'night', 0, ERA) == {'kind': 'camp'}
     assert band.reason is not None
     assert band.reason['need'] == 'rest'
 
 
-def test_the_third_example_of_the_document_walks_to_the_remembered_forest() -> None:
+def test_the_stripped_example_of_the_document_walks_to_the_remembered_forest() -> None:
     params = load_params(overrides={**SMALL, 'units.band.consumption_per_day.water': 0.0})
-    east, far = (HOME[0] + 1, HOME[1]), (HOME[0] + 3, HOME[1])
-    band = held({HOME: STRIPPED, east: STRIPPED, far: FOREST}, forage=11.25, water=0.0, fatigue=0.1)
+    far = (HOME[0] + 3, HOME[1])
+    band = held({HOME: STRIPPED, EAST: STRIPPED, far: FOREST}, forage=11.25, water=0.0, fatigue=0.1)
 
     found = scores(params, band)
 
+    own = 0.8 * 0.09 - 2.0 * 0.2 * 0.4
+    forest = 0.8 * 0.9 - 2.0 * 0.2 * 0.4
     assert found == pytest.approx(
         {
             'camp': 0.07,
-            'forage': 1.5 * 0.75 * 0.09,
+            'forage': 1.5 * 0.8 * 0.09,
             'water': 0.0,
-            'east': 3.0 * ((0.75 * 0.9 - 0.12) / 1.75 - (0.75 * 0.09 - 0.12)) - 0.7 * 0.1 / 0.6,
+            'roam-east': 0.75 * 3.0 * (forest / 1.75 - own) - 0.7 * 0.1 / 0.6 + 0.5 * 1.5 * 0.8 * 0.09,
         }
     )
-    assert decisions.decide(params, band, 'midday', 0, ERA) == {'kind': 'move', 'towards': 'east'}
+    assert decisions.decide(params, band, 'midday', 0, ERA) == {'kind': 'roam', 'towards': 'east'}
     assert band.reason is not None
     assert (band.reason['need'], band.reason['pull']) == ('hunger', {'x': far[0], 'y': far[1]})
 
@@ -106,8 +178,8 @@ def test_a_cell_the_band_has_not_seen_does_not_pull(params: Params) -> None:
 
     found = scores(params, blind)
 
-    assert found['east'] < found['forage']
-    assert set(found) == {'camp', 'forage', 'water', 'east'}
+    assert found['roam-east'] < found['forage']
+    assert set(found) == {'camp', 'forage', 'water', 'roam-east'}
 
 
 def test_a_loaded_band_does_not_gather(params: Params) -> None:
@@ -132,10 +204,10 @@ def test_water_is_no_way_and_a_shore_only_beside_known_land(params: Params) -> N
     assert not decisions.reachable(params, band, further, ERA)
     assert not decisions.reachable(params, band, north, ERA)
     assert not decisions.reachable(params, band, (HOME[0] - 1, HOME[1]), ERA)
-    assert set(scores(params, band)) == {'camp', 'forage', 'water', 'east'}
+    assert set(scores(params, band)) == {'camp', 'forage', 'water', 'roam-east'}
 
 
-def test_a_tie_goes_to_the_first_in_the_order_and_a_move_in_progress_is_kept(params: Params) -> None:
+def test_a_tie_goes_to_the_first_in_the_order_and_a_way_in_progress_is_kept(params: Params) -> None:
     around = {(HOME[0] + dx, HOME[1] + dy): FOREST for dx in (-1, 0, 1) for dy in (-1, 0, 1)}
     band = held({**around, HOME: STRIPPED}, forage=0.0, water=45.0)
 
@@ -143,9 +215,9 @@ def test_a_tie_goes_to_the_first_in_the_order_and_a_move_in_progress_is_kept(par
     band.target = (HOME[0] - 1, HOME[1])
     kept = decisions.decide(params, band, 'midday', 0, ERA)
 
-    assert first == {'kind': 'move', 'towards': 'north'}
-    assert kept == {'kind': 'move', 'towards': 'west'}
-    assert scores(params, band)['west'] == pytest.approx(scores(params, band)['north'] + 0.1)
+    assert first == {'kind': 'roam', 'towards': 'north'}
+    assert kept == {'kind': 'roam', 'towards': 'west'}
+    assert scores(params, band)['roam-west'] == pytest.approx(scores(params, band)['roam-north'] + 0.1)
 
 
 def test_a_band_with_nothing_to_want_wanders_and_keeps_its_way_for_a_day(params: Params) -> None:
@@ -179,7 +251,7 @@ def test_a_band_with_nowhere_to_go_camps_instead_of_wandering(params: Params) ->
     assert decisions.decide(params, band, 'midday', 0, ERA, fixed(0)) == {'kind': 'camp'}
 
 
-def test_a_band_on_a_stripped_cell_walks_to_better_land(params: Params) -> None:
+def test_a_hungry_band_on_a_stripped_cell_roams_to_better_land(params: Params) -> None:
     game = Game.create(seed=7, params=load_params(overrides={**SMALL, 'encounters.chance': 0.0}))
     assert game.band is not None
     start = game.band.place
@@ -194,7 +266,7 @@ def test_a_band_on_a_stripped_cell_walks_to_better_land(params: Params) -> None:
         game.step()
 
     assert game.band.place != start
-    assert dict(zip(game.counters.names, game.counters.row(), strict=True))['moves'] > 0
+    assert dict(zip(game.counters.names, game.counters.row(), strict=True))['roams'] > 0
 
 
 def test_a_year_alone_gives_the_same_hashes_twice(params: Params) -> None:

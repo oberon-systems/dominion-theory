@@ -15,6 +15,7 @@ from .band import (
     GATHER,
     MOVE,
     PASSABILITY,
+    ROAM,
     STARVATION,
     THIRST,
     TIREDNESS,
@@ -23,6 +24,7 @@ from .band import (
     camp,
     gathering,
     moving,
+    roaming,
     room,
 )
 from .cells import Place
@@ -30,12 +32,13 @@ from .cells import Place
 HUNGER = 'hunger'
 REST = 'rest'
 WANDER = 'wander'
-# The need a property of a cell answers, and the state that doubles it.
+THREAT = 'threat'
+# The need a property of a cell answers, and the state that makes it whole.
 NEEDS: dict[str, tuple[str, str]] = {'food': (HUNGER, STARVATION), 'water': (THIRST, THIRST)}
 EFFORT = 4.0
 # What a band may still do under the intent of each proposal: docs/game/decisions.md, Under an intent.
 NARROWED: dict[str, frozenset[str]] = {
-    commands.MOVE: frozenset({MOVE, CAMP}),
+    commands.MOVE: frozenset({MOVE, ROAM, CAMP}),
     commands.REST: frozenset({CAMP}),
     commands.STAY: frozenset({GATHER, CAMP}),
 }
@@ -54,15 +57,53 @@ def needs(params: Params, band: Band, part: str) -> dict[str, float]:
     Hunger, thirst and rest, each from 0, nothing wanted, to 1.
     """
     rules = params.units.band
-    comfort = params.parts(rules.decisions.comfort) / params.time.parts_per_day
-    found: dict[str, float] = {}
-    for prop, (need, state) in NEEDS.items():
-        days = min(held_days(params, band, prop), comfort)
-        wanted = 1.0 - days / comfort if comfort > 0 else 0.0
-        found[need] = _held(wanted * (2.0 if state in band.states else 1.0))
+    found = wants(params, band)
     rest = band.fatigue + (rules.decisions.night if part in rules.decisions.night_parts else 0.0)
     found[REST] = _held(rest * (2.0 if TIREDNESS in band.states else 1.0))
     return found
+
+
+def wants(params: Params, band: Band) -> dict[str, float]:
+    """
+    Hunger and thirst: the level of the days in the stores, or whole while the state holds.
+    """
+    return {
+        need: 1.0 if state in band.states else level(params, held_days(params, band, prop))
+        for prop, (need, state) in NEEDS.items()
+    }
+
+
+def level(params: Params, days: float) -> float:
+    """
+    The need of the first level, from the most days down, that the days in the stores reach; none when
+    nobody eats it.
+    """
+    if math.isinf(days):
+        return 0.0
+    levels = sorted(params.units.band.decisions.levels.values(), key=lambda held: held.days, reverse=True)
+    return next(held.need for held in levels if days >= held.days)
+
+
+def calm(wanted: dict[str, float]) -> float:
+    """
+    How little hunger and thirst press: a calm band thinks of growth and fears danger.
+    """
+    return 1.0 - max(wanted[need] for need, _ in NEEDS.values())
+
+
+def wellbeing(params: Params, band: Band, threat: float) -> float:
+    """
+    How well the band lives on its cell: the weighted mean of fed, watered, safe and rested.
+    """
+    weights = params.units.band.population.growth.weights
+    wanted = wants(params, band)
+    parts = (
+        (weights.food, 1.0 - wanted[HUNGER]),
+        (weights.water, 1.0 - wanted[THIRST]),
+        (weights.safety, 1.0 - threat),
+        (weights.rest, 1.0 - band.fatigue),
+    )
+    return sum(weight * part for weight, part in parts) / sum(weight for weight, _ in parts)
 
 
 def held_days(params: Params, band: Band, prop: str) -> float:
@@ -98,7 +139,8 @@ def worth(params: Params, cell: dict[str, Any], wanted: dict[str, float]) -> tup
     """
     parts = {need: wanted[need] * cell.get(prop, 0.0) for prop, (need, _) in NEEDS.items()}
     loudest = max(parts, key=lambda need: parts[need])
-    return sum(parts.values()) - params.units.band.decisions.weights.safety * cell.get('threat', 0.0), loudest
+    fear = params.units.band.decisions.weights.safety * calm(wanted) * cell.get(THREAT, 0.0)
+    return sum(parts.values()) - fear, loudest
 
 
 def _far(a: Place, b: Place) -> int:
@@ -112,10 +154,12 @@ def options(
     era: str,
     allowed: Collection[str] | None = None,
     towards: Collection[str] | None = None,
+    walking: bool = False,
 ) -> list[Scored]:
     """
     Everything the band could do with its score, in the order that settles a tie: the camp, the gatherings,
-    the moves clockwise from the north. An intent narrows the kinds and the directions and fixes the pull.
+    the moves clockwise from the north, the roams the same. An intent narrows the kinds and the directions and
+    fixes the pull; walking scores the moves of a hungry band too.
     """
     rules = params.units.band
     weights = rules.decisions.weights
@@ -125,19 +169,14 @@ def options(
     found: list[Scored] = []
     if allowed is None or CAMP in allowed:
         found.append(Scored(camp(), weights.rest * wanted[REST], REST))
-    if own and (allowed is None or GATHER in allowed):
-        free = room(params, band)
-        listed = params.biomes[own['biome']].eras[era].resources
-        for name, rate in rules.gathering.items():
-            resource = params.resources[name]
-            if name in listed and resource.property in NEEDS:
-                need = NEEDS[resource.property][0]
-                value = own.get(resource.property, 0.0)
-                haul = band.population * rate * value * resource.weight_kg
-                fits = min(free / haul, 1.0) if haul > 0 else 0.0
-                found.append(Scored(gathering(name), getattr(weights, need) * wanted[need] * value * fits, need))
-    if allowed is None or MOVE in allowed:
+    gathered = _gathered(params, band, own, era, wanted) if own else []
+    if allowed is None or GATHER in allowed:
+        found.extend(gathered)
+    if allowed is None or MOVE in allowed or ROAM in allowed:
+        hungry = max(wanted[need] for need, _ in NEEDS.values()) >= rules.roaming.hunger
         enterable = {at for at in band.known if reachable(params, band, at, era)}
+        moves: list[Scored] = []
+        roams: list[Scored] = []
         for name, (dx, dy) in DIRECTIONS.items():
             target = band.x + dx, band.y + dy
             if target not in enterable or (towards is not None and name not in towards):
@@ -145,13 +184,39 @@ def options(
             effort = min(1.0 / band.known[target][PASSABILITY], EFFORT)
             tired = weights.rest * wanted[REST] * effort
             if towards is not None:
-                found.append(Scored(moving(name), weights.move * (weights.intent - here) - tired, REST))
-                continue
-            pull, need, source = _pull(params, band, target, enterable, wanted)
-            score = weights.move * (pull - here) - tired
-            if band.target == target:
-                score += weights.momentum
-            found.append(Scored(moving(name), score, need, source))
+                gain, need, source, kept = weights.intent - here, REST, None, 0.0
+            else:
+                pull, need, source = _pull(params, band, target, enterable, wanted)
+                gain, kept = pull - here, weights.momentum if band.target == target else 0.0
+            moves.append(Scored(moving(name), weights.move * gain - tired + kept, need, source))
+            ahead = _gathered(params, band, band.known[target], era, wanted)
+            on_the_way = rules.roaming.share * sum(held.score for held in ahead)
+            slow = weights.move * gain * rules.roaming.speed
+            roams.append(Scored(roaming(name), slow - tired + kept + on_the_way, need, source))
+        if (allowed is None or MOVE in allowed) and (walking or not hungry):
+            found.extend(moves)
+        if allowed is None or ROAM in allowed:
+            found.extend(roams)
+    return found
+
+
+def _gathered(params: Params, band: Band, own: dict[str, Any], era: str, wanted: dict[str, float]) -> list[Scored]:
+    """
+    A gathering of every resource the cell gives, scored by the need it serves and the share that fits.
+    """
+    rules = params.units.band
+    free = room(params, band)
+    listed = params.biomes[own['biome']].eras[era].resources
+    found = []
+    for name, rate in rules.gathering.items():
+        resource = params.resources[name]
+        if name in listed and resource.property in NEEDS:
+            need = NEEDS[resource.property][0]
+            value = own.get(resource.property, 0.0)
+            haul = band.population * rate * value * resource.weight_kg
+            fits = min(free / haul, 1.0) if haul > 0 else 0.0
+            score = getattr(rules.decisions.weights, need) * wanted[need] * value * fits
+            found.append(Scored(gathering(name), score, need))
     return found
 
 

@@ -10,7 +10,7 @@ and how the game ends. Part of the stage 2 design in
 
 - [The start](#the-start)
 - [A day](#a-day)
-- [The three actions](#the-three-actions)
+- [The four actions](#the-four-actions)
 - [Movement](#movement)
 - [The shore](#the-shore)
 - [Chance encounters](#chance-encounters)
@@ -53,17 +53,21 @@ counts hunger and thirst, and adds the day's births.
 
 ___
 
-## The three actions
+## The four actions
 
-| Action   | Does                                              | Fatigue   |
-|----------|---------------------------------------------------|-----------|
-| `move`   | walks towards one of the eight cells around       | grows     |
-| `gather` | takes one resource from the cell it stands on     | grows     |
-| `camp`   | rests where it stands                             | falls     |
+| Action   | Does                                                            | Fatigue   |
+|----------|-----------------------------------------------------------------|-----------|
+| `move`   | walks towards one of the eight cells around                     | grows     |
+| `roam`   | walks there slower, foraging the cell ahead on the way          | grows less |
+| `gather` | takes one resource from the cell it stands on                   | grows     |
+| `camp`   | rests where it stands                                           | falls     |
 
-A band that camped for all five ticks of a day rested that day, and
-grows faster for it. A camp is not a thing on the map: nothing is built
-and nothing is left behind.
+A roaming band takes `roaming.share` of what a tick of gathering would
+give, of every resource the cell ahead gives, and that cell pays for it
+as for a gathering; see [Band](../units/band.md#gathering). The band
+picks between walking and roaming itself, but a hungry band does not
+walk: hungry or thirsty, it only roams. A camp is not a thing on the map: nothing is
+built and nothing is left behind.
 
 ___
 
@@ -129,7 +133,7 @@ chance = encounters.chance * value(threat, cell) * factor(action)
 ```
 
 A camp is watched and a walking band is exposed: the factor is 0.5 for
-`camp`, 1 for `gather` and 1.5 for `move`. With a chance of 0.02 a band
+`camp`, 1 for `gather`, 1.2 for `roam` and 1.5 for `move`. With a chance of 0.02 a band
 gathering in a forest meets something about once in twenty-five days.
 
 When an encounter happens, its kind is drawn by weight among the kinds
@@ -139,8 +143,8 @@ drawn between its two bounds and rounded to whole people.
 | Kind        | Where                 | During   | Weight | People lost  |
 |-------------|-----------------------|----------|--------|--------------|
 | `predator`  | anywhere              | any      | 3      | 0 to 10%     |
-| `accident`  | mountain, hills, outcrops, ice | `move` | 2 | 0 to 10%     |
-| `drowning`  | shallows, river cells | `move`, `gather` | 3 | 5 to 15% |
+| `accident`  | mountain, hills, outcrops, ice | `move`, `roam` | 2 | 0 to 10% |
+| `drowning`  | shallows, river cells | `move`, `roam`, `gather` | 3 | 5 to 15% |
 | `poisoning` | swamp, marsh          | `gather` | 4      | 0 to 20%     |
 
 A share that rounds to nobody is a scare: the event is reported and no
@@ -150,20 +154,20 @@ so a new one is a block of the tree and a message in two catalogues.
 ```yaml
 encounters:
   chance: 0.02
-  actions: {camp: 0.5, gather: 1.0, move: 1.5}
+  actions: {camp: 0.5, gather: 1.0, roam: 1.2, move: 1.5}
   kinds:
     predator: {weight: 3, loss: {min: 0.0, max: 0.1}}
     accident:
       weight: 2
       loss: {min: 0.0, max: 0.1}
       biomes: [mountain, hills, outcrops, ice]
-      actions: [move]
+      actions: [move, roam]
     drowning:
       weight: 3
       loss: {min: 0.05, max: 0.15}
       biomes: [shallows]
       rivers: true
-      actions: [move, gather]
+      actions: [move, roam, gather]
     poisoning:
       weight: 4
       loss: {min: 0.0, max: 0.2}

@@ -31,14 +31,20 @@ def test_band_is_the_one_of_its_document() -> None:
     assert band is params.units['band']
     assert (band.start.population, band.start.stores) == (15, {'water': 15.0, 'forage': 15.0})
     assert band.start.biomes == ('grass', 'forest', 'floodplain')
-    assert (band.population.least, band.population.growth_per_year, band.population.rest_growth) == (5, 0.3, 3.0)
+    assert (band.population.least, band.population.growth_per_year) == (5, 0.6)
+    assert band.population.growth.model_dump() == {
+        'floor': 0.5,
+        'threat': 0.6,
+        'weights': {'food': 1.0, 'water': 1.0, 'safety': 1.0, 'rest': 1.0},
+    }
     assert (band.carry_kg, band.gathering, band.consumption_per_day) == (
         6.0,
         {'forage': 3.0, 'water': 4.0},
         {'forage': 1.0, 'water': 1.0},
     )
     assert (band.speed.base, band.speed.slowdown, band.speed.slowest) == (1.2, 0.03, 0.3)
-    assert (band.fatigue.move, band.fatigue.gather, band.fatigue.camp) == (0.15, 0.08, -0.35)
+    assert (band.fatigue.move, band.fatigue.roam, band.fatigue.gather, band.fatigue.camp) == (0.15, 0.08, 0.08, -0.35)
+    assert band.roaming.model_dump() == {'speed': 0.75, 'share': 0.5, 'hunger': 0.8}
     assert (band.states.short, band.states.starvation.loss_per_day, band.states.thirst.loss_per_day) == (
         0.75,
         0.05,
@@ -47,8 +53,13 @@ def test_band_is_the_one_of_its_document() -> None:
     assert (band.states.tiredness.begins, band.states.tiredness.ends, band.states.tiredness.slows) == (0.8, 0.3, 0.5)
     assert (band.sight, band.memory.model_dump()) == (2, {'days': 20})
     assert band.decisions.night_parts == ('evening', 'night')
-    assert (band.decisions.weights.hunger, band.decisions.weights.move) == (1.5, 3.0)
-    assert band.decisions.comfort.model_dump() == {'days': 3}
+    weights = band.decisions.weights
+    assert (weights.hunger, weights.safety, weights.move) == (1.5, 2.0, 3.0)
+    assert {name: held.model_dump() for name, held in band.decisions.levels.items()} == {
+        'sated': {'days': 2.0, 'need': 0.1},
+        'fed': {'days': 1.0, 'need': 0.4},
+        'hungry': {'days': 0.0, 'need': 0.8},
+    }
 
 
 def test_unknown_unit_is_a_key_error() -> None:
@@ -59,14 +70,14 @@ def test_unknown_unit_is_a_key_error() -> None:
 def test_era_holds_what_a_cell_gives_and_how_winter_slows_it() -> None:
     band = load_params().eras.band
 
-    assert band.capacity == {'food': 200.0, 'water': 2000.0}
+    assert band.capacity == {'food': 100.0, 'water': 2000.0}
     assert band.recovery == {'food': {'winter': 0.25}}
 
 
 def test_council_is_the_one_of_its_document() -> None:
     council = load_params().council
 
-    assert (council.part, council.voice.share, council.voice.least) == ('morning', 0.5, 2.0)
+    assert (council.part, council.spread, council.voice.share, council.voice.least) == ('morning', 0.2, 0.5, 2.0)
     assert council.judgement.disaster == 0.2
     assert council.status.model_dump() == {
         'start': 50.0,
@@ -86,11 +97,11 @@ def test_encounters_are_those_of_their_document() -> None:
     encounters = load_params().encounters
     drowning, predator = encounters.kinds['drowning'], encounters.kinds['predator']
 
-    assert (encounters.chance, encounters.actions) == (0.02, {'camp': 0.5, 'gather': 1.0, 'move': 1.5})
+    assert (encounters.chance, encounters.actions) == (0.02, {'camp': 0.5, 'gather': 1.0, 'roam': 1.2, 'move': 1.5})
     assert set(encounters.actions) == set(ACTIONS)
     assert list(encounters.kinds) == ['predator', 'accident', 'drowning', 'poisoning']
     assert (predator.biomes, predator.rivers, predator.actions, predator.resources) == ((), False, (), ())
-    assert (drowning.biomes, drowning.rivers, drowning.actions) == (('shallows',), True, ('move', 'gather'))
+    assert (drowning.biomes, drowning.rivers, drowning.actions) == (('shallows',), True, ('move', 'roam', 'gather'))
     assert (drowning.loss.min, drowning.loss.max) == (0.05, 0.15)
     assert encounters.kinds['poisoning'].resources == ('water',)
 
@@ -203,6 +214,23 @@ def test_night_parts_are_parts_of_the_day() -> None:
     }
 
 
+@pytest.mark.parametrize(
+    ('overrides', 'path'),
+    [
+        ({f'{BAND}.decisions.levels.hungry.days': 1}, f'{BAND}.decisions'),
+        ({f'{BAND}.decisions.levels.hungry.need': 1.5}, f'{BAND}.decisions.levels.hungry.need'),
+        ({f'{BAND}.population.growth.floor': 1.0}, f'{BAND}.population.growth.floor'),
+        (
+            {f'{BAND}.population.growth.weights': {'food': 0.0, 'water': 0.0, 'safety': 0.0, 'rest': 0.0}},
+            f'{BAND}.population.growth.weights',
+        ),
+        ({'council.spread': 0.0}, 'council.spread'),
+    ],
+)
+def test_levels_growth_and_spread_are_checked(overrides: dict[str, object], path: str) -> None:
+    assert refused(overrides)['path'] == path
+
+
 def test_voice_of_the_player_is_never_an_ordinary_one() -> None:
     assert refused({'council.voice.least': 1.0})['path'] == 'council.voice.least'
 
@@ -224,7 +252,7 @@ def test_status_starts_within_its_scale() -> None:
     ('section', 'value', 'expected'),
     [
         ('biomes', ['alpha'], None),
-        ('actions', ['swim'], 'one of move, gather, camp'),
+        ('actions', ['swim'], 'one of move, roam, gather, camp'),
         ('resources', ['stone'], 'one of water, forage'),
     ],
 )
@@ -244,7 +272,7 @@ def test_factor_of_an_action_names_an_action() -> None:
     assert refused({'encounters.actions': {'swim': 1.0}}) == {
         'path': 'encounters.actions',
         'found': 'swim',
-        'expected': 'one of move, gather, camp',
+        'expected': 'one of move, roam, gather, camp',
     }
 
 

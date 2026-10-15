@@ -51,13 +51,13 @@ from .events import (
 from .hashing import digest
 from .streams import Streams
 
-SNAPSHOT_FORMAT = 5
+SNAPSHOT_FORMAT = 6
 DIED = 'died'
 BANISHED = 'banished'
 ERA = 'band'
 SEATS: tuple[str, ...] = ('player',)
 UNIT_COLUMNS: tuple[str, ...] = bands.COLUMNS
-TOTALS = ('moves', 'gathers', 'camps', 'deaths', 'encounters')
+TOTALS = ('moves', 'roams', 'gathers', 'camps', 'deaths', 'encounters')
 VERDICTS = {council.WORKED: PROPOSAL_WORKED, council.FAILED: PROPOSAL_FAILED, council.DISASTER: PROPOSAL_DISASTER}
 
 # The order is part of the rules: docs/architecture/overview.md, One tick.
@@ -585,7 +585,8 @@ class Game:
             self._totals['deaths'] += count
             self._lost(cause, count)
             tick.events.append(Event(PEOPLE_LOST, {'count': count, 'cause': cause}))
-        born = bands.grow(self.params, band)
+        threat = self.value(decisions.THREAT, band.x, band.y)
+        born = bands.grow(self.params, band, decisions.wellbeing(self.params, band, threat), threat)
         if born:
             tick.events.append(Event(PEOPLE_BORN, {'count': born}))
 

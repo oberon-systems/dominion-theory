@@ -101,12 +101,17 @@ def test_the_voice_follows_the_document(params: Params) -> None:
     assert council.voice(params, 15, 10.0) == params.council.voice.least
 
 
-def test_the_votes_of_the_example_lie_by_the_largest_remainder() -> None:
-    assert council.votes([0.63, 0.40, 0.07], 14) == [8, 5, 1]
-    assert council.votes([0.5, 0.5], 3) == [2, 1]
-    assert council.votes([0.6, -0.2, 0.0, 0.3], 14) == [9, 0, 0, 5]
-    assert council.votes([-0.1, 0.0], 14) == [0, 0]
-    assert sum(council.votes([0.1, 0.2, 0.3, 0.4, 0.5], 14)) == 14
+def test_the_votes_of_the_example_lean_to_the_best_and_lie_by_the_largest_remainder() -> None:
+    assert council.votes([0.07, 0.5, 0.0, 0.0, 0.4, 0.0, 0.0, 0.0, 0.0, 0.0], 14, 0.2) == [1, 6, 1, 1, 4, 1, 0, 0, 0, 0]
+    assert council.votes([0.5, 0.5], 3, 0.2) == [2, 1]
+    assert council.votes([-0.1, 0.0], 14, 0.2) == [5, 9]
+    assert council.votes([], 14, 0.2) == []
+    assert sum(council.votes([0.1, 0.2, 0.3, 0.4, 0.5], 14, 0.2)) == 14
+
+
+def test_a_small_spread_gives_nearly_everything_to_the_best() -> None:
+    assert council.votes([0.6, 0.3], 14, 0.01) == [14, 0]
+    assert council.votes([0.6, 0.3], 14, 100.0) == [7, 7]
 
 
 def test_the_table_of_a_band_gives_every_other_one_vote_and_names_the_leader(params: Params) -> None:
@@ -122,12 +127,28 @@ def test_the_table_of_a_band_gives_every_other_one_vote_and_names_the_leader(par
     assert council.key(None) == 'proposal-none'
 
 
-def test_the_decisions_of_the_example() -> None:
-    laid = [{'proposal': STAY, 'votes': 8}, {'proposal': EAST, 'votes': 5}, {'proposal': REST, 'votes': 1}]
+def test_a_hungry_band_that_may_only_roam_still_weighs_every_way(params: Params) -> None:
+    game = land(params)
+    band(game).stores['forage'] = []
 
-    assert council.decide(laid, EAST, 3.75) == (EAST, 8.75)
-    assert council.decide(laid, NORTHWARD, 3.75) == (STAY, 3.75)
-    assert council.decide(laid, STAY, 3.75) == (STAY, 11.75)
+    kinds = {held.action['kind'] for held in decisions.options(params, band(game), game.date.part, ERA)}
+    scored = council.score(params, band(game), game.date.part, ERA)
+
+    assert 'move' not in kinds
+    assert {'proposal-move-east', 'proposal-move-north', 'proposal-stay-and-gather'} < set(scored)
+
+
+def test_the_decisions_of_the_example() -> None:
+    laid = [
+        {'proposal': REST, 'votes': 1},
+        {'proposal': STAY, 'votes': 6},
+        {'proposal': NORTHWARD, 'votes': 1},
+        {'proposal': EAST, 'votes': 4},
+    ]
+
+    assert council.decide(laid, EAST, 3.75) == (EAST, 7.75)
+    assert council.decide(laid, NORTHWARD, 3.75) == (STAY, 4.75)
+    assert council.decide(laid, STAY, 3.75) == (STAY, 9.75)
 
 
 def test_a_tie_goes_to_the_player_and_among_the_others_to_the_fixed_order() -> None:

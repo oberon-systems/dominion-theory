@@ -16,7 +16,7 @@ PARAMS_INVALID = 'error-params-invalid'
 DURATION_UNITS = ('parts', 'days', 'months', 'years')
 MODIFIER_KINDS = ('plus', 'times')
 LAYERS = ('elevation', 'relief', 'moisture', 'temperature', 'flow')
-ACTIONS = ('move', 'gather', 'camp')
+ACTIONS = ('move', 'roam', 'gather', 'camp')
 BAND = 'band'
 PASSABILITY = 'passability'
 ZOOM = 5
@@ -381,10 +381,29 @@ class Start(Node):
     biomes: tuple[Name, ...] = Field(min_length=1)
 
 
+class Wellbeing(Node):
+    food: Factor
+    water: Factor
+    safety: Factor
+    rest: Factor
+
+    @model_validator(mode='after')
+    def _weighed(self) -> Self:
+        if self.food + self.water + self.safety + self.rest <= 0:
+            raise ValueError('at least one weight above 0')
+        return self
+
+
+class Growth(Node):
+    floor: Annotated[float, Field(strict=True, ge=0, lt=1)]
+    threat: Share
+    weights: Wellbeing
+
+
 class People(Node):
     least: Count
     growth_per_year: Factor
-    rest_growth: Factor
+    growth: Growth
 
 
 class Speed(Node):
@@ -395,8 +414,20 @@ class Speed(Node):
 
 class Fatigue(Node):
     move: Amount
+    roam: Amount
     gather: Amount
     camp: Amount
+
+
+class Roaming(Node):
+    """
+    Walking while foraging: slower than a walk, taking a share of a gathering tick of all the cell ahead gives;
+    a band whose hunger or thirst reaches hunger only roams.
+    """
+
+    speed: Share
+    share: Share
+    hunger: Share
 
 
 class Hardship(Node):
@@ -433,14 +464,30 @@ class Weights(Node):
     intent: Factor
 
 
+class Stage(Node):
+    """
+    One level of hunger or thirst: the need it gives from the days in the stores up.
+    """
+
+    days: Factor
+    need: Share
+
+
 class Decisions(Node):
-    comfort: Duration
+    levels: dict[Name, Stage]
     night: Share
     night_parts: tuple[Name, ...]
     distance: Factor
     idle: Factor
     wander: Duration
     weights: Weights
+
+    @model_validator(mode='after')
+    def _levelled(self) -> Self:
+        days = [level.days for level in self.levels.values()]
+        if 0 not in days or len(set(days)) != len(days):
+            raise ValueError('levels with days that differ, one of them 0')
+        return self
 
 
 class Band(Node):
@@ -450,6 +497,7 @@ class Band(Node):
     gathering: dict[Name, Factor]
     consumption_per_day: dict[Name, Factor]
     speed: Speed
+    roaming: Roaming
     fatigue: Fatigue
     states: States
     sight: Span
@@ -495,6 +543,7 @@ class Status(Node):
 
 class Council(Node):
     part: Name
+    spread: Positive
     voice: Voice
     judgement: Judgement
     status: Status

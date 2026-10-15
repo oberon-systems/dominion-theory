@@ -51,10 +51,46 @@ A band starts with 15 people and counts whole people. It dies when fewer
 than 5 are left, and the game ends with it. The threshold of 150, at
 which a band becomes a tribe, belongs to stage 5.
 
-People are born at a yearly rate, counted every day: the band keeps the
-fraction and a person appears when it reaches one. Nobody is born while
-the band starves or thirsts. A band that camped the whole day grows three
-times as fast, which is what makes a long rest worth proposing.
+Growth is what a band lives for: it wants to continue its kind, and
+everything it does serves that in the end. People are born at a yearly
+rate, counted every day: the band keeps the fraction and a person
+appears when it reaches one. How fast depends on how well the band
+lives, its wellbeing.
+
+### Wellbeing
+
+Wellbeing is a number from 0 to 1, taken once a day, when the people
+eat. It is the mean of four parts, each weighed by `growth.weights`.
+
+| Part     | Is                                                        |
+|----------|-----------------------------------------------------------|
+| `food`   | 1 minus the hunger of the band                            |
+| `water`  | 1 minus the thirst of the band                            |
+| `safety` | 1 minus the threat of the cell the band stands on         |
+| `rest`   | 1 minus the fatigue                                       |
+
+Hunger and thirst are the levels of [Decisions](../game/decisions.md#needs):
+a band with two days of food in its stores is sated, one with less than
+a day is hungry.
+
+```text
+rate = growth_per_year * (wellbeing - floor) / (1 - floor)
+```
+
+Below `growth.floor` nobody is born. A band at full wellbeing grows at
+`growth_per_year`.
+
+### When nobody is born
+
+Some days are bad for children whatever the mean says. Nobody is born on
+a day when:
+
+- the band starves, thirsts or is tired - any of the three states holds;
+- the threat of its cell is above `growth.threat`.
+
+A long rest is still how a band grows: camping takes the fatigue down
+and keeps the band out of the bad states. There is no separate
+multiplier for it any more.
 
 People die of hunger, of thirst and in chance encounters. See
 [States](#states) and [Bands](../game/01_bands.md#chance-encounters).
@@ -108,11 +144,21 @@ the band is pushed on.
 
 | Property | A full cell holds |
 |----------|-------------------|
-| `food`   | 200 units         |
+| `food`   | 100 units         |
 | `water`  | 2000 units        |
 
-A band gathers on the cell it stands on and nowhere else. It gathers only
-the resources the biome lists.
+A band gathers on the cell it stands on and nowhere else, but for a
+roaming band, which forages the cell ahead as it walks into it. It
+gathers only the resources the biome lists.
+
+| Roaming    | Is                                                        |
+|------------|-----------------------------------------------------------|
+| `speed`    | the share of the walking pace, 0.75                       |
+| `share`    | the share of a gathering tick taken of every resource, 0.5 |
+| `hunger`   | the need at which a band only roams, 0.8: a hungry band   |
+
+A full forest feeds a band of 15 four or five days before it gives too
+little and the band is pushed on.
 
 ___
 
@@ -229,8 +275,11 @@ units:
       biomes: [grass, forest, floodplain]
     population:
       least: 5
-      growth_per_year: 0.3
-      rest_growth: 3.0
+      growth_per_year: 0.6
+      growth:
+        floor: 0.5
+        threat: 0.6
+        weights: {food: 1.0, water: 1.0, safety: 1.0, rest: 1.0}
     carry_kg: 6.0
     gathering:
       forage: 3.0
@@ -242,8 +291,10 @@ units:
       base: 1.2
       slowdown: 0.03
       slowest: 0.3
+    roaming: {speed: 0.75, share: 0.5, hunger: 0.8}
     fatigue:
       move: 0.15
+      roam: 0.08
       gather: 0.08
       camp: -0.35
     states:
@@ -258,7 +309,7 @@ units:
 ```yaml
 eras:
   band:
-    capacity: {food: 200, water: 2000}
+    capacity: {food: 100, water: 2000}
     recovery: {food: {winter: 0.25}}
 ```
 

@@ -12,6 +12,7 @@ line-votes = { $proposal } - { $votes }
 line-action-camp = стоит лагерем
 line-action-gather = собирает { NAME("resource", $resource, form: "accusative") }
 line-action-move = идёт { NAME("line-direction", $towards) }
+line-action-roam = кочует { NAME("line-direction", $towards) }, собирая по пути
 
 line-direction-north = на север
 line-direction-north-east = на северо-восток

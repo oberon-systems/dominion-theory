@@ -7,7 +7,7 @@ proposal-move-south-west = идём между полуденным солнце
 proposal-move-west = идём туда, где садится солнце
 proposal-move-north-west = идём между закатом и неподвижной звездой
 proposal-rest = отдыхаем здесь
-proposal-stay-and-gather = остаёмся: нам не хватает еды
+proposal-stay-and-gather = остаёмся собирать
 proposal-none = ничего особенного
 
 council-opened = Совет дня собрался. Большинство склоняется: { $leader }.

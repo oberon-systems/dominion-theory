@@ -1,5 +1,6 @@
 council:
   part: morning
+  spread: 0.2
   voice:
     share: 0.5
     least: 2.0

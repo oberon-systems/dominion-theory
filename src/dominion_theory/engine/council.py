@@ -8,16 +8,18 @@ from collections.abc import Mapping
 from typing import Any
 
 from ..content import Params
+from . import band as bands
 from . import decisions
-from .band import DIRECTIONS, ENCOUNTER, GATHER, Band, camp, moving
+from .band import DIRECTIONS, ENCOUNTER, Band
 from .commands import ABSTAIN, MOVE, PROPOSALS, REST, STAY
-from .decisions import Scored
 from .events import NO_LEADER, PROPOSAL
 
 WORKED = 'worked'
 FAILED = 'failed'
 DISASTER = 'disaster'
 STATUS = {MOVE: 'move', STAY: 'stay'}
+STAYING = {'kind': STAY}
+RESTING = {'kind': REST}
 HIGHEST = 100.0
 # The fixed order of the options, the one of the decision function: the camp, the gatherings, the moves.
 OPTIONS: tuple[dict[str, Any], ...] = (
@@ -54,29 +56,36 @@ def key(proposal: Proposal | None) -> str:
     return f'{PROPOSAL}{proposal["kind"]}' + (f'-{proposal["towards"]}' if proposal['kind'] == MOVE else '')
 
 
-def score(params: Params, band: Band, found: list[Scored], proposal: Proposal, era: str) -> float:
+def score(params: Params, band: Band, part: str, era: str) -> dict[str, float]:
     """
-    What the decision function gives the first action a proposal leads to.
+    What a day of every proposal is worth to the band, by key: staying on the land it stands on, resting
+    there without gathering, or walking to the best land that way.
     """
-    if proposal['kind'] == MOVE:
-        towards = decisions.way(params, band, proposal['towards'], era)
-        wanted = [moving(towards)] if towards is not None else []
-    elif proposal['kind'] == STAY:
-        wanted = [held.action for held in found if held.action['kind'] == GATHER] or [camp()]
-    else:
-        wanted = [camp()]
-    given = [held.score for held in found if held.action in wanted]
-    return max(given) if given else min(held.score for held in found)
+    weights = params.units.band.decisions.weights
+    wanted = decisions.needs(params, band, part)
+    own = band.known.get(band.place)
+    here = decisions.worth(params, own, wanted)[0] if own else 0.0
+    gain = sum(wanted[need] * own.get(prop, 0.0) for prop, (need, _) in decisions.NEEDS.items()) if own else 0.0
+    found = {
+        key(STAYING): weights.move * here,
+        key(RESTING): weights.move * (here - gain) + weights.rest * wanted[decisions.REST],
+    }
+    for held in decisions.options(params, band, part, era, allowed={bands.MOVE}, walking=True):
+        found[key({'kind': MOVE, 'towards': held.action['towards']})] = held.score + weights.move * here
+    return found
 
 
-def votes(scores: list[float], members: int) -> list[int]:
+def votes(scores: list[float], members: int, spread: float) -> list[int]:
     """
-    Whole votes in proportion to the scores above zero, by the largest remainder, ties to the earlier score.
+    Whole votes by the weight exp(score / spread) of every option, by the largest remainder, ties to the earlier
+    score.
     """
-    total = sum(held for held in scores if held > 0)
-    if total <= 0:
-        return [0] * len(scores)
-    exact = [max(held, 0.0) / total * members for held in scores]
+    if not scores:
+        return []
+    top = max(scores)
+    weights = [math.exp((held - top) / spread) for held in scores]
+    total = sum(weights)
+    exact = [weight / total * members for weight in weights]
     whole = [math.floor(share) for share in exact]
     for index in sorted(range(len(exact)), key=lambda at: (whole[at] - exact[at], at))[: members - sum(whole)]:
         whole[index] += 1
@@ -87,16 +96,12 @@ def table(params: Params, band: Band, part: str, era: str) -> Table:
     """
     How the others' votes lie over the options the band can take; options without a vote are left out.
     """
-    found = decisions.options(params, band, part, era)
-    offered = [
-        proposal
-        for proposal in OPTIONS
-        if proposal['kind'] != MOVE or decisions.way(params, band, proposal['towards'], era) == proposal['towards']
-    ]
-    scores = [score(params, band, found, proposal, era) for proposal in offered]
+    days = score(params, band, part, era)
+    offered = [proposal for proposal in OPTIONS if key(proposal) in days]
+    scores = [days[key(proposal)] for proposal in offered]
     laid = [
         {'proposal': proposal, 'votes': given}
-        for proposal, given in zip(offered, votes(scores, band.population - 1), strict=True)
+        for proposal, given in zip(offered, votes(scores, band.population - 1, params.council.spread), strict=True)
     ]
     return [entry for entry in laid if entry['votes']]
 

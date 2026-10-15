@@ -126,7 +126,12 @@ class Walk(BaseModel):
     towards: str
 
 
-Action = Annotated[Camp | Gather | Walk, Field(discriminator='kind')]
+class Roam(BaseModel):
+    kind: Literal['roam']
+    towards: str
+
+
+Action = Annotated[Camp | Gather | Walk | Roam, Field(discriminator='kind')]
 
 
 class MoveProposal(BaseModel):

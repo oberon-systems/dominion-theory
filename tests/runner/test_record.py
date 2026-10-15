@@ -38,6 +38,7 @@ COUNTERS = (
     'food',
     'water',
     'moves',
+    'roams',
     'gathers',
     'camps',
     'deaths',
@@ -201,7 +202,8 @@ def test_a_record_with_councils_replays_with_every_hash_and_counts_them(service:
     assert result.game.state_hash() == hashes[-1]
     assert result.game.status == runner.game.status
     assert rows[-1]['councils'] == 1 + 6
-    assert rows[-1]['status'] == runner.game.status != 50.0
+    assert rows[-1]['status'] == runner.game.status
+    assert {row['status'] for row in rows} > {50.0}
 
 
 def test_a_band_that_dies_ends_its_record(service: Service) -> None:

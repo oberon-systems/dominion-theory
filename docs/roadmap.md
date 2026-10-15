@@ -98,8 +98,8 @@ What is already settled and binds every stage.
   they lie and backs an option, proposes another or does not vote, which
   costs status. Status moves only with what the player changed.
 - **A proposal is said the way a nomad would say it**: "we go where the sun
-  rises", "we follow the pole star", "we rest here", "we stay, we are
-  short of food".
+  rises", "we follow the pole star", "we rest here", "we stay and
+  gather".
 - **A proposal the player carried is judged by what follows**, at the
   next council. If it worked out, status rises; if not, it falls; if it
   ended in disaster, a large loss of people, it falls hard. Backing what

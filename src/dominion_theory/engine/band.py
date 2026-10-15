@@ -12,6 +12,7 @@ from .cells import Place
 
 KIND = 'band'
 MOVE = 'move'
+ROAM = 'roam'
 GATHER = 'gather'
 CAMP = 'camp'
 NORMAL = 'normal'
@@ -76,7 +77,6 @@ class Band:
     progress: float = 0.0
     target: Place | None = None
     short: dict[str, int] = field(default_factory=dict)
-    camped: int = 0
     reason: dict[str, Any] | None = None
     wander: dict[str, Any] | None = None
 
@@ -102,7 +102,6 @@ class Band:
             progress=plain['progress'],
             target=None if target is None else (target[0], target[1]),
             short=dict(plain['short']),
-            camped=plain['camped'],
             reason=plain['reason'],
             wander=plain['wander'],
         )
@@ -134,7 +133,6 @@ class Band:
             'progress': self.progress,
             'target': None if self.target is None else list(self.target),
             'short': dict(sorted(self.short.items())),
-            'camped': self.camped,
             'reason': self.reason,
             'wander': self.wander,
         }
@@ -176,6 +174,10 @@ def gathering(resource: str) -> Action:
 
 def moving(towards: str) -> Action:
     return {'kind': MOVE, 'towards': towards}
+
+
+def roaming(towards: str) -> Action:
+    return {'kind': ROAM, 'towards': towards}
 
 
 def start(land: Land, x: int, y: int, day: int) -> Band:
@@ -238,49 +240,67 @@ def act(land: Land, band: Band, action: Action, day: int) -> Action:
     rules = land.params.units.band
     kind = action['kind']
     if kind == MOVE:
-        done = _move(land, band, action, rules)
+        done = _move(land, band, action, rules, 1.0)
+    elif kind == ROAM:
+        done = _roam(land, band, action, rules, day)
     elif kind == GATHER:
         done = _gather(land, band, action, rules, day)
     else:
         done = camp()
-    if done['kind'] != MOVE:
+    if done['kind'] not in (MOVE, ROAM):
         band.progress, band.target = 0.0, None
-    if done['kind'] == CAMP:
-        band.camped += 1
     tired = getattr(rules.fatigue, done['kind'])
     band.fatigue = min(max(band.fatigue + tired, 0.0), 1.0)
     band.action = done
     return done
 
 
-def _move(land: Land, band: Band, action: Action, rules: Rules) -> Action:
+def _move(land: Land, band: Band, action: Action, rules: Rules, pace: float) -> Action:
     dx, dy = DIRECTIONS[action['towards']]
     target = band.x + dx, band.y + dy
     if not enterable(land, *target):
         return camp()
     if band.target != target:
         band.progress, band.target = 0.0, target
-    band.progress += speed(rules, band) * land.value(PASSABILITY, *target)
+    band.progress += speed(rules, band) * pace * land.value(PASSABILITY, *target)
     if band.progress >= 1.0:
         band.x, band.y = target
         band.progress, band.target = 0.0, None
-    return moving(action['towards'])
+    return {'kind': action['kind'], 'towards': action['towards']}
+
+
+def _roam(land: Land, band: Band, action: Action, rules: Rules, day: int) -> Action:
+    """
+    A share of a gathering tick of every resource the cell ahead gives, then a slow step into it.
+    """
+    dx, dy = DIRECTIONS[action['towards']]
+    ahead = band.x + dx, band.y + dy
+    if not enterable(land, *ahead):
+        return camp()
+    for name in rules.gathering:
+        if name in _era(land, *ahead).resources:
+            _take(land, band, name, rules, day, rules.roaming.share, ahead)
+    return _move(land, band, action, rules, rules.roaming.speed)
 
 
 def _gather(land: Land, band: Band, action: Action, rules: Rules, day: int) -> Action:
-    params = land.params
     name = action['resource']
     if name not in _era(land, band.x, band.y).resources:
         return camp()
+    _take(land, band, name, rules, day, 1.0, band.place)
+    return gathering(name)
+
+
+def _take(land: Land, band: Band, name: str, rules: Rules, day: int, share: float, at: Place) -> None:
+    params = land.params
     resource = params.resources[name]
-    wanted = band.population * rules.gathering.get(name, 0.0) * land.value(resource.property, band.x, band.y)
-    taken = min(wanted * _slowed(rules, band), room(params, band) / resource.weight_kg)
+    wanted = band.population * rules.gathering.get(name, 0.0) * land.value(resource.property, *at)
+    taken = min(wanted * share * _slowed(rules, band), room(params, band) / resource.weight_kg)
     if taken > 0:
         _stored(band, name, day, taken)
         capacity = params.eras[land.era].capacity.get(resource.property)
-        if capacity and _era(land, band.x, band.y).properties[resource.property].recovery is not None:
-            land.deplete(band.x, band.y, resource.property, taken / capacity)
-    return gathering(name)
+        if capacity and _era(land, *at).properties[resource.property].recovery is not None:
+            land.deplete(*at, resource.property, taken / capacity)
 
 
 def _stored(band: Band, name: str, day: int, amount: float) -> None:
@@ -388,16 +408,15 @@ def suffer(params: Params, band: Band, met: dict[str, float]) -> tuple[list[str]
     return began, ended, lost
 
 
-def grow(params: Params, band: Band) -> int:
+def grow(params: Params, band: Band, wellbeing: float, threat: float) -> int:
     """
-    The births of a day: none in hunger or thirst, more after a day spent in camp.
+    The births of a day by the wellbeing above the floor; none while a bad state holds or the cell is dangerous.
     """
     rules = params.units.band.population
-    rested = band.camped >= params.time.parts_per_day
-    band.camped = 0
-    if STARVATION in band.states or THIRST in band.states:
+    growth = rules.growth
+    if band.states or threat > growth.threat or wellbeing <= growth.floor:
         return 0
-    pace = rules.growth_per_year / params.time.days_per_year * (rules.rest_growth if rested else 1.0)
+    pace = rules.growth_per_year / params.time.days_per_year * (wellbeing - growth.floor) / (1.0 - growth.floor)
     band.births += band.population * pace
     born = int(band.births)
     band.births -= born

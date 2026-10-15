@@ -102,7 +102,8 @@ def test_a_band_with_no_food_is_lived_headless_into_a_row_for_its_last_year() ->
     assert len(header) == len(row)
     assert header.split() == [
         *('year', 'people', 'growth', 'rate', 'least', 'born', 'deaths', 'of-hunger', 'of-thirst', 'of-encounter'),
-        *('food', 'water', 'moves', 'gathers', 'camps', 'starving', 'thirsty', 'tired', 'encounters', 'status'),
+        *('food', 'water', 'moves', 'roams', 'gathers', 'camps', 'starving', 'thirsty', 'tired', 'encounters'),
+        *('status',),
         *('known', 'snapshot'),
     ]
     assert counted == [
@@ -119,9 +120,10 @@ def test_a_band_with_no_food_is_lived_headless_into_a_row_for_its_last_year() ->
             '0',
             '0',
             '0',
-            '19',
-            '5',
-            '36',
+            '0',
+            '0',
+            '16',
+            '44',
             '50',
             '0',
             '0',

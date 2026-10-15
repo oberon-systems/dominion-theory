@@ -7,7 +7,7 @@ proposal-move-south-west = we go between the midday sun and the sunset
 proposal-move-west = we go where the sun sets
 proposal-move-north-west = we go between the sunset and the unmoving star
 proposal-rest = we rest here
-proposal-stay-and-gather = we stay, we are short of food
+proposal-stay-and-gather = we stay and gather
 proposal-none = nothing in particular
 
 council-opened = The council of the day sits. Most lean to: { $leader }.

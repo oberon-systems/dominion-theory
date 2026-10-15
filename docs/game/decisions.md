@@ -24,8 +24,8 @@ ___
 
 In the phase `decisions` the band lists what it could do, gives every
 option a score and takes the best. The options are a camp, gathering of
-each resource the cell gives, and a move to each of the eight cells
-around that can be entered: at most eleven.
+each resource the cell gives, and a move and a roam to each of the eight
+cells around that can be entered: at most nineteen.
 
 The function reads the band and what the band knows, and nothing else.
 It is pure: the same band with the same knowledge decides the same. The
@@ -40,14 +40,33 @@ A need is a number from 0, nothing wanted, to 1, nothing else matters.
 
 | Need      | Is                                                          |
 |-----------|-------------------------------------------------------------|
-| `hunger`  | 1 minus the days of food in the stores over `comfort`       |
-| `thirst`  | 1 minus the days of water in the stores over `comfort`      |
+| `hunger`  | the level of the days of food in the stores                 |
+| `thirst`  | the level of the days of water in the stores                |
 | `rest`    | the fatigue, plus `night` in the evening and at night       |
 
-Each is held between 0 and 1. Days of food are the stores over what the
-people eat in a day; `comfort` is three days, all that a band can carry
-of food and water together. A state doubles its need before the hold: a
-starving band is hungrier than its stores alone say.
+Days of food are the stores over what the people eat in a day. Hunger
+and thirst are not a line but levels: the first level, from the top,
+whose `days` the stores reach gives the need.
+
+| Level    | Days in the stores | Need |
+|----------|--------------------|------|
+| `sated`  | 2 or more          | 0.1  |
+| `fed`    | 1 to 2             | 0.4  |
+| `hungry` | less than 1        | 0.8  |
+| starving | the state holds    | 1.0  |
+
+A band that starves or thirsts has the need 1 whatever its stores say.
+Rest is held between 0 and 1. The levels are data, and so is their
+number.
+
+The band is **calm** when neither hunger nor thirst presses:
+
+```text
+calm = 1 - max(hunger, thirst)
+```
+
+A calm band thinks of growth: of land that is safe to raise children on.
+A hungry one thinks of food and fears nothing.
 
 ___
 
@@ -57,12 +76,13 @@ A cell the band knows has a worth, the answer to "how good would it be
 to stand there now".
 
 ```text
-worth = hunger * food + thirst * water - weights.safety * threat
+worth = hunger * food + thirst * water - weights.safety * calm * threat
 ```
 
 The properties are the values the band remembers, stock and season
 included. The worth changes with the needs: to a thirsty band the river
-is worth more than the forest.
+is worth more than the forest, and to a calm band the open grass is
+worth more than the forest with wolves in it.
 
 A cell that cannot be entered is worth nothing, and neither is a cell
 the band does not know.
@@ -80,9 +100,12 @@ need it serves.
 | `gather` forage | `weights.hunger` times hunger, food of the cell and fit      |
 | `gather` water  | `weights.thirst` times thirst, water of the cell and fit     |
 | `move` to a cell| see below                                                    |
+| `roam` to a cell| see below                                                    |
 
 ```text
 move = weights.move * (pull - worth of the own cell) - weights.rest * rest * effort
+roam = roaming.speed * weights.move * (pull - worth of the own cell) - weights.rest * rest * effort
+       + roaming.share * (both gatherings, scored on the cell ahead)
 ```
 
 - **Fit** is the share of a tick's haul that the free carrying weight
@@ -98,6 +121,12 @@ move = weights.move * (pull - worth of the own cell) - weights.rest * rest * eff
 A move scores above zero only when something known is better than the
 place the band stands on. A band on good land stays; a band on stripped
 land goes.
+
+A roam gets there slower, so it gets a part of the move's gain, and
+adds what the band would forage on the way. A fed band in a hurry walks;
+a band short of food roams through good land. **A hungry band does not
+walk**: when hunger or thirst reaches `roaming.hunger`, the moves are not
+among its options and only the roams are.
 
 ___
 
@@ -165,7 +194,10 @@ ___
 units:
   band:
     decisions:
-      comfort: {days: 3}
+      levels:
+        sated: {days: 2, need: 0.1}
+        fed: {days: 1, need: 0.4}
+        hungry: {days: 0, need: 0.8}
       night: 0.5
       night_parts: [evening, night]
       distance: 0.25
@@ -175,53 +207,90 @@ units:
         hunger: 1.5
         thirst: 1.2
         rest: 0.7
-        safety: 0.3
+        safety: 2.0
         move: 3.0
         momentum: 0.1
         intent: 0.6
 ```
 
 `night_parts` names the parts of the day that add `night` to the need
-for rest; a name must be one of `time.day_parts`.
+for rest; a name must be one of `time.day_parts`. `levels` are read from
+the most days down; their days must differ, one of them must be 0, and
+every need lies between 0 and 1.
 
 ___
 
 ## Examples
 
 A band of 15 at midday in a summer forest, rested, with a day and a half
-of food and two days of water: 52.5 kg of the 90 it can carry. Hunger is
-0.5, thirst 0.33, rest 0.1. A tick of forage would be 40.5 kg and 37.5
-fit, so the fit is 0.93.
+of food and two days of water: 52.5 kg of the 90 it can carry. It is fed
+and sated: hunger 0.4, thirst 0.1, rest 0.1, calm 0.6. A tick of forage
+would be 40.5 kg and 37.5 fit, so the fit is 0.93. The band knows only
+forest around it.
 
 ```text
 camp            0.7 * 0.1                  = 0.07
-gather forage   1.5 * 0.5  * 0.9 * 0.93    = 0.63
-gather water    1.2 * 0.33 * 0.6 * 1.0     = 0.24
+gather forage   1.5 * 0.4  * 0.9 * 0.93    = 0.50
+gather water    1.2 * 0.1  * 0.6 * 1.0     = 0.07
+-> gather forage
+```
+
+The same band with open grass to the east, threat 0.1 against the 0.4 of
+the forest. Calm, it weighs the danger of the forest higher than its
+food, and it roams there rather than walks: the grass feeds it on the
+way.
+
+```text
+own forest      0.4 * 0.9 + 0.1 * 0.6  - 2.0 * 0.6 * 0.4 = -0.06
+grass east      0.4 * 0.8 + 0.1 * 0.28 - 2.0 * 0.6 * 0.1 =  0.23
+pull            0.23 / 1.25                             =  0.18
+effort          0.7 * 0.1 * 1.0                         =  0.07
+move east       3.0 * (0.18 + 0.06) - 0.07              =  0.66
+grass ahead     1.5 * 0.4 * 0.8 + 1.2 * 0.1 * 0.28      =  0.51
+roam east       0.75 * 3.0 * (0.18 + 0.06) - 0.07
+                + 0.5 * 0.51                            =  0.73
+gather forage                                           =  0.50
+-> roam east
+```
+
+The same place with less than a day of food: hungry, hunger 0.8, calm
+0.2. The danger hardly counts and the forest feeds better than the
+grass. A hungry band does not walk, so only the roam is weighed.
+
+```text
+own forest      0.8 * 0.9 + 0.1 * 0.6  - 2.0 * 0.2 * 0.4 =  0.62
+grass east     (0.8 * 0.8 + 0.1 * 0.28 - 2.0 * 0.2 * 0.1) / 1.25 = 0.50
+grass ahead     1.5 * 0.8 * 0.8 + 1.2 * 0.1 * 0.28      =  0.99
+roam east       0.75 * 3.0 * (0.50 - 0.62) - 0.07
+                + 0.5 * 0.99                            =  0.16
+gather forage   1.5 * 0.8 * 0.9 * 1.0                   =  1.08
 -> gather forage
 ```
 
 The same band at night with fatigue 0.55 and two and a half days of
-food. Hunger is 0.17, rest is 0.55 plus 0.5, held at 1; 22.5 kg are
+food: sated, hunger 0.1; rest is 0.55 plus 0.5, held at 1; 22.5 kg are
 free.
 
 ```text
 camp            0.7 * 1.0                  = 0.70
-gather forage   1.5 * 0.17 * 0.9 * 0.56    = 0.13
-gather water    1.2 * 0.33 * 0.6 * 0.63    = 0.15
+gather forage   1.5 * 0.1  * 0.9 * 0.56    = 0.08
+gather water    1.2 * 0.1  * 0.6 * 0.63    = 0.05
 -> camp
 ```
 
-A band on a stripped forest cell, food at a stock of 0.1, with a full
-forest remembered three cells to the east. Hunger is 0.75, thirst 0,
-rest 0.1; the threat of 0.4 takes 0.12 from the worth of both cells.
+A hungry band on a stripped forest cell, food at a stock of 0.1, with a
+full forest remembered three cells to the east. It is hungry, so it
+roams there, gathering what the stripped cell ahead still gives.
 
 ```text
-gather forage   1.5 * 0.75 * 0.09 * 1.0           = 0.10
-move east       pull   (0.75 * 0.9 - 0.12) / 1.75 = 0.32
-                own     0.75 * 0.09 - 0.12        = -0.05
-                effort  0.7 * 0.1 * 1.67          = 0.12
-                3.0 * (0.32 + 0.05) - 0.12        = 0.99
--> move east
+gather forage   1.5 * 0.8 * 0.09 * 1.0                     = 0.11
+roam east       pull   (0.8 * 0.9 + 0.06 - 0.16) / 1.75    = 0.35
+                own     0.8 * 0.09 + 0.06 - 0.16           = -0.03
+                effort  0.7 * 0.1 * 1.67                   = 0.12
+                ahead   1.5 * 0.8 * 0.09 + 1.2 * 0.1 * 0.6 = 0.18
+                0.75 * 3.0 * (0.35 + 0.03) - 0.12
+                + 0.5 * 0.18                               = 0.83
+-> roam east
 ```
 
 ___
@@ -232,7 +301,7 @@ ___
   count that the walk to better land costs a day it has no food for.
 - **Stores that spoil** - a band gathers up to its carrying weight even
   when the lot will spoil before it is eaten.
-- **Safety** - threat lowers the worth of a cell but a band never flees
-  one. A band that was just struck could leave.
+- **Safety** - a calm band leaves dangerous land, a hungry one does not.
+  A band that was just struck is not more afraid than before it.
 - **Weights per band** - one set of weights serves every band until
   stage 3 names temperaments.

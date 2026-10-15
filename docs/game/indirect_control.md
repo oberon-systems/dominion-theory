@@ -84,24 +84,48 @@ looks to the band.
 
 The options are the proposals the player could make: a move in each of
 the eight directions whose cell can be entered, a rest, and a stay to
-gather; ten at most. Each gets the score the decision function gives the
-first action it would lead to - the move that way, the camp, or the
-better of the two gatherings - as it does now for one proposal.
+gather; ten at most. The council decides where the band spends the day,
+so each option is scored by the day it leads to, with the needs of
+[Decisions](decisions.md#needs):
+
+| Option            | Score                                                       |
+|-------------------|-------------------------------------------------------------|
+| `stay-and-gather` | `weights.move` times the worth of the own cell              |
+| `rest`            | the same without what the cell feeds, plus `weights.rest` times rest |
+| `move` that way   | `weights.move` times the pull that way, less the effort      |
 
 ```text
-share of an option = its score / the sum of all scores above zero
-votes of an option = share * (population - 1), in whole votes
+stay = weights.move * worth(own)
+rest = weights.move * (worth(own) - hunger * food - thirst * water) + weights.rest * rest
+move = weights.move * pull - weights.rest * rest * effort
 ```
 
-An option that scores zero or less gets no votes. Whole votes are given
-by the largest remainder: each option takes the whole part of its votes,
-and the votes left over go one each to the largest remainders, ties in
-the fixed order of the decision function. The table draws no random
-number, so a player who knows the band can tell how it will lie.
+A band on good land stays; a calm band in a dangerous forest leans to
+the open land beside it; a tired band that is not hungry leans to a rest.
+How the band moves - walking or roaming - is its own choice once the
+day is decided. A move is scored as a walk even for a hungry band that
+may only roam, so the council still weighs every way and not only the
+stay.
+
+```text
+weight of an option = exp(score / spread)
+votes of an option  = weight / the sum of all weights * (population - 1)
+```
+
+Every option the band could take has its weight, so the votes lean to
+the best option without all going to it: the closer two scores, the
+more evenly the votes split between them. `council.spread` says how
+soft the lean is; a small spread gives nearly everything to the best
+option, a large one splits the band evenly. Whole votes are given by the
+largest remainder: each option takes the whole part of its votes, and
+the votes left over go one each to the largest remainders, ties in the
+fixed order of the decision function. The table draws no random number,
+so a player who knows the band can tell how it will lie.
 
 The option with the most votes of the others is the **leader**: what the
-band would do if the player said nothing. When no option scores above
-zero the table is empty and there is no leader.
+band would do if the player said nothing; a tie goes to the fixed order.
+The table is empty, with no leader, only when the band can take no
+option at all.
 
 The table is part of the seat while the council sits, as
 [What the API shows](01_bands.md#what-the-api-shows) gives it, so a
@@ -278,6 +302,7 @@ ___
 ```yaml
 council:
   part: morning
+  spread: 0.2
   voice:
     share: 0.5
     least: 2.0
@@ -296,7 +321,8 @@ council:
     stay_disaster: -20
 ```
 
-`part` must be one of `time.day_parts`. `least` must be above 1, so that
+`part` must be one of `time.day_parts`. `spread` must be above 0.
+`least` must be above 1, so that
 the player's voice is never an ordinary one. `DT_COUNCIL_WAIT_S` is a
 setting of the server, not of the game: it changes how long a person may
 think, never the outcome of a run in step mode.
@@ -306,26 +332,28 @@ ___
 ## Examples
 
 A band of 15 in the morning, status 50, so the player speaks with 3.75
-voices. The others score staying to gather 0.63, a move east 0.40 and a
-rest 0.07; the fourteen votes lie 8.02, 5.09 and 0.89, and by the largest
-remainder 8, 5 and 1.
+voices. The others score staying to gather 0.5, a move east 0.4, a rest
+0.07 and the seven other moves 0. With a spread of 0.2 the fourteen
+votes lie 6.09, 3.70, 0.71 and 0.50 for each other move; by the largest
+remainder staying gets 6, the move east 4, the rest 1, and the first
+three other moves in the fixed order 1 each.
 
 ```text
 seq 500          council-opened leader proposal-stay-and-gather
-                 table: stay-and-gather 8, move-east 5, rest 1
+                 table: stay-and-gather 6, move-east 4, rest 1, move-north 1, ...
 ```
 
-The player backs the move east: 5 + 3.75 = 8.75 beats 8. The band walks
+The player backs the move east: 4 + 3.75 = 7.75 beats 6. The band walks
 east for the day and the move is judged the next morning.
 
 ```text
 POST /commands   {"id": "c-7", "kind": "vote", "proposal": {"kind": "move", "towards": "east"}}
-seq 500          council-turned proposal-move-east, yes 8.75 of 17.75
+seq 500          council-turned proposal-move-east, yes 7.75 of 17.75
 seq 505          proposal-worked proposal-move-east, status 54
 ```
 
-The player proposes a move north, which nobody voted for: 3.75 does not
-beat 8, and staying to gather wins.
+The player backs a move north, which one of the others wants: 1 + 3.75
+does not beat 6, and staying to gather wins.
 
 ```text
 seq 500          council-outvoted proposal-move-north, winner proposal-stay-and-gather, status 49

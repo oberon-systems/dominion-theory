@@ -95,12 +95,13 @@ class Runner:
         return self._tick()
 
     def snapshot(self) -> dict[str, Any]:
+        game = self.game
         return {
             'seq': self.seq,
             'date': asdict(self.game.date),
             'window': asdict(self.game.window),
             'seat': self.game.seat,
-            'units': [] if self.game.band is None else [self.game.band.shown(self.game.window.scale)],
+            'units': [] if game.band is None else [game.band.shown(game.params, game.window.scale)],
             'waiting': self.waiting,
         }
 

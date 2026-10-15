@@ -5,7 +5,8 @@ import pytest
 
 from dominion_theory.content import Params, load_params
 from dominion_theory.engine import Game, encounters
-from dominion_theory.engine.band import camp, gathering, moving
+from dominion_theory.engine import band as bands
+from dominion_theory.engine.band import Band, adults, camp, gathering, moving
 
 SMALL = {'planet.circumference_km': 4000, 'planet.window.width': 32, 'planet.window.height': 16}
 LIKELY = {**SMALL, 'encounters.chance': 1.0}
@@ -46,7 +47,7 @@ def test_a_kind_fits_its_biomes_its_actions_and_its_resources(params: Params) ->
 
 def test_the_chance_follows_the_threat_and_the_action(params: Params) -> None:
     def met(happens: float, threat: float, action: dict[str, Any]) -> bool:
-        return encounters.strike(params, 15, 'forest', False, threat, action, dice(happens, 0.0, 0.0)) is not None
+        return encounters.strike(params, 'forest', False, threat, action, dice(happens, 0.0, 0.0)) is not None
 
     assert (met(0.0049, 0.5, camp()), met(0.005, 0.5, camp())) == (True, False)
     assert (met(0.0149, 0.5, moving('east')), met(0.015, 0.5, moving('east'))) == (True, False)
@@ -56,22 +57,29 @@ def test_the_chance_follows_the_threat_and_the_action(params: Params) -> None:
 
 def test_the_kind_is_drawn_by_weight_among_those_that_fit(params: Params) -> None:
     def kind(which: float) -> str:
-        met = encounters.strike(params, 15, 'swamp', False, 1.0, gathering('water'), dice(0.0, which, 0.0))
+        met = encounters.strike(params, 'swamp', False, 1.0, gathering('water'), dice(0.0, which, 0.0))
         assert met is not None
         return met[0]
 
     assert [kind(which) for which in (0.0, 0.5, 0.58, 0.99)] == ['poisoning', 'poisoning', 'predator', 'predator']
 
 
-@pytest.mark.parametrize(('share', 'lost'), [(0.0, 0), (0.3, 0), (0.34, 1), (0.99, 1)])
-def test_the_share_lost_is_drawn_between_the_bounds_and_may_be_a_scare(params: Params, share: float, lost: int) -> None:
-    assert encounters.strike(params, 15, 'forest', False, 1.0, camp(), dice(0.0, 0.0, share)) == ('predator', lost)
+@pytest.mark.parametrize('share', [0.0, 0.34, 0.99])
+def test_the_shares_lost_and_injured_are_drawn_between_the_bounds(params: Params, share: float) -> None:
+    met = encounters.strike(params, 'forest', False, 1.0, camp(), dice(0.0, 0.0, share))
+
+    assert met is not None
+    assert met[0] == 'predator'
+    assert met[1:] == pytest.approx((0.1 * share, 0.1 * share))
 
 
 def test_a_drowning_always_takes_somebody(params: Params) -> None:
-    met = encounters.strike(params, 15, 'shallows', False, 1.0, gathering('water'), dice(0.0, 0.0, 0.0))
+    met = encounters.strike(params, 'shallows', False, 1.0, gathering('water'), dice(0.0, 0.0, 0.0))
+    band = Band(id=1, x=0, y=0, members=adults(15), stores={})
 
-    assert met == ('drowning', 1)
+    assert met == ('drowning', 0.05, 0.0)
+    assert bands.struck(params, band, met[1], met[2], 0, np.random.default_rng(7)) == (1, 0)
+    assert (band.population, band.members[0].player) == (14, True)
 
 
 def played(seed: int, overrides: dict[str, Any], ticks: int = 100) -> tuple[Game, list[tuple[str, dict[str, Any]]]]:

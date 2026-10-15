@@ -93,7 +93,15 @@ def test_the_record_of_an_unknown_game_is_refused(server: str) -> None:
 
 
 def test_a_band_with_no_food_is_lived_headless_into_a_row_for_its_last_year() -> None:
-    hungry = ('units.band.gathering.forage=0', 'units.band.start.stores.forage=0', 'encounters.chance=0')
+    hungry = (
+        'units.band.gathering.forage=0',
+        'units.band.start.stores.forage=0',
+        'encounters.chance=0',
+        'units.band.people.injury.per_day=0',
+        'units.band.people.age.per_year=0',
+        'units.band.people.stages.adult.dies.frailty=0',
+        'units.band.people.stages.adult.until.years=100',
+    )
     result = run('live', '--years', '3', '--seed', '42', *SET, *(part for item in hungry for part in ('--set', item)))
 
     assert result.exit_code == 0
@@ -102,7 +110,8 @@ def test_a_band_with_no_food_is_lived_headless_into_a_row_for_its_last_year() ->
     *counted, snapshot = row.split()
     assert len(header) == len(row)
     assert header.split() == [
-        *('year', 'people', 'growth', 'rate', 'least', 'born', 'deaths', 'of-hunger', 'of-thirst', 'of-encounter'),
+        *('year', 'people', 'child', 'adult', 'elder', 'pregnant', 'injured', 'growth', 'rate', 'least', 'born'),
+        *('deaths', 'of-hunger', 'of-thirst', 'of-encounter', 'of-age', 'of-frailty', 'of-birth'),
         *('food', 'water', 'moves', 'roams', 'gathers', 'camps', 'starving', 'thirsty', 'tired', 'encounters'),
         *('status',),
         *('known', 'snapshot'),
@@ -111,12 +120,20 @@ def test_a_band_with_no_food_is_lived_headless_into_a_row_for_its_last_year() ->
         *[
             '1',
             '0',
+            '0',
+            '0',
+            '0',
+            '0',
+            '0',
             '-15',
             '-100',
             '0',
             '0',
             '11',
             '11',
+            '0',
+            '0',
+            '0',
             '0',
             '0',
             '0',

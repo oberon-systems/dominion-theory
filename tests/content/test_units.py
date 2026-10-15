@@ -5,6 +5,7 @@ from dominion_theory.core.errors import DominionError
 
 BAND = 'units.band'
 KINDS = 'encounters.kinds'
+STAGES = 'units.band.people.stages'
 
 
 def refused(overrides: dict[str, object]) -> dict[str, object]:
@@ -30,13 +31,9 @@ def test_band_is_the_one_of_its_document() -> None:
 
     assert band is params.units['band']
     assert (band.start.population, band.start.stores) == (15, {'water': 15.0, 'forage': 15.0})
-    assert band.start.biomes == ('grass', 'forest', 'floodplain')
-    assert (band.population.least, band.population.growth_per_year) == (5, 0.6)
-    assert band.population.growth.model_dump() == {
-        'floor': 0.5,
-        'threat': 0.6,
-        'weights': {'food': 1.0, 'water': 1.0, 'safety': 1.0, 'rest': 1.0},
-    }
+    assert (band.start.biomes, band.start.stage) == (('grass', 'forest', 'floodplain'), 'adult')
+    assert band.population.least == 5
+    assert band.population.wellbeing.model_dump() == {'food': 1.0, 'water': 1.0, 'safety': 1.0, 'rest': 1.0}
     assert (band.carry_kg, band.gathering, band.consumption_per_day) == (
         6.0,
         {'forage': 3.0, 'water': 4.0},
@@ -220,16 +217,46 @@ def test_camp_parts_are_parts_of_the_day() -> None:
     [
         ({f'{BAND}.decisions.levels.hungry.days': 1}, f'{BAND}.decisions'),
         ({f'{BAND}.decisions.levels.hungry.need': 1.5}, f'{BAND}.decisions.levels.hungry.need'),
-        ({f'{BAND}.population.growth.floor': 1.0}, f'{BAND}.population.growth.floor'),
         (
-            {f'{BAND}.population.growth.weights': {'food': 0.0, 'water': 0.0, 'safety': 0.0, 'rest': 0.0}},
-            f'{BAND}.population.growth.weights',
+            {f'{BAND}.population.wellbeing': {'food': 0.0, 'water': 0.0, 'safety': 0.0, 'rest': 0.0}},
+            f'{BAND}.population.wellbeing',
         ),
         ({'council.spread': 0.0}, 'council.spread'),
     ],
 )
 def test_levels_growth_and_spread_are_checked(overrides: dict[str, object], path: str) -> None:
     assert refused(overrides)['path'] == path
+
+
+def test_people_are_those_of_the_band_document() -> None:
+    people = load_params().units.band.people
+
+    told = {name: (stage.until, stage.gathers, stage.conceives, stage.votes) for name, stage in people.stages.items()}
+
+    assert told == {
+        'child': (Duration(years=4), 0.0, False, False),
+        'adult': (Duration(years=17), 1.0, True, True),
+        'elder': (None, 0.0, False, True),
+    }
+    assert (people.age.per_year, people.injury.per_day, people.birth.child_survives) == (0.15, 0.002, 0.5)
+    assert load_params().council.blamed == ('hunger', 'thirst', 'encounter')
+
+
+@pytest.mark.parametrize(
+    ('overrides', 'path', 'expected'),
+    [
+        ({f'{STAGES}.adult.until': None}, f'{STAGES}.adult.until', 'an age for every stage but the last'),
+        ({f'{STAGES}.adult.until': {'years': 3}}, f'{STAGES}.adult.until', 'an age above the stage before'),
+        ({f'{STAGES}.adult.conceives': False}, STAGES, 'a stage that conceives'),
+        ({f'{BAND}.start.stage': 'elder'}, f'{BAND}.start.stage', 'one of child, adult'),
+        ({f'{BAND}.people.birth.pause.min': {'months': 3}}, f'{BAND}.people.birth.pause', 'min not above max'),
+        ({'council.blamed': ['boredom']}, 'council.blamed', 'one of hunger, thirst, encounter, age, frailty, birth'),
+    ],
+)
+def test_people_are_checked(overrides: dict[str, object], path: str, expected: str) -> None:
+    found = refused(overrides)
+
+    assert (found['path'], found['expected']) == (path, expected)
 
 
 def test_voice_of_the_player_is_never_an_ordinary_one() -> None:

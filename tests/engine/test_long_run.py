@@ -12,13 +12,16 @@ NO_FOOD = {
     **SMALL,
     'units.band.gathering.forage': 0,
     'units.band.start.stores.forage': 0,
-    'units.band.population.growth_per_year': 0,
+    'units.band.people.birth.conceive_per_day': 0.0,
+    'units.band.people.injury.per_day': 0.0,
+    'units.band.people.age.per_year': 0.0,
+    'units.band.people.stages.adult.dies.frailty': 0.0,
     'encounters.chance': 0,
 }
 YEARS = 4
 HALFWAY = 2
 LIVING = 7
-ACTIONS = ('moves', 'gathers', 'camps')
+ACTIONS = ('moves', 'roams', 'gathers', 'camps')
 
 
 @dataclass(frozen=True)
@@ -55,7 +58,9 @@ def test_a_band_with_no_player_lives_for_years_and_moves_gathers_and_camps_in_ev
 
     assert len(years) == YEARS
     assert all(year.population >= least for year in years)
-    assert all(year.totals[name] > 0 for year in years for name in ACTIONS)
+    # A hungry band walks by roaming, so a year of no plain moves is a year it walked all the same.
+    assert all(year.totals['moves'] + year.totals['roams'] > 0 for year in years)
+    assert all(year.totals[name] > 0 for year in years for name in ('gathers', 'camps'))
 
 
 def test_the_same_seed_lives_the_same_years_from_the_start_and_from_a_restore(years: list[Year]) -> None:

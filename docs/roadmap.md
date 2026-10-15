@@ -338,7 +338,9 @@ The first unit, and the rules of indirect control.
   cells around it, and the best action wins.
 - Movement: eight directions, no water, no occupied cell, cost from
   passability and band size.
-- Population growth and loss.
+- Population growth and loss: members kept one by one, with age, sex,
+  pregnancy and injuries, born by conception and dying by cause and
+  the vulnerability of their stage of life.
 - Indirect control: a council every evening. The others' votes are laid
   out over the options - to move in a direction or to stay and gather -
   and the player backs one, proposes another or abstains. How
@@ -573,18 +575,15 @@ everywhere.
 
 ### Ages in a band
 
-A band counts young, adults and elders, and males and females, instead
-of heads alone.
+Built in stage 2: a band keeps its members one by one, children, adults
+and elders, women and men, as [Population](units/band.md#population)
+states it. Children and elders gather nothing, eat less, walk slower and
+die sooner; elders die of age. What is left belongs to later stages.
 
-- They are born young, grow into adults and age into elders by the
-  calendar; elders die faster.
-- The young and elders eat and drink less than adults.
-- The young and elders slow the band: speed falls with their share.
 - Only adults fight: a band of many young and elders is weaker in the
   conflicts of stage 3.
 - Females and the young are what a winning band may carry off, and what
   carries a race into the next generation.
-- Answers the open point "who dies" of the band.
 
 ### Races
 

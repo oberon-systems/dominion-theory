@@ -35,6 +35,7 @@ from .events import (
     INTENT_ENDED,
     KIND,
     PEOPLE_BORN,
+    PEOPLE_INJURED,
     PEOPLE_LOST,
     PROPOSAL_DISASTER,
     PROPOSAL_FAILED,
@@ -54,7 +55,7 @@ from .events import (
 from .hashing import digest
 from .streams import Streams
 
-SNAPSHOT_FORMAT = 8
+SNAPSHOT_FORMAT = 9
 DIED = 'died'
 BANISHED = 'banished'
 VOTED = 'voted'
@@ -174,6 +175,10 @@ class Game:
             self.counters.declare(name, partial(self._totals.__getitem__, name))
         self.counters.declare('status', lambda: self.status)
         self.counters.declare('councils', partial(self._totals.__getitem__, 'councils'))
+        for name in params.units.band.people.stages:
+            self.counters.declare(name, partial(self._counted, name))
+        for name in (bands.PREGNANT, bands.INJURED):
+            self.counters.declare(name, partial(self._counted, name))
 
     @classmethod
     def create(cls, seed: int, params: Params, seated: bool = False) -> Self:
@@ -185,7 +190,7 @@ class Game:
         game = cls(seed, params, streams, window, region.biomes, region.rivers, seated=seated)
         found = game._start()
         if found is not None:
-            game.band = bands.start(game, *found, game.day)
+            game.band = bands.start(game, *found, game.day, streams['people'])
         if game.date.part == params.council.part:
             game._open(_Tick())
         return game
@@ -364,6 +369,12 @@ class Game:
             'since': dict(self.since),
         }
 
+    def _counted(self, name: str) -> float:
+        if self.band is None:
+            return 0
+        counted = bands.census(self.params, self.band)
+        return float(counted.counts[name] if name in counted.counts else getattr(counted, name))
+
     def _held(self, prop: str) -> float:
         if self.band is None:
             return 0.0
@@ -471,7 +482,7 @@ class Game:
                 return
         leader = council.leader(laid)
         values = {'leader': council.key(leader), 'occasion': f'{council.OCCASION}{occasion}'}
-        if council.settled(laid, council.voice(self.params, band.population, self.status)):
+        if council.settled(laid, council.voice(self.params, bands.voters(self.params, band), self.status)):
             self.answered['tomorrow'] = VOTED
             self._bind(band, leader)
             tick.events.append(Event(COUNCIL_AGREED, values))
@@ -501,7 +512,7 @@ class Game:
         band = self.band
         if band is None:
             return
-        tick.shown = band.shown(self.window.scale)
+        tick.shown = band.shown(self.params, self.window.scale)
         sitting = self.council
         if sitting is None:
             return
@@ -515,7 +526,7 @@ class Game:
             tick.events.append(Event(COUNCIL_ABSTAINED, {'status': self.status}))
             self._banish(tick)
             return
-        spoken = council.voice(self.params, band.population, self.status)
+        spoken = council.voice(self.params, bands.voters(self.params, band), self.status)
         winner, yes = council.decide(sitting['table'], answer, spoken)
         self.answered['tomorrow'] = VOTED if winner == answer else None
         self._bind(band, winner)
@@ -527,7 +538,7 @@ class Game:
         elif answer == sitting['leader']:
             tick.events.append(Event(COUNCIL_FOLLOWED, {'proposal': council.key(answer)}))
         else:
-            every = band.population - 1 + spoken
+            every = bands.voters(self.params, band) - 1 + spoken
             tick.events.append(Event(COUNCIL_TURNED, {'proposal': council.key(answer), 'yes': yes, 'all': every}))
             self.judgement = {
                 'proposal': answer,
@@ -593,11 +604,14 @@ class Game:
 
     def _lost(self, tick: _Tick, cause: str, count: int) -> None:
         """
-        People who died: counted against a judgement, and against the player who voted or kept silent on the day.
+        People who died: of a cause the council is blamed for, counted against a judgement, and against the
+        player who voted or kept silent on the day.
         """
         self._totals['deaths'] += count
-        self.since[council.DEATH] += count
         tick.events.append(Event(PEOPLE_LOST, {'count': count, 'cause': cause}))
+        if cause not in self.params.council.blamed:
+            return
+        self.since[council.DEATH] += count
         if self.judgement is not None:
             lost = self.judgement['lost']
             lost[cause] = lost.get(cause, 0) + count
@@ -632,23 +646,32 @@ class Game:
         threat = self.value('threat', band.x, band.y)
         biome, river = self.biome(band.x, band.y), self.river(band.x, band.y)
         rng = self.streams['encounters']
-        met = encounters.strike(self.params, band.population, biome, river, threat, band.action, rng)
+        met = encounters.strike(self.params, biome, river, threat, band.action, rng)
         if met is None:
             return
-        kind, lost = met
+        kind, taken, hurt = met
+        lost, injured = bands.struck(self.params, band, taken, hurt, self.day, self.streams['people'])
         self._totals['encounters'] += 1
         tick.events.append(Event(ENCOUNTER, {'kind': f'{KIND}{kind}', 'lost': lost}))
         if lost:
-            band.population -= lost
             self._lost(tick, bands.ENCOUNTER, lost)
+        if injured:
+            tick.events.append(Event(PEOPLE_INJURED, {'count': injured}))
 
     def _day_ends(self, tick: _Tick, band: Band) -> None:
-        began, ended, lost = bands.suffer(self.params, band, bands.eat(self.params, band))
+        people = self.streams['people']
+        feeds = bands.fed(self.params, band)
+        began, ended, lost = bands.suffer(self.params, band, bands.eat(self.params, band), people)
         self._states(tick, began, ended)
         for cause, count in lost:
             self._lost(tick, cause, count)
         threat = self.value(decisions.THREAT, band.x, band.y)
-        born = bands.grow(self.params, band, decisions.wellbeing(self.params, band, threat), threat)
+        lived = bands.live(self.params, band, self.day, decisions.wellbeing(self.params, band, threat), feeds, people)
+        for cause, count in lived.lost:
+            self._lost(tick, cause, count)
+        if lived.injured:
+            tick.events.append(Event(PEOPLE_INJURED, {'count': lived.injured}))
+        born = lived.born
         if born:
             tick.events.append(Event(PEOPLE_BORN, {'count': born}))
             if self.answered['today'] == VOTED and not self.banished:
@@ -675,7 +698,7 @@ class Game:
         cells = [{'x': x, 'y': y, **{name: self.cells.stock((x, y), name) for name in stocked}} for x, y in tick.cells]
         units = []
         if self.band is not None:
-            shown = self.band.shown(self.window.scale)
+            shown = self.band.shown(self.params, self.window.scale)
             units = [shown] if shown != tick.shown else []
             tick.units.append(self.band.row(self.params))
         tick.changes.update({'units': units, 'gone': tick.gone, 'cells': cells, 'known': tick.known, 'seat': tick.seat})

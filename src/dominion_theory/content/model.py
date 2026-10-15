@@ -17,6 +17,7 @@ DURATION_UNITS = ('parts', 'days', 'months', 'years')
 MODIFIER_KINDS = ('plus', 'times')
 LAYERS = ('elevation', 'relief', 'moisture', 'temperature', 'flow')
 ACTIONS = ('move', 'roam', 'gather', 'camp')
+CAUSES = ('hunger', 'thirst', 'encounter', 'age', 'frailty', 'birth')
 BAND = 'band'
 PASSABILITY = 'passability'
 ZOOM = 5
@@ -379,6 +380,7 @@ class Start(Node):
     population: Count
     stores: dict[Name, Factor]
     biomes: tuple[Name, ...] = Field(min_length=1)
+    stage: Name
 
 
 class Wellbeing(Node):
@@ -394,16 +396,81 @@ class Wellbeing(Node):
         return self
 
 
-class Growth(Node):
-    floor: Annotated[float, Field(strict=True, ge=0, lt=1)]
-    threat: Share
-    weights: Wellbeing
+class Population(Node):
+    least: Count
+    wellbeing: Wellbeing
+
+
+class Vulnerability(Node):
+    """
+    How much a member of a stage dies or is hurt of each cause, against an adult's 1.
+    """
+
+    hunger: Factor
+    thirst: Factor
+    encounter: Factor
+    frailty: Factor
+    injury: Factor
+
+
+class LifeStage(Node):
+    """
+    A stage of life up to an age; the last one lasts to the end. The factors weigh a member against an adult.
+    """
+
+    until: Duration | None = None
+    gathers: Factor
+    carries: Factor
+    eats: Factor
+    pace: Positive
+    tires: Factor
+    conceives: bool = Field(strict=True)
+    votes: bool = Field(strict=True)
+    dies: Vulnerability
+
+
+class Ageing(Node):
+    """
+    The yearly chance of dying of age from an age on, doubling every span.
+    """
+
+    begins: Duration
+    per_year: Share
+    doubles: Duration
+
+    @model_validator(mode='after')
+    def _doubles(self) -> Self:
+        if self.doubles.amount == 0:
+            raise ValueError('a span to double that is not zero')
+        return self
+
+
+class Injury(Node):
+    per_day: Share
+    lasts: Duration
+    gathers: Share
+    pace: Annotated[float, Field(strict=True, gt=0, le=1)]
+
+
+class Pause(Node):
+    min: Duration
+    max: Duration
+
+
+class Birth(Node):
+    pregnancy: Duration
+    pause: Pause
+    conceive_per_day: Share
+    days: Factor
+    child_survives: Share
+    mother_dies: Share
 
 
 class People(Node):
-    least: Count
-    growth_per_year: Factor
-    growth: Growth
+    stages: dict[Name, LifeStage] = Field(min_length=1)
+    age: Ageing
+    injury: Injury
+    birth: Birth
 
 
 class Speed(Node):
@@ -493,7 +560,8 @@ class Decisions(Node):
 
 class Band(Node):
     start: Start
-    population: People
+    population: Population
+    people: People
     carry_kg: Positive
     gathering: dict[Name, Factor]
     consumption_per_day: dict[Name, Factor]
@@ -550,6 +618,7 @@ class Council(Node):
     voice: Voice
     judgement: Judgement
     status: Status
+    blamed: tuple[Name, ...]
 
 
 class Loss(Node):
@@ -575,6 +644,7 @@ class Encounter(Node):
 
     weight: Positive
     loss: Loss
+    injured: Loss = Loss(min=0.0, max=0.0)
     biomes: tuple[Name, ...] = ()
     rivers: bool = Field(default=False, strict=True)
     actions: tuple[Name, ...] = ()
@@ -759,10 +829,35 @@ class Params(Node):
             if part not in self.time.day_parts:
                 expected = f'one of {", ".join(self.time.day_parts)}'
                 raise _invalid('units.band.camp_parts', part, expected)
+        self._check_people()
+
+    def _check_people(self) -> None:
+        people, path = self.units.band.people, 'units.band.people'
+        names = list(people.stages)
+        last = names[-1]
+        until = 0
+        for name, stage in people.stages.items():
+            if (stage.until is None) != (name == last):
+                raise _invalid(f'{path}.stages.{name}.until', stage.until, 'an age for every stage but the last')
+            if stage.until is not None:
+                if self.days(stage.until) <= until:
+                    raise _invalid(f'{path}.stages.{name}.until', stage.until, 'an age above the stage before')
+                until = self.days(stage.until)
+        if not any(stage.conceives for stage in people.stages.values()):
+            raise _invalid(f'{path}.stages', names, 'a stage that conceives')
+        start = self.units.band.start.stage
+        if start not in names[:-1]:
+            raise _invalid('units.band.start.stage', start, f'one of {", ".join(names[:-1])}')
+        pause = people.birth.pause
+        if self.days(pause.min) > self.days(pause.max):
+            raise _invalid(f'{path}.birth.pause', pause.model_dump(), 'min not above max')
 
     def _check_council(self) -> None:
         if self.council.part not in self.time.day_parts:
             raise _invalid('council.part', self.council.part, f'one of {", ".join(self.time.day_parts)}')
+        for cause in self.council.blamed:
+            if cause not in CAUSES:
+                raise _invalid('council.blamed', cause, f'one of {", ".join(CAUSES)}')
 
     def _check_encounters(self) -> None:
         for action in self.encounters.actions:
@@ -783,6 +878,9 @@ class Params(Node):
         month = day * self.time.days_per_month
         units = {'parts': 1, 'days': day, 'months': month, 'years': month * self.time.months_per_year}
         return duration.amount * units[duration.unit]
+
+    def days(self, duration: Duration) -> int:
+        return self.parts(duration) // self.time.parts_per_day
 
     @property
     def schema_version(self) -> int:

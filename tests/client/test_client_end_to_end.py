@@ -18,7 +18,11 @@ QUIET = (
     'units.band.sight=0',
     'units.band.consumption_per_day.forage=0',
     'units.band.consumption_per_day.water=0',
-    'units.band.population.growth_per_year=0',
+    'units.band.people.birth.conceive_per_day=0',
+    'units.band.people.injury.per_day=0',
+    'units.band.people.age.per_year=0',
+    'units.band.people.stages.adult.dies.frailty=0',
+    'units.band.people.stages.adult.until.years=100',
     'encounters.chance=0',
 )
 PLANET = ('planet.circumference_km=4000', 'planet.window.width=32', 'planet.window.height=16')

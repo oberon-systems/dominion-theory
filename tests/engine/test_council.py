@@ -7,6 +7,7 @@ import pytest
 from dominion_theory.content import Params, load_params
 from dominion_theory.engine import Game, Pass, StepResult, Vote, Window, council, decisions
 from dominion_theory.engine import band as bands
+from dominion_theory.engine.game import _Tick
 from dominion_theory.engine.streams import Streams
 from dominion_theory.planet import biome_names
 
@@ -15,6 +16,10 @@ SMALL = {
     'planet.window.width': 32,
     'planet.window.height': 16,
     'encounters.chance': 0.0,
+    'units.band.people.birth.conceive_per_day': 0.0,
+    'units.band.people.injury.per_day': 0.0,
+    'units.band.people.age.per_year': 0.0,
+    'units.band.people.stages.adult.dies.frailty': 0.0,
 }
 ERA = 'band'
 WEST = 100
@@ -59,7 +64,9 @@ def land(
     for cell in stripped or []:
         for prop in ('food', 'water'):
             game.cells.lower(cell, prop, 0.9)
-    game.band = bands.start(game, *at, game.day)
+    game.band = bands.start(game, *at, game.day, game.streams['people'])
+    game.band.members = bands.adults(game.band.population)
+    game.band.changed()
     return game
 
 
@@ -123,7 +130,7 @@ def test_the_table_of_a_band_gives_every_other_one_vote_and_names_the_leader(par
     walks = decisions.options(params, band(game), ERA, allowed={'move'}, walking=True)
     best = max(walks, key=lambda held: held.score)
 
-    assert sum(entry['votes'] for entry in laid) == band(game).population - 1
+    assert sum(entry['votes'] for entry in laid) == bands.voters(params, band(game)) - 1 == 14
     assert all(entry['votes'] > 0 for entry in laid)
     assert council.leader(laid) == {'kind': 'move', 'towards': best.action['towards']}
     assert council.leader([]) is None
@@ -171,7 +178,11 @@ def test_the_evening_opens_the_council_and_the_seat_shows_its_table(params: Para
     assert told(opened)[-1] == ('council-opened', {'leader': leader, 'occasion': 'occasion-first'})
     assert opened.changes['seat'] == {'council': game.council}
     assert game.seat['council'] == game.council
-    assert game.counters.row()[-1] == 1
+    assert councils(game) == 1
+
+
+def councils(game: Game) -> float:
+    return dict(zip(game.counters.names, game.counters.row(), strict=True))['councils']
 
 
 def quiet(game: Game) -> council.Proposal | None:
@@ -237,7 +248,7 @@ def test_a_settled_council_does_not_sit_and_the_day_is_the_players(params: Param
     assert told(agreed)[-1] == ('council-agreed', {'leader': 'proposal-stay-and-gather', 'occasion': 'occasion-first'})
     assert (game.council, game.asking, agreed.changes['seat']) == (None, [], {})
     assert game.answered == {'today': None, 'tomorrow': 'voted'}
-    assert game.counters.row()[-1] == 0
+    assert councils(game) == 0
 
 
 @pytest.mark.parametrize(
@@ -409,11 +420,23 @@ def test_the_deaths_of_a_day_the_player_voted_or_kept_silent_on_cost_five_each(
     assert game.status == status
 
 
+def test_deaths_the_council_is_not_blamed_for_cost_nothing_and_call_no_council(params: Params) -> None:
+    game = land(params)
+    game.answered = {'today': 'voted', 'tomorrow': None}
+    tick = _Tick()
+
+    game._lost(tick, 'age', 2)
+
+    assert [(event.key, event.values) for event in tick.events] == [('people-lost', {'count': 2, 'cause': 'age'})]
+    assert (game.status, game.since[council.DEATH]) == (50.0, 0)
+
+
 @pytest.mark.parametrize(('answered', 'status'), [('voted', 55.0), ('silent', 50.0), (None, 50.0)])
 def test_a_birth_earns_five_only_on_a_day_the_player_voted_for(answered: str | None, status: float) -> None:
     fed = {'units.band.consumption_per_day.forage': 0.0, 'units.band.consumption_per_day.water': 0.0}
-    game = land(load_params(overrides={**SMALL, **fed}))
-    band(game).births = 0.99
+    sure = {'units.band.people.birth.child_survives': 1.0, 'units.band.people.birth.mother_dies': 0.0}
+    game = land(load_params(overrides={**SMALL, **fed, **sure}))
+    band(game).members[0].pregnant_until = game.day
     game.answered = {'today': answered, 'tomorrow': None}
 
     born = said(steps(game, 2))
@@ -584,7 +607,7 @@ def test_a_year_of_votes_gives_the_same_hashes_twice(params: Params) -> None:
             found.append(game.step().hash)
             if game.over:
                 break
-        return found, game.status, int(game.counters.row()[-1])
+        return found, game.status, int(councils(game))
 
     first = year(Game.create(seed=7, params=params, seated=True))
 

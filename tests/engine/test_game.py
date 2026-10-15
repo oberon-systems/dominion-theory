@@ -117,7 +117,7 @@ def test_snapshot_does_not_share_its_arrays(params: Params) -> None:
 def test_unreadable_snapshot_is_refused(params: Params) -> None:
     snapshot = Game.create(seed=11, params=params).snapshot()
 
-    assert snapshot['format'] == 8
+    assert snapshot['format'] == 9
     with pytest.raises(ValueError, match='format 1'):
         Game.restore({**snapshot, 'format': 1})
 
@@ -157,6 +157,11 @@ def test_repeated_command_id_is_judged_once(params: Params) -> None:
         'encounters',
         'status',
         'councils',
+        'child',
+        'adult',
+        'elder',
+        'pregnant',
+        'injured',
     )
     assert game.counters.row()[:2] == [1, 0]
 

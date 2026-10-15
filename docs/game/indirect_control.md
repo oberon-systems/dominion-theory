@@ -37,9 +37,9 @@ ways: backs one of the options the others voted for, proposes another,
 or does not vote, which costs status.
 
 The player is answerable for the days the player voted for. On such a
-day every death costs status and every birth earns it, whether the
-player backed the leader or turned the band; turning the band is judged
-besides by what follows. Staying silent is no way out: it costs status
+day every death of hunger, thirst or an encounter costs status and every
+birth earns it, whether the player backed the leader or turned the band;
+turning the band is judged besides by what follows. Staying silent is no way out: it costs status
 at once, and the deaths of that day are the player's while its births
 are not.
 
@@ -83,7 +83,7 @@ council left them.
 | Occasion   | Holds when                                                   |
 |------------|--------------------------------------------------------------|
 | `first`    | it is the first evening of the game                          |
-| `death`    | somebody died since the last council                         |
+| `death`    | somebody died of a cause in `council.blamed` since the last council |
 | `hunger`   | hunger or thirst reaches `roaming.hunger`                    |
 | `closed`   | the way of the decision in force was closed                  |
 | `restless` | the decision in force has fewer than half the votes of the leader: the band wants another thing |
@@ -123,7 +123,8 @@ ___
 
 ## The table of votes
 
-The council is everybody but the player, one voice each. They are not
+The council is every member whose stage votes but the player, one voice
+each: the adults and the elders; children have no say. They are not
 people with names: how their votes lie follows from how good each option
 looks to the band.
 
@@ -153,7 +154,7 @@ stay.
 
 ```text
 weight of an option = exp(score / spread)
-votes of an option  = weight / the sum of all weights * (population - 1)
+votes of an option  = weight / the sum of all weights * (voters - 1)
 ```
 
 Every option the band could take has its weight, so the votes lean to
@@ -189,11 +190,11 @@ The player answers with the command `vote`, once per council.
 
 Backing and proposing are the same command; which one it is follows from
 the table. The weight of the voice is the status as a share of
-`council.voice.share` of the band, and never less than
+`council.voice.share` of the voters, and never less than
 `council.voice.least`: the player presses with authority.
 
 ```text
-voice = max(least, share * population * status / 100)
+voice = max(least, share * voters * status / 100)
 ```
 
 A refused `vote` costs nothing. It is refused for one of four reasons.
@@ -299,6 +300,11 @@ ___
 | a death on a day the player voted for or kept silent on | -5 each |
 | a birth on a day the player voted for                   | +5 each |
 
+Only the deaths of the causes in `council.blamed` count: hunger, thirst
+and encounters, which follow from where the band went and what it did.
+Deaths of age, of frailty and in childbirth cost nothing, count for no
+judgement and call no council.
+
 The player voted for a day when the player's option won the evening
 council before it, backed or carried. A player who kept silent at that
 council answers for the deaths of the day and earns nothing from its
@@ -387,9 +393,11 @@ council:
     stay_disaster: -20
     death: -5
     birth: 5
+  blamed: [hunger, thirst, encounter]
 ```
 
-`part` must be one of `time.day_parts`. `spread` must be above 0.
+`part` must be one of `time.day_parts`, and every cause of `blamed`
+one of `hunger`, `thirst`, `encounter`, `age`, `frailty`, `birth`. `spread` must be above 0.
 `least` must be above 1, so that
 the player's voice is never an ordinary one. `DT_COUNCIL_WAIT_S` is a
 setting of the server, not of the game: it changes how long a person may
@@ -399,7 +407,7 @@ ___
 
 ## Examples
 
-A band of 15 in the evening, status 50, so the player speaks with 3.75
+A band of 15 adults in the evening, status 50, so the player speaks with 3.75
 voices. The others score staying to gather 0.5, a move east 0.4 and the
 seven other moves 0. With a spread of 0.2 the fourteen votes lie 6.42,
 3.89 and 0.53 for each other move; by the largest remainder staying

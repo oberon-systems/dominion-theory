@@ -18,6 +18,10 @@ SMALL = {
     'planet.window.height': 16,
     'encounters.chance': 0.0,
     'units.band.camp_parts': [],
+    'units.band.people.birth.conceive_per_day': 0.0,
+    'units.band.people.injury.per_day': 0.0,
+    'units.band.people.age.per_year': 0.0,
+    'units.band.people.stages.adult.dies.frailty': 0.0,
 }
 WEST = 100
 NORTH = 50
@@ -57,13 +61,31 @@ def land(
     game = Game(7, params, Streams(7), Window(0, WEST, NORTH, len(rows[0]), len(rows)), biomes, rivers)
     game.clock.parts = parts
     if at is not None:
-        game.band = bands.start(game, *at, game.day)
+        game.band = bands.start(game, *at, game.day, game.streams['people'])
+        game.band.members = bands.adults(game.band.population)
+        game.band.changed()
     return game
 
 
 def needing(**per_day: float) -> Params:
     rates = {f'units.band.consumption_per_day.{name}': rate for name, rate in per_day.items()}
     return load_params(overrides={**SMALL, **rates})
+
+
+class Dice:
+    """
+    A stream on which every chance comes up and every range gives its low end.
+    """
+
+    def random(self, count: int | None = None) -> Any:
+        return 0.0 if count is None else np.zeros(count)
+
+    def integers(self, low: int, high: int | None = None, size: int | None = None) -> Any:
+        return (0 if high is None else low) if size is None else np.zeros(size, dtype=int)
+
+
+def dice() -> Any:
+    return Dice()
 
 
 def do(game: Game, action: Action, times: int = 1) -> StepResult:
@@ -290,11 +312,9 @@ def test_the_band_camps_in_the_evening_and_the_night_whatever_it_wants() -> None
 
 def test_fatigue_slows_the_pace_and_tiredness_begins_and_ends_in_camp(params: Params) -> None:
     game = land(params)
-    rules = params.units.band
-
     before = [do(game, moving(towards)) for towards in ('east', 'west')]
     began = do(game, moving('east'))
-    slowed = bands.speed(rules, band(game))
+    slowed = bands.speed(params, band(game))
     still = do(game, camp())
     ended = do(game, camp())
 
@@ -339,7 +359,7 @@ def test_news_of_the_land_come_with_the_tick_and_old_memories_go(params: Params)
 
 def test_a_lot_is_thrown_away_when_its_time_is_over(params: Params) -> None:
     stores = {'forage': [[0.0, 5.0], [2.0, 7.0]], 'water': [[0.0, 9.0]]}
-    held = bands.Band(id=1, x=WEST, y=NORTH, population=15, stores=stores)
+    held = bands.Band(id=1, x=WEST, y=NORTH, members=bands.adults(15), stores=stores)
 
     bands.spoil(params, held, 3)
     after_three = held.plain()['stores']
@@ -351,7 +371,7 @@ def test_a_lot_is_thrown_away_when_its_time_is_over(params: Params) -> None:
 
 def test_people_eat_the_oldest_lot_first(params: Params) -> None:
     stores = {'forage': [[0.0, 4.0], [1.0, 9.0]], 'water': [[1.0, 5.0]]}
-    held = bands.Band(id=1, x=WEST, y=NORTH, population=10, stores=stores)
+    held = bands.Band(id=1, x=WEST, y=NORTH, members=bands.adults(10), stores=stores)
 
     met = bands.eat(params, held)
 
@@ -391,31 +411,73 @@ def test_a_band_with_no_water_thirsts_a_day_sooner_and_loses_more() -> None:
         ('people-lost', {'count': 3, 'cause': 'thirst'}),
     ]
     assert (band(game).population, band(game).states) == (12, ['thirst'])
-    assert band(game).births == pytest.approx(15 * 0.6 / 100 * 0.55)
 
 
-def test_a_rested_band_grows_and_a_tired_one_stops() -> None:
-    resting, working = land(needing(forage=0.0, water=0.0)), land(needing(forage=0.0, water=0.0))
+def test_a_created_band_is_of_adults_of_random_age_and_sex_the_first_the_player(params: Params) -> None:
+    members = band(Game.create(seed=7, params=params)).members
 
-    before = told(do(resting, camp(), 11 * DAY))
-    born = told(do(resting, camp(), DAY))
-    do(working, gathering('forage'), 12 * DAY)
-
-    assert before == []
-    assert born == [('people-born', {'count': 1})]
-    assert (band(resting).population, band(working).population) == (16, 15)
-    assert band(working).states == ['tiredness']
-    assert band(working).births == pytest.approx(15 * 0.6 / 100 * 0.7)
+    assert all(400 <= member.age_days < 1700 for member in members)
+    assert {member.sex for member in members} == {'female', 'male'}
+    assert [member.player for member in members] == [True] + [False] * 14
 
 
-@pytest.mark.parametrize(('threat', 'births'), [(0.6, 15 * 0.6 / 100 * 0.85), (0.05, 0.0)])
-def test_nobody_is_born_on_a_cell_more_dangerous_than_the_bar(threat: float, births: float) -> None:
-    game = land(load_params(overrides={**SMALL, 'units.band.population.growth.threat': threat}))
-    band(game).stores = {'forage': [[float(game.day), 45.0]], 'water': [[float(game.day), 45.0]]}
+def test_children_and_elders_gather_nothing_eat_less_and_walk_slower(params: Params) -> None:
+    members = [*bands.adults(2), bands.Member(0, 'male'), bands.Member(1800, 'female')]
+    held = bands.Band(id=1, x=WEST, y=NORTH, members=members, stores={})
+    held.members[1].injured_until = 9
 
-    do(game, camp(), DAY)
+    counted = bands.census(params, held)
 
-    assert band(game).births == pytest.approx(births)
+    assert counted.counts == {'child': 1, 'adult': 2, 'elder': 1}
+    assert (counted.gatherers, counted.eaters, counted.carriers) == pytest.approx((1.2, 3.2, 2.75))
+    assert counted.pace == pytest.approx((1.0 + 0.4 + 0.7 + 0.8) / 4)
+    assert (counted.voters, counted.injured, counted.pregnant) == (3, 1, 0)
+
+
+def test_the_dead_are_drawn_from_the_exposed_and_never_the_player(params: Params) -> None:
+    held = bands.Band(id=1, x=WEST, y=NORTH, members=[*bands.adults(1), bands.Member(0, 'female')], stores={})
+
+    lost, injured = bands.struck(params, held, 1.0, 0.0, 0, np.random.default_rng(7))
+
+    assert (lost, injured, held.population, held.members[0].player) == (1, 0, 1, True)
+    assert bands.vulnerable(params, held, 'thirst') == [0.0]
+
+
+def test_the_old_and_the_frail_die_and_the_hurt_are_injured_while_the_player_lives() -> None:
+    ageing = {'units.band.people.age.per_year': 0.5, 'units.band.people.injury.per_day': 0.5}
+    params = load_params(overrides={**SMALL, **ageing})
+    held = bands.Band(id=1, x=WEST, y=NORTH, members=[*bands.adults(2, 2000), bands.Member(0, 'female')], stores={})
+
+    lived = bands.live(params, held, 10, 0.5, False, dice())
+
+    assert lived.lost == [('age', 1), ('frailty', 1)]
+    assert (held.population, held.members[0].player, held.members[0].age_days) == (1, True, 2001)
+    assert (lived.injured, held.members[0].injured_until) == (1, 30)
+
+
+def test_a_fed_band_conceives_and_gives_birth_with_a_pause_after() -> None:
+    params = load_params(overrides={**SMALL, 'units.band.people.birth.conceive_per_day': 1.0})
+    held = bands.Band(id=1, x=WEST, y=NORTH, members=bands.adults(4), stores={})
+
+    bands.live(params, held, 10, 1.0, True, dice())
+    pregnant = [member.pregnant_until for member in held.members]
+    held.members[0].pregnant_until = held.members[2].pregnant_until = 11
+    born = bands.live(params, held, 11, 1.0, True, dice())
+
+    assert pregnant == [40, None, 40, None]
+    assert (born.born, born.lost, held.population) == (2, [('birth', 1)], 5)
+    assert (held.members[-1].age_days, held.members[0].rest_until) == (0, 21)
+
+
+def test_nobody_conceives_in_a_hungry_band_or_one_without_a_man() -> None:
+    params = load_params(overrides={**SMALL, 'units.band.people.birth.conceive_per_day': 1.0})
+    women = bands.Band(id=1, x=WEST, y=NORTH, members=bands.adults(3)[0::2], stores={})
+    hungry = bands.Band(id=1, x=WEST, y=NORTH, members=bands.adults(4), stores={})
+
+    bands.live(params, women, 10, 1.0, True, dice())
+    bands.live(params, hungry, 10, 1.0, bands.fed(params, hungry), dice())
+
+    assert [member.pregnant_until for member in women.members + hungry.members] == [None] * 6
 
 
 def test_a_band_that_falls_below_its_least_dies_and_the_game_is_over() -> None:
@@ -457,6 +519,11 @@ def test_a_tick_carries_the_row_of_the_band(params: Params) -> None:
             'encounters': 0,
             'status': 50.0,
             'councils': 0,
+            'child': 0,
+            'adult': 15,
+            'elder': 0,
+            'pregnant': 0,
+            'injured': 0,
         }
     )
 
@@ -478,7 +545,7 @@ def test_a_restored_game_carries_the_band_in_the_middle_of_a_day(params: Params)
 def test_a_snapshot_of_the_format_before_the_band_is_refused(params: Params) -> None:
     snapshot = land(params).snapshot()
 
-    assert snapshot['format'] == 8
+    assert snapshot['format'] == 9
     with pytest.raises(ValueError, match='format 2'):
         Game.restore({**snapshot, 'format': 2})
 

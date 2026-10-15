@@ -1,6 +1,7 @@
 from .loader import diff, load_params, presets
 from .model import (
     ACTIONS,
+    CAUSES,
     LAYERS,
     SCHEMA_VERSION,
     Band,
@@ -21,6 +22,7 @@ from .model import (
     Islands,
     Latitude,
     Layer,
+    LifeStage,
     Modifier,
     Moisture,
     Needs,
@@ -40,6 +42,7 @@ from .model import (
 
 __all__ = [
     'ACTIONS',
+    'CAUSES',
     'LAYERS',
     'SCHEMA_VERSION',
     'Band',
@@ -60,6 +63,7 @@ __all__ = [
     'Islands',
     'Latitude',
     'Layer',
+    'LifeStage',
     'Modifier',
     'Moisture',
     'Needs',

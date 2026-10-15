@@ -10,7 +10,7 @@ from typing import Any
 from ..content import Params
 from . import band as bands
 from . import decisions
-from .band import DIRECTIONS, Band
+from .band import DIRECTIONS, Band, voters
 from .commands import ABSTAIN, MOVE, PROPOSALS, STAY
 from .events import NO_LEADER, PROPOSAL
 
@@ -103,10 +103,8 @@ def table(params: Params, band: Band, era: str) -> Table:
     days = score(params, band, era)
     offered = [proposal for proposal in OPTIONS if key(proposal) in days]
     scores = [days[key(proposal)] for proposal in offered]
-    laid = [
-        {'proposal': proposal, 'votes': given}
-        for proposal, given in zip(offered, votes(scores, band.population - 1, params.council.spread), strict=True)
-    ]
+    given = votes(scores, voters(params, band) - 1, params.council.spread)
+    laid = [{'proposal': proposal, 'votes': held} for proposal, held in zip(offered, given, strict=True)]
     return [entry for entry in laid if entry['votes']]
 
 
@@ -145,9 +143,9 @@ def settled(laid: Table, spoken: float) -> bool:
     return (votes[1] if len(votes) > 1 else 0) + spoken < votes[0]
 
 
-def voice(params: Params, population: int, status: float) -> float:
+def voice(params: Params, voting: int, status: float) -> float:
     held = params.council.voice
-    return max(held.least, held.share * population * status / HIGHEST)
+    return max(held.least, held.share * voting * status / HIGHEST)
 
 
 def worth(params: Params, band: Band, wanted: dict[str, float]) -> float:

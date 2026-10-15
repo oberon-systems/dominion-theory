@@ -25,16 +25,16 @@ def fits(kind: Encounter, biome: str, river: bool, action: Action) -> bool:
 
 def strike(
     params: Params,
-    population: int,
     biome: str,
     river: bool,
     threat: float,
     action: Action,
     rng: np.random.Generator,
-) -> tuple[str, int] | None:
+) -> tuple[str, float, float] | None:
     """
-    The encounter of a tick, if any: its kind and the people it takes. Three numbers are drawn
-    in every tick whatever comes of them, so the stream never depends on what happened before.
+    The encounter of a tick, if any: its kind, the share of the people it takes and the share it injures.
+    Three numbers are drawn in every tick whatever comes of them, so the stream never depends on what
+    happened before.
     """
     happens, which, share = (float(drawn) for drawn in rng.random(DRAWS))
     rules = params.encounters
@@ -50,6 +50,5 @@ def strike(
         if at < 0:
             name = candidate
             break
-    loss = kinds[name].loss
-    taken = loss.min + share * (loss.max - loss.min)
-    return name, min(int(population * taken + 0.5), population)
+    loss, injured = kinds[name].loss, kinds[name].injured
+    return name, loss.min + share * (loss.max - loss.min), injured.min + share * (injured.max - injured.min)

@@ -12,8 +12,12 @@ from ..i18n import DATE, render
 # The vocabulary of the API, as docs/api/commands.md and docs/api/protocol.md state it.
 DIRECTIONS = ('north', 'north-east', 'east', 'south-east', 'south', 'south-west', 'west', 'north-west')
 ACTIONS = ('move', 'roam', 'gather', 'camp')
+STAGES = ('child', 'adult', 'elder')
 STATE = 'state-'
 PEOPLE = 'line-people'
+STAGE = 'line-stage-'
+CONDITIONS = ('pregnant', 'injured')
+CONDITION = 'line-'
 STORE = 'line-store'
 STATUS = 'line-status'
 COUNCIL = 'line-council'
@@ -61,6 +65,8 @@ MESSAGES: tuple[str, ...] = (
     *(f'{PROPERTY}{name}' for name in PROPERTIES),
     *(f'{TITLE}{pane}' for pane in PANES),
     *(f'{ACTION}{kind}' for kind in ACTIONS),
+    *(f'{STAGE}{name}' for name in STAGES),
+    *(f'{CONDITION}{name}' for name in CONDITIONS),
     *(f'{DIRECTION}{towards}' for towards in DIRECTIONS),
 )
 
@@ -128,6 +134,15 @@ def band_parts(band: Unit, lang: str) -> list[Part]:
     action = band['action']
     told = {name: value for name, value in action.items() if name != 'kind'}
     pieces = [Part(Look.BAND, render(PEOPLE, {'count': band['population']}, lang))]
+    ages = {name: count for name, count in band.get('ages', {}).items() if count}
+    # A band of one stage says no more than its people.
+    if len(ages) > 1:
+        pieces += [Part(Look.BAND, render(f'{STAGE}{name}', {'count': count}, lang)) for name, count in ages.items()]
+    pieces += [
+        Part(Look.STATE, render(f'{CONDITION}{name}', {'count': band[name]}, lang))
+        for name in CONDITIONS
+        if band.get(name)
+    ]
     pieces += [
         Part(Look.BAND, render(STORE, {'resource': name, 'amount': amount}, lang))
         for name, amount in band['stores'].items()

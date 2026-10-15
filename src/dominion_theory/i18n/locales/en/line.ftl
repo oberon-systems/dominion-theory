@@ -3,6 +3,23 @@ line-people =
         [one] { $count } person
        *[other] { $count } people
     }
+line-stage-child =
+    { $count ->
+        [one] { $count } child
+       *[other] { $count } children
+    }
+line-stage-adult =
+    { $count ->
+        [one] { $count } adult
+       *[other] { $count } adults
+    }
+line-stage-elder =
+    { $count ->
+        [one] { $count } elder
+       *[other] { $count } elders
+    }
+line-pregnant = { $count } with child
+line-injured = { $count } injured
 line-store = { NAME("resource", $resource) } { NUMBER($amount, maximumFractionDigits: 1) }
 line-status = Your standing is { NUMBER($status, maximumFractionDigits: 0) }.
 line-council = The votes: { $table }.

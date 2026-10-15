@@ -29,7 +29,10 @@ QUIET = {
     'units.band.sight': 0,
     'units.band.consumption_per_day.forage': 0.0,
     'units.band.consumption_per_day.water': 0.0,
-    'units.band.population.growth_per_year': 0.0,
+    'units.band.people.birth.conceive_per_day': 0.0,
+    'units.band.people.injury.per_day': 0.0,
+    'units.band.people.age.per_year': 0.0,
+    'units.band.people.stages.adult.dies.frailty': 0.0,
     'encounters.chance': 0.0,
 }
 PLANET = {'planet.circumference_km': 4000, 'planet.window.width': 32, 'planet.window.height': 16}
@@ -131,7 +134,7 @@ def test_the_snapshot_carries_the_last_update(service: Service) -> None:
         'date': {'year': 1, 'month': 1, 'day': 1, 'part': 'evening', 'season': 'spring'},
         'window': asdict(runner.game.window),
         'seat': {'name': 'player', 'unit': 1, 'status': 50.0, 'seated': False, 'council': None},
-        'units': [band.shown(0)],
+        'units': [band.shown(runner.game.params, 0)],
         'waiting': ['player'],
     }
 

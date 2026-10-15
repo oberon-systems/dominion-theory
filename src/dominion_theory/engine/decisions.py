@@ -21,6 +21,7 @@ from .band import (
     Action,
     Band,
     camp,
+    census,
     gathering,
     held_days,
     moving,
@@ -84,7 +85,7 @@ def wellbeing(params: Params, band: Band, threat: float) -> float:
     """
     How well the band lives on its cell: the weighted mean of fed, watered, safe and rested.
     """
-    weights = params.units.band.population.growth.weights
+    weights = params.units.band.population.wellbeing
     wanted = needs(params, band)
     parts = (
         (weights.food, 1.0 - wanted[HUNGER]),
@@ -187,7 +188,7 @@ def _gathered(params: Params, band: Band, own: dict[str, Any], era: str, wanted:
         if name in listed and resource.property in NEEDS:
             need = NEEDS[resource.property][0]
             value = own.get(resource.property, 0.0)
-            haul = band.population * rate * value * resource.weight_kg
+            haul = census(params, band).gatherers * rate * value * resource.weight_kg
             fits = min(free / haul, 1.0) if haul > 0 else 0.0
             score = getattr(rules.decisions.weights, need) * wanted[need] * value * fits
             found.append(Scored(gathering(name), score, need))

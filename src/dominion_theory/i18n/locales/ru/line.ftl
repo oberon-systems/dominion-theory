@@ -4,6 +4,25 @@ line-people =
         [few] { $count } человека
        *[many] { $count } человек
     }
+line-stage-child =
+    { $count ->
+        [one] { $count } ребёнок
+        [few] { $count } ребёнка
+       *[many] { $count } детей
+    }
+line-stage-adult =
+    { $count ->
+        [one] { $count } взрослый
+       *[other] { $count } взрослых
+    }
+line-stage-elder =
+    { $count ->
+        [one] { $count } старик
+        [few] { $count } старика
+       *[many] { $count } стариков
+    }
+line-pregnant = беременных { $count }
+line-injured = раненых { $count }
 line-store = { NAME("resource", $resource) } { NUMBER($amount, maximumFractionDigits: 1) }
 line-status = Ваш вес { NUMBER($status, maximumFractionDigits: 0) }.
 line-council = Голоса: { $table }.

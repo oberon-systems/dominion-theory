@@ -10,3 +10,9 @@ people-born =
         [few] Родились { $count } ребёнка.
        *[many] Родилось { $count } детей.
     }
+people-injured =
+    { $count ->
+        [one] Ранен { $count } человек.
+        [few] Ранены { $count } человека.
+       *[many] Ранено { $count } человек.
+    }

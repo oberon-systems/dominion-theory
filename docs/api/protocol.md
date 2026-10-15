@@ -124,6 +124,9 @@ after it.
       "kind": "band",
       "place": {"scale": 0, "x": 2301, "y": 744},
       "population": 18,
+      "ages": {"child": 4, "adult": 12, "elder": 2},
+      "pregnant": 1,
+      "injured": 0,
       "stores": {"forage": 22.5, "water": 30.0},
       "fatigue": 0.3,
       "states": [],
@@ -174,6 +177,9 @@ A unit is a band in stage 2, as
 |--------------|-------------------------------------------------------------|
 | `place`      | the cell it stands on, with the scale                       |
 | `population` | the people in it                                            |
+| `ages`       | the people by stage of life: `child`, `adult`, `elder`      |
+| `pregnant`   | the women with child                                        |
+| `injured`    | the people who are hurt and not yet healed                  |
 | `stores`     | the amount held of each resource                            |
 | `fatigue`    | 0 for rested, growing with work                             |
 | `states`     | `starvation`, `thirst`, `tiredness`, in that order          |
@@ -216,6 +222,9 @@ Each message on the stream is one update.
         "kind": "band",
         "place": {"scale": 0, "x": 2301, "y": 744},
         "population": 18,
+        "ages": {"child": 4, "adult": 12, "elder": 2},
+        "pregnant": 1,
+        "injured": 0,
         "stores": {"forage": 22.5, "water": 30.0},
         "fatigue": 0.0,
         "states": [],

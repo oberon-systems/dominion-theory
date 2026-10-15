@@ -8,3 +8,8 @@ people-born =
         [one] { $count } child was born.
        *[other] { $count } children were born.
     }
+people-injured =
+    { $count ->
+        [one] { $count } person is injured.
+       *[other] { $count } people are injured.
+    }

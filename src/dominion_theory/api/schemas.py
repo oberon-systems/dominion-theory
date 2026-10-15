@@ -177,6 +177,9 @@ class Unit(BaseModel):
     kind: Literal['band']
     place: Place
     population: int
+    ages: dict[str, int]
+    pregnant: int
+    injured: int
     stores: dict[str, float]
     fatigue: float
     states: list[str]

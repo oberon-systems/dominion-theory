@@ -14,14 +14,14 @@ from typing import Any
 
 import click
 
-from ..content import Params, load_params
+from ..content import CAUSES, Params, load_params
 from ..engine import Game
 from ..engine.events import PEOPLE_BORN, PEOPLE_LOST
 from ..store.codec import pack
 from .service import SEED_BITS
 
 SEEDS = (1, 2, 3, 4, 5)
-YEARS = 10
+YEARS = 18
 FIRST = tuple(range(1, 51))
 KB = 1024
 # The size at which a band becomes a tribe, from the notes of stage 5 in docs/roadmap.md; not a rule yet.
@@ -33,13 +33,20 @@ SOURCES = (
     PACKAGE / 'store' / 'codec.py',
     *(path for name in ('content', 'engine', 'planet') for path in sorted((PACKAGE / name).glob('*.py'))),
 )
-LEVELS = {'people': 'population', 'food': 'food', 'water': 'water', 'status': 'status'}
+PEOPLE = ('child', 'adult', 'elder', 'pregnant', 'injured')
+LEVELS = {
+    'people': 'population',
+    **{name: name for name in PEOPLE},
+    'food': 'food',
+    'water': 'water',
+    'status': 'status',
+}
 TOTALS = ('deaths', 'moves', 'roams', 'gathers', 'camps', 'encounters')
 STATES = {'starvation': 'starving', 'thirst': 'thirsty', 'tiredness': 'tired'}
-CAUSES = ('hunger', 'thirst', 'encounter')
 YEAR = (
     'year',
     'people',
+    *PEOPLE,
     'growth',
     'rate',
     'least',

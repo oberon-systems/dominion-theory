@@ -18,3 +18,4 @@ council:
     stay_disaster: -20
     death: -5
     birth: 5
+  blamed: [hunger, thirst, encounter]

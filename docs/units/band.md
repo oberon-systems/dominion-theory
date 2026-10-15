@@ -10,6 +10,9 @@ made of and gives every number it reads. Part of the stage 2 design in
 
 - [What a band holds](#what-a-band-holds)
 - [Population](#population)
+- [Births](#births)
+- [Deaths](#deaths)
+- [Injuries](#injuries)
 - [Stores](#stores)
 - [Gathering](#gathering)
 - [Consumption](#consumption)
@@ -33,7 +36,8 @@ is no number of a band in the code.
 |--------------|---------------------------------------------------------|
 | `id`         | the number of the unit, 1 for the player's band         |
 | `place`      | planet coordinates of its cell, with the scale          |
-| `population` | how many people, a whole number                         |
+| `members`    | its people one by one, the player among them            |
+| `population` | how many members, read from `members`                   |
 | `stores`     | what it carries, per resource, in lots by day gathered  |
 | `fatigue`    | how tired it is, from 0 to 1                            |
 | `states`     | which of the bad states hold now; none means `normal`   |
@@ -47,20 +51,56 @@ ___
 
 ## Population
 
-A band starts with 15 people and counts whole people. It dies when fewer
-than 5 are left, and the game ends with it. The threshold of 150, at
-which a band becomes a tribe, belongs to stage 5.
+A band is its members, kept one by one. A member has an age in days, a
+sex and three marks: pregnant until a day, resting after a birth until
+a day, injured until a day. The population is the number of members,
+and a band dies when fewer than 5 are left; the game ends with it.
 
-Growth is what a band lives for: it wants to continue its kind, and
-everything it does serves that in the end. People are born at a yearly
-rate, counted every day: the band keeps the fraction and a person
-appears when it reaches one. How fast depends on how well the band
-lives, its wellbeing.
+A band starts with 15 members: the player and 14 others, adults of a
+random age from 4 to 16 years and of a random sex. The player is a
+member who never dies, the line the player stands for; a family of the
+player is a later step. Every draw of this document comes from the
+stream `people` of the game, so the same seed lives the same band.
+
+Growth is what a band lives for: it wants to continue its kind. The
+threshold of 150, at which a band becomes a tribe, belongs to stage 5;
+reaching it in about 18 years, the 15 to 30 minutes of a band stage at
+the pace of the screen, needs about 13% a year.
+
+### Stages
+
+Every member is in a stage of life by its age. A stage weighs what a
+member does against an adult, whose weights are all 1.
+
+| Stage   | Ages        | Gathers | Carries | Eats | Pace | Tires | Conceives | Votes |
+|---------|-------------|---------|---------|------|------|-------|-----------|-------|
+| `child` | 0 to 3      | 0       | 0.25    | 0.5  | 0.7  | 1.3   | no        | no    |
+| `adult` | 4 to 16     | 1       | 1       | 1    | 1    | 1     | yes       | yes   |
+| `elder` | 17 and over | 0       | 0.5     | 0.7  | 0.8  | 1.3   | no        | yes   |
+
+A band sums its members where an amount grows with the people, and
+takes the mean where it is a pace. An injured member gathers and walks
+at the shares of [Injuries](#injuries).
+
+```text
+gatherers = sum of gathers, times injury.gathers for the injured
+eaters    = sum of eats
+carriers  = sum of carries
+pace      = mean of pace, times injury.pace for the injured
+tires     = mean of tires
+```
+
+Gathering, eating and carrying read these sums where they read the
+population before; the speed is multiplied by the mean pace and a gain
+of fatigue by the mean tiring. A band of adults lives as a band of
+heads did. Only the stages that vote sit in the council; see
+[Indirect control](../game/indirect_control.md#the-table-of-votes).
 
 ### Wellbeing
 
-Wellbeing is a number from 0 to 1, taken once a day, when the people
-eat. It is the mean of four parts, each weighed by `growth.weights`.
+Wellbeing is a number from 0 to 1, taken once a day, after the people
+eat. It is the mean of four parts, each weighed by
+`population.wellbeing`, and it drives [frailty](#deaths).
 
 | Part     | Is                                                        |
 |----------|-----------------------------------------------------------|
@@ -73,31 +113,85 @@ Hunger and thirst are the levels of [Decisions](../game/decisions.md#needs):
 a band with two days of food in its stores is sated, one with less than
 a day is hungry.
 
+___
+
+## Births
+
+A woman of a stage that conceives, an adult, may conceive on a day when
+she is neither pregnant nor resting, with the chance
+`birth.conceive_per_day`. There are no pairs: a band is nearly a herd,
+and one adult man in it is enough. Nobody conceives on a day when the
+band cannot feed more children:
+
+- the food in its stores, counted before the meal of the day, lasts
+  fewer than `birth.days`, 2;
+- starvation or thirst holds;
+- there is no adult man.
+
+A pregnancy lasts `birth.pregnancy`, 3 months. At its end the child
+lives with the chance `birth.child_survives`, 0.5, and the mother dies
+with `birth.mother_dies`; the player never does. The mother then rests
+for a random span from `birth.pause.min` to `birth.pause.max`, one to
+two months, and does not conceive. A child is born at age 0, of a
+random sex.
+
+How many children grow up is no number of the tree. It follows from
+hunger, thirst, encounters and frailty, so a band that keeps to safe
+and fed land raises more of them: the reason a people seeks safety.
+
+___
+
+## Deaths
+
+Every cause weighs the members by the vulnerability of their stage,
+`dies`, and the player's weight is always 0.
+
+| Cause       | How many die                                            | Child | Adult | Elder |
+|-------------|---------------------------------------------------------|-------|-------|-------|
+| `hunger`    | `starvation.loss_per_day` of the sum of weights, a day  | 2     | 1     | 1.5   |
+| `thirst`    | `thirst.loss_per_day` of the sum of weights, a day      | 2     | 1     | 1.5   |
+| `encounter` | the share the encounter took of the sum of weights      | 3     | 1     | 2     |
+| `frailty`   | each member by its own chance, a day                    | 1.2   | 0.05  | 0.3   |
+| `age`       | each member past `age.begins` by its own chance, a day  | -     | -     | -     |
+| `birth`     | a mother at the birth                                   | -     | -     | -     |
+
+A state rounds its count up, so it costs somebody every day it holds;
+an encounter rounds to the nearest, so it may be a scare. Who dies of
+a count is drawn by the weights, nobody twice: a child is twice as
+likely as an adult to die of hunger and three times of a predator.
+
+Frailty is illness, cold and all else a band in poor shape suffers. Its
+chance falls as wellbeing rises:
+
 ```text
-rate = growth_per_year * (wellbeing - floor) / (1 - floor)
+frailty a year = dies.frailty * (1 - wellbeing)
+age a year     = age.per_year * 2 ^ ((age - age.begins) / age.doubles), at most 1
 ```
 
-Below `growth.floor` nobody is born. A band at full wellbeing grows at
-`growth_per_year`.
+Both are asked every day as a share of the year. A child at wellbeing
+0.85 dies of frailty at 0.18 a year and about half reach four; at
+wellbeing 0.5, 0.6 a year and one in ten, before hunger and predators
+take their share. Death of age begins at 0.15 a year at 17 and doubles
+every two years: about half live to 20, and one in five to 22.
 
-### When nobody is born
+A day ends in a fixed order: the meal and the states, then age,
+frailty, injuries, births and conceptions. The council answers for
+hunger, thirst and encounters only; see
+[Indirect control](../game/indirect_control.md#status).
 
-Some days are bad for children whatever the mean says. Nobody is born on
-a day when:
+___
 
-- the band starves, thirsts or is tired - any of the three states holds;
-- the threat of its cell is above `growth.threat`.
+## Injuries
 
-The nights in camp take the fatigue down and keep the band out of
-tiredness; a band that marches day after day stops having children.
+A member who is not injured is hurt on a day with the chance
+`injury.per_day` times its weight `dies.injury`: 0.5 for a child, 1 for
+an adult, 1.5 for an elder. An encounter injures as well: a kind may
+carry `injured`, a share drawn with its loss and taken of the same
+weights. Predators injure up to 10% of the band, accidents 5 to 15%.
 
-People die of hunger, of thirst and in chance encounters. See
-[States](#states) and [Bands](../game/01_bands.md#chance-encounters).
-
-With the first-guess numbers a band left to itself does not last: 9 of
-50 die in the first year, and none of the five reference seeds lives
-ten years. `first_year` in `tests/runner/lives.json` keeps the count;
-the numbers are tuned once the band era is whole.
+An injured member gathers at `injury.gathers`, 0.2, walks at
+`injury.pace`, 0.4, and heals after `injury.lasts`, 20 days. An injury
+kills nobody by itself. Every new injury is the event `people-injured`.
 
 ___
 
@@ -116,8 +210,9 @@ lot is eaten first, and a lot older than its time is thrown away in the
 phase `world` of the first tick of a day. A band holds at most five lots
 of water and three of forage, so the state stays small.
 
-A person carries 6 kg. A band never gathers more than it can carry: what
-does not fit is left on the cell and the stock is not lowered for it.
+An adult carries 6 kg, a child a quarter of it and an elder half. A
+band never gathers more than it can carry: what does not fit is left on
+the cell and the stock is not lowered for it.
 
 ___
 
@@ -128,7 +223,7 @@ rate times the property of the cell, as
 [Biomes](../biomes/overview.md#properties) defines it.
 
 ```text
-taken = population * rate * value(property, cell)
+taken = gatherers * rate * value(property, cell)
 ```
 
 | Resource | Property | Rate per person per tick |
@@ -174,7 +269,8 @@ the day.
 | `forage` | 1.0                |
 | `water`  | 1.0                |
 
-So 15 people need 15 kg of food and 15 litres of water a day, 30 kg of
+The amounts are per adult, and a child eats half and an elder 0.7 of
+them. So 15 adults need 15 kg of food and 15 litres of water a day, 30 kg of
 the 90 kg they can carry: a band holds three days of supplies at most,
 and its food spoils on the third. One gathering tick in a summer forest
 brings 40 kg of food, in a winter forest 16, and in the desert no day is
@@ -193,7 +289,7 @@ progress, and the band enters the next cell when the progress reaches 1.
 
 ```text
 progress = speed * value(passability, target cell)
-speed = max(slowest, base - slowdown * population / 10)
+speed = max(slowest, base - slowdown * population / 10) * efficiency * pace
 ```
 
 With a base of 1.2 and a slowdown of 0.03 a band of 15 walks at 1.155
@@ -218,7 +314,8 @@ by `camp_parts`; it never walks or gathers then.
 | `gather`  | plus 0.1         |
 | `camp`    | minus 0.3        |
 
-Fatigue weighs in no decision. It takes from what the band can do: its
+A gain is multiplied by the mean tiring of the members, so a band of
+many children and elders tires sooner. Fatigue weighs in no decision. It takes from what the band can do: its
 pace and every gathering, roaming's share included, are multiplied by
 
 ```text
@@ -287,13 +384,50 @@ units:
       population: 15
       stores: {water: 15, forage: 15}
       biomes: [grass, forest, floodplain]
+      stage: adult
     population:
       least: 5
-      growth_per_year: 0.6
-      growth:
-        floor: 0.5
-        threat: 0.6
-        weights: {food: 1.0, water: 1.0, safety: 1.0, rest: 1.0}
+      wellbeing: {food: 1.0, water: 1.0, safety: 1.0, rest: 1.0}
+    people:
+      stages:
+        child:
+          until: {years: 4}
+          gathers: 0.0
+          carries: 0.25
+          eats: 0.5
+          pace: 0.7
+          tires: 1.3
+          conceives: false
+          votes: false
+          dies: {hunger: 2.0, thirst: 2.0, encounter: 3.0, frailty: 1.2, injury: 0.5}
+        adult:
+          until: {years: 17}
+          gathers: 1.0
+          carries: 1.0
+          eats: 1.0
+          pace: 1.0
+          tires: 1.0
+          conceives: true
+          votes: true
+          dies: {hunger: 1.0, thirst: 1.0, encounter: 1.0, frailty: 0.05, injury: 1.0}
+        elder:
+          gathers: 0.0
+          carries: 0.5
+          eats: 0.7
+          pace: 0.8
+          tires: 1.3
+          conceives: false
+          votes: true
+          dies: {hunger: 1.5, thirst: 1.5, encounter: 2.0, frailty: 0.3, injury: 1.5}
+      age: {begins: {years: 17}, per_year: 0.15, doubles: {years: 2}}
+      injury: {per_day: 0.002, lasts: {days: 20}, gathers: 0.2, pace: 0.4}
+      birth:
+        pregnancy: {months: 3}
+        pause: {min: {months: 1}, max: {months: 2}}
+        conceive_per_day: 0.05
+        days: 2.0
+        child_survives: 0.5
+        mother_dies: 0.05
     carry_kg: 6.0
     gathering:
       forage: 3.0
@@ -343,6 +477,10 @@ A game does not start from a band that does not add up.
   weight and a time to spoil that is not zero.
 - A biome lists only resources of the section `resources`.
 - The start population is not below `population.least`.
+- Every stage but the last has an age `until`, and the ages rise; the
+  last has none.
+- At least one stage conceives, and the start stage is one that ends.
+- `birth.pause.min` is not above `birth.pause.max`.
 - The start stores fit what the start population carries.
 - A start biome exists and can be entered.
 - `tiredness.ends` is below `tiredness.begins`, and both lie in 0 to 1.
@@ -355,9 +493,12 @@ ___
 
 - **Gathering both at once** - a tick is spent on one resource. Whether a
   band splits its people between food and water is seen in the lab.
-- **Who dies** - a band counts heads. Age and sex are not kept, so growth
-  does not depend on who was lost. Children, adults and elders are a later
-  item of [the roadmap](../roadmap.md#ages-in-a-band).
+- **The player's family** - the player is one member who never dies. A
+  family that carries the player's line, an heir taking the seat, is a
+  later step.
+- **A start of adults only** - a band starts without children or elders,
+  so for four years no new adult joins it. A start with every stage is
+  to be weighed in the lab.
 - **Carrying against speed** - a loaded band walks as fast as an empty
   one.
 - **Drinking on the spot** - a band on a river still drinks from its

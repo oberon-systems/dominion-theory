@@ -140,14 +140,17 @@ gathering in a forest meets something about once in twenty-five days.
 
 When an encounter happens, its kind is drawn by weight among the kinds
 that fit the biome and the action. A kind takes a share of the people,
-drawn between its two bounds and rounded to whole people.
+drawn between its two bounds, and may injure a share of those left,
+drawn with the same number. The share is taken of the people weighed by
+how exposed their stage is, so children and elders die first; see
+[Deaths](../units/band.md#deaths).
 
-| Kind        | Where                 | During   | Weight | People lost  |
-|-------------|-----------------------|----------|--------|--------------|
-| `predator`  | anywhere              | any      | 3      | 0 to 10%     |
-| `accident`  | mountain, hills, outcrops, ice | `move`, `roam` | 2 | 0 to 10% |
-| `drowning`  | shallows, river cells | `move`, `roam`, `gather` | 3 | 5 to 15% |
-| `poisoning` | swamp, marsh          | `gather` | 4      | 0 to 20%     |
+| Kind        | Where                 | During   | Weight | People lost  | Injured   |
+|-------------|-----------------------|----------|--------|--------------|-----------|
+| `predator`  | anywhere              | any      | 3      | 0 to 10%     | 0 to 10%  |
+| `accident`  | mountain, hills, outcrops, ice | `move`, `roam` | 2 | 0 to 10% | 5 to 15% |
+| `drowning`  | shallows, river cells | `move`, `roam`, `gather` | 3 | 5 to 15% | none |
+| `poisoning` | swamp, marsh          | `gather` | 4      | 0 to 20%     | none      |
 
 A share that rounds to nobody is a scare: the event is reported and no
 one is lost. Kinds are data, an entry each of the section `encounters`,
@@ -158,10 +161,11 @@ encounters:
   chance: 0.02
   actions: {camp: 0.5, gather: 1.0, roam: 1.2, move: 1.5}
   kinds:
-    predator: {weight: 3, loss: {min: 0.0, max: 0.1}}
+    predator: {weight: 3, loss: {min: 0.0, max: 0.1}, injured: {min: 0.0, max: 0.1}}
     accident:
       weight: 2
       loss: {min: 0.0, max: 0.1}
+      injured: {min: 0.05, max: 0.15}
       biomes: [mountain, hills, outcrops, ice]
       actions: [move, roam]
     drowning:
@@ -220,7 +224,8 @@ What stage 2 puts into the phases of
    knows are brought up to date.
 5. **World** - cells recover; on the first tick of a day stores spoil;
    an encounter is drawn; on the last tick of a day people eat, states
-   begin and end, people die and are born.
+   begin and end, and the members age, die, are hurt, give birth and
+   conceive, in the order of [Deaths](../units/band.md#deaths).
 6. **Calendar** - as before; when the new part of the day is
    `council.part`, yesterday's intent ends and is judged, and the
    council of the day sits down with its table.
@@ -228,7 +233,8 @@ What stage 2 puts into the phases of
    one counter per thing the lab will ask about.
 
 The counters added: `population`, `food`, `water`, `status`, `moves`,
-`gathers`, `camps`, `encounters`, `deaths`, `councils`.
+`gathers`, `camps`, `encounters`, `deaths`, `councils`, then one per
+stage (`child`, `adult`, `elder`), `pregnant` and `injured`.
 
 ___
 
@@ -260,6 +266,9 @@ of them. Both views of the API show the same for now.
       "kind": "band",
       "place": {"scale": 0, "x": 2301, "y": 744},
       "population": 15,
+      "ages": {"child": 3, "adult": 10, "elder": 2},
+      "pregnant": 1,
+      "injured": 0,
       "stores": {"water": 30.0, "forage": 22.5},
       "fatigue": 0.3,
       "states": [],
@@ -271,6 +280,8 @@ of them. Both views of the API show the same for now.
 }
 ```
 
+`ages` counts the members by stage, `pregnant` and `injured` the
+members who are; the members themselves stay in the state of the game.
 `council` is the table of the council of the day while it sits; see
 [The snapshot](../api/protocol.md#the-seat). What the band knows is read as a map: the rectangle of the map address
 takes `known=1` and answers only with the cells that band knows, as

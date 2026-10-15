@@ -19,7 +19,10 @@ QUIET = {
     'units.band.sight': 0,
     'units.band.consumption_per_day.forage': 0.0,
     'units.band.consumption_per_day.water': 0.0,
-    'units.band.population.growth_per_year': 0.0,
+    'units.band.people.birth.conceive_per_day': 0.0,
+    'units.band.people.injury.per_day': 0.0,
+    'units.band.people.age.per_year': 0.0,
+    'units.band.people.stages.adult.dies.frailty': 0.0,
     'encounters.chance': 0.0,
 }
 PLANET = {'planet.circumference_km': 4000, 'planet.window.width': 32, 'planet.window.height': 16}
@@ -43,10 +46,16 @@ COUNTERS = (
     'encounters',
     'status',
     'councils',
+    'child',
+    'adult',
+    'elder',
+    'pregnant',
+    'injured',
 )
 COUNTED = {
     'commands_refused': 1,
     'population': 15,
+    'adult': 15,
     'food': 15.0,
     'water': 15.0,
     'camps': 1,

@@ -14,6 +14,7 @@ BAND_STATE_BEGAN = 'band-state-began'
 BAND_STATE_ENDED = 'band-state-ended'
 PEOPLE_LOST = 'people-lost'
 PEOPLE_BORN = 'people-born'
+PEOPLE_INJURED = 'people-injured'
 BAND_DIED = 'band-died'
 ENCOUNTER = 'encounter'
 COUNCIL_OPENED = 'council-opened'
@@ -48,6 +49,7 @@ EVENTS: dict[str, tuple[str, ...]] = {
     BAND_STATE_ENDED: ('state',),
     PEOPLE_LOST: ('count', 'cause'),
     PEOPLE_BORN: ('count',),
+    PEOPLE_INJURED: ('count',),
     BAND_DIED: (),
     ENCOUNTER: ('kind', 'lost'),
     COUNCIL_OPENED: ('leader', 'occasion'),

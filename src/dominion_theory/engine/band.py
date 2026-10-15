@@ -3,8 +3,10 @@ The band: what it holds and the rules of its day, as docs/units/band.md and docs
 """
 
 import math
-from dataclasses import dataclass, field
+from dataclasses import asdict, dataclass, field
 from typing import Any, Protocol
+
+import numpy as np
 
 from ..content import Band as Rules
 from ..content import Params
@@ -21,7 +23,15 @@ THIRST = 'thirst'
 TIREDNESS = 'tiredness'
 HUNGER = 'hunger'
 ENCOUNTER = 'encounter'
+AGE = 'age'
+FRAILTY = 'frailty'
+BIRTH = 'birth'
 PASSABILITY = 'passability'
+FEMALE = 'female'
+MALE = 'male'
+SEXES = (FEMALE, MALE)
+PREGNANT = 'pregnant'
+INJURED = 'injured'
 
 # Clockwise from the north; y grows to the south.
 DIRECTIONS: dict[str, Place] = {
@@ -62,23 +72,58 @@ class Land(Protocol):
 
 
 @dataclass
+class Member:
+    age_days: int
+    sex: str
+    pregnant_until: int | None = None
+    rest_until: int | None = None
+    injured_until: int | None = None
+    player: bool = False
+
+    @classmethod
+    def read(cls, plain: dict[str, Any]) -> Member:
+        return cls(**plain)
+
+    def plain(self) -> dict[str, Any]:
+        return asdict(self)
+
+
+@dataclass(frozen=True)
+class Census:
+    """
+    What the members of a band add up to, kept until they change.
+    """
+
+    stages: tuple[str, ...]
+    counts: dict[str, int]
+    gatherers: float
+    eaters: float
+    carriers: float
+    pace: float
+    tires: float
+    voters: int
+    pregnant: int
+    injured: int
+
+
+@dataclass
 class Band:
     id: int
     x: int
     y: int
-    population: int
+    members: list[Member]
     stores: dict[str, list[list[float]]]
     fatigue: float = 0.0
     states: list[str] = field(default_factory=list)
     action: Action = field(default_factory=lambda: {'kind': CAMP})
     intent: dict[str, Any] | None = None
     known: dict[Place, dict[str, Any]] = field(default_factory=dict)
-    births: float = 0.0
     progress: float = 0.0
     target: Place | None = None
     short: dict[str, int] = field(default_factory=dict)
     reason: dict[str, Any] | None = None
     wander: dict[str, Any] | None = None
+    counted: tuple[int, Census] | None = field(default=None, init=False, repr=False, compare=False)
 
     @classmethod
     def read(cls, plain: dict[str, Any]) -> Band:
@@ -91,14 +136,13 @@ class Band:
             id=plain['id'],
             x=plain['x'],
             y=plain['y'],
-            population=plain['population'],
+            members=[Member.read(member) for member in plain['members']],
             stores={name: [list(lot) for lot in lots] for name, lots in plain['stores'].items()},
             fatigue=plain['fatigue'],
             states=list(plain['states']),
             action=dict(plain['action']),
             intent=plain['intent'],
             known=known,
-            births=plain['births'],
             progress=plain['progress'],
             target=None if target is None else (target[0], target[1]),
             short=dict(plain['short']),
@@ -109,6 +153,16 @@ class Band:
     @property
     def place(self) -> Place:
         return self.x, self.y
+
+    @property
+    def population(self) -> int:
+        return len(self.members)
+
+    def changed(self) -> None:
+        """
+        Forgets the census; called by whatever adds, removes, ages or hurts a member.
+        """
+        self.counted = None
 
     def held(self, resource: str) -> float:
         return sum(amount for _, amount in self.stores.get(resource, ()))
@@ -123,13 +177,13 @@ class Band:
             'x': self.x,
             'y': self.y,
             'population': self.population,
+            'members': [member.plain() for member in self.members],
             'stores': {name: [list(lot) for lot in lots] for name, lots in sorted(self.stores.items())},
             'fatigue': self.fatigue,
             'states': list(self.states),
             'action': dict(self.action),
             'intent': self.intent,
             'known': [{'x': x, 'y': y, **self.known[x, y]} for x, y in sorted(self.known)],
-            'births': self.births,
             'progress': self.progress,
             'target': None if self.target is None else list(self.target),
             'short': dict(sorted(self.short.items())),
@@ -137,15 +191,19 @@ class Band:
             'wander': self.wander,
         }
 
-    def shown(self, scale: int) -> dict[str, Any]:
+    def shown(self, params: Params, scale: int) -> dict[str, Any]:
         """
         The band as a client sees it: docs/game/01_bands.md, What the API shows.
         """
+        counted = census(params, self)
         return {
             'id': self.id,
             'kind': KIND,
             'place': {'scale': scale, 'x': self.x, 'y': self.y},
             'population': self.population,
+            'ages': dict(counted.counts),
+            PREGNANT: counted.pregnant,
+            INJURED: counted.injured,
             'stores': {name: self.held(name) for name in sorted(self.stores)},
             'fatigue': self.fatigue,
             'states': list(self.states),
@@ -180,12 +238,81 @@ def roaming(towards: str) -> Action:
     return {'kind': ROAM, 'towards': towards}
 
 
-def start(land: Land, x: int, y: int, day: int) -> Band:
-    rules = land.params.units.band
+def start(land: Land, x: int, y: int, day: int, rng: np.random.Generator) -> Band:
+    """
+    The band of the start: members of random age inside the start stage and random sex, the first the player.
+    """
+    params = land.params
+    rules = params.units.band
+    low, high = bounds(params, rules.start.stage)
+    count = rules.start.population
+    ages = rng.integers(low, high, size=count)
+    sexes = rng.integers(len(SEXES), size=count)
+    members = [
+        Member(int(age), SEXES[int(sex)], player=at == 0) for at, (age, sex) in enumerate(zip(ages, sexes, strict=True))
+    ]
     stores = {name: [[float(day), float(amount)]] for name, amount in rules.start.stores.items() if amount > 0}
-    band = Band(id=1, x=x, y=y, population=rules.start.population, stores=stores)
+    band = Band(id=1, x=x, y=y, members=members, stores=stores)
     look(land, band, day)
     return band
+
+
+def adults(count: int, age_days: int = 1000) -> list[Member]:
+    """
+    Members of one age, the sexes in turn, the first the player: a band whose people are all alike.
+    """
+    return [Member(age_days, SEXES[at % len(SEXES)], player=at == 0) for at in range(count)]
+
+
+def bounds(params: Params, name: str) -> tuple[int, int]:
+    """
+    The ages in days a stage that ends spans, its last day excluded.
+    """
+    low = 0
+    for held, stage in params.units.band.people.stages.items():
+        if stage.until is None:
+            break
+        high = params.days(stage.until)
+        if held == name:
+            return low, high
+        low = high
+    raise KeyError(name)
+
+
+def census(params: Params, band: Band) -> Census:
+    """
+    What the members add up to: gathering, eating and carrying summed by stage, pace and tiring as means.
+    """
+    if band.counted is not None and band.counted[0] == id(params):
+        return band.counted[1]
+    people = params.units.band.people
+    stages = people.stages
+    limits = [(name, math.inf if stage.until is None else params.days(stage.until)) for name, stage in stages.items()]
+    named = tuple(next(name for name, until in limits if member.age_days < until) for member in band.members)
+    injury = people.injury
+    gatherers = eaters = carriers = pace = tires = 0.0
+    voters = pregnant = injured = 0
+    counts = dict.fromkeys(stages, 0)
+    for member, name in zip(band.members, named, strict=True):
+        stage = stages[name]
+        hurt = member.injured_until is not None
+        counts[name] += 1
+        gatherers += stage.gathers * (injury.gathers if hurt else 1.0)
+        eaters += stage.eats
+        carriers += stage.carries
+        pace += stage.pace * (injury.pace if hurt else 1.0)
+        tires += stage.tires
+        voters += stage.votes
+        pregnant += member.pregnant_until is not None
+        injured += hurt
+    many = max(len(named), 1)
+    counted = Census(named, counts, gatherers, eaters, carriers, pace / many, tires / many, voters, pregnant, injured)
+    band.counted = id(params), counted
+    return counted
+
+
+def voters(params: Params, band: Band) -> int:
+    return census(params, band).voters
 
 
 def enterable(land: Land, x: int, y: int) -> bool:
@@ -213,9 +340,10 @@ def _is_land(land: Land, x: int, y: int) -> bool:
     return base > 0
 
 
-def speed(rules: Rules, band: Band) -> float:
+def speed(params: Params, band: Band) -> float:
+    rules = params.units.band
     pace = max(rules.speed.slowest, rules.speed.base - rules.speed.slowdown * band.population / 10)
-    return pace * efficiency(rules, band)
+    return pace * efficiency(rules, band) * census(params, band).pace
 
 
 def efficiency(rules: Rules, band: Band) -> float:
@@ -234,7 +362,8 @@ def held_days(params: Params, band: Band, prop: str) -> float:
     The days the stores of a property last the band; endless when nobody eats it.
     """
     resources = [name for name, held in params.resources.items() if held.property == prop]
-    eaten = band.population * sum(params.units.band.consumption_per_day.get(name, 0.0) for name in resources)
+    rates = params.units.band.consumption_per_day
+    eaten = census(params, band).eaters * sum(rates.get(name, 0.0) for name in resources)
     return sum(band.held(name) for name in resources) / eaten if eaten > 0 else math.inf
 
 
@@ -250,7 +379,7 @@ def room(params: Params, band: Band) -> float:
     """
     The carrying weight still free, in kilos.
     """
-    return max(band.population * params.units.band.carry_kg - weight(params, band), 0.0)
+    return max(census(params, band).carriers * params.units.band.carry_kg - weight(params, band), 0.0)
 
 
 def act(land: Land, band: Band, action: Action, day: int) -> Action:
@@ -270,6 +399,8 @@ def act(land: Land, band: Band, action: Action, day: int) -> Action:
     if done['kind'] not in (MOVE, ROAM):
         band.progress, band.target = 0.0, None
     tired = getattr(rules.fatigue, done['kind'])
+    if tired > 0:
+        tired *= census(land.params, band).tires
     band.fatigue = min(max(band.fatigue + tired, 0.0), 1.0)
     band.action = done
     return done
@@ -282,7 +413,7 @@ def _move(land: Land, band: Band, action: Action, rules: Rules, pace: float) -> 
         return camp()
     if band.target != target:
         band.progress, band.target = 0.0, target
-    band.progress += speed(rules, band) * pace * land.value(PASSABILITY, *target)
+    band.progress += speed(land.params, band) * pace * land.value(PASSABILITY, *target)
     if band.progress >= 1.0:
         band.x, band.y = target
         band.progress, band.target = 0.0, None
@@ -315,7 +446,7 @@ def _gather(land: Land, band: Band, action: Action, rules: Rules, day: int) -> A
 def _take(land: Land, band: Band, name: str, rules: Rules, day: int, share: float, at: Place) -> None:
     params = land.params
     resource = params.resources[name]
-    wanted = band.population * rules.gathering.get(name, 0.0) * land.value(resource.property, *at)
+    wanted = census(params, band).gatherers * rules.gathering.get(name, 0.0) * land.value(resource.property, *at)
     taken = min(wanted * share * efficiency(rules, band), room(params, band) / resource.weight_kg)
     if taken > 0:
         _stored(band, name, day, taken)
@@ -386,8 +517,9 @@ def eat(params: Params, band: Band) -> dict[str, float]:
     The people eat and drink for a day, the oldest lots first; gives the share of each need that was met.
     """
     met: dict[str, float] = {}
+    eaters = census(params, band).eaters
     for name, rate in params.units.band.consumption_per_day.items():
-        need = left = band.population * rate
+        need = left = eaters * rate
         lots = band.stores.get(name, [])
         for lot in lots:
             eaten = min(lot[1], left)
@@ -398,7 +530,9 @@ def eat(params: Params, band: Band) -> dict[str, float]:
     return met
 
 
-def suffer(params: Params, band: Band, met: dict[str, float]) -> tuple[list[str], list[str], list[tuple[str, int]]]:
+def suffer(
+    params: Params, band: Band, met: dict[str, float], rng: np.random.Generator
+) -> tuple[list[str], list[str], list[tuple[str, int]]]:
     """
     What a day of eating did: the states that began, those that ended, and the people lost by cause.
     """
@@ -422,24 +556,176 @@ def suffer(params: Params, band: Band, met: dict[str, float]) -> tuple[list[str]
         elif state not in band.states and band.short[prop] * per_day >= max(params.parts(hardship.after), 1):
             began.extend(_begin(band, state))
         if state in band.states:
-            dead = min(math.ceil(band.population * hardship.loss_per_day), band.population)
+            weights = vulnerable(params, band, cause)
+            dead = bury(band, _drawn(rng, weights, math.ceil(hardship.loss_per_day * sum(weights))))
             if dead:
-                band.population -= dead
                 lost.append((cause, dead))
     return began, ended, lost
 
 
-def grow(params: Params, band: Band, wellbeing: float, threat: float) -> int:
+def vulnerable(params: Params, band: Band, cause: str) -> list[float]:
     """
-    The births of a day by the wellbeing above the floor; none while a bad state holds or the cell is dangerous.
+    How much each member is exposed to a cause, by stage; the player never dies.
     """
-    rules = params.units.band.population
-    growth = rules.growth
-    if band.states or threat > growth.threat or wellbeing <= growth.floor:
-        return 0
-    pace = rules.growth_per_year / params.time.days_per_year * (wellbeing - growth.floor) / (1.0 - growth.floor)
-    band.births += band.population * pace
-    born = int(band.births)
-    band.births -= born
-    band.population += born
-    return born
+    stages = params.units.band.people.stages
+    named = census(params, band).stages
+    return [
+        0.0 if member.player else getattr(stages[name].dies, cause)
+        for member, name in zip(band.members, named, strict=True)
+    ]
+
+
+def _drawn(rng: np.random.Generator, weights: list[float], count: int) -> list[int]:
+    """
+    The members a hazard takes, drawn by their weights without one twice; nothing is drawn when nobody is taken.
+    """
+    exposed = [at for at, held in enumerate(weights) if held > 0]
+    count = min(count, len(exposed))
+    if count <= 0:
+        return []
+    shares = np.array([weights[at] for at in exposed])
+    picked = rng.choice(len(exposed), size=count, replace=False, p=shares / shares.sum())
+    return sorted(exposed[int(at)] for at in picked)
+
+
+def bury(band: Band, picked: list[int]) -> int:
+    for at in sorted(picked, reverse=True):
+        del band.members[at]
+    if picked:
+        band.changed()
+    return len(picked)
+
+
+def struck(
+    params: Params, band: Band, taken: float, hurt: float, day: int, rng: np.random.Generator
+) -> tuple[int, int]:
+    """
+    What an encounter does: the share taken of the people, weighed by how exposed they are, die, and the share
+    hurt of those left is injured. Gives the dead and the injured.
+    """
+    weights = vulnerable(params, band, ENCOUNTER)
+    dead = bury(band, _drawn(rng, weights, int(taken * sum(weights) + 0.5)))
+    weights = _injurable(params, band)
+    return dead, _injure(params, band, _drawn(rng, weights, int(hurt * sum(weights) + 0.5)), day)
+
+
+def _injurable(params: Params, band: Band) -> list[float]:
+    stages = params.units.band.people.stages
+    named = census(params, band).stages
+    return [
+        0.0 if member.injured_until is not None else stages[name].dies.injury
+        for member, name in zip(band.members, named, strict=True)
+    ]
+
+
+def _injure(params: Params, band: Band, picked: list[int], day: int) -> int:
+    lasts = params.days(params.units.band.people.injury.lasts)
+    for at in picked:
+        band.members[at].injured_until = day + max(lasts, 1)
+    if picked:
+        band.changed()
+    return len(picked)
+
+
+def fed(params: Params, band: Band) -> bool:
+    """
+    Whether the band can feed more children: food in the stores for the days birth asks and no hunger or thirst.
+    """
+    if STARVATION in band.states or THIRST in band.states:
+        return False
+    return held_days(params, band, 'food') >= params.units.band.people.birth.days
+
+
+@dataclass
+class Lived:
+    """
+    What a day did to the members of a band.
+    """
+
+    lost: list[tuple[str, int]] = field(default_factory=list)
+    born: int = 0
+    injured: int = 0
+
+
+def live(params: Params, band: Band, day: int, wellbeing: float, feeds: bool, rng: np.random.Generator) -> Lived:
+    """
+    The day of the members at its end: they age, die of age and frailty, heal or are hurt, give birth and conceive.
+    """
+    people = params.units.band.people
+    per_year = params.time.days_per_year
+    lived = Lived()
+    for member in band.members:
+        member.age_days += 1
+        if member.injured_until is not None and member.injured_until <= day:
+            member.injured_until = None
+        if member.rest_until is not None and member.rest_until <= day:
+            member.rest_until = None
+    band.changed()
+    begins, doubles = params.days(people.age.begins), params.days(people.age.doubles)
+    old = [
+        (
+            0.0
+            if member.player or member.age_days < begins
+            else min(people.age.per_year * 2 ** ((member.age_days - begins) / doubles), 1.0) / per_year
+        )
+        for member in band.members
+    ]
+    lived.lost.append((AGE, bury(band, _chanced(rng, old))))
+    frail = [held * (1.0 - wellbeing) / per_year for held in vulnerable(params, band, FRAILTY)]
+    lived.lost.append((FRAILTY, bury(band, _chanced(rng, frail))))
+    hurt = [held * people.injury.per_day for held in _injurable(params, band)]
+    lived.injured = _injure(params, band, _chanced(rng, hurt), day)
+    lived.born, mothers = _births(params, band, day, rng)
+    lived.lost.append((BIRTH, bury(band, mothers)))
+    if feeds:
+        _conceive(params, band, day, rng)
+    lived.lost = [(cause, count) for cause, count in lived.lost if count]
+    return lived
+
+
+def _chanced(rng: np.random.Generator, chances: list[float]) -> list[int]:
+    """
+    The members whose chance came up; one number is drawn for every member whatever its chance.
+    """
+    drawn = rng.random(len(chances))
+    return [at for at, chance in enumerate(chances) if drawn[at] < chance]
+
+
+def _births(params: Params, band: Band, day: int, rng: np.random.Generator) -> tuple[int, list[int]]:
+    """
+    The children born alive today and the mothers who died of it.
+    """
+    birth = params.units.band.people.birth
+    low, high = params.days(birth.pause.min), params.days(birth.pause.max)
+    born: list[Member] = []
+    mothers: list[int] = []
+    for at, member in enumerate(band.members):
+        if member.pregnant_until is None or member.pregnant_until > day:
+            continue
+        lives, dies, sex, pause = rng.random(), rng.random(), rng.integers(len(SEXES)), rng.integers(low, high + 1)
+        member.pregnant_until, member.rest_until = None, day + int(pause)
+        if lives < birth.child_survives:
+            born.append(Member(0, SEXES[int(sex)]))
+        if dies < birth.mother_dies and not member.player:
+            mothers.append(at)
+    band.members.extend(born)
+    band.changed()
+    return len(born), mothers
+
+
+def _conceive(params: Params, band: Band, day: int, rng: np.random.Generator) -> None:
+    """
+    Every woman of a stage that conceives, neither pregnant nor resting, may conceive while such a man lives.
+    """
+    people = params.units.band.people
+    named = census(params, band).stages
+    able = [people.stages[name].conceives for name in named]
+    if not any(member.sex == MALE and can for member, can in zip(band.members, able, strict=True)):
+        return
+    drawn = rng.random(len(band.members))
+    pregnancy = max(params.days(people.birth.pregnancy), 1)
+    for at, (member, can) in enumerate(zip(band.members, able, strict=True)):
+        ready = can and member.sex == FEMALE and member.pregnant_until is None and member.rest_until is None
+        if ready and drawn[at] < people.birth.conceive_per_day:
+            member.pregnant_until = day + pregnancy
+    band.changed()

@@ -20,6 +20,16 @@ DISASTER = 'disaster'
 STATUS = {MOVE: 'move', STAY: 'stay'}
 STAYING = {'kind': STAY}
 HIGHEST = 100.0
+OCCASION = 'occasion-'
+# What calls a council, in the order the first that holds is named: docs/game/indirect_control.md, Occasions.
+FIRST = 'first'
+DEATH = 'death'
+HUNGER = 'hunger'
+CLOSED = 'closed'
+RESTLESS = 'restless'
+SEASON = 'season'
+RIVER = 'river'
+OCCASIONS = (FIRST, DEATH, HUNGER, CLOSED, RESTLESS, SEASON, RIVER)
 # The fixed order of the options, the one of the decision function: the gatherings, the moves.
 OPTIONS: tuple[dict[str, Any], ...] = (
     {'kind': STAY},
@@ -178,6 +188,28 @@ def amount(params: Params, proposal: Proposal, found: str) -> float:
     """
     moved: float = getattr(params.council.status, f'{STATUS[proposal["kind"]]}_{found}')
     return moved
+
+
+def restless(laid: Table, standing: Proposal | None) -> bool:
+    """
+    Whether the band wants another thing than the decision in force: it has fewer than half the votes of the
+    leader, or there is none.
+    """
+    if standing is None:
+        return True
+    votes = {key(entry['proposal']): entry['votes'] for entry in laid}
+    return bool(laid) and 2 * votes.get(key(standing), 0) < max(votes.values())
+
+
+def scaled(amount: float, status: float) -> float:
+    """
+    A change of status as the height of status weighs it: above the middle gains shrink towards the top and
+    losses grow; below it every amount is paid in full, so that a player can still fall to banishment.
+    """
+    middle = HIGHEST / 2
+    if amount > 0:
+        return amount * min((HIGHEST - status) / middle, 1.0)
+    return amount * max(status / middle, 1.0)
 
 
 def held(status: float) -> float:

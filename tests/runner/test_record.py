@@ -27,11 +27,7 @@ SMALL = {**PLANET, **QUIET}
 # A voice that outweighs the band, so that the council always sits and is never settled.
 LOUD = {'council.voice.least': 20.0}
 DYING = {**PLANET, 'units.band.consumption_per_day.water': 100.0, 'units.band.states.thirst.loss_per_day': 0.9}
-VOTED = {
-    3: {'kind': 'stay-and-gather'},
-    13: {'kind': 'move', 'towards': 'north'},
-    23: {'kind': 'move', 'towards': 'east'},
-}
+VOTED = ({'kind': 'move', 'towards': 'north'}, {'kind': 'stay-and-gather'}, {'kind': 'move', 'towards': 'east'})
 COUNTERS = (
     'commands_accepted',
     'commands_refused',
@@ -190,10 +186,11 @@ def test_the_replay_example_of_the_documents_runs_as_written(service: Service) -
 
 def test_a_record_with_councils_replays_with_every_hash_and_counts_them(service: Service) -> None:
     runner = service.create(seed=42, overrides={**PLANET, **LOUD}, mode=STEP, seated=True)
-    hashes = []
+    hashes, sat = [], 0
     for tick in range(6 * DAY):
-        if tick in VOTED:
-            runner.submit(Vote(seat='player', proposal=VOTED[tick], id=f'c-{tick}'))
+        if runner.game.council is not None:
+            runner.submit(Vote(seat='player', proposal=VOTED[sat % len(VOTED)], id=f'c-{tick}'))
+            sat += 1
         else:
             runner.step()
         hashes.append(runner.game.state_hash())
@@ -206,7 +203,7 @@ def test_a_record_with_councils_replays_with_every_hash_and_counts_them(service:
     assert result.matched is True
     assert result.game.state_hash() == hashes[-1]
     assert result.game.status == runner.game.status
-    assert rows[-1]['councils'] == 6
+    assert rows[-1]['councils'] == sat > 1
     assert rows[-1]['status'] == runner.game.status
     assert {row['status'] for row in rows} > {50.0}
 

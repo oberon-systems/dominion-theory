@@ -143,7 +143,8 @@ class Agreed(Scripted):
         return {**held, 'seat': {**held['seat'], 'council': None}}
 
     def updates(self, game_id: str, after: int) -> Generator[Body]:
-        agreed = {'key': 'council-agreed', 'values': {'leader': 'proposal-stay-and-gather'}}
+        values = {'leader': 'proposal-stay-and-gather', 'occasion': 'occasion-first'}
+        agreed = {'key': 'council-agreed', 'values': values}
         yield {'seq': 4, 'date': DATE, 'events': [agreed], 'changes': {}, 'waiting': ['player']}
         yield {'seq': 5, 'date': DATE, 'events': [], 'changes': {}, 'waiting': []}
 

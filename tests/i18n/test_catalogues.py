@@ -57,6 +57,7 @@ def in_use() -> set[str]:
     names |= {council.key({'kind': kind}) for kind in PROPOSALS if kind != MOVE}
     names |= {council.key({'kind': MOVE, 'towards': towards}) for towards in DIRECTIONS}
     names.add(council.key(None))
+    names |= {f'{council.OCCASION}{occasion}' for occasion in council.OCCASIONS}
     errors = {*ERRORS, PRESET_NOT_FOUND, PARAMS_INVALID, LOCALE_UNKNOWN, PROFILE_NOT_FOUND, UNIT_NOT_FOUND}
     return {*EVENTS, *REASONS, DATE, *MESSAGES} | errors | names | SPECIFIED
 

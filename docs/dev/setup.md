@@ -234,12 +234,13 @@ The terminal becomes a screen of two panes, drawn with
   and your standing;
 - **its place** - the biome of the band's cell and its properties as the
   band knows them, as bars;
-- **the council** - while the council of the day sits, its question and a
+- **the council** - while a council sits, its question and a
   menu of every option: the ones the others voted for first, with their
   votes, the leader marked and under the pointer, then the rest, and
-  saying nothing last. On an evening when the council is settled and
-  does not sit, the screen stops on "go on" so that the day can be read
-  before the night.
+  saying nothing last. A council meets only when an occasion calls it;
+  on other evenings the screen runs on. When an occasion calls a council
+  that is settled, the screen stops on "go on" so that what happened can
+  be read before the night.
 
 The right pane is the log: a line per update with something to tell, the
 date, the standing and what happened.

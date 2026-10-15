@@ -1,5 +1,5 @@
 {
-  "inputs": "4680efc955ff04e2b6fb1fba0c9bee88a0fb200cb3ab9fe8a50b29bb01066271",
+  "inputs": "a5c9fcba6ebbebb5bf8d34499fb7d46e9c08ca35e53d08ceae9ccdb680919aa3",
   "seeds": {
     "1": {
       "outcome": "alive",
@@ -55,7 +55,7 @@
           "encounters": 2,
           "status": 50.0,
           "known": 53,
-          "snapshot": 29.4
+          "snapshot": 29.5
         },
         {
           "year": 3,
@@ -80,7 +80,7 @@
           "encounters": 3,
           "status": 50.0,
           "known": 39,
-          "snapshot": 27.7
+          "snapshot": 27.8
         },
         {
           "year": 4,
@@ -105,7 +105,7 @@
           "encounters": 7,
           "status": 50.0,
           "known": 58,
-          "snapshot": 30.0
+          "snapshot": 30.1
         },
         {
           "year": 5,
@@ -130,7 +130,7 @@
           "encounters": 3,
           "status": 50.0,
           "known": 41,
-          "snapshot": 27.5
+          "snapshot": 27.6
         },
         {
           "year": 6,
@@ -155,7 +155,7 @@
           "encounters": 0,
           "status": 50.0,
           "known": 36,
-          "snapshot": 27.5
+          "snapshot": 27.6
         },
         {
           "year": 7,
@@ -180,7 +180,7 @@
           "encounters": 2,
           "status": 50.0,
           "known": 51,
-          "snapshot": 29.9
+          "snapshot": 30.0
         },
         {
           "year": 8,
@@ -205,7 +205,7 @@
           "encounters": 1,
           "status": 50.0,
           "known": 50,
-          "snapshot": 29.9
+          "snapshot": 30.0
         },
         {
           "year": 9,
@@ -230,7 +230,7 @@
           "encounters": 2,
           "status": 50.0,
           "known": 67,
-          "snapshot": 32.3
+          "snapshot": 32.4
         },
         {
           "year": 10,
@@ -259,16 +259,16 @@
         }
       ],
       "hashes": [
-        "cbd041611fe2e676fc27931efea7f459e4d6e0e3d16c68a41c35e0adea7a83cc",
-        "05323e1696905536251274eee6ce222abd839b908780ca14e872101fc3dee821",
-        "ce57e8377822137e9b00807a4b08018ad56a58ca61f5b5b0d4c891ed5ac7755f",
-        "3a36e61e7e12b13711151ea231fbee2598eb98b9fff121d92553b28771772d9d",
-        "95194a85fa3b7a7a7164d1484a6c9bea833583d25536502af8efa7df3ced0966",
-        "a91276b6851b25873760089772abd58415b4fa8c3812ad9205d36a6bf8ef2008",
-        "a6e26fa948aec0e4d8cac24264defacc1a294cbbfbd44f638f2e2e680e821353",
-        "65e8853b64d9ebaec12b72b7a8e5eb298b67023f9b1496f1e085f9c69a6180aa",
-        "ed6f25772b0248dd8adafbac6d1519cc10dde1a5bf42f3b29b618d8b32b2cbd7",
-        "5af30f0278b75c04a12a7dbe9530901a39e5d78f7004c5b8fac7d80e9496f1e6"
+        "97088ce5ba1de8208b8d009aef4c7c249c6589f4b43a7467d9ca63ef29b71a8c",
+        "7d2bbb2256a8aaed58c54e2fc95cc75edea86d2aa73a3f5cb6eef4d879acbba7",
+        "2d7ed483e89f10efe74697cddbcd6eb83d3e2cd2ad40e9b087fbb5f10e06b2ba",
+        "0371f5f109b1ab5c6123f3b77837e9257831fa3c652a31d1d6e5721069269e49",
+        "81f6703bbfb8582d0e349d9bff31a1c06119926add13693f12092758cee06efe",
+        "4f7892cad693f9336fe4f93e133cb092a0da3a9247f4cb16e2805f00615b7714",
+        "07f0ba636a7848a3c42ec42b7cff243f44316640448048d389ff601df1ef0ca1",
+        "102914144cb2ca888c88f68034b0caff702bebd4b51f5e4a1d4a16ec36e68cfd",
+        "d65179bdec1a62649f3edc4347b4fee6b7822dc1d24fe8c16f38569792e23612",
+        "1560a030b6368c605fabeb8eb337bb2a7b47459e8000fd86eab5527b136828b9"
       ]
     },
     "2": {
@@ -300,7 +300,7 @@
           "encounters": 0,
           "status": 50.0,
           "known": 82,
-          "snapshot": 35.3
+          "snapshot": 35.4
         },
         {
           "year": 2,
@@ -325,7 +325,7 @@
           "encounters": 1,
           "status": 50.0,
           "known": 83,
-          "snapshot": 35.9
+          "snapshot": 36.0
         },
         {
           "year": 3,
@@ -350,7 +350,7 @@
           "encounters": 1,
           "status": 50.0,
           "known": 62,
-          "snapshot": 33.3
+          "snapshot": 33.4
         },
         {
           "year": 4,
@@ -375,7 +375,7 @@
           "encounters": 1,
           "status": 50.0,
           "known": 107,
-          "snapshot": 39.2
+          "snapshot": 39.3
         },
         {
           "year": 5,
@@ -400,7 +400,7 @@
           "encounters": 1,
           "status": 50.0,
           "known": 75,
-          "snapshot": 35.0
+          "snapshot": 35.1
         },
         {
           "year": 6,
@@ -500,7 +500,7 @@
           "encounters": 4,
           "status": 50.0,
           "known": 89,
-          "snapshot": 37.7
+          "snapshot": 37.8
         },
         {
           "year": 10,
@@ -525,20 +525,20 @@
           "encounters": 5,
           "status": 50.0,
           "known": 93,
-          "snapshot": 38.5
+          "snapshot": 38.6
         }
       ],
       "hashes": [
-        "60cd431b9826ee297a6dc75800265458a3ecbd7fdaa7ca4ea0554d1111099998",
-        "a9750bcede5d1a333331f840efdc2321272c34397fed2ac544da348e49108b8c",
-        "6c6fd7bbdcc047a7115a05a5f37370575a7cb11498ade62668eb9de666fb316c",
-        "b034537d03a8e0ec41ef29b8a27b22f10aa019b85e62822c97f19c1d77c9e6de",
-        "1ced5bdc91be676f8a20e34729d989b546d471df71c96a96a9b512ad81571f98",
-        "d68f0409ec671102a5f773e2a5434d362e411e4511739c3a801aef8175e76211",
-        "d44ff6b1075f1b862e7d07a57362976324fd20650c0d83a606380f149b43824e",
-        "520de2243c7a94923b2860c8c1dbfca71a8cd2a784625f41cece1eb1c0e82d75",
-        "521522e6a0a064358b82cfd2f29f12e1a141f8d4bd4f4a242978f0b9ab5f9186",
-        "63ff38f9ed936c764c703826250e3d74245907ff28c06681a15a47d188a1b2ac"
+        "dcaf3df97abe50b24b52237d4e96cf7f13ec4adb8b7f85885d2b82fd50afae39",
+        "917f610c1a600bbcfdb39abb70be39bd728239a12981065d383a55396f185f4e",
+        "56679a302dc4b06aea3e7d4b502d410e23b4258cfecd175f571abd94467683f6",
+        "553326059e646842e1cd1ed48558bdc589c5e9b53c980c7f8f4139e0b42814cf",
+        "0c4d648e8349c976ac5570ad36a57d1ed0da60978f1fe5961f58505ce84c4df1",
+        "d3b477f2c94072216c4efd933ba2180b8b1f0008d4c7a6c02ee946504f7edb85",
+        "60ac11f043b84c37c14830ee0a5b1642f8186c8cfbbacf4517572828c46c7bde",
+        "655a9486f9d79552a7f2ff1d1d9a58db9348dc058b65f2eb413f132f29eeba93",
+        "f63ae35414ba683d09a8cb9be0159948b7d5559b6c6b3a57ab6d2f943ab34437",
+        "8fe351fb5351fadd148eaa855f6becec3a5b47a05eca7efaede17d8e6b8b71bf"
       ]
     },
     "3": {
@@ -620,7 +620,7 @@
           "encounters": 0,
           "status": 50.0,
           "known": 50,
-          "snapshot": 30.0
+          "snapshot": 30.1
         },
         {
           "year": 4,
@@ -645,7 +645,7 @@
           "encounters": 0,
           "status": 50.0,
           "known": 81,
-          "snapshot": 34.3
+          "snapshot": 34.4
         },
         {
           "year": 5,
@@ -670,7 +670,7 @@
           "encounters": 1,
           "status": 50.0,
           "known": 120,
-          "snapshot": 40.2
+          "snapshot": 40.3
         },
         {
           "year": 6,
@@ -695,7 +695,7 @@
           "encounters": 1,
           "status": 50.0,
           "known": 106,
-          "snapshot": 38.2
+          "snapshot": 38.3
         },
         {
           "year": 7,
@@ -720,7 +720,7 @@
           "encounters": 1,
           "status": 50.0,
           "known": 90,
-          "snapshot": 36.1
+          "snapshot": 36.2
         },
         {
           "year": 8,
@@ -745,7 +745,7 @@
           "encounters": 3,
           "status": 50.0,
           "known": 107,
-          "snapshot": 38.3
+          "snapshot": 38.4
         },
         {
           "year": 9,
@@ -799,16 +799,16 @@
         }
       ],
       "hashes": [
-        "1d7cb6ef2f9b416e01382ff24dd1d2f22fd6da644bebd490e77d6bfccf316709",
-        "3e1aaa3ed965a292bcf4364955a3e71f81a924266165d87e1dea6e2c91fb0175",
-        "6265090b1c9e7db011a0b13ef4a9783d3e9d0b8d58bd7ba555d57e0e2aee0ea7",
-        "1250fb859878833757814ff929c8485c33440db3f197a565332dda1d97f4e433",
-        "35f9bbd5ba6497fbc7c49adea7c7141d099365292a407b5ff5d5f8532330a56c",
-        "3270e9cb88e5a14c5eab2d8fee26d8ac237a8dce70bd4619a0ddbd2620d24a2c",
-        "87e800eab88b20b1cec270d3babd877e2b88438221ac3013b1ee396a0f278311",
-        "b181b3d2240356c1767f1b5d30eb55aa3a68ee6c5a412f456669384e3890cd8a",
-        "6bdde7990e2cbd5494e62d9453c357b99b444b281bfb71e60155c8eca7b7c01c",
-        "be6e2a27ebeb92655479180758dcf9f5a32fe108b7d3d49e8dede31408c25d42"
+        "5f300c9fa99786c74de75f55c8b8efb7827aa96a5db7ec0910314e8b9f49f03c",
+        "4e27b5e99765eb0448ba3f1e6834974a06337442e338c804461886d29fc32663",
+        "d0e07d62c2128be85e001b25449f13df52c64a14b24f490fd13009c3f01f59b3",
+        "4089670171f13e07ab2c657645e63e5d99613127a164b6af042698de52a94913",
+        "9479975a524ad4c8cc5f492c80bb6c73e6ba1cfc601b5b60a0d902d0a3d8f991",
+        "8e0c3bacbcd526be8e07bffe6b9f80968b7d1c041b8a5f57bbcaadb854cee616",
+        "e4ff22c3c6994a1c69b6a1958739bd64b27c3060957a26b22a9bdb416e3c4643",
+        "eda91cf0ea09a4c9ac25d8ab0b44a7ca601a30eb2f619ffc99b898c031d29e55",
+        "64c21b67309bf651109b21c87075a5c74aba49b51aff3109805987074c0a29ea",
+        "a332ca013cc88764dc38070bd50964dd30c7596c172b93df7dd61a8a0ef2c1e2"
       ]
     },
     "4": {
@@ -840,7 +840,7 @@
           "encounters": 1,
           "status": 50.0,
           "known": 44,
-          "snapshot": 28.5
+          "snapshot": 28.6
         },
         {
           "year": 2,
@@ -865,7 +865,7 @@
           "encounters": 2,
           "status": 50.0,
           "known": 35,
-          "snapshot": 27.6
+          "snapshot": 27.7
         },
         {
           "year": 3,
@@ -915,7 +915,7 @@
           "encounters": 2,
           "status": 50.0,
           "known": 102,
-          "snapshot": 36.5
+          "snapshot": 36.6
         },
         {
           "year": 5,
@@ -940,7 +940,7 @@
           "encounters": 2,
           "status": 50.0,
           "known": 109,
-          "snapshot": 37.7
+          "snapshot": 37.8
         },
         {
           "year": 6,
@@ -965,7 +965,7 @@
           "encounters": 0,
           "status": 50.0,
           "known": 94,
-          "snapshot": 35.8
+          "snapshot": 35.9
         },
         {
           "year": 7,
@@ -1015,7 +1015,7 @@
           "encounters": 3,
           "status": 50.0,
           "known": 89,
-          "snapshot": 35.1
+          "snapshot": 35.2
         },
         {
           "year": 9,
@@ -1040,7 +1040,7 @@
           "encounters": 0,
           "status": 50.0,
           "known": 172,
-          "snapshot": 46.7
+          "snapshot": 46.8
         },
         {
           "year": 10,
@@ -1069,16 +1069,16 @@
         }
       ],
       "hashes": [
-        "a9445bb4b795dd6be019b8e0314568b294d0f80c7fec19c473a52425b1e511ba",
-        "51f6835c1d103940c9bf2c36122b3e1ff6a68bc3b365758255a73b103879594d",
-        "ef0c93150a94cbfa3527dd470667c16b68956d2bee0263094573f383c911d994",
-        "8c1ccee74dd6847b7f1759b402cbcab3104049b3f3c59c20855c6e8aeae6618b",
-        "402f9df831fb858036690b549eaf2a58c6ff19d43da8656cc89309ef46cc20ed",
-        "d5ca1e78c2595cfbef35a8a50454edfce42bbb2b3d5173ed87715744342c4dbe",
-        "9181fa8732e371ac51ab92c86429a50f2a5c0a082b487d8ebd004af98b0d9373",
-        "6227097331ddb6032e1a3aca8895a2465ca67ff57bd2e05841351b2789f1d3b2",
-        "d068e426e90b0c57d9cbed88b38e33dbb999d531fa62fe112758c3f61a317057",
-        "2148639da8fcb75f548e3b56e7b0e1248bd6cee98671f54ffc4744283779fcab"
+        "8368a5984b08039fb2a6807c556b17dad880b29181f55762023ec093020c6498",
+        "912f3322f0cfecc17ff08714eb0dca560e6c296817e60f009f96de1e5c75818e",
+        "0726f009afe80091927cfcf0aca7e645ff3ca320b4049f521432cd0dd38b62e5",
+        "34c4b65f7a38a25f5d894e026a48fd452efce0c4e348b275360ecf2107d27953",
+        "65842a026efb2f9f48fa49646a9fa26edb12e5279e7c3d12d9f944dd1daeefde",
+        "a2e9443546fd5bede28d331fb72691e8e04b4297c4a38ba973c5ae67a8e5da08",
+        "bc60f9ee711b90ab8e3b936a263ebab5d5fdfe1e0b64319ad8ad2ed980ab3be1",
+        "685c377254e22fee689f3d5cefdc09a080b6b741583f135739bad89c19aead45",
+        "49d219a65a039f84294ab0219353b57b667005aa86a1f06283db2954627a1f61",
+        "ac5c4ac77427d4a8e2cde943dc0a9bfbf07da29a32d6212445b82ff28a06e47b"
       ]
     },
     "5": {
@@ -1110,11 +1110,11 @@
           "encounters": 3,
           "status": 50.0,
           "known": 0,
-          "snapshot": 21.3
+          "snapshot": 21.4
         }
       ],
       "hashes": [
-        "086bbb3964dd5f01c82f45e408627474827d49abd1678f4996022b7bb06a5ba4"
+        "168377c606068a244c487a8c9609ac94841764ab92f24ddffb58b2a7d1ceaf55"
       ]
     }
   },

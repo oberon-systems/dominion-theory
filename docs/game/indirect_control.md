@@ -3,7 +3,8 @@
 #game #council #stage2
 
 The player does not command the band. The player is one voice in its
-council, and the council meets every evening: the others put their votes
+council, and the council meets in the evening when something calls it:
+the others put their votes
 on what the band could do, the player sees how they lie and answers, and
 what follows moves the player's status. This document gives the rules of
 the council, the vote, the judgement and the status. Part of the stage 2
@@ -55,16 +56,46 @@ days the player voted for change it: it does not drift by itself, and
 what the band suffers on a day the player did not vote for is not the
 player's fault.
 
+Above the middle, the higher status stands, the harder it moves up and
+the easier down: every change is weighed by the height it starts from.
+
+```text
+gain = amount * min((100 - status) / 50, 1)
+loss = amount * max(status / 50, 1)
+```
+
+At 50 and below every amount is paid as the tables give it, so a
+player can still fall to banishment. At 90 a move that worked gives 0.8
+and one that failed costs 10.8, so the top is held only by a player who
+keeps being right.
+
 ___
 
 ## The council of the day
 
-The council meets once a day, in the evening, around the fire of the
-camp, and decides the next day: the morning, the midday and the
-afternoon, when the band works. Nobody calls it, and it cannot be called
-at another time.
+The council meets in the evening, around the fire of the camp, when an
+occasion calls it, and decides the days until the next one: the
+mornings, the middays and the afternoons, when the band works. On an
+evening with no occasion nothing sits: the last decision stands, the
+band stays bound to it, and the days count for the player as the last
+council left them.
 
-1. **Judgement** - the proposal of the evening before, if the player
+| Occasion   | Holds when                                                   |
+|------------|--------------------------------------------------------------|
+| `first`    | it is the first evening of the game                          |
+| `death`    | somebody died since the last council                         |
+| `hunger`   | hunger or thirst reaches `roaming.hunger`                    |
+| `closed`   | the way of the decision in force was closed                  |
+| `restless` | the decision in force has fewer than half the votes of the leader: the band wants another thing |
+| `season`   | a season began since the last council                        |
+| `river`    | the band saw a river it did not know since the last council  |
+
+The first that holds, in this order, is named in the event. An
+occasion is a key, so that a chance encounter can later call a council
+of its own, with options of its own: a pack of wolves that is fled,
+fought or fed.
+
+1. **Judgement** - the proposal of the council before, if the player
    turned the band, is judged first; see [The judgement](#the-judgement).
 2. **The table** - the others vote, and the votes are shown to the
    player; see [The table of votes](#the-table-of-votes).
@@ -313,8 +344,8 @@ Every event is a message key with values, in both catalogues.
 
 | Key                 | Values                                   | When                          |
 |---------------------|------------------------------------------|-------------------------------|
-| `council-opened`    | `leader`                                 | the table is drawn            |
-| `council-agreed`    | `leader`                                 | the leader wins whatever the player says |
+| `council-opened`    | `leader`, `occasion`                     | the table is drawn            |
+| `council-agreed`    | `leader`, `occasion`                     | the leader wins whatever the player says |
 | `council-followed`  | `proposal`                               | the player backed the leader  |
 | `council-turned`    | `proposal`, `yes`, `all`                 | the player carried an option  |
 | `council-outvoted`  | `proposal`, `winner`, `status`           | the player lost the vote      |
@@ -376,14 +407,14 @@ gets 6, the move east 4, and the first four other moves in the fixed
 order 1 each.
 
 ```text
-seq 500          council-opened leader proposal-stay-and-gather
+seq 500          council-opened leader proposal-stay-and-gather, occasion occasion-restless
                  table: stay-and-gather 6, move-north 1, move-north-east 1, move-east 4, ...
 ```
 
 The player backs the move east: 4 + 3.75 = 7.75 beats 6. The band roams
-east the next day and the move is judged the next evening against the
-0.5 staying promised: the land reached scores 0.55 by the same measure,
-and the move worked.
+east from the next morning and the move is judged at the next council
+against the 0.5 staying promised: the land reached scores 0.55 by the
+same measure, and the move worked.
 
 ```text
 POST /commands   {"id": "c-7", "kind": "vote", "proposal": {"kind": "move", "towards": "east"}}

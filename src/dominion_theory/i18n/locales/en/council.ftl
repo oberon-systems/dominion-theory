@@ -9,8 +9,15 @@ proposal-move-north-west = we go between the sunset and the unmoving star
 proposal-stay-and-gather = we stay and gather
 proposal-none = nothing in particular
 
-council-opened = The council of the day sits. Most lean to: { $leader }.
-council-agreed = The council needs no vote, all are of one mind: { $leader }.
+council-opened = The council sits: { $occasion }. Most lean to: { $leader }.
+council-agreed = The council meets: { $occasion }; all are of one mind: { $leader }.
+occasion-first = it is the first evening
+occasion-death = people have died
+occasion-hunger = hunger presses
+occasion-closed = the way is closed
+occasion-restless = the band wants another way
+occasion-season = the season has turned
+occasion-river = a river has been seen
 council-followed = You spoke with the others: { $proposal }.
 council-turned = You turned the band: { $proposal }. { NUMBER($yes, maximumFractionDigits: 1) } voices of { NUMBER($all, maximumFractionDigits: 1) } were for it.
 council-outvoted = The council would not have it: { $proposal }; it chose { $winner }. Your standing is now { NUMBER($status, maximumFractionDigits: 0) }.

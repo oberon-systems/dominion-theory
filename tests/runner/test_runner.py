@@ -296,6 +296,7 @@ def test_a_council_stops_the_clock_until_the_seat_votes_or_the_wait_runs_out(sto
         await asyncio.sleep(0.05)
         held = runner.game.tick
         runner.submit(Vote(seat='player', proposal={'kind': 'abstain'}, id='c-1'))
+        runner.game.since['season'] = True
         voted = runner.asked
         await updates(runner, DAY + 1)
         runner.pause()

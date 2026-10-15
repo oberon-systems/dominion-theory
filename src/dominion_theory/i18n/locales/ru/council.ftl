@@ -9,8 +9,15 @@ proposal-move-north-west = идём между закатом и неподви�
 proposal-stay-and-gather = остаёмся собирать
 proposal-none = ничего особенного
 
-council-opened = Совет дня собрался. Большинство склоняется: { $leader }.
-council-agreed = Совет единодушен, голосовать не о чем: { $leader }.
+council-opened = Собрался совет: { $occasion }. Большинство склоняется: { $leader }.
+council-agreed = Собрался совет: { $occasion }, но все единодушны: { $leader }.
+occasion-first = первый вечер
+occasion-death = погибли люди
+occasion-hunger = подступает голод
+occasion-closed = путь закрыт
+occasion-restless = община хочет иного
+occasion-season = сменилось время года
+occasion-river = увидели реку
 council-followed = Вы сказали то же, что и все: { $proposal }.
 council-turned = Вы повернули общину: { $proposal }. За — { NUMBER($yes, maximumFractionDigits: 1) } голосов из { NUMBER($all, maximumFractionDigits: 1) }.
 council-outvoted = Совет не согласился: { $proposal }; решили — { $winner }. Ваш вес теперь { NUMBER($status, maximumFractionDigits: 0) }.

@@ -167,10 +167,65 @@ def test_the_evening_opens_the_council_and_the_seat_shows_its_table(params: Para
 
     assert game.date.part == 'evening'
     assert game.council is not None
-    assert told(opened)[-1] == ('council-opened', {'leader': council.key(game.council['leader'])})
+    leader = council.key(game.council['leader'])
+    assert told(opened)[-1] == ('council-opened', {'leader': leader, 'occasion': 'occasion-first'})
     assert opened.changes['seat'] == {'council': game.council}
     assert game.seat['council'] == game.council
     assert game.counters.row()[-1] == 1
+
+
+def quiet(game: Game) -> council.Proposal | None:
+    """
+    Nothing happened since the last council, and the band is bound to what it leans to: no occasion holds.
+    """
+    game.since = {'first': False, 'death': 0, 'closed': False, 'season': False, 'river': False}
+    leader = council.leader(council.table(game.params, band(game), ERA))
+    band(game).intent = {'proposal': leader}
+    return leader
+
+
+def test_an_evening_with_no_occasion_calls_no_council_and_the_decision_stands(params: Params) -> None:
+    game = land(params, stripped=STRIPPED, parts=AFTERNOON)
+    leader = quiet(game)
+
+    evening = game.step()
+
+    assert game.council is None
+    assert [key for key, _ in told(evening) if key.startswith('council-')] == []
+    assert band(game).intent == {'proposal': leader}
+
+
+@pytest.mark.parametrize(
+    ('since', 'occasion'),
+    [
+        ({'first': True}, 'first'),
+        ({'death': 2}, 'death'),
+        ({'closed': True}, 'closed'),
+        ({'season': True}, 'season'),
+        ({'river': True}, 'river'),
+    ],
+)
+def test_what_happened_since_the_last_council_calls_it(params: Params, since: dict[str, Any], occasion: str) -> None:
+    game = land(params, stripped=STRIPPED, parts=AFTERNOON)
+    quiet(game)
+    game.since.update(since)
+
+    opened = game.step()
+
+    assert told(opened)[-1][1]['occasion'] == f'occasion-{occasion}'
+    assert game.since == {'first': False, 'death': 0, 'closed': False, 'season': False, 'river': False}
+
+
+def test_hunger_and_a_band_that_wants_another_thing_call_the_council(params: Params) -> None:
+    hungry, restless = (land(params, stripped=STRIPPED, parts=AFTERNOON) for _ in range(2))
+    quiet(hungry)
+    band(hungry).stores = {}
+    quiet(restless)
+    band(restless).intent = {'proposal': NORTHWARD}
+
+    occasions = [told(game.step())[-1][1]['occasion'] for game in (hungry, restless)]
+
+    assert occasions == ['occasion-hunger', 'occasion-restless']
 
 
 def test_a_settled_council_does_not_sit_and_the_day_is_the_players(params: Params) -> None:
@@ -179,7 +234,7 @@ def test_a_settled_council_does_not_sit_and_the_day_is_the_players(params: Param
 
     agreed = game.step()
 
-    assert told(agreed)[-1] == ('council-agreed', {'leader': 'proposal-stay-and-gather'})
+    assert told(agreed)[-1] == ('council-agreed', {'leader': 'proposal-stay-and-gather', 'occasion': 'occasion-first'})
     assert (game.council, game.asking, agreed.changes['seat']) == (None, [], {})
     assert game.answered == {'today': None, 'tomorrow': 'voted'}
     assert game.counters.row()[-1] == 0
@@ -467,15 +522,23 @@ def test_staying_carried_fails_on_an_encounter_and_only_the_day_voted_for_is_bla
     assert judged(results[-1]) == [verdict]
 
 
-def test_status_is_held_at_a_hundred(params: Params) -> None:
+def test_status_rises_slowly_near_the_top_and_is_held_at_a_hundred(params: Params) -> None:
     game = land(params, stripped=STRIPPED)
     game.status = 99.0
     sit(game, (STAY, 8), (NORTHWARD, 1), (EAST, 5))
 
     results = [vote(game, EAST), *steps(game, DAY - 1)]
 
-    assert judged(results[-1]) == [('proposal-worked', {'proposal': 'proposal-move-east', 'status': 100.0})]
-    assert results[-1].changes['seat']['status'] == 100.0
+    assert judged(results[-1]) == [('proposal-worked', {'proposal': 'proposal-move-east', 'status': 99.08})]
+    assert council.held(105.0) == 100.0
+
+
+@pytest.mark.parametrize(
+    ('amount', 'status', 'paid'),
+    [(4.0, 50.0, 4.0), (4.0, 90.0, 0.8), (-6.0, 90.0, -10.8), (4.0, 20.0, 4.0), (-2.0, 2.0, -2.0)],
+)
+def test_status_is_weighed_by_its_height_above_the_middle(amount: float, status: float, paid: float) -> None:
+    assert council.scaled(amount, status) == pytest.approx(paid)
 
 
 def test_banishment_by_silence_ends_the_game_and_spares_the_band(params: Params) -> None:

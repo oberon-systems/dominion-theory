@@ -251,8 +251,8 @@ The path of one player action, from the browser and back. The council is
 a rule of stage 2; today `pass` travels the same path and comes back as
 `command-accepted`.
 
-1. The client sends "at the council of the day, I propose a rest" to the
-   API.
+1. The client sends "at the council of the day, I propose we stay and
+   gather" to the API.
 2. The API takes the caller for the one seat of the game, since there is
    no sign-in yet, and hands the command to the runner of that game.
 3. The runner submits it to the engine before the next tick.

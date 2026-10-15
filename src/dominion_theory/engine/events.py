@@ -17,6 +17,7 @@ PEOPLE_BORN = 'people-born'
 BAND_DIED = 'band-died'
 ENCOUNTER = 'encounter'
 COUNCIL_OPENED = 'council-opened'
+COUNCIL_AGREED = 'council-agreed'
 COUNCIL_FOLLOWED = 'council-followed'
 COUNCIL_TURNED = 'council-turned'
 COUNCIL_OUTVOTED = 'council-outvoted'
@@ -25,6 +26,8 @@ PROPOSAL_WORKED = 'proposal-worked'
 PROPOSAL_FAILED = 'proposal-failed'
 PROPOSAL_DISASTER = 'proposal-disaster'
 INTENT_ENDED = 'intent-ended'
+SEAT_BLAMED = 'seat-blamed'
+SEAT_PRAISED = 'seat-praised'
 SEAT_BANISHED = 'seat-banished'
 
 REFUSED_UNKNOWN_COMMAND = 'refused-unknown-command'
@@ -48,6 +51,7 @@ EVENTS: dict[str, tuple[str, ...]] = {
     BAND_DIED: (),
     ENCOUNTER: ('kind', 'lost'),
     COUNCIL_OPENED: ('leader',),
+    COUNCIL_AGREED: ('leader',),
     COUNCIL_FOLLOWED: ('proposal',),
     COUNCIL_TURNED: ('proposal', 'yes', 'all'),
     COUNCIL_OUTVOTED: ('proposal', 'winner', 'status'),
@@ -56,6 +60,8 @@ EVENTS: dict[str, tuple[str, ...]] = {
     PROPOSAL_FAILED: ('proposal', 'lost', 'status'),
     PROPOSAL_DISASTER: ('proposal', 'lost', 'status'),
     INTENT_ENDED: ('proposal',),
+    SEAT_BLAMED: ('lost', 'status'),
+    SEAT_PRAISED: ('born', 'status'),
     SEAT_BANISHED: (),
 }
 

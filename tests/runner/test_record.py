@@ -24,11 +24,13 @@ QUIET = {
 }
 PLANET = {'planet.circumference_km': 4000, 'planet.window.width': 32, 'planet.window.height': 16}
 SMALL = {**PLANET, **QUIET}
+# A voice that outweighs the band, so that the council always sits and is never settled.
+LOUD = {'council.voice.least': 20.0}
 DYING = {**PLANET, 'units.band.consumption_per_day.water': 100.0, 'units.band.states.thirst.loss_per_day': 0.9}
 VOTED = {
-    0: {'kind': 'stay-and-gather'},
-    10: {'kind': 'rest'},
-    20: {'kind': 'move', 'towards': 'east'},
+    3: {'kind': 'stay-and-gather'},
+    13: {'kind': 'move', 'towards': 'north'},
+    23: {'kind': 'move', 'towards': 'east'},
 }
 COUNTERS = (
     'commands_accepted',
@@ -52,8 +54,7 @@ COUNTED = {
     'food': 15.0,
     'water': 15.0,
     'camps': 1,
-    'status': 48.0,
-    'councils': 1,
+    'status': 50.0,
 }
 DAY = 5
 
@@ -110,7 +111,7 @@ def test_a_seat_is_held_by_a_person_unless_said(service: Service) -> None:
 
 
 def test_a_tick_writes_its_commands_itself_and_its_events(service: Service) -> None:
-    runner = service.create(seed=1, overrides=SMALL, mode=STEP, seated=True)
+    runner = service.create(seed=1, overrides={**SMALL, **LOUD}, mode=STEP, seated=True)
     runner.submit(Vote(seat='player', proposal='rest', id='c-1'))
     for _ in range(DAY - 1):
         runner.step()
@@ -138,9 +139,13 @@ def test_a_tick_writes_its_commands_itself_and_its_events(service: Service) -> N
         'key': 'command-refused',
         'values': {'id': 'c-1', 'reason': 'refused-unknown-command'},
     }
-    assert lines[4] == {'t': 'event', 'tick': 1, 'key': 'council-abstained', 'values': {'status': 48.0}}
+    assert {'t': 'event', 'tick': 4, 'key': 'council-abstained', 'values': {'status': 48.0}} in lines
     assert [line['tick'] for line in lines if line['t'] == 'tick'] == [1, 2, 3, 4, 5]
-    assert [line['key'] for line in lines[-2:]] == ['day-started', 'council-opened']
+    assert [line['key'] for line in lines if line['t'] == 'event'][-3:] == [
+        'council-opened',
+        'council-abstained',
+        'day-started',
+    ]
 
 
 def test_lines_are_written_at_the_end_of_a_day_as_a_member_of_their_own(service: Service) -> None:
@@ -184,7 +189,7 @@ def test_the_replay_example_of_the_documents_runs_as_written(service: Service) -
 
 
 def test_a_record_with_councils_replays_with_every_hash_and_counts_them(service: Service) -> None:
-    runner = service.create(seed=42, overrides=PLANET, mode=STEP, seated=True)
+    runner = service.create(seed=42, overrides={**PLANET, **LOUD}, mode=STEP, seated=True)
     hashes = []
     for tick in range(6 * DAY):
         if tick in VOTED:
@@ -201,7 +206,7 @@ def test_a_record_with_councils_replays_with_every_hash_and_counts_them(service:
     assert result.matched is True
     assert result.game.state_hash() == hashes[-1]
     assert result.game.status == runner.game.status
-    assert rows[-1]['councils'] == 1 + 6
+    assert rows[-1]['councils'] == 6
     assert rows[-1]['status'] == runner.game.status
     assert {row['status'] for row in rows} > {50.0}
 

@@ -237,7 +237,9 @@ The terminal becomes a screen of two panes, drawn with
 - **the council** - while the council of the day sits, its question and a
   menu of every option: the ones the others voted for first, with their
   votes, the leader marked and under the pointer, then the rest, and
-  saying nothing last.
+  saying nothing last. On an evening when the council is settled and
+  does not sit, the screen stops on "go on" so that the day can be read
+  before the night.
 
 The right pane is the log: a line per update with something to tell, the
 date, the standing and what happened.
@@ -283,12 +285,12 @@ Those words are the names of the parameter tree and are not translated.
 When the input or the output is not a terminal, as in a pipe, the game
 is played as lines instead: a coloured line per update, and at every
 council the map and a numbered list. The answer is then read as a line: a
-number, a name of the API (`east`, `ne`, `rest`, `stay`, `abstain`) or an
+number, a name of the API (`east`, `ne`, `stay`, `abstain`) or an
 empty line, which says nothing. Colour is dropped when the output is not
 a terminal.
 
 ```bash
-printf 'rest\n\n' | make play PLAY='--updates 10'
+printf 'stay\n\n' | make play PLAY='--updates 10'
 ```
 
 ___

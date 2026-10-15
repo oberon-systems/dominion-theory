@@ -18,14 +18,15 @@ from .band import (
     ROAM,
     STARVATION,
     THIRST,
-    TIREDNESS,
     Action,
     Band,
     camp,
     gathering,
+    held_days,
     moving,
     roaming,
     room,
+    short,
 )
 from .cells import Place
 
@@ -35,11 +36,9 @@ WANDER = 'wander'
 THREAT = 'threat'
 # The need a property of a cell answers, and the state that makes it whole.
 NEEDS: dict[str, tuple[str, str]] = {'food': (HUNGER, STARVATION), 'water': (THIRST, THIRST)}
-EFFORT = 4.0
 # What a band may still do under the intent of each proposal: docs/game/decisions.md, Under an intent.
 NARROWED: dict[str, frozenset[str]] = {
     commands.MOVE: frozenset({MOVE, ROAM, CAMP}),
-    commands.REST: frozenset({CAMP}),
     commands.STAY: frozenset({GATHER, CAMP}),
 }
 
@@ -52,20 +51,10 @@ class Scored:
     pull: Place | None = None
 
 
-def needs(params: Params, band: Band, part: str) -> dict[str, float]:
+def needs(params: Params, band: Band) -> dict[str, float]:
     """
-    Hunger, thirst and rest, each from 0, nothing wanted, to 1.
-    """
-    rules = params.units.band
-    found = wants(params, band)
-    rest = band.fatigue + (rules.decisions.night if part in rules.decisions.night_parts else 0.0)
-    found[REST] = _held(rest * (2.0 if TIREDNESS in band.states else 1.0))
-    return found
-
-
-def wants(params: Params, band: Band) -> dict[str, float]:
-    """
-    Hunger and thirst: the level of the days in the stores, or whole while the state holds.
+    Hunger and thirst, each from 0, nothing wanted, to 1: the level of the days in the stores, or whole while
+    the state holds.
     """
     return {
         need: 1.0 if state in band.states else level(params, held_days(params, band, prop))
@@ -96,7 +85,7 @@ def wellbeing(params: Params, band: Band, threat: float) -> float:
     How well the band lives on its cell: the weighted mean of fed, watered, safe and rested.
     """
     weights = params.units.band.population.growth.weights
-    wanted = wants(params, band)
+    wanted = needs(params, band)
     parts = (
         (weights.food, 1.0 - wanted[HUNGER]),
         (weights.water, 1.0 - wanted[THIRST]),
@@ -104,19 +93,6 @@ def wellbeing(params: Params, band: Band, threat: float) -> float:
         (weights.rest, 1.0 - band.fatigue),
     )
     return sum(weight * part for weight, part in parts) / sum(weight for weight, _ in parts)
-
-
-def held_days(params: Params, band: Band, prop: str) -> float:
-    """
-    The days the stores of a property last the band; endless when nobody eats it.
-    """
-    resources = [name for name, held in params.resources.items() if held.property == prop]
-    eaten = band.population * sum(params.units.band.consumption_per_day.get(name, 0.0) for name in resources)
-    return sum(band.held(name) for name in resources) / eaten if eaten > 0 else math.inf
-
-
-def _held(value: float) -> float:
-    return min(max(value, 0.0), 1.0)
 
 
 def reachable(params: Params, band: Band, at: Place, era: str) -> bool:
@@ -150,7 +126,6 @@ def _far(a: Place, b: Place) -> int:
 def options(
     params: Params,
     band: Band,
-    part: str,
     era: str,
     allowed: Collection[str] | None = None,
     towards: Collection[str] | None = None,
@@ -159,21 +134,21 @@ def options(
     """
     Everything the band could do with its score, in the order that settles a tie: the camp, the gatherings,
     the moves clockwise from the north, the roams the same. An intent narrows the kinds and the directions and
-    fixes the pull; walking scores the moves of a hungry band too.
+    fixes the pull, not the pace; walking scores the moves of a hungry band too.
     """
     rules = params.units.band
     weights = rules.decisions.weights
-    wanted = needs(params, band, part)
+    wanted = needs(params, band)
     own = band.known.get(band.place, {})
     here, _ = worth(params, own, wanted) if own else (0.0, REST)
     found: list[Scored] = []
     if allowed is None or CAMP in allowed:
-        found.append(Scored(camp(), weights.rest * wanted[REST], REST))
+        found.append(Scored(camp(), 0.0, REST))
     gathered = _gathered(params, band, own, era, wanted) if own else []
     if allowed is None or GATHER in allowed:
         found.extend(gathered)
     if allowed is None or MOVE in allowed or ROAM in allowed:
-        hungry = max(wanted[need] for need, _ in NEEDS.values()) >= rules.roaming.hunger
+        hungry = max(wanted.values()) >= rules.roaming.hunger
         enterable = {at for at in band.known if reachable(params, band, at, era)}
         moves: list[Scored] = []
         roams: list[Scored] = []
@@ -181,18 +156,17 @@ def options(
             target = band.x + dx, band.y + dy
             if target not in enterable or (towards is not None and name not in towards):
                 continue
-            effort = min(1.0 / band.known[target][PASSABILITY], EFFORT)
-            tired = weights.rest * wanted[REST] * effort
             if towards is not None:
-                gain, need, source, kept = weights.intent - here, REST, None, 0.0
+                gain, need, source, kept, pace = weights.intent - here, REST, None, 0.0, 1.0
             else:
                 pull, need, source = _pull(params, band, target, enterable, wanted)
                 gain, kept = pull - here, weights.momentum if band.target == target else 0.0
-            moves.append(Scored(moving(name), weights.move * gain - tired + kept, need, source))
+                pace = rules.roaming.speed
+            moves.append(Scored(moving(name), weights.move * gain + kept, need, source))
             ahead = _gathered(params, band, band.known[target], era, wanted)
-            on_the_way = rules.roaming.share * sum(held.score for held in ahead)
-            slow = weights.move * gain * rules.roaming.speed
-            roams.append(Scored(roaming(name), slow - tired + kept + on_the_way, need, source))
+            short_of = [held.score for held in ahead if short(params, band, held.action['resource'])]
+            on_the_way = rules.roaming.share * sum(short_of)
+            roams.append(Scored(roaming(name), weights.move * gain * pace + kept + on_the_way, need, source))
         if (allowed is None or MOVE in allowed) and (walking or not hungry):
             found.extend(moves)
         if allowed is None or ROAM in allowed:
@@ -256,7 +230,7 @@ def way(params: Params, band: Band, towards: str, era: str) -> str | None:
     return None
 
 
-def intended(params: Params, band: Band, proposal: dict[str, Any], part: str, era: str) -> Scored | None:
+def intended(params: Params, band: Band, proposal: dict[str, Any], era: str) -> Scored | None:
     """
     The best of what an intent leaves the band; None when the way of a move is closed.
     """
@@ -265,14 +239,13 @@ def intended(params: Params, band: Band, proposal: dict[str, Any], part: str, er
         towards = way(params, band, proposal['towards'], era)
         if towards is None:
             return None
-    found = options(params, band, part, era, NARROWED[proposal['kind']], None if towards is None else {towards})
+    found = options(params, band, era, NARROWED[proposal['kind']], None if towards is None else {towards})
     return max(found, key=lambda held: held.score)
 
 
 def decide(
     params: Params,
     band: Band,
-    part: str,
     day: int,
     era: str,
     pick: Callable[[int], int] | None = None,
@@ -281,13 +254,13 @@ def decide(
     The action of a free band, with its reason kept on the band. pick(count) draws one of count,
     and is asked only when the band starts to wander.
     """
-    scored = options(params, band, part, era)
+    scored = options(params, band, era)
     best = max(scored, key=lambda held: held.score)
     if best.score > params.units.band.decisions.idle:
         band.wander = None
         band.reason = reason(best)
         return best.action
-    moves = [held.action['towards'] for held in scored if held.action['kind'] == MOVE]
+    moves = [held.action['towards'] for held in scored if held.action['kind'] == ROAM]
     kept = band.wander
     if kept is not None and kept['until'] > day and kept['towards'] in moves:
         towards = kept['towards']
@@ -299,8 +272,8 @@ def decide(
         band.wander = None
         band.reason = reason(best)
         return best.action
-    band.reason = {'action': MOVE, 'towards': towards, 'need': WANDER, 'score': best.score, 'pull': None}
-    return moving(towards)
+    band.reason = {'action': ROAM, 'towards': towards, 'need': WANDER, 'score': best.score, 'pull': None}
+    return roaming(towards)
 
 
 def reason(held: Scored) -> dict[str, Any]:

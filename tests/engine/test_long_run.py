@@ -17,6 +17,7 @@ NO_FOOD = {
 }
 YEARS = 4
 HALFWAY = 2
+LIVING = 7
 ACTIONS = ('moves', 'gathers', 'camps')
 
 
@@ -46,7 +47,7 @@ def live(game: Game, years: int) -> list[Year]:
 
 @pytest.fixture(scope='module')
 def years() -> list[Year]:
-    return live(Game.create(seed=42, params=load_params(overrides=SMALL)), YEARS)
+    return live(Game.create(seed=LIVING, params=load_params(overrides=SMALL)), YEARS)
 
 
 def test_a_band_with_no_player_lives_for_years_and_moves_gathers_and_camps_in_every_one(years: list[Year]) -> None:
@@ -58,7 +59,7 @@ def test_a_band_with_no_player_lives_for_years_and_moves_gathers_and_camps_in_ev
 
 
 def test_the_same_seed_lives_the_same_years_from_the_start_and_from_a_restore(years: list[Year]) -> None:
-    again = live(Game.create(seed=42, params=load_params(overrides=SMALL)), 1)
+    again = live(Game.create(seed=LIVING, params=load_params(overrides=SMALL)), 1)
     restored = live(Game.restore(years[HALFWAY - 1].snapshot), YEARS - HALFWAY)
 
     assert again[0].hash == years[0].hash

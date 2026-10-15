@@ -93,28 +93,29 @@ What is already settled and binds every stage.
   and the player is one voice in it. The weight of that voice is the
   player's status: decisions that end in hunger or loss lower it, and a
   player whose status is gone is banished, which ends the game.
-- **A band acts on its own, and the council meets every morning.** The
-  others put their votes on what the band could do, the player sees how
-  they lie and backs an option, proposes another or does not vote, which
-  costs status. Status moves only with what the player changed.
+- **A band acts on its own, and the council meets every evening.** It
+  decides the next day. The others put their votes on what the band
+  could do, the player sees how they lie and backs an option, proposes
+  another or does not vote, which costs status. On a day the player
+  voted for, every death costs status and every birth earns it; on a
+  day the player kept silent on, the deaths cost it too. Decided by the
+  user on 2026-10-15.
 - **A proposal is said the way a nomad would say it**: "we go where the sun
-  rises", "we follow the pole star", "we rest here", "we stay and
-  gather".
+  rises", "we follow the pole star", "we stay and gather".
 - **A proposal the player carried is judged by what follows**, at the
   next council. If it worked out, status rises; if not, it falls; if it
-  ended in disaster, a large loss of people, it falls hard. Backing what
-  the band would have done anyway moves nothing.
-- **A long rest always raises status** and makes the band grow, but nobody
-  gathers, so food and water run down.
-- **Staying to gather raises status**, unless a chance encounter, a bear
-  for one, takes people.
+  ended in disaster, a large loss of people, it falls hard. It is judged
+  against the day the leader promised.
+- **There is no rest to propose**: the band works by day and camps every
+  evening and night, decided by the user on 2026-10-15. Fatigue takes
+  from the pace and the gathering and weighs in no decision.
 - **The council meets once a day**, decided by the user on 2026-10-14 in
   place of a council called by the player with a gap between two. The
   others' votes lie by how good each option looks to the band; the
   player's voice always weighs more than one, and more with status. A
   player outvoted pays a little, a player who does not vote pays more.
 - **A meeting with another band is an emergency council**, outside the
-  morning: attack, ally or ignore. It is designed with stage 3.
+  evening: attack, ally or ignore. It is designed with stage 3.
 - **A proposal is judged by supplies and people**: the days of food and
   water in the stores at the call and at the close of the window, and
   the share of people lost. A fifth of the band lost is a disaster.
@@ -338,9 +339,9 @@ The first unit, and the rules of indirect control.
 - Movement: eight directions, no water, no occupied cell, cost from
   passability and band size.
 - Population growth and loss.
-- Indirect control: a council every morning. The others' votes are laid
-  out over the options - to move in a direction, to rest, to stay and
-  gather - and the player backs one, proposes another or abstains. How
+- Indirect control: a council every evening. The others' votes are laid
+  out over the options - to move in a direction or to stay and gather -
+  and the player backs one, proposes another or abstains. How
   the vote goes, how what the player carried is judged and moves status,
   what abstaining costs, banishment at zero.
 - Chance encounters, driven by the threat of the biome.

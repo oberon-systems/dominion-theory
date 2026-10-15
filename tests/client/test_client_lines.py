@@ -36,14 +36,17 @@ SAMPLES: dict[str, dict[str, Any]] = {
     'band-died': {},
     'encounter': {'kind': 'encounter-predator', 'lost': 1},
     'council-opened': {'leader': 'proposal-stay-and-gather'},
+    'council-agreed': {'leader': 'proposal-move-east'},
     'council-followed': {'proposal': 'proposal-stay-and-gather'},
     'council-turned': {'proposal': 'proposal-move-east', 'yes': 8.75, 'all': 17.75},
-    'council-outvoted': {'proposal': 'proposal-move-north', 'winner': 'proposal-rest', 'status': 49.0},
+    'council-outvoted': {'proposal': 'proposal-move-north', 'winner': 'proposal-stay-and-gather', 'status': 49.0},
     'council-abstained': {'status': 48.0},
     'proposal-worked': {'proposal': 'proposal-stay-and-gather', 'status': 53.0},
     'proposal-failed': {'proposal': 'proposal-move-west', 'lost': 0, 'status': 44.0},
     'proposal-disaster': {'proposal': 'proposal-move-north', 'lost': 4, 'status': 24.0},
     'intent-ended': {'proposal': 'proposal-move-south'},
+    'seat-blamed': {'lost': 3, 'status': 35.0},
+    'seat-praised': {'born': 1, 'status': 55.0},
     'seat-banished': {},
 }
 

@@ -139,15 +139,11 @@ class MoveProposal(BaseModel):
     towards: str
 
 
-class RestProposal(BaseModel):
-    kind: Literal['rest']
-
-
 class StayProposal(BaseModel):
     kind: Literal['stay-and-gather']
 
 
-Proposal = Annotated[MoveProposal | RestProposal | StayProposal, Field(discriminator='kind')]
+Proposal = Annotated[MoveProposal | StayProposal, Field(discriminator='kind')]
 
 
 class Intent(BaseModel):
@@ -166,7 +162,7 @@ class Reason(BaseModel):
     model_config = ConfigDict(extra='allow')
     __pydantic_extra__: dict[str, str] = Field(init=False)
 
-    action: Literal['camp', 'gather', 'move']
+    action: Literal['camp', 'gather', 'move', 'roam']
     need: str
     score: float
     pull: Spot | None

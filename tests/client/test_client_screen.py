@@ -131,3 +131,37 @@ def test_the_screen_draws_the_band_and_its_place_and_sends_the_vote_picked_in_th
     ]
     assert ''.join(seen['log']).replace(' ', '') == SAID.replace(' ', '')
     assert screen.return_value is None
+
+
+class Agreed(Scripted):
+    """
+    A game whose evening council is settled and does not sit.
+    """
+
+    def snapshot(self, game_id: str) -> Body:
+        held = super().snapshot(game_id)
+        return {**held, 'seat': {**held['seat'], 'council': None}}
+
+    def updates(self, game_id: str, after: int) -> Generator[Body]:
+        agreed = {'key': 'council-agreed', 'values': {'leader': 'proposal-stay-and-gather'}}
+        yield {'seq': 4, 'date': DATE, 'events': [agreed], 'changes': {}, 'waiting': ['player']}
+        yield {'seq': 5, 'date': DATE, 'events': [], 'changes': {}, 'waiting': []}
+
+
+def test_an_evening_with_no_council_waits_until_the_day_is_read() -> None:
+    api = Agreed()
+    screen = Screen(Session(api, 'alpha'), 'en', pace=0)
+    seen: dict[str, Any] = {}
+
+    async def played() -> None:
+        async with screen.run_test(size=(140, 40)) as pilot:
+            await until(pilot, lambda: 'day is over' in text(screen, 'question'))
+            seen['waiting'] = list(api.sent)
+            await pilot.press('enter')
+            await until(pilot, lambda: 'game is over' in text(screen, 'question') and len(api.sent) == 2)
+            await pilot.press('q')
+
+    asyncio.run(played())
+
+    assert seen['waiting'] == [{'id': 'pass-3', 'kind': 'pass'}]
+    assert api.sent == [{'id': 'pass-3', 'kind': 'pass'}, {'id': 'pass-4', 'kind': 'pass'}]

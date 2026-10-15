@@ -9,9 +9,13 @@ from dominion_theory.api.commands import read_command
 from dominion_theory.core.errors import DominionError
 from dominion_theory.engine.band import DIRECTIONS
 
+from .conftest import SMALL
+
 type NewGame = Callable[..., dict[str, Any]]
 
-REST = {'id': 'c-1', 'kind': 'vote', 'proposal': {'kind': 'rest'}}
+EVENING = 3
+
+STAY = {'id': 'c-1', 'kind': 'vote', 'proposal': {'kind': 'stay-and-gather'}}
 MALFORMED: list[dict[str, Any]] = [
     {'kind': 'pass'},
     {'id': '', 'kind': 'pass'},
@@ -19,16 +23,17 @@ MALFORMED: list[dict[str, Any]] = [
     {'id': 'c-1'},
     {'id': 'c-1', 'kind': 'alpha'},
     {'id': 'c-1', 'kind': ['pass']},
-    {'id': 'c-1', 'kind': 'pass', 'proposal': {'kind': 'rest'}},
+    {'id': 'c-1', 'kind': 'pass', 'proposal': {'kind': 'stay-and-gather'}},
     {'id': 'c-1', 'kind': 'vote'},
-    {'id': 'c-1', 'kind': 'vote', 'proposal': 'rest'},
+    {'id': 'c-1', 'kind': 'vote', 'proposal': 'stay-and-gather'},
+    {'id': 'c-1', 'kind': 'vote', 'proposal': {'kind': 'rest'}},
     {'id': 'c-1', 'kind': 'vote', 'proposal': {'kind': 'alpha'}},
     {'id': 'c-1', 'kind': 'vote', 'proposal': {'kind': 'move'}},
     {'id': 'c-1', 'kind': 'vote', 'proposal': {'kind': 'move', 'towards': 'up'}},
     {'id': 'c-1', 'kind': 'vote', 'proposal': {'kind': 'move', 'towards': ['east']}},
-    {'id': 'c-1', 'kind': 'vote', 'proposal': {'kind': 'rest', 'towards': 'east'}},
+    {'id': 'c-1', 'kind': 'vote', 'proposal': {'kind': 'stay-and-gather', 'towards': 'east'}},
     {'id': 'c-1', 'kind': 'vote', 'proposal': {'kind': 'abstain', 'towards': 'east'}},
-    {**REST, 'unit': 1},
+    {**STAY, 'unit': 1},
 ]
 
 
@@ -44,8 +49,7 @@ def test_a_malformed_command_is_refused(envelope: dict[str, Any]) -> None:
     'envelope',
     [
         {'id': 'c-1', 'kind': 'pass'},
-        REST,
-        {'id': 'c-1', 'kind': 'vote', 'proposal': {'kind': 'stay-and-gather'}},
+        STAY,
         {'id': 'c-1', 'kind': 'vote', 'proposal': {'kind': 'abstain'}},
         *({'id': 'c-1', 'kind': 'vote', 'proposal': {'kind': 'move', 'towards': way}} for way in DIRECTIONS),
     ],
@@ -85,13 +89,15 @@ def test_a_repeated_command_id_is_taken_once(client: TestClient, new_game: NewGa
 
 
 def test_a_command_the_rules_refuse_is_not_an_error_of_the_api(client: TestClient, new_game: NewGame) -> None:
-    game = new_game(seated=True)['id']
+    game = new_game(seated=True, overrides={**SMALL, 'council.voice.least': 20.0})['id']
 
     nowhere = {'id': 'c-1', 'kind': 'vote', 'proposal': {'kind': 'move', 'towards': 'east'}}
 
     with client.websocket_connect(f'{PREFIX}/games/{game}/updates?after=0') as stream:
+        for tick in range(EVENING):
+            client.post(f'{PREFIX}/games/{game}/commands', json={'id': f'p-{tick}', 'kind': 'pass'})
         answer = client.post(f'{PREFIX}/games/{game}/commands', json=nowhere)
-        update = stream.receive_json()
+        update = [stream.receive_json() for _ in range(EVENING + 1)][-1]
 
     assert answer.json() == {'id': 'c-1', 'taken': True}
     assert update['events'][0] == {

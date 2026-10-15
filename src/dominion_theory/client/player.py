@@ -43,7 +43,6 @@ STYLES: dict[Look, dict[str, Any]] = {
 NAMES: dict[str, Mapping[str, str]] = {
     **{towards: {'kind': 'move', 'towards': towards} for towards in DIRECTIONS},
     **{''.join(word[0] for word in towards.split('-')): {'kind': 'move', 'towards': towards} for towards in DIRECTIONS},
-    'rest': {'kind': 'rest'},
     'stay': {'kind': 'stay-and-gather'},
     'stay-and-gather': {'kind': 'stay-and-gather'},
     'abstain': SILENCE,

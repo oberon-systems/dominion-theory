@@ -17,7 +17,8 @@ type NewGame = Callable[..., dict[str, Any]]
 
 SMALL = {'planet.circumference_km': 4000, 'planet.window.width': 32, 'planet.window.height': 16}
 DYING = {**SMALL, 'units.band.consumption_per_day.water': 100.0, 'units.band.states.thirst.loss_per_day': 0.9}
-DOOMED = {**SMALL, 'council.status.start': 1}
+# The council sits at the very start and is never settled, so a single silence banishes the player.
+DOOMED = {**SMALL, 'council.status.start': 1, 'council.part': 'morning', 'council.voice.least': 20.0}
 STEP = ('clock', {'action': 'step'})
 SILENT = ('commands', {'id': 'c-1', 'kind': 'vote', 'proposal': {'kind': 'abstain'}})
 

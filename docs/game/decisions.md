@@ -25,7 +25,10 @@ ___
 In the phase `decisions` the band lists what it could do, gives every
 option a score and takes the best. The options are a camp, gathering of
 each resource the cell gives, and a move and a roam to each of the eight
-cells around that can be entered: at most nineteen.
+cells around that can be entered: at most nineteen. The function decides
+the parts of the day the band works in; in the parts of
+`units.band.camp_parts`, the evening and the night, the band camps
+without asking it.
 
 The function reads the band and what the band knows, and nothing else.
 It is pure: the same band with the same knowledge decides the same. The
@@ -42,7 +45,6 @@ A need is a number from 0, nothing wanted, to 1, nothing else matters.
 |-----------|-------------------------------------------------------------|
 | `hunger`  | the level of the days of food in the stores                 |
 | `thirst`  | the level of the days of water in the stores                |
-| `rest`    | the fatigue, plus `night` in the evening and at night       |
 
 Days of food are the stores over what the people eat in a day. Hunger
 and thirst are not a line but levels: the first level, from the top,
@@ -56,8 +58,11 @@ whose `days` the stores reach gives the need.
 | starving | the state holds    | 1.0  |
 
 A band that starves or thirsts has the need 1 whatever its stores say.
-Rest is held between 0 and 1. The levels are data, and so is their
-number.
+The levels are data, and so is their number.
+
+Fatigue is no need. Every night rests the band, and fatigue does not
+weigh in a decision; it takes from what the band can do instead, its
+pace and its gathering, as [the band](../units/band.md#fatigue) says.
 
 The band is **calm** when neither hunger nor thirst presses:
 
@@ -96,16 +101,16 @@ need it serves.
 
 | Action          | Score                                                        |
 |-----------------|--------------------------------------------------------------|
-| `camp`          | `weights.rest` times rest                                    |
+| `camp`          | 0: what a band does when nothing else is worth it            |
 | `gather` forage | `weights.hunger` times hunger, food of the cell and fit      |
 | `gather` water  | `weights.thirst` times thirst, water of the cell and fit     |
 | `move` to a cell| see below                                                    |
 | `roam` to a cell| see below                                                    |
 
 ```text
-move = weights.move * (pull - worth of the own cell) - weights.rest * rest * effort
-roam = roaming.speed * weights.move * (pull - worth of the own cell) - weights.rest * rest * effort
-       + roaming.share * (both gatherings, scored on the cell ahead)
+move = weights.move * (pull - worth of the own cell)
+roam = roaming.speed * weights.move * (pull - worth of the own cell)
+       + roaming.share * (the gatherings of what the band is short of, scored on the cell ahead)
 ```
 
 - **Fit** is the share of a tick's haul that the free carrying weight
@@ -115,8 +120,6 @@ roam = roaming.speed * weights.move * (pull - worth of the own cell) - weights.r
   in cells times `distance`. The neighbour itself is one of them. A
   worth below zero is multiplied instead, so that distance never makes
   bad land look better.
-- **Effort** is 1 over the passability of the neighbour, held at 4: a
-  tired band does not start into a swamp.
 
 A move scores above zero only when something known is better than the
 place the band stands on. A band on good land stays; a band on stripped
@@ -136,16 +139,16 @@ The best score wins. Two rules settle the rest.
 
 - **A tie** goes to the option that comes first in a fixed order: `camp`,
   `gather` forage, `gather` water, then the moves clockwise from the
-  north.
+  north, then the roams the same.
 - **A move in progress is kept.** The cell the band is already walking
   towards gets `weights.momentum` added, so a band does not turn back in
   the middle of a forest.
 
 When nothing scores above `idle`, the band has no reason to do anything
 in particular. Then it wanders: one of the cells it can enter is drawn
-from the game's stream `decisions`, and the band keeps that direction
-for a day. This is the only random draw of the function, and how a band
-on a bare plain finds better land.
+from the game's stream `decisions`, and the band roams that way for a
+day, foraging as it goes. This is the only random draw of the function,
+and how a band on a bare plain finds better land.
 
 ___
 
@@ -157,15 +160,16 @@ among what is left.
 
 | Intent            | Options left                              |
 |-------------------|-------------------------------------------|
-| `move` a direction| a move that way, or a camp                |
-| `rest`            | a camp                                    |
+| `move` a direction| a move or a roam that way, or a camp      |
 | `stay-and-gather` | gathering of any resource, or a camp      |
 
 "That way" is the named direction first. When that cell cannot be
 entered, the two directions beside it are taken, the clockwise one
 first; when neither can, the intent ends early. Under a `move` intent
-the moves are scored with the pull replaced by a fixed `weights.intent`,
-so the band walks by day and still camps when the rest outweighs it.
+the moves and the roams are scored with the pull replaced by a fixed
+`weights.intent`, and a roam gets the whole of that gain, not
+`roaming.speed` of it: the intent names the way, not the pace. The band
+roams wherever the cell ahead feeds it and walks only over bare land.
 
 The band holds an intent to its end, starving or not. That is what makes
 a bad proposal bad; see
@@ -198,23 +202,19 @@ units:
         sated: {days: 2, need: 0.1}
         fed: {days: 1, need: 0.4}
         hungry: {days: 0, need: 0.8}
-      night: 0.5
-      night_parts: [evening, night]
       distance: 0.25
       idle: 0.05
       wander: {days: 1}
       weights:
         hunger: 1.5
         thirst: 1.2
-        rest: 0.7
         safety: 2.0
         move: 3.0
         momentum: 0.1
         intent: 0.6
 ```
 
-`night_parts` names the parts of the day that add `night` to the need
-for rest; a name must be one of `time.day_parts`. `levels` are read from
+`levels` are read from
 the most days down; their days must differ, one of them must be 0, and
 every need lies between 0 and 1.
 
@@ -224,12 +224,12 @@ ___
 
 A band of 15 at midday in a summer forest, rested, with a day and a half
 of food and two days of water: 52.5 kg of the 90 it can carry. It is fed
-and sated: hunger 0.4, thirst 0.1, rest 0.1, calm 0.6. A tick of forage
+and sated: hunger 0.4, thirst 0.1, calm 0.6. A tick of forage
 would be 40.5 kg and 37.5 fit, so the fit is 0.93. The band knows only
 forest around it.
 
 ```text
-camp            0.7 * 0.1                  = 0.07
+camp                                       = 0.00
 gather forage   1.5 * 0.4  * 0.9 * 0.93    = 0.50
 gather water    1.2 * 0.1  * 0.6 * 1.0     = 0.07
 -> gather forage
@@ -244,11 +244,9 @@ way.
 own forest      0.4 * 0.9 + 0.1 * 0.6  - 2.0 * 0.6 * 0.4 = -0.06
 grass east      0.4 * 0.8 + 0.1 * 0.28 - 2.0 * 0.6 * 0.1 =  0.23
 pull            0.23 / 1.25                             =  0.18
-effort          0.7 * 0.1 * 1.0                         =  0.07
-move east       3.0 * (0.18 + 0.06) - 0.07              =  0.66
-grass ahead     1.5 * 0.4 * 0.8 + 1.2 * 0.1 * 0.28      =  0.51
-roam east       0.75 * 3.0 * (0.18 + 0.06) - 0.07
-                + 0.5 * 0.51                            =  0.73
+move east       3.0 * (0.18 + 0.06)                     =  0.73
+grass ahead     1.5 * 0.4 * 0.8, no water: two days held =  0.48
+roam east       0.75 * 0.73 + 0.5 * 0.48                =  0.79
 gather forage                                           =  0.50
 -> roam east
 ```
@@ -260,22 +258,10 @@ grass. A hungry band does not walk, so only the roam is weighed.
 ```text
 own forest      0.8 * 0.9 + 0.1 * 0.6  - 2.0 * 0.2 * 0.4 =  0.62
 grass east     (0.8 * 0.8 + 0.1 * 0.28 - 2.0 * 0.2 * 0.1) / 1.25 = 0.50
-grass ahead     1.5 * 0.8 * 0.8 + 1.2 * 0.1 * 0.28      =  0.99
-roam east       0.75 * 3.0 * (0.50 - 0.62) - 0.07
-                + 0.5 * 0.99                            =  0.16
+grass ahead     1.5 * 0.8 * 0.8, no water: two days held =  0.96
+roam east       0.75 * 3.0 * (0.50 - 0.62) + 0.5 * 0.96 =  0.22
 gather forage   1.5 * 0.8 * 0.9 * 1.0                   =  1.08
 -> gather forage
-```
-
-The same band at night with fatigue 0.55 and two and a half days of
-food: sated, hunger 0.1; rest is 0.55 plus 0.5, held at 1; 22.5 kg are
-free.
-
-```text
-camp            0.7 * 1.0                  = 0.70
-gather forage   1.5 * 0.1  * 0.9 * 0.56    = 0.08
-gather water    1.2 * 0.1  * 0.6 * 0.63    = 0.05
--> camp
 ```
 
 A hungry band on a stripped forest cell, food at a stock of 0.1, with a
@@ -286,10 +272,8 @@ roams there, gathering what the stripped cell ahead still gives.
 gather forage   1.5 * 0.8 * 0.09 * 1.0                     = 0.11
 roam east       pull   (0.8 * 0.9 + 0.06 - 0.16) / 1.75    = 0.35
                 own     0.8 * 0.09 + 0.06 - 0.16           = -0.03
-                effort  0.7 * 0.1 * 1.67                   = 0.12
-                ahead   1.5 * 0.8 * 0.09 + 1.2 * 0.1 * 0.6 = 0.18
-                0.75 * 3.0 * (0.35 + 0.03) - 0.12
-                + 0.5 * 0.18                               = 0.83
+                ahead   1.5 * 0.8 * 0.09, no water       = 0.11
+                0.75 * 3.0 * (0.35 + 0.03) + 0.5 * 0.11    = 0.91
 -> roam east
 ```
 

@@ -287,7 +287,8 @@ def test_real_time_advances_stops_on_pause_and_resumes(service: Service) -> None
 def test_a_council_stops_the_clock_until_the_seat_votes_or_the_wait_runs_out(store: GameStore, tmp_path: Path) -> None:
     async def scenario() -> None:
         settings = Settings(records_dir=tmp_path, tick_ms=2, council_wait_s=0.2)
-        runner = Service(store, settings).create(seed=1, overrides=SMALL, seated=True)
+        sitting = {**SMALL, 'council.part': 'morning', 'council.voice.least': 20.0}
+        runner = Service(store, settings).create(seed=1, overrides=sitting, seated=True)
         assert isinstance(runner, RealTimeRunner)
         assert runner.asked == ['player']
 

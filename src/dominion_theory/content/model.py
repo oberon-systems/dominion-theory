@@ -413,10 +413,15 @@ class Speed(Node):
 
 
 class Fatigue(Node):
+    """
+    What a tick of each action adds, and the share of its pace and its gathering a band loses at fatigue 1.
+    """
+
     move: Amount
     roam: Amount
     gather: Amount
     camp: Amount
+    slows: Share
 
 
 class Roaming(Node):
@@ -438,7 +443,6 @@ class Hardship(Node):
 class Tiredness(Node):
     begins: Share
     ends: Share
-    slows: Share
 
     @model_validator(mode='after')
     def _ends_below(self) -> Self:
@@ -457,7 +461,6 @@ class States(Node):
 class Weights(Node):
     hunger: Factor
     thirst: Factor
-    rest: Factor
     safety: Factor
     move: Factor
     momentum: Factor
@@ -475,8 +478,6 @@ class Stage(Node):
 
 class Decisions(Node):
     levels: dict[Name, Stage]
-    night: Share
-    night_parts: tuple[Name, ...]
     distance: Factor
     idle: Factor
     wander: Duration
@@ -499,6 +500,7 @@ class Band(Node):
     speed: Speed
     roaming: Roaming
     fatigue: Fatigue
+    camp_parts: tuple[Name, ...]
     states: States
     sight: Span
     memory: Duration
@@ -535,10 +537,11 @@ class Status(Node):
     move_worked: Amount
     move_failed: Amount
     move_disaster: Amount
-    rest: Amount
     stay_worked: Amount
     stay_failed: Amount
     stay_disaster: Amount
+    death: Amount
+    birth: Amount
 
 
 class Council(Node):
@@ -752,10 +755,10 @@ class Params(Node):
             walked = self.biomes[name].eras[BAND].properties.get(PASSABILITY)
             if walked is not None and walked.base == 0:
                 raise _invalid('units.band.start.biomes', name, 'a biome that can be entered')
-        for part in band.decisions.night_parts:
+        for part in band.camp_parts:
             if part not in self.time.day_parts:
                 expected = f'one of {", ".join(self.time.day_parts)}'
-                raise _invalid('units.band.decisions.night_parts', part, expected)
+                raise _invalid('units.band.camp_parts', part, expected)
 
     def _check_council(self) -> None:
         if self.council.part not in self.time.day_parts:

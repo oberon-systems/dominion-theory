@@ -4,7 +4,7 @@ import pytest
 
 from dominion_theory.content import Params, load_params
 from dominion_theory.engine import Game, decisions
-from dominion_theory.engine.band import Band
+from dominion_theory.engine.band import Band, held_days
 
 SMALL = {'planet.circumference_km': 4000, 'planet.window.width': 32, 'planet.window.height': 16}
 ERA = 'band'
@@ -22,9 +22,9 @@ def held(known: dict[tuple[int, int], dict[str, Any]], forage: float, water: flo
     return Band(id=1, x=HOME[0], y=HOME[1], population=15, stores=stores, known=dict(known), **given)
 
 
-def scores(params: Params, band: Band, part: str = 'midday') -> dict[str, float]:
+def scores(params: Params, band: Band) -> dict[str, float]:
     found = {}
-    for scored in decisions.options(params, band, part, ERA):
+    for scored in decisions.options(params, band, ERA):
         name = str(scored.action.get('towards', scored.action.get('resource', 'camp')))
         found[f'roam-{name}' if scored.action['kind'] == 'roam' else name] = scored.score
     return found
@@ -34,14 +34,10 @@ def fixed(index: int) -> Any:
     return lambda count: index % count
 
 
-def test_needs_follow_the_stores_the_fatigue_and_the_night(params: Params) -> None:
-    band = held({}, forage=22.5, water=30.0, fatigue=0.1)
+def test_needs_follow_the_stores_and_not_the_fatigue(params: Params) -> None:
+    band = held({}, forage=22.5, water=30.0, fatigue=0.9)
 
-    by_day = decisions.needs(params, band, 'midday')
-    by_night = decisions.needs(params, band, 'night')
-
-    assert by_day == pytest.approx({'hunger': 0.4, 'thirst': 0.1, 'rest': 0.1})
-    assert by_night['rest'] == pytest.approx(0.6)
+    assert decisions.needs(params, band) == pytest.approx({'hunger': 0.4, 'thirst': 0.1})
 
 
 @pytest.mark.parametrize(('days', 'need'), [(5.0, 0.1), (2.0, 0.1), (1.5, 0.4), (1.0, 0.4), (0.5, 0.8), (0.0, 0.8)])
@@ -52,11 +48,11 @@ def test_hunger_is_the_level_the_days_in_the_stores_reach(params: Params, days: 
 def test_a_state_makes_its_need_whole(params: Params) -> None:
     band = held({}, forage=30.0, water=0.0, fatigue=0.6, states=['starvation', 'thirst', 'tiredness'])
 
-    assert decisions.needs(params, band, 'midday') == pytest.approx({'hunger': 1.0, 'thirst': 1.0, 'rest': 1.0})
+    assert decisions.needs(params, band) == pytest.approx({'hunger': 1.0, 'thirst': 1.0})
 
 
 def test_a_calm_band_is_one_that_neither_hunger_nor_thirst_presses() -> None:
-    assert decisions.calm({'hunger': 0.4, 'thirst': 0.1, 'rest': 0.9}) == pytest.approx(0.6)
+    assert decisions.calm({'hunger': 0.4, 'thirst': 0.1}) == pytest.approx(0.6)
 
 
 def test_wellbeing_is_the_mean_of_fed_watered_safe_and_rested(params: Params) -> None:
@@ -68,7 +64,7 @@ def test_wellbeing_is_the_mean_of_fed_watered_safe_and_rested(params: Params) ->
 def test_a_band_that_eats_nothing_is_never_hungry() -> None:
     params = load_params(overrides={**SMALL, 'units.band.consumption_per_day.forage': 0.0})
 
-    assert decisions.needs(params, held({}, forage=0.0, water=45.0), 'midday')['hunger'] == 0.0
+    assert decisions.needs(params, held({}, forage=0.0, water=45.0))['hunger'] == 0.0
 
 
 def test_the_first_example_of_the_document_gathers_forage(params: Params) -> None:
@@ -76,8 +72,8 @@ def test_the_first_example_of_the_document_gathers_forage(params: Params) -> Non
 
     found = scores(params, band)
 
-    assert found == pytest.approx({'camp': 0.07, 'forage': 1.5 * 0.4 * 0.9 * 37.5 / 40.5, 'water': 1.2 * 0.1 * 0.6})
-    assert decisions.decide(params, band, 'midday', 0, ERA) == {'kind': 'gather', 'resource': 'forage'}
+    assert found == pytest.approx({'camp': 0.0, 'forage': 1.5 * 0.4 * 0.9 * 37.5 / 40.5, 'water': 1.2 * 0.1 * 0.6})
+    assert decisions.decide(params, band, 0, ERA) == {'kind': 'gather', 'resource': 'forage'}
     assert band.reason == {
         'action': 'gather',
         'resource': 'forage',
@@ -94,8 +90,8 @@ def test_a_fed_band_leaves_the_dangerous_forest_for_the_open_grass(params: Param
 
     own = 0.4 * 0.9 + 0.1 * 0.6 - 2.0 * 0.6 * 0.4
     grass = 0.4 * 0.8 + 0.1 * 0.28 - 2.0 * 0.6 * 0.1
-    assert found['east'] == pytest.approx(3.0 * (grass / 1.25 - own) - 0.7 * 0.1)
-    assert decisions.decide(params, band, 'midday', 0, ERA) == {'kind': 'roam', 'towards': 'east'}
+    assert found['east'] == pytest.approx(3.0 * (grass / 1.25 - own))
+    assert decisions.decide(params, band, 0, ERA) == {'kind': 'roam', 'towards': 'east'}
 
 
 def test_a_hungry_band_stays_in_the_forest_to_gather(params: Params) -> None:
@@ -105,10 +101,9 @@ def test_a_hungry_band_stays_in_the_forest_to_gather(params: Params) -> None:
 
     own = 0.8 * 0.9 + 0.1 * 0.6 - 2.0 * 0.2 * 0.4
     grass = 0.8 * 0.8 + 0.1 * 0.28 - 2.0 * 0.2 * 0.1
-    ahead = 1.5 * 0.8 * 0.8 + 1.2 * 0.1 * 0.28
-    assert found['roam-east'] == pytest.approx(0.75 * 3.0 * (grass / 1.25 - own) - 0.7 * 0.1 + 0.5 * ahead)
+    assert found['roam-east'] == pytest.approx(0.75 * 3.0 * (grass / 1.25 - own) + 0.5 * 1.5 * 0.8 * 0.8)
     assert found['forage'] == pytest.approx(1.5 * 0.8 * 0.9)
-    assert decisions.decide(params, band, 'midday', 0, ERA) == {'kind': 'gather', 'resource': 'forage'}
+    assert decisions.decide(params, band, 0, ERA) == {'kind': 'gather', 'resource': 'forage'}
 
 
 def test_a_hungry_band_only_roams_and_a_fed_one_may_walk(params: Params) -> None:
@@ -116,38 +111,38 @@ def test_a_hungry_band_only_roams_and_a_fed_one_may_walk(params: Params) -> None
     fed = held({HOME: FOREST, EAST: GRASS}, forage=22.5, water=30.0, fatigue=0.1)
 
     kinds = {
-        name: {scored.action['kind'] for scored in decisions.options(params, band, 'midday', ERA)}
+        name: {scored.action['kind'] for scored in decisions.options(params, band, ERA)}
         for name, band in (('hungry', hungry), ('fed', fed))
     }
 
     assert kinds == {'hungry': {'camp', 'gather', 'roam'}, 'fed': {'camp', 'gather', 'move', 'roam'}}
 
 
-def test_a_roam_is_the_slower_move_with_the_foraging_of_the_cell_ahead(params: Params) -> None:
-    band = held({HOME: FOREST, EAST: GRASS}, forage=22.5, water=30.0, fatigue=0.1)
+def test_a_roam_is_the_slower_move_with_the_foraging_of_what_the_band_is_short_of(params: Params) -> None:
+    watered = held({HOME: FOREST, EAST: GRASS}, forage=22.5, water=30.0)
+    dry = held({HOME: FOREST, EAST: GRASS}, forage=22.5, water=15.0)
 
-    options = decisions.options(params, band, 'midday', ERA)
-    found = {(scored.action['kind'], scored.action.get('towards')): scored.score for scored in options}
+    roams = [scores(params, band)['roam-east'] for band in (watered, dry)]
 
-    own = 0.4 * 0.9 + 0.1 * 0.6 - 2.0 * 0.6 * 0.4
-    grass = 0.4 * 0.8 + 0.1 * 0.28 - 2.0 * 0.6 * 0.1
-    ahead = 1.5 * 0.4 * 0.8 + 1.2 * 0.1 * 0.28
-    assert found['roam', 'east'] == pytest.approx(0.75 * 3.0 * (grass / 1.25 - own) - 0.07 + 0.5 * ahead)
+    def walk(thirst: float) -> float:
+        own = 0.4 * 0.9 + thirst * 0.6 - 2.0 * 0.6 * 0.4
+        grass = 0.4 * 0.8 + thirst * 0.28 - 2.0 * 0.6 * 0.1
+        return 0.75 * 3.0 * (grass / 1.25 - own)
+
+    assert roams[0] == pytest.approx(walk(0.1) + 0.5 * 1.5 * 0.4 * 0.8)
+    assert roams[1] == pytest.approx(walk(0.4) + 0.5 * (1.5 * 0.4 * 0.8 + 1.2 * 0.4 * 0.28))
 
 
-def test_the_night_example_of_the_document_camps(params: Params) -> None:
-    band = held({HOME: FOREST}, forage=37.5, water=30.0, fatigue=0.55)
+def test_an_intent_to_move_gives_the_roam_the_whole_gain(params: Params) -> None:
+    band = held({HOME: FOREST, EAST: GRASS}, forage=22.5, water=30.0)
 
-    found = scores(params, band, 'night')
+    held_to = decisions.intended(params, band, {'kind': 'move', 'towards': 'east'}, ERA)
+    found = decisions.options(params, band, ERA, decisions.NARROWED['move'], {'east'})
 
-    fit = {'forage': 22.5 / 40.5, 'water': 22.5 / 36}
-
-    assert found == pytest.approx(
-        {'camp': 0.7, 'forage': 1.5 * 0.1 * 0.9 * fit['forage'], 'water': 1.2 * 0.1 * 0.6 * fit['water']}
-    )
-    assert decisions.decide(params, band, 'night', 0, ERA) == {'kind': 'camp'}
-    assert band.reason is not None
-    assert band.reason['need'] == 'rest'
+    by_kind = {scored.action['kind']: scored.score for scored in found}
+    assert by_kind['roam'] == pytest.approx(by_kind['move'] + 0.5 * 1.5 * 0.4 * 0.8)
+    assert held_to is not None
+    assert held_to.action == {'kind': 'roam', 'towards': 'east'}
 
 
 def test_the_stripped_example_of_the_document_walks_to_the_remembered_forest() -> None:
@@ -161,13 +156,13 @@ def test_the_stripped_example_of_the_document_walks_to_the_remembered_forest() -
     forest = 0.8 * 0.9 - 2.0 * 0.2 * 0.4
     assert found == pytest.approx(
         {
-            'camp': 0.07,
+            'camp': 0.0,
             'forage': 1.5 * 0.8 * 0.09,
             'water': 0.0,
-            'roam-east': 0.75 * 3.0 * (forest / 1.75 - own) - 0.7 * 0.1 / 0.6 + 0.5 * 1.5 * 0.8 * 0.09,
+            'roam-east': 0.75 * 3.0 * (forest / 1.75 - own) + 0.5 * 1.5 * 0.8 * 0.09,
         }
     )
-    assert decisions.decide(params, band, 'midday', 0, ERA) == {'kind': 'roam', 'towards': 'east'}
+    assert decisions.decide(params, band, 0, ERA) == {'kind': 'roam', 'towards': 'east'}
     assert band.reason is not None
     assert (band.reason['need'], band.reason['pull']) == ('hunger', {'x': far[0], 'y': far[1]})
 
@@ -211,28 +206,28 @@ def test_a_tie_goes_to_the_first_in_the_order_and_a_way_in_progress_is_kept(para
     around = {(HOME[0] + dx, HOME[1] + dy): FOREST for dx in (-1, 0, 1) for dy in (-1, 0, 1)}
     band = held({**around, HOME: STRIPPED}, forage=0.0, water=45.0)
 
-    first = decisions.decide(params, band, 'midday', 0, ERA)
+    first = decisions.decide(params, band, 0, ERA)
     band.target = (HOME[0] - 1, HOME[1])
-    kept = decisions.decide(params, band, 'midday', 0, ERA)
+    kept = decisions.decide(params, band, 0, ERA)
 
     assert first == {'kind': 'roam', 'towards': 'north'}
     assert kept == {'kind': 'roam', 'towards': 'west'}
     assert scores(params, band)['roam-west'] == pytest.approx(scores(params, band)['roam-north'] + 0.1)
 
 
-def test_a_band_with_nothing_to_want_wanders_and_keeps_its_way_for_a_day(params: Params) -> None:
+def test_a_band_with_nothing_to_want_roams_away_and_keeps_its_way_for_a_day(params: Params) -> None:
     around = {(HOME[0] + dx, HOME[1] + dy): FOREST for dx in (-1, 0, 1) for dy in (-1, 0, 1)}
     band = held(around, forage=45.0, water=45.0)
 
-    first = decisions.decide(params, band, 'midday', 4, ERA, fixed(2))
-    same_day = decisions.decide(params, band, 'afternoon', 4, ERA, fixed(5))
-    next_day = decisions.decide(params, band, 'midday', 5, ERA, fixed(5))
+    first = decisions.decide(params, band, 4, ERA, fixed(2))
+    same_day = decisions.decide(params, band, 4, ERA, fixed(5))
+    next_day = decisions.decide(params, band, 5, ERA, fixed(5))
 
-    assert first == same_day == {'kind': 'move', 'towards': 'east'}
-    assert next_day == {'kind': 'move', 'towards': 'south-west'}
+    assert first == same_day == {'kind': 'roam', 'towards': 'east'}
+    assert next_day == {'kind': 'roam', 'towards': 'south-west'}
     assert band.wander == {'towards': 'south-west', 'until': 6}
     assert band.reason is not None
-    assert (band.reason['action'], band.reason['need']) == ('move', 'wander')
+    assert (band.reason['action'], band.reason['need']) == ('roam', 'wander')
 
 
 def test_a_band_that_has_a_reason_draws_nothing(params: Params) -> None:
@@ -241,14 +236,14 @@ def test_a_band_that_has_a_reason_draws_nothing(params: Params) -> None:
 
     band = held({HOME: FOREST}, forage=0.0, water=45.0, wander={'towards': 'east', 'until': 9})
 
-    assert decisions.decide(params, band, 'midday', 0, ERA, never) == {'kind': 'gather', 'resource': 'forage'}
+    assert decisions.decide(params, band, 0, ERA, never) == {'kind': 'gather', 'resource': 'forage'}
     assert band.wander is None
 
 
 def test_a_band_with_nowhere_to_go_camps_instead_of_wandering(params: Params) -> None:
     band = held({HOME: FOREST}, forage=45.0, water=45.0)
 
-    assert decisions.decide(params, band, 'midday', 0, ERA, fixed(0)) == {'kind': 'camp'}
+    assert decisions.decide(params, band, 0, ERA, fixed(0)) == {'kind': 'camp'}
 
 
 def test_a_hungry_band_on_a_stripped_cell_roams_to_better_land(params: Params) -> None:
@@ -292,5 +287,5 @@ def test_stores_last_for_days_and_for_ever_when_nobody_eats() -> None:
     fasting = load_params(overrides={**SMALL, 'units.band.consumption_per_day.forage': 0.0})
     band = held({}, forage=22.5, water=30.0)
 
-    assert decisions.held_days(load_params(overrides=SMALL), band, 'food') == 1.5
-    assert decisions.held_days(fasting, band, 'food') == float('inf')
+    assert held_days(load_params(overrides=SMALL), band, 'food') == 1.5
+    assert held_days(fasting, band, 'food') == float('inf')

@@ -80,9 +80,9 @@ columns it has.
 
 ```json
 {"t": "header", "format": 2, "engine": "0.1.0", "game": "7f3a9c1e", "seed": 42, "params_hash": "b41f", "params": {}, "seats": [{"seat": "player", "kind": "llm"}], "seated": true, "counters": ["bands", "people", "born", "died", "status"], "units": ["id", "x", "y", "state", "action", "people", "food", "water"]}
-{"t": "command", "tick": 12, "seat": "player", "seq": 1, "command": {"id": "c-0192", "kind": "vote", "proposal": {"kind": "rest"}}, "accepted": true}
+{"t": "command", "tick": 12, "seat": "player", "seq": 1, "command": {"id": "c-0192", "kind": "vote", "proposal": {"kind": "stay-and-gather"}}, "accepted": true}
 {"t": "tick", "tick": 12, "parts": 12, "hash": "9d2c", "counters": [6, 94, 0, 1, 51], "units": [[1, 40, 18, "normal", "camp", 15, 22.4, 9.0]]}
-{"t": "event", "tick": 12, "key": "council-turned", "values": {"proposal": "proposal-rest", "yes": 8.75, "all": 17.75}}
+{"t": "event", "tick": 12, "key": "council-turned", "values": {"proposal": "proposal-stay-and-gather", "yes": 8.75, "all": 17.75}}
 {"t": "footer", "outcome": "banished", "tick": 3120, "hash": "0a7e"}
 ```
 

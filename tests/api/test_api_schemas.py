@@ -20,7 +20,10 @@ from dominion_theory.runner import Service
 from dominion_theory.runner import Update as Handed
 
 PLANET = {'planet.circumference_km': 4000, 'planet.window.width': 32, 'planet.window.height': 16}
+# A voice that outweighs the band, so that the council always sits and is never settled.
+LOUD = {**PLANET, 'council.voice.least': 20.0}
 DAY = 5
+EVENING = 3
 
 
 def test_what_a_runner_hands_out_fits_the_schema_of_the_stream() -> None:
@@ -33,12 +36,14 @@ def test_what_a_runner_hands_out_fits_the_schema_of_the_stream() -> None:
 
 
 def test_the_band_and_its_council_fit_the_snapshot_and_the_stream_and_lose_nothing(service: Service) -> None:
-    runner = service.create(seed=42, overrides=PLANET, mode='step', seated=True)
+    runner = service.create(seed=42, overrides=LOUD, mode='step', seated=True)
     sent: list[Handed] = []
     runner.subscribe(lambda message: sent.append(message) if isinstance(message, Handed) else None)
+    for tick in range(EVENING):
+        runner.submit(Pass(seat='player', id=f'p-{tick}'))
     assert runner.game.council is not None
     runner.submit(Vote(seat='player', proposal=runner.game.council['leader'], id='c-1'))
-    for tick in range(1, 12):
+    for tick in range(EVENING + 1, EVENING + 2 * DAY + 1):
         runner.submit(Pass(seat='player', id=f'p-{tick}'))
 
     read = [STREAM.validate_python(update.data()) for update in sent]
@@ -47,7 +52,7 @@ def test_the_band_and_its_council_fit_the_snapshot_and_the_stream_and_lose_nothi
     assert all(isinstance(update, Update) for update in read)
     assert [update.model_dump(exclude_unset=True) for update in read] == [update.data() for update in sent]
     assert snapshot.model_dump(exclude_unset=True) == runner.snapshot()
-    risen, opened, silent = read[0], read[DAY - 1], read[DAY]
+    risen, opened, silent = read[EVENING], read[EVENING + DAY - 1], read[EVENING + DAY]
     assert isinstance(risen, Update) and isinstance(opened, Update) and isinstance(silent, Update)
     assert risen.changes.seat == SeatChange(council=None) and 'council' in risen.changes.seat.model_fields_set
     assert opened.changes.seat.council is not None

@@ -19,13 +19,16 @@ from textual.widgets.option_list import Option as Choice
 from websockets.exceptions import WebSocketException
 
 from ..i18n import DATE, render
-from .api import Body, Refused
+from .api import ENDED, Body, Refused
 from .drawing import HIDDEN, pictured
 from .lines import (
     ABSTAIN,
+    AGREED,
+    EVENING,
     FATIGUE,
     GONE,
     INTENT,
+    NEXT,
     OVER,
     PROPERTY,
     QUESTION,
@@ -149,11 +152,16 @@ class Screen(App[str | None]):
                     seen += 1
                     if seen == self._limit:
                         break
+                    if any(event['key'] == AGREED for event in message['events']):
+                        self._rest()
                 self._turn(message['seq'])
             self.call_from_thread(self._over)
         except Left:
             return
         except Refused as refused:
+            if refused.key == ENDED:
+                self.call_from_thread(self._over)
+                return
             self.call_from_thread(self.exit, words({'key': refused.key, 'values': refused.values}, self._lang))
         except FAILURES as failure:
             self.call_from_thread(self.exit, str(failure))
@@ -184,6 +192,24 @@ class Screen(App[str | None]):
         if proposal is None:
             raise Left
         session.answer(seq, proposal)
+
+    def _rest(self) -> None:
+        """
+        An evening with no council: the game waits until the player has read the day and goes on.
+        """
+        self.call_from_thread(self._evening)
+        if self._chosen.get() is None:
+            raise Left
+
+    def _evening(self) -> None:
+        self._listed = []
+        self.query_one('#question', Static).update(render(EVENING, lang=self._lang))
+        menu = self.query_one('#menu', OptionList)
+        menu.clear_options()
+        menu.add_option(Choice(render(NEXT, lang=self._lang)))
+        menu.highlighted = 0
+        self.query_one('#council').display = True
+        menu.focus()
 
     def _shown(self, message: Mapping[str, Any], known: Body | None) -> None:
         told = {**message, 'events': [event for event in message['events'] if event['key'] != ACCEPTED]}

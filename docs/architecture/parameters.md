@@ -205,7 +205,7 @@ A piece of the defaults, as it would stand in the file for the council.
 
 ```yaml
 council:
-  part: morning
+  part: evening
   voice:
     share: 0.5
     least: 2.0

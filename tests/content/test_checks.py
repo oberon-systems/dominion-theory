@@ -5,7 +5,7 @@ from dominion_theory.core.errors import DominionError
 
 HALVES = {
     'time.day_parts': ['day', 'night'],
-    'units.band.decisions.night_parts': ['night'],
+    'units.band.camp_parts': ['night'],
     'council.part': 'day',
 }
 

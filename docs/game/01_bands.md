@@ -42,10 +42,11 @@ A day is five ticks: morning, midday, afternoon, evening and night. The
 band does one action in every tick, so the "turn of five actions" of the
 old notes is a day.
 
-Nothing fixes which action falls on which part. A band that is left to
-itself comes to walk or gather by day and camp in the evening and at
-night, because [the decision function](decisions.md) gives the night a
-pull towards the camp.
+The morning, the midday and the afternoon are for work: the band walks,
+roams or gathers as [the decision function](decisions.md) says. The
+evening and the night, the parts of `units.band.camp_parts`, are for the
+camp: the band camps then whatever it wants or the council bound it to,
+and a seated band holds its council in the evening.
 
 Things that are counted by the day happen at its edges. The first tick
 of a day throws away spoiled stores. The last tick feeds the people,
@@ -63,7 +64,8 @@ ___
 | `camp`   | rests where it stands                                           | falls     |
 
 A roaming band takes `roaming.share` of what a tick of gathering would
-give, of every resource the cell ahead gives, and that cell pays for it
+give, of every resource the cell ahead gives that the band is short of,
+and that cell pays for it
 as for a gathering; see [Band](../units/band.md#gathering). The band
 picks between walking and roaming itself, but a hungry band does not
 walk: hungry or thirsty, it only roams. A camp is not a thing on the map: nothing is
@@ -210,8 +212,8 @@ What stage 2 puts into the phases of
 1. **Commands** - a `vote` is checked: the seat, the council, a second
    vote, the direction.
 2. **Councils** - a council that sits is decided with the player's
-   answer, and rises. An option the player carried against the leader
-   becomes the band's intent.
+   answer, and rises. The winner becomes the band's intent; an option the
+   player carried against the leader is also judged at the next council.
 3. **Decisions** - the band picks its action, among all three or among
    those its intent allows; in the tick of a council it camps.
 4. **Actions** - the band moves, gathers or camps; fatigue and what it
@@ -284,8 +286,7 @@ ___
 - **The window and the band** - a band that reaches the edge of the
   window stops there. A window that follows the band is set with the
   size of the window in stage 3.
-- **Night** - the night pulls towards the camp only through a weight.
-  Whether walking at night should also be more dangerous is seen in the
-  lab.
+- **Night marches** - a band never walks in the evening or the night.
+  A flight from danger in the dark would need an exception to that.
 - **Encounters that give** - every kind takes. Finding a carcass or a
   spring would be the same block of data with a gain in place of a loss.

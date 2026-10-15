@@ -6,11 +6,11 @@ proposal-move-south = идём туда, где солнце стоит в по�
 proposal-move-south-west = идём между полуденным солнцем и закатом
 proposal-move-west = идём туда, где садится солнце
 proposal-move-north-west = идём между закатом и неподвижной звездой
-proposal-rest = отдыхаем здесь
 proposal-stay-and-gather = остаёмся собирать
 proposal-none = ничего особенного
 
 council-opened = Совет дня собрался. Большинство склоняется: { $leader }.
+council-agreed = Совет единодушен, голосовать не о чем: { $leader }.
 council-followed = Вы сказали то же, что и все: { $proposal }.
 council-turned = Вы повернули общину: { $proposal }. За — { NUMBER($yes, maximumFractionDigits: 1) } голосов из { NUMBER($all, maximumFractionDigits: 1) }.
 council-outvoted = Совет не согласился: { $proposal }; решили — { $winner }. Ваш вес теперь { NUMBER($status, maximumFractionDigits: 0) }.
@@ -30,4 +30,16 @@ proposal-disaster =
        *[many] Беда: { $proposal }; погибло { $lost } человек. Ваш вес теперь { NUMBER($status, maximumFractionDigits: 0) }.
     }
 intent-ended = Пути нет, община отступилась: { $proposal }.
+seat-blamed =
+    { $lost ->
+        [one] В день, за который вы голосовали, погиб { $lost } человек. Ваш вес теперь { NUMBER($status, maximumFractionDigits: 0) }.
+        [few] В день, за который вы голосовали, погибли { $lost } человека. Ваш вес теперь { NUMBER($status, maximumFractionDigits: 0) }.
+       *[many] В день, за который вы голосовали, погибло { $lost } человек. Ваш вес теперь { NUMBER($status, maximumFractionDigits: 0) }.
+    }
+seat-praised =
+    { $born ->
+        [one] В день, за который вы голосовали, родился { $born } ребёнок. Ваш вес теперь { NUMBER($status, maximumFractionDigits: 0) }.
+        [few] В день, за который вы голосовали, родились { $born } ребёнка. Ваш вес теперь { NUMBER($status, maximumFractionDigits: 0) }.
+       *[many] В день, за который вы голосовали, родилось { $born } детей. Ваш вес теперь { NUMBER($status, maximumFractionDigits: 0) }.
+    }
 seat-banished = Община изгнала вас. Ваш голос больше не слышен.

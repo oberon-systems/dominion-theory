@@ -37,7 +37,8 @@ def test_a_real_time_game_is_created_watched_and_left_paused(server: str, api: A
     assert result.stdout.splitlines() == [
         'midday, day 1, month 1, year 1, spring: 15 people, forage 43.4, water 15, gathers forage.',
         'afternoon, day 1, month 1, year 1, spring: 15 people, forage 43.4, water 46.6, gathers water.',
-        'evening, day 1, month 1, year 1, spring: 15 people, forage 43.4, water 46.6, camps.',
+        'evening, day 1, month 1, year 1, spring: '
+        '15 people, forage 43.4, water 46.6, roams south, foraging on the way.',
     ]
     assert (game['seed'], game['mode'], game['running']) == (42, 'real-time', False)
     assert api.snapshot(game['id'])['seq'] >= 3
@@ -121,9 +122,9 @@ def test_a_band_with_no_food_is_lived_headless_into_a_row_for_its_last_year() ->
             '0',
             '0',
             '0',
-            '0',
-            '16',
-            '44',
+            '29',
+            '7',
+            '24',
             '50',
             '0',
             '0',

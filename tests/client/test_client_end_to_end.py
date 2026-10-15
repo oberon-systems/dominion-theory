@@ -11,7 +11,8 @@ YEAR = 500
 STEP_MODE = 'step'
 WINDOW = 10
 DAY = 5
-REST = {'id': 'c-1', 'kind': 'vote', 'proposal': {'kind': 'rest'}}
+EVENING = 3
+NORTHWARD = {'id': 'c-3', 'kind': 'vote', 'proposal': {'kind': 'move', 'towards': 'north'}}
 # A band that needs nothing, sees nothing and meets nothing: it camps, so the frame is tested alone.
 QUIET = (
     'units.band.sight=0',
@@ -84,8 +85,16 @@ def test_a_game_year_is_played_printed_and_replayed(server: str, lang: str) -> N
 
 
 COUNCIL = {
-    'en': ('You turned the band: we rest here.', 'It went well: we rest here. Your standing is now 52.', 'The votes: '),
-    'ru': ('Вы повернули общину: отдыхаем здесь.', 'Всё вышло хорошо: отдыхаем здесь. Ваш вес теперь 52.', 'Голоса: '),
+    'en': (
+        'You turned the band: we go towards the star that does not move.',
+        'It went well: we go towards the star that does not move. Your standing is now 54.',
+        'The votes: ',
+    ),
+    'ru': (
+        'Вы повернули общину: идём на неподвижную звезду.',
+        'Всё вышло хорошо: идём на неподвижную звезду. Ваш вес теперь 54.',
+        'Голоса: ',
+    ),
 }
 
 
@@ -106,21 +115,17 @@ def played(api: Api, game: str, lang: str) -> tuple[list[dict[str, Any]], list[s
 
 @pytest.mark.parametrize('lang', ['en', 'ru'])
 def test_a_vote_that_turns_the_band_bends_it_and_its_verdict_moves_the_status(api: Api, lang: str) -> None:
-    called, free = (api.create(STEP_MODE, 42, overrides=LOUD, seated=True)['id'] for _ in range(2))
-    api.command(called, REST)
-    api.command(free, {'id': 'pass-0', 'kind': 'pass'})
-    for seq in range(1, WINDOW):
-        for game in (called, free):
-            api.command(game, {'id': f'pass-{seq}', 'kind': 'pass'})
+    called = api.create(STEP_MODE, 42, overrides=LOUD, seated=True)['id']
+    for seq in range(WINDOW):
+        api.command(called, NORTHWARD if seq == EVENING else {'id': f'pass-{seq}', 'kind': 'pass'})
 
     updates, lines, actions = played(api, called, lang)
-    alone = played(api, free, lang)[2]
     turned, judged, table = COUNCIL[lang]
+    judging = EVENING + DAY - 1
 
-    assert {action['kind'] for action in actions[:DAY]} == {'camp'}
-    assert {action['kind'] for action in alone[1:DAY]} != {'camp'}
-    assert updates[0]['changes']['seat'] == {'council': None}
-    assert updates[DAY - 1]['changes']['seat']['status'] == 52.0
-    assert turned in lines[0]
-    assert judged in lines[DAY - 1] and table in lines[DAY - 1]
+    assert [action['kind'] for action in actions[EVENING : judging + 1]] == ['camp', 'camp', 'roam', 'move', 'move']
+    assert updates[EVENING]['changes']['seat'] == {'council': None}
+    assert updates[judging]['changes']['seat']['status'] == 54.0
+    assert turned in lines[EVENING]
+    assert judged in lines[judging] and table in lines[judging]
     assert api.snapshot(called)['seat']['seated'] is True

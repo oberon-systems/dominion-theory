@@ -14,7 +14,7 @@ def months(preset: str | None = None, overrides: dict[str, object] | None = None
 
 HALVES = {
     'time.day_parts': ['day', 'night'],
-    'units.band.decisions.night_parts': ['night'],
+    'units.band.camp_parts': ['night'],
     'council.part': 'day',
 }
 

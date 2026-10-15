@@ -117,12 +117,11 @@ judges a `vote` when the game next steps. A vote backs an option of the
 table, proposes one that has no votes, or abstains with
 `{"kind": "abstain"}`.
 
-A proposal is one of three.
+A proposal is one of two.
 
 | Proposal          | Fields                 | In the game                           |
 |-------------------|------------------------|---------------------------------------|
 | `move`            | `towards`: a direction | "we go where the sun rises"           |
-| `rest`            | none                   | "we rest here"                        |
 | `stay-and-gather` | none                   | "we stay and gather"                  |
 
 A direction is one of eight: `north`, `north-east`, `east`, `south-east`,
@@ -165,8 +164,8 @@ ___
 
 ## Examples
 
-A seat that turns the band east at the council of the morning and passes
-for the rest of the day, in step mode. The addresses are shortened.
+A seat that turns the band east at the council of the evening and passes
+until the next one, in step mode. The addresses are shortened.
 
 ```text
 GET  /games/7f3a9c1e/snapshot       -> seq 310, waiting ["player"], seat.council with its table
@@ -179,7 +178,7 @@ WS   /games/7f3a9c1e/updates        <- seq 312: command-accepted c-2
 A vote at midday, when no council sits.
 
 ```text
-POST /games/7f3a9c1e/commands       {"id": "c-3", "kind": "vote", "proposal": {"kind": "rest"}}
+POST /games/7f3a9c1e/commands       {"id": "c-3", "kind": "vote", "proposal": {"kind": "stay-and-gather"}}
 WS   /games/7f3a9c1e/updates        <- seq 313: command-refused c-3, refused-no-council
 ```
 

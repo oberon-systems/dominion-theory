@@ -20,7 +20,7 @@ COUNCIL = {
     'table': [
         {'proposal': STAY, 'votes': 8},
         {'proposal': EAST, 'votes': 5},
-        {'proposal': {'kind': 'rest'}, 'votes': 1},
+        {'proposal': {'kind': 'move', 'towards': 'north'}, 'votes': 1},
     ],
 }
 BAND = {
@@ -109,11 +109,10 @@ class Chooser:
 def test_the_options_are_the_table_first_then_the_rest_in_the_fixed_order() -> None:
     listed = options(COUNCIL)
 
-    assert [option.proposal for option in listed[:3]] == [STAY, EAST, {'kind': 'rest'}]
+    assert [option.proposal for option in listed[:3]] == [STAY, EAST, {'kind': 'move', 'towards': 'north'}]
     assert [option.votes for option in listed[:4]] == [8, 5, 1, 0]
-    assert [option.leader for option in listed] == [True] + [False] * 9
+    assert [option.leader for option in listed] == [True] + [False] * 8
     assert [option.proposal.get('towards') for option in listed[3:]] == [
-        'north',
         'north-east',
         'south-east',
         'south',
@@ -170,15 +169,15 @@ def test_the_debug_line_follows_every_update() -> None:
     [
         ('2', EAST),
         (' 1 ', STAY),
-        ('11', SILENCE),
+        ('10', SILENCE),
         ('', SILENCE),
         ('abstain', SILENCE),
         ('east', EAST),
         ('E', EAST),
         ('nw', {'kind': 'move', 'towards': 'north-west'}),
-        ('rest', {'kind': 'rest'}),
+        ('rest', None),
         ('stay', STAY),
-        ('12', None),
+        ('11', None),
         ('0', None),
         ('alpha', None),
     ],
@@ -190,23 +189,24 @@ def test_an_answer_is_a_number_a_name_or_nothing(answer: str, proposal: Mapping[
 def test_a_vote_from_the_terminal_turns_the_band_and_its_verdict_moves_the_status(server: str) -> None:
     played = CliRunner().invoke(
         cli,
-        ['play', '--server', server, '--seed', '42', '--lang', 'en', '--updates', '5', '--debug', *LOUD],
-        input='alpha\nrest\n',
+        ['play', '--server', server, '--seed', '42', '--lang', 'en', '--updates', '8', '--debug', *LOUD],
+        input='alpha\nnorth\n',
     )
     lines = played.stdout.splitlines()
+    north = 'we go towards the star that does not move'
 
     assert played.exit_code == 0
     assert 'Not understood: alpha.' in lines
     assert 'Your standing is 50.' in lines
-    assert any('You turned the band: we rest here.' in text for text in lines)
-    assert any('It went well: we rest here. Your standing is now 52.' in text for text in lines)
+    assert any(f'You turned the band: {north}.' in text for text in lines)
+    assert any(f'It went well: {north}. Your standing is now 54.' in text for text in lines)
     assert any('@ ' in text and not text.startswith('@ ') for text in lines)
     assert any(text.startswith('@ ') and '| reason ' in text for text in lines)
 
 
 def test_silence_at_the_council_costs_standing(server: str) -> None:
     played = CliRunner().invoke(
-        cli, ['play', '--server', server, '--seed', '42', '--lang', 'ru', '--updates', '1', *LOUD], input='\n'
+        cli, ['play', '--server', server, '--seed', '42', '--lang', 'ru', '--updates', '4', *LOUD], input='\n'
     )
 
     assert played.exit_code == 0

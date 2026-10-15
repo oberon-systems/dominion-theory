@@ -109,7 +109,7 @@ An entry names its key and gives the words, with the values in braces.
 
 ```fluent
 proposal-move-east = we go where the sun rises
-proposal-rest = we rest here
+proposal-stay-and-gather = we stay and gather
 season-started = Year { $year }: { NAME("time-season", $season) } has come.
 
 people-lost =

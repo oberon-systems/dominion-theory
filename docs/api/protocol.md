@@ -129,7 +129,7 @@ after it.
       "states": [],
       "action": {"kind": "camp"},
       "intent": null,
-      "reason": {"action": "camp", "need": "rest", "score": 0.42, "pull": null}
+      "reason": {"action": "camp", "need": "rest", "score": 0.0, "pull": null}
     }
   ],
   "waiting": []
@@ -159,8 +159,8 @@ not start at the origin; see
   "leader": {"kind": "stay-and-gather"},
   "table": [
     {"proposal": {"kind": "stay-and-gather"}, "votes": 8},
-    {"proposal": {"kind": "move", "towards": "east"}, "votes": 5},
-    {"proposal": {"kind": "rest"}, "votes": 1}
+    {"proposal": {"kind": "move", "towards": "north"}, "votes": 1},
+    {"proposal": {"kind": "move", "towards": "east"}, "votes": 5}
   ]
 }
 ```
@@ -205,9 +205,9 @@ Each message on the stream is one update.
 ```json
 {
   "seq": 312,
-  "date": {"year": 1, "month": 7, "day": 3, "part": "night", "season": "autumn"},
+  "date": {"year": 1, "month": 7, "day": 3, "part": "evening", "season": "autumn"},
   "events": [
-    {"key": "council-turned", "values": {"proposal": "proposal-rest", "yes": 8.75, "all": 17.75}}
+    {"key": "council-turned", "values": {"proposal": "proposal-stay-and-gather", "yes": 8.75, "all": 17.75}}
   ],
   "changes": {
     "units": [
@@ -220,8 +220,8 @@ Each message on the stream is one update.
         "fatigue": 0.0,
         "states": [],
         "action": {"kind": "camp"},
-        "intent": {"proposal": {"kind": "rest"}},
-        "reason": {"action": "camp", "need": "rest", "score": 0.42, "pull": null}
+        "intent": {"proposal": {"kind": "stay-and-gather"}},
+        "reason": {"action": "camp", "need": "rest", "score": 0.0, "pull": null}
       }
     ],
     "gone": [],

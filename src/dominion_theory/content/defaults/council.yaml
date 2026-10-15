@@ -1,5 +1,5 @@
 council:
-  part: morning
+  part: evening
   spread: 0.2
   voice:
     share: 0.5
@@ -13,7 +13,8 @@ council:
     move_worked: 4
     move_failed: -6
     move_disaster: -20
-    rest: 2
     stay_worked: 3
     stay_failed: -6
     stay_disaster: -20
+    death: -5
+    birth: 5

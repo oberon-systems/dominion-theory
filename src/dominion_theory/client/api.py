@@ -15,6 +15,8 @@ TIMEOUT = 30.0
 
 type Body = dict[str, Any]
 
+ENDED = 'error-game-ended'
+
 
 class Refused(Exception):
     """

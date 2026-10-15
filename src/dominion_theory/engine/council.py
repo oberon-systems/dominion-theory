@@ -10,8 +10,8 @@ from typing import Any
 from ..content import Params
 from . import band as bands
 from . import decisions
-from .band import DIRECTIONS, ENCOUNTER, Band
-from .commands import ABSTAIN, MOVE, PROPOSALS, REST, STAY
+from .band import DIRECTIONS, Band
+from .commands import ABSTAIN, MOVE, PROPOSALS, STAY
 from .events import NO_LEADER, PROPOSAL
 
 WORKED = 'worked'
@@ -19,11 +19,9 @@ FAILED = 'failed'
 DISASTER = 'disaster'
 STATUS = {MOVE: 'move', STAY: 'stay'}
 STAYING = {'kind': STAY}
-RESTING = {'kind': REST}
 HIGHEST = 100.0
-# The fixed order of the options, the one of the decision function: the camp, the gatherings, the moves.
+# The fixed order of the options, the one of the decision function: the gatherings, the moves.
 OPTIONS: tuple[dict[str, Any], ...] = (
-    {'kind': REST},
     {'kind': STAY},
     *({'kind': MOVE, 'towards': name} for name in DIRECTIONS),
 )
@@ -56,21 +54,17 @@ def key(proposal: Proposal | None) -> str:
     return f'{PROPOSAL}{proposal["kind"]}' + (f'-{proposal["towards"]}' if proposal['kind'] == MOVE else '')
 
 
-def score(params: Params, band: Band, part: str, era: str) -> dict[str, float]:
+def score(params: Params, band: Band, era: str) -> dict[str, float]:
     """
-    What a day of every proposal is worth to the band, by key: staying on the land it stands on, resting
-    there without gathering, or walking to the best land that way.
+    What a day of every proposal is worth to the band, by key: staying on the land it stands on or walking to
+    the best land that way.
     """
     weights = params.units.band.decisions.weights
-    wanted = decisions.needs(params, band, part)
+    wanted = decisions.needs(params, band)
     own = band.known.get(band.place)
     here = decisions.worth(params, own, wanted)[0] if own else 0.0
-    gain = sum(wanted[need] * own.get(prop, 0.0) for prop, (need, _) in decisions.NEEDS.items()) if own else 0.0
-    found = {
-        key(STAYING): weights.move * here,
-        key(RESTING): weights.move * (here - gain) + weights.rest * wanted[decisions.REST],
-    }
-    for held in decisions.options(params, band, part, era, allowed={bands.MOVE}, walking=True):
+    found = {key(STAYING): weights.move * here}
+    for held in decisions.options(params, band, era, allowed={bands.MOVE}, walking=True):
         found[key({'kind': MOVE, 'towards': held.action['towards']})] = held.score + weights.move * here
     return found
 
@@ -92,11 +86,11 @@ def votes(scores: list[float], members: int, spread: float) -> list[int]:
     return whole
 
 
-def table(params: Params, band: Band, part: str, era: str) -> Table:
+def table(params: Params, band: Band, era: str) -> Table:
     """
     How the others' votes lie over the options the band can take; options without a vote are left out.
     """
-    days = score(params, band, part, era)
+    days = score(params, band, era)
     offered = [proposal for proposal in OPTIONS if key(proposal) in days]
     scores = [days[key(proposal)] for proposal in offered]
     laid = [
@@ -130,6 +124,17 @@ def decide(laid: Table, proposal: Proposal, spoken: float) -> tuple[Proposal, fl
     return dict(winner), votes[named]
 
 
+def settled(laid: Table, spoken: float) -> bool:
+    """
+    Whether the leader wins whatever the player says: no other option, one with no votes included, reaches its
+    votes with the player's voice added.
+    """
+    if not laid:
+        return False
+    votes: list[int] = sorted((entry['votes'] for entry in laid), reverse=True)
+    return (votes[1] if len(votes) > 1 else 0) + spoken < votes[0]
+
+
 def voice(params: Params, population: int, status: float) -> float:
     held = params.council.voice
     return max(held.least, held.share * population * status / HIGHEST)
@@ -143,27 +148,35 @@ def worth(params: Params, band: Band, wanted: dict[str, float]) -> float:
     return decisions.worth(params, cell, wanted)[0] if cell else 0.0
 
 
+def expected(params: Params, band: Band, era: str, leader: Proposal | None) -> float:
+    """
+    The day the leader promised, or staying when nobody voted.
+    """
+    days = score(params, band, era)
+    return days.get(key(leader), days[key(STAYING)])
+
+
+def reached(params: Params, band: Band, wanted: dict[str, float]) -> float:
+    return params.units.band.decisions.weights.move * worth(params, band, wanted)
+
+
 def verdict(params: Params, judgement: dict[str, Any], now: float) -> str:
     """
-    How a proposal ended, from the band at the decision kept in the judgement and the worth of its cell now.
+    How a proposal ended: lives lost first, then the day reached against the day the leader promised.
     """
-    kind, lost = judgement['proposal']['kind'], judgement['lost']
-    died = sum(lost.values())
-    if kind == REST or (kind == STAY and not lost.get(ENCOUNTER)):
-        return WORKED
+    died = sum(judgement['lost'].values())
     if died / judgement['population'] >= params.council.judgement.disaster:
         return DISASTER
-    if kind == STAY or died or now < judgement['worth']:
+    if died:
         return FAILED
-    return WORKED
+    return WORKED if now >= judgement['expected'] else FAILED
 
 
 def amount(params: Params, proposal: Proposal, found: str) -> float:
     """
     What a verdict does to status.
     """
-    name = 'rest' if proposal['kind'] == REST else f'{STATUS[proposal["kind"]]}_{found}'
-    moved: float = getattr(params.council.status, name)
+    moved: float = getattr(params.council.status, f'{STATUS[proposal["kind"]]}_{found}')
     return moved
 
 

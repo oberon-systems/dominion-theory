@@ -3,7 +3,7 @@
 #unit #band #stage2
 
 A band is the first unit of the game: some tens of foraging nomads who
-walk, gather, rest and nothing else. This document says what a band is
+walk, roam, gather, camp and nothing else. This document says what a band is
 made of and gives every number it reads. Part of the stage 2 design in
 [the roadmap](../roadmap.md); how a band lives through a day is told in
 [Bands](../game/01_bands.md).
@@ -88,9 +88,8 @@ a day when:
 - the band starves, thirsts or is tired - any of the three states holds;
 - the threat of its cell is above `growth.threat`.
 
-A long rest is still how a band grows: camping takes the fatigue down
-and keeps the band out of the bad states. There is no separate
-multiplier for it any more.
+The nights in camp take the fatigue down and keep the band out of
+tiredness; a band that marches day after day stops having children.
 
 People die of hunger, of thirst and in chance encounters. See
 [States](#states) and [Bands](../game/01_bands.md#chance-encounters).
@@ -149,12 +148,15 @@ the band is pushed on.
 
 A band gathers on the cell it stands on and nowhere else, but for a
 roaming band, which forages the cell ahead as it walks into it. It
-gathers only the resources the biome lists.
+gathers only the resources the biome lists. A roaming band is short of a
+resource while the days of it in the stores are below the top level of
+[Decisions](../game/decisions.md#needs), 2: it does not fill its carry
+with water it has enough of and leave no room for food.
 
 | Roaming    | Is                                                        |
 |------------|-----------------------------------------------------------|
 | `speed`    | the share of the walking pace, 0.75                       |
-| `share`    | the share of a gathering tick taken of every resource, 0.5 |
+| `share`    | the share of a gathering tick taken of every resource the band is short of, 0.5 |
 | `hunger`   | the need at which a band only roams, 0.8: a hungry band   |
 
 A full forest feeds a band of 15 four or five days before it gives too
@@ -204,18 +206,30 @@ ___
 
 ## Fatigue
 
-Fatigue runs from 0 to 1. Moving and gathering add to it, camping takes
-it away.
+Fatigue runs from 0 to 1. Walking, roaming and gathering add to it,
+camping takes it away. A band works in the morning, at midday and in
+the afternoon and camps in the evening and the night, the parts named
+by `camp_parts`; it never walks or gathers then.
 
-| Action   | Fatigue per tick |
-|----------|------------------|
-| `move`   | plus 0.15        |
-| `gather` | plus 0.08        |
-| `camp`   | minus 0.35       |
+| Action    | Fatigue per tick |
+|-----------|------------------|
+| `move`    | plus 0.3         |
+| `roam`    | plus 0.15        |
+| `gather`  | plus 0.1         |
+| `camp`    | minus 0.3        |
 
-Two camps take away more than three moves add, so a band that sleeps
-at night can walk for ever. A band that walks through the night
-reaches the limit on the second day.
+Fatigue weighs in no decision. It takes from what the band can do: its
+pace and every gathering, roaming's share included, are multiplied by
+
+```text
+efficiency = 1 - fatigue.slows * fatigue
+```
+
+so a band at fatigue 1 walks and gathers at half. The two camps of the
+evening and the night take away 0.6 a day. Three ticks of walking add
+0.9, so a band that marches day after day slows down; three of roaming
+add 0.45 and three of gathering 0.3, so a band that roams or gathers is
+rested by the morning.
 
 ___
 
@@ -228,7 +242,7 @@ independent and may hold together.
 |--------------|-------------------------------------|---------------------------------|----------------------------|
 | `starvation` | food was short for 2 days running   | 5% of the people die every day  | a day's food is eaten in full |
 | `thirst`     | water was short for 1 day           | 15% of the people die every day | a day's water is drunk in full |
-| `tiredness`  | fatigue reaches 0.8                 | speed and gathering are halved  | fatigue falls to 0.3       |
+| `tiredness`  | fatigue reaches 0.8                 | nobody is born                  | fatigue falls to 0.3       |
 
 A day counts as short when less than 0.75 of the need was met. Deaths
 are whole people: the share is taken of the population and rounded up,
@@ -293,15 +307,17 @@ units:
       slowest: 0.3
     roaming: {speed: 0.75, share: 0.5, hunger: 0.8}
     fatigue:
-      move: 0.15
-      roam: 0.08
-      gather: 0.08
-      camp: -0.35
+      move: 0.3
+      roam: 0.15
+      gather: 0.1
+      camp: -0.3
+      slows: 0.5
+    camp_parts: [evening, night]
     states:
       short: 0.75
       starvation: {after: {days: 2}, loss_per_day: 0.05}
       thirst: {after: {days: 1}, loss_per_day: 0.15}
-      tiredness: {begins: 0.8, ends: 0.3, slows: 0.5}
+      tiredness: {begins: 0.8, ends: 0.3}
     sight: 2
     memory: {days: 20}
 ```
@@ -330,6 +346,7 @@ A game does not start from a band that does not add up.
 - The start stores fit what the start population carries.
 - A start biome exists and can be entered.
 - `tiredness.ends` is below `tiredness.begins`, and both lie in 0 to 1.
+- Every name of `camp_parts` is one of `time.day_parts`.
 - A share, a chance and a loss lie between 0 and 1.
 
 ___

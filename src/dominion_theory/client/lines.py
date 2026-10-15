@@ -31,6 +31,9 @@ INTENT = 'play-intent'
 RIVER = 'play-river'
 GONE = 'play-gone'
 OVER = 'play-over'
+EVENING = 'play-evening'
+NEXT = 'play-next'
+AGREED = 'council-agreed'
 UNKNOWN = 'play-unknown'
 PROPERTY = 'play-property-'
 PROPERTIES = ('water', 'food', 'threat', 'passability')
@@ -52,6 +55,8 @@ MESSAGES: tuple[str, ...] = (
     RIVER,
     GONE,
     OVER,
+    EVENING,
+    NEXT,
     UNKNOWN,
     *(f'{PROPERTY}{name}' for name in PROPERTIES),
     *(f'{TITLE}{pane}' for pane in PANES),
@@ -59,11 +64,10 @@ MESSAGES: tuple[str, ...] = (
     *(f'{DIRECTION}{towards}' for towards in DIRECTIONS),
 )
 
-# Every proposal in the fixed order of the council: the moves clockwise from the north, rest, staying.
+# Every proposal the menu lists after the voted ones: staying first, then the moves clockwise from the north.
 PROPOSALS: tuple[dict[str, str], ...] = (
-    *({'kind': 'move', 'towards': towards} for towards in DIRECTIONS),
-    {'kind': 'rest'},
     {'kind': 'stay-and-gather'},
+    *({'kind': 'move', 'towards': towards} for towards in DIRECTIONS),
 )
 LOSSES = frozenset(
     {
@@ -76,6 +80,7 @@ LOSSES = frozenset(
         'council-abstained',
         'proposal-failed',
         'proposal-disaster',
+        'seat-blamed',
         'seat-banished',
     }
 )

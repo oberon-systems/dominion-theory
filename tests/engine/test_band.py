@@ -11,11 +11,13 @@ from dominion_theory.engine.band import Action, camp, gathering, moving, roaming
 from dominion_theory.engine.streams import Streams
 from dominion_theory.planet import biome_names
 
+# The band does what it is told in every part of the day; the camp of the evening and the night is tested alone.
 SMALL = {
     'planet.circumference_km': 4000,
     'planet.window.width': 32,
     'planet.window.height': 16,
     'encounters.chance': 0.0,
+    'units.band.camp_parts': [],
 }
 WEST = 100
 NORTH = 50
@@ -139,7 +141,7 @@ def test_a_band_crosses_grass_in_a_tick_and_a_forest_in_two(params: Params) -> N
 
     assert over_grass == MEADOW
     assert (halfway[0], halfway[2]) == (MEADOW, FOREST)
-    assert halfway[1] == pytest.approx(PACE * 0.6)
+    assert halfway[1] == pytest.approx(PACE * 0.6 * (1 - 0.5 * 0.3))
     assert (band(game).place, band(game).progress, band(game).target) == (FOREST, 0.0, None)
     assert counted(game)['moves'] == 3
 
@@ -155,8 +157,8 @@ def test_progress_is_lost_when_the_band_does_something_else(params: Params) -> N
     assert band(game).progress == pytest.approx(PACE * 0.6)
 
 
-def test_the_shallows_are_entered_at_the_shore_and_no_further(params: Params) -> None:
-    game = land(params, at=MEADOW)
+def test_the_shallows_are_entered_at_the_shore_and_no_further() -> None:
+    game = land(load_params(overrides={**SMALL, 'units.band.fatigue.move': 0.0}), at=MEADOW)
 
     do(game, moving('east'), 2)
     wading = band(game).place
@@ -189,8 +191,8 @@ def test_gathering_fills_the_stores_and_empties_the_cell(params: Params) -> None
     do(game, gathering('forage'))
 
     assert once == pytest.approx(15 + 15 * 3.0 * 0.8)
-    assert band(game).held('water') == pytest.approx(15 + 15 * 4.0 * 0.4 * 0.7)
-    assert band(game).held('forage') == pytest.approx(51 + 90 - 51 - 31.8)
+    assert band(game).held('water') == pytest.approx(15 + 15 * 4.0 * 0.4 * 0.7 * (1 - 0.5 * 0.1))
+    assert band(game).held('forage') == pytest.approx(90 - band(game).held('water'))
     assert bands.room(params, band(game)) == pytest.approx(0.0)
     assert first.changes['units'][0]['action'] == {'kind': 'gather', 'resource': 'forage'}
     assert first.changes['units'][0]['place'] == {'scale': 0, 'x': WEST, 'y': NORTH + 1}
@@ -218,9 +220,19 @@ def test_a_roaming_band_forages_the_cell_ahead_and_walks_slower(params: Params) 
     assert band(game).place == HOME
     assert band(game).progress == pytest.approx(PACE * 0.75)
     assert game.cells.stock(MEADOW, 'food') == pytest.approx(1 - 18 / 100 + 1 / (20 * DAY))
-    assert band(game).fatigue == pytest.approx(0.08)
+    assert band(game).fatigue == pytest.approx(0.15)
     assert counted(game)['roams'] == 1
     assert result.changes['units'][0]['action'] == {'kind': 'roam', 'towards': 'east'}
+
+
+def test_a_roaming_band_takes_nothing_it_has_two_days_of(params: Params) -> None:
+    game = land(params)
+    band(game).stores['water'] = [[float(game.day), 45.0]]
+
+    do(game, roaming('east'))
+
+    assert band(game).held('water') == 45.0
+    assert band(game).held('forage') == pytest.approx(15 + 15 * 3 * 0.8 * 0.5)
 
 
 def test_a_roam_into_water_is_a_camp_and_takes_nothing(params: Params) -> None:
@@ -262,25 +274,34 @@ def test_fatigue_grows_with_work_and_falls_in_camp(params: Params) -> None:
     worked = band(game).fatigue
     do(game, camp())
 
-    assert worked == pytest.approx(0.15 + 0.08)
-    assert band(game).fatigue == 0.0
+    assert worked == pytest.approx(0.3 + 0.1)
+    assert band(game).fatigue == pytest.approx(0.1)
 
 
-def test_tiredness_begins_halves_the_pace_and_ends_in_camp(params: Params) -> None:
+def test_the_band_camps_in_the_evening_and_the_night_whatever_it_wants() -> None:
+    game = land(load_params(overrides={**SMALL, 'units.band.camp_parts': ['evening', 'night']}))
+    game.choose = lambda _game, _band: gathering('forage')
+
+    kinds = [game.step().units[0][4] for _ in range(DAY)]
+
+    assert kinds == ['gather', 'gather', 'gather', 'camp', 'camp']
+    assert band(game).reason == {'action': 'camp', 'need': 'rest', 'score': 0.0, 'pull': None}
+
+
+def test_fatigue_slows_the_pace_and_tiredness_begins_and_ends_in_camp(params: Params) -> None:
     game = land(params)
     rules = params.units.band
 
-    for towards in ('east', 'west', 'east', 'west', 'east'):
-        before = do(game, moving(towards))
-    began = do(game, moving('west'))
+    before = [do(game, moving(towards)) for towards in ('east', 'west')]
+    began = do(game, moving('east'))
     slowed = bands.speed(rules, band(game))
     still = do(game, camp())
     ended = do(game, camp())
 
-    assert (told(before), told(still)) == ([], [])
+    assert ([told(result) for result in before], told(still)) == ([[], []], [])
     assert told(began) == [('band-state-began', {'state': 'state-tiredness'})]
     assert began.changes['units'][0]['states'] == ['tiredness']
-    assert slowed == pytest.approx(PACE * 0.5)
+    assert slowed == pytest.approx(PACE * (1 - 0.5 * 0.9))
     assert told(ended) == [('band-state-ended', {'state': 'state-tiredness'})]
     assert band(game).states == []
 
@@ -384,7 +405,7 @@ def test_a_rested_band_grows_and_a_tired_one_stops() -> None:
     assert born == [('people-born', {'count': 1})]
     assert (band(resting).population, band(working).population) == (16, 15)
     assert band(working).states == ['tiredness']
-    assert band(working).births == pytest.approx(15 * 0.6 / 100 * (0.75 + 0.55))
+    assert band(working).births == pytest.approx(15 * 0.6 / 100 * 0.7)
 
 
 @pytest.mark.parametrize(('threat', 'births'), [(0.6, 15 * 0.6 / 100 * 0.85), (0.05, 0.0)])
@@ -457,7 +478,7 @@ def test_a_restored_game_carries_the_band_in_the_middle_of_a_day(params: Params)
 def test_a_snapshot_of_the_format_before_the_band_is_refused(params: Params) -> None:
     snapshot = land(params).snapshot()
 
-    assert snapshot['format'] == 6
+    assert snapshot['format'] == 7
     with pytest.raises(ValueError, match='format 2'):
         Game.restore({**snapshot, 'format': 2})
 

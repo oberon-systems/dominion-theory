@@ -43,16 +43,16 @@ def test_band_is_the_one_of_its_document() -> None:
         {'forage': 1.0, 'water': 1.0},
     )
     assert (band.speed.base, band.speed.slowdown, band.speed.slowest) == (1.2, 0.03, 0.3)
-    assert (band.fatigue.move, band.fatigue.roam, band.fatigue.gather, band.fatigue.camp) == (0.15, 0.08, 0.08, -0.35)
+    assert band.fatigue.model_dump() == {'move': 0.3, 'roam': 0.15, 'gather': 0.1, 'camp': -0.3, 'slows': 0.5}
     assert band.roaming.model_dump() == {'speed': 0.75, 'share': 0.5, 'hunger': 0.8}
     assert (band.states.short, band.states.starvation.loss_per_day, band.states.thirst.loss_per_day) == (
         0.75,
         0.05,
         0.15,
     )
-    assert (band.states.tiredness.begins, band.states.tiredness.ends, band.states.tiredness.slows) == (0.8, 0.3, 0.5)
+    assert (band.states.tiredness.begins, band.states.tiredness.ends) == (0.8, 0.3)
     assert (band.sight, band.memory.model_dump()) == (2, {'days': 20})
-    assert band.decisions.night_parts == ('evening', 'night')
+    assert band.camp_parts == ('evening', 'night')
     weights = band.decisions.weights
     assert (weights.hunger, weights.safety, weights.move) == (1.5, 2.0, 3.0)
     assert {name: held.model_dump() for name, held in band.decisions.levels.items()} == {
@@ -77,7 +77,7 @@ def test_era_holds_what_a_cell_gives_and_how_winter_slows_it() -> None:
 def test_council_is_the_one_of_its_document() -> None:
     council = load_params().council
 
-    assert (council.part, council.spread, council.voice.share, council.voice.least) == ('morning', 0.2, 0.5, 2.0)
+    assert (council.part, council.spread, council.voice.share, council.voice.least) == ('evening', 0.2, 0.5, 2.0)
     assert council.judgement.disaster == 0.2
     assert council.status.model_dump() == {
         'start': 50.0,
@@ -86,10 +86,11 @@ def test_council_is_the_one_of_its_document() -> None:
         'move_worked': 4.0,
         'move_failed': -6.0,
         'move_disaster': -20.0,
-        'rest': 2.0,
         'stay_worked': 3.0,
         'stay_failed': -6.0,
         'stay_disaster': -20.0,
+        'death': -5.0,
+        'birth': 5.0,
     }
 
 
@@ -206,9 +207,9 @@ def test_share_lies_between_nothing_and_one(path: str) -> None:
     assert refused({path: 1.5})['path'] == path
 
 
-def test_night_parts_are_parts_of_the_day() -> None:
-    assert refused({f'{BAND}.decisions.night_parts': ['dusk']}) == {
-        'path': f'{BAND}.decisions.night_parts',
+def test_camp_parts_are_parts_of_the_day() -> None:
+    assert refused({f'{BAND}.camp_parts': ['dusk']}) == {
+        'path': f'{BAND}.camp_parts',
         'found': 'dusk',
         'expected': 'one of morning, midday, afternoon, evening, night',
     }

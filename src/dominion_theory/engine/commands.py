@@ -10,13 +10,12 @@ PASS = 'pass'  # noqa: S105
 VOTE = 'vote'
 ABSTAIN = 'abstain'
 MOVE = 'move'
-REST = 'rest'
 STAY = 'stay-and-gather'
 
 BUILT = frozenset({PASS, VOTE})
 ENVELOPE = ('id', 'kind')
 # The fields of a proposal besides its kind.
-PROPOSALS: dict[str, tuple[str, ...]] = {MOVE: ('towards',), REST: (), STAY: ()}
+PROPOSALS: dict[str, tuple[str, ...]] = {MOVE: ('towards',), STAY: ()}
 
 
 @dataclass(frozen=True, kw_only=True)

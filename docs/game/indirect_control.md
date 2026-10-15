@@ -3,7 +3,7 @@
 #game #council #stage2
 
 The player does not command the band. The player is one voice in its
-council, and the council meets every morning: the others put their votes
+council, and the council meets every evening: the others put their votes
 on what the band could do, the player sees how they lie and answers, and
 what follows moves the player's status. This document gives the rules of
 the council, the vote, the judgement and the status. Part of the stage 2
@@ -30,15 +30,17 @@ ___
 ## The idea
 
 There is no headman. The band acts on its own, by
-[its decision function](decisions.md), and the council of every morning
-shows what the band is minded to do. The player answers in one of three
+[its decision function](decisions.md), and the council of every evening
+shows what the band is minded to do tomorrow. The player answers in one of three
 ways: backs one of the options the others voted for, proposes another,
 or does not vote, which costs status.
 
-The player is answerable only for what the player changed. Backing what
-the band would have done anyway moves nothing; turning the band
-elsewhere is judged by what follows; staying silent is a small loss
-every day.
+The player is answerable for the days the player voted for. On such a
+day every death costs status and every birth earns it, whether the
+player backed the leader or turned the band; turning the band is judged
+besides by what follows. Staying silent is no way out: it costs status
+at once, and the deaths of that day are the player's while its births
+are not.
 
 ___
 
@@ -48,19 +50,22 @@ Status is a number from 0 to 100 that belongs to the seat. It starts at
 50, never passes 100, and at 0 the player is banished.
 
 It does two things. It is the weight of the player's voice in the vote,
-and it is the player's life in the game. Nothing but the council changes
-it: it does not drift by itself, and what the band suffers on its own is
-not the player's fault.
+and it is the player's life in the game. Nothing but the council and the
+days the player voted for change it: it does not drift by itself, and
+what the band suffers on a day the player did not vote for is not the
+player's fault.
 
 ___
 
 ## The council of the day
 
-The council meets once a day, at the first tick of the day, the
-morning. Nobody calls it, and it cannot be called at another time.
+The council meets once a day, in the evening, around the fire of the
+camp, and decides the next day: the morning, the midday and the
+afternoon, when the band works. Nobody calls it, and it cannot be called
+at another time.
 
-1. **Judgement** - the proposal of the day before, if the player turned
-   the band, is judged first; see [The judgement](#the-judgement).
+1. **Judgement** - the proposal of the evening before, if the player
+   turned the band, is judged first; see [The judgement](#the-judgement).
 2. **The table** - the others vote, and the votes are shown to the
    player; see [The table of votes](#the-table-of-votes).
 3. **The answer** - the council waits for the player; see
@@ -68,8 +73,17 @@ morning. Nobody calls it, and it cannot be called at another time.
 4. **The decision** - the option with the most votes wins; see
    [The decision](#the-decision).
 
-The band does not act while the council sits: the morning tick is spent
-in it, as a camp. In step mode the game waits for the seat as it always
+**A council that is settled does not sit.** When no option, one without
+votes included, reaches the votes of the leader even with the player's
+voice added, nothing the player could say would change the day. Then the
+table is drawn but nobody is asked: the event `council-agreed` names the
+leader, it becomes the band's intent, nothing is paid for silence, and the
+day counts as one the player voted for, its deaths and births included.
+The higher the status, the louder the voice and the more often the
+council sits.
+
+The band camps while the council sits, as it does every evening and
+every night. In step mode the game waits for the seat as it always
 does. In real time the clock stops while the council waits, for at most
 `DT_COUNCIL_WAIT_S` seconds of real time, a setting of the server, 30 by
 default; a player who has not answered by then did not vote.
@@ -83,25 +97,24 @@ people with names: how their votes lie follows from how good each option
 looks to the band.
 
 The options are the proposals the player could make: a move in each of
-the eight directions whose cell can be entered, a rest, and a stay to
-gather; ten at most. The council decides where the band spends the day,
+the eight directions whose cell can be entered and a stay to gather;
+nine at most. There is no rest to propose: every night rests the band.
+The council decides where the band spends the day,
 so each option is scored by the day it leads to, with the needs of
 [Decisions](decisions.md#needs):
 
 | Option            | Score                                                       |
 |-------------------|-------------------------------------------------------------|
 | `stay-and-gather` | `weights.move` times the worth of the own cell              |
-| `rest`            | the same without what the cell feeds, plus `weights.rest` times rest |
-| `move` that way   | `weights.move` times the pull that way, less the effort      |
+| `move` that way   | `weights.move` times the pull that way                      |
 
 ```text
 stay = weights.move * worth(own)
-rest = weights.move * (worth(own) - hunger * food - thirst * water) + weights.rest * rest
-move = weights.move * pull - weights.rest * rest * effort
+move = weights.move * pull
 ```
 
 A band on good land stays; a calm band in a dangerous forest leans to
-the open land beside it; a tired band that is not hungry leans to a rest.
+the open land beside it.
 How the band moves - walking or roaming - is its own choice once the
 day is decided. A move is scored as a walk even for a hungry band that
 may only roam, so the council still weighs every way and not only the
@@ -171,32 +184,33 @@ player's option, and among the others to the fixed order.
 
 | The player             | The winner        | Then                                        |
 |------------------------|-------------------|---------------------------------------------|
-| backed the leader      | the leader        | the band decides freely; status does not move |
-| turned the band        | the player's option, not the leader | it becomes the band's intent and is judged |
-| was outvoted           | another option    | the band decides freely; `outvoted` is paid  |
-| abstained              | the leader        | the band decides freely; `abstained` is paid |
+| backed the leader      | the leader        | the day is the player's                     |
+| turned the band        | the player's option, not the leader | it is judged; the day is the player's |
+| was outvoted           | another option    | `outvoted` is paid                          |
+| abstained              | the leader        | `abstained` is paid; the deaths of the day are the player's |
 
-"Decides freely" means no intent: the band runs its decision function
-tick by tick, which is what the leader stood for. Only an option the
-player carried against the leader binds the band.
+Whoever carried it, the winner becomes the band's intent: the council
+decides where the band spends the day, and a band that agreed to stay
+does not roam away. Only an option the player carried against the
+leader is judged.
 
 ___
 
 ## An intent
 
-An intent holds from the decision to the next council, the rest of the
-day and the night.
+An intent holds from the decision to the next council: the night and
+the working day after it. The band camps in the evening and the night
+whatever the intent.
 
 | Proposal          | The band                                    |
 |-------------------|---------------------------------------------|
-| `move`            | walks that way and camps when it must       |
-| `rest`            | camps and does nothing else                 |
+| `move`            | roams or walks that way, as it sees fit     |
 | `stay-and-gather` | stays on its cell, gathers and camps        |
 
 A `move` ends early when the way is closed, as
 [Decisions](decisions.md#under-an-intent) tells. No other thing ends an
-intent early: a band that agreed to rest goes on resting while its food
-runs out.
+intent early: a band that agreed to stay goes on gathering a stripped
+cell.
 
 ___
 
@@ -205,49 +219,68 @@ ___
 An intent is judged at the next council, before the new table. The game
 compares the band at the decision with the band at the judgement.
 
-| Measure | Is                                                            |
-|---------|---------------------------------------------------------------|
-| `worth` | what the cell the band stands on is worth to it, as [Decisions](decisions.md#what-a-cell-is-worth) counts it, weighed by the needs the band had at the decision |
-| `lost`  | the people who died since the decision, of any cause, as a share of the people at the decision |
+The player turned the band away from what its people wanted, so the
+day is judged against the day the leader promised.
 
-A `move` gets one of three verdicts, the first that fits.
+| Measure    | Is                                                         |
+|------------|------------------------------------------------------------|
+| `expected` | the score of [the day](#the-table-of-votes) of the leader at the decision; of staying when no option had a vote |
+| `reached`  | `weights.move` times what the cell the band stands on is worth to it, as [Decisions](decisions.md#what-a-cell-is-worth) counts it, weighed by the needs the band had at the decision |
+| `lost`     | the people who died since the decision, of any cause, as a share of the people at the decision |
+
+Every proposal gets one of three verdicts, the first that fits.
 
 | Verdict    | When                                                     |
 |------------|----------------------------------------------------------|
 | `disaster` | `lost` is at least `council.judgement.disaster`, 0.2     |
-| `failed`   | anybody died, or the cell reached is worth less than the cell left |
+| `failed`   | anybody died                                             |
+| `failed`   | `reached` is below `expected`                            |
 | `worked`   | otherwise                                                |
 
-A move is judged by the land it reached and not by the stores: a band
+A move and a stay are judged by the land and not by the stores: a band
 that walks for a day gathers nothing and eats a day of food, so its
-stores always fall, and a measure of stores would fail every move.
+stores always fall, and a measure of stores would fail every move. Fresh
+land beats stripped land, so the measure is not the land the band left
+but the day the band would have had: a player who turns a band that did
+not care where it went gains about as often as they lose, and one who
+turns it from a clear choice mostly loses.
 
-- **A rest always worked.** It raises status whatever it cost; the cost
-  is the food and water nobody gathered.
-- **Staying to gather worked** unless an encounter took people. Then it
-  failed, and it was a disaster by the same share as a move.
+The judgement sits before the night, so the deaths of hunger and thirst
+at the end of the judged day are not in `lost`. They are paid as every
+death of a day the player voted for is; see
+[What moves status](#what-moves-status).
 
 ___
 
 ## What moves status
 
-| What happened                       | Status |
-|-------------------------------------|--------|
-| abstained                           | -2     |
-| outvoted                            | -1     |
-| backed the leader                   | 0      |
-| a move the player carried worked    | +4     |
-| a move failed                       | -6     |
-| a move ended in disaster            | -20    |
-| a rest the player carried           | +2     |
-| staying to gather worked            | +3     |
-| staying to gather failed            | -6     |
-| staying ended in disaster           | -20    |
+| What happened                                           | Status  |
+|---------------------------------------------------------|---------|
+| abstained                                               | -2      |
+| outvoted                                                | -1      |
+| backed the leader                                       | 0       |
+| a move the player carried worked                        | +4      |
+| a move failed                                           | -6      |
+| a move ended in disaster                                | -20     |
+| staying to gather worked                                | +3      |
+| staying to gather failed                                | -6      |
+| staying ended in disaster                               | -20     |
+| a death on a day the player voted for or kept silent on | -5 each |
+| a birth on a day the player voted for                   | +5 each |
 
-Silence costs more than losing a vote, so a player who takes part is
-never worse off than one who does not. Gains come only from turning the
-band, so following the crowd is safe and slow, and leading is the way
-up and the way out.
+The player voted for a day when the player's option won the evening
+council before it, backed or carried. A player who kept silent at that
+council answers for the deaths of the day and earns nothing from its
+births; a player who was outvoted argued against the day and answers
+for neither. A death or a birth belongs to the day it
+ends: those at the end of the day, in the night, belong to the council
+of the evening before that day, not to the one that has just sat.
+
+Silence costs more than losing a vote, and more again on a day people
+die, so a player who takes part is never worse off than one who does
+not. A band that grows raises the
+player who leads it, a band that dies takes the player down with it,
+and turning the band is the way up and the way out faster.
 
 ___
 
@@ -281,6 +314,7 @@ Every event is a message key with values, in both catalogues.
 | Key                 | Values                                   | When                          |
 |---------------------|------------------------------------------|-------------------------------|
 | `council-opened`    | `leader`                                 | the table is drawn            |
+| `council-agreed`    | `leader`                                 | the leader wins whatever the player says |
 | `council-followed`  | `proposal`                               | the player backed the leader  |
 | `council-turned`    | `proposal`, `yes`, `all`                 | the player carried an option  |
 | `council-outvoted`  | `proposal`, `winner`, `status`           | the player lost the vote      |
@@ -289,6 +323,8 @@ Every event is a message key with values, in both catalogues.
 | `proposal-failed`   | `proposal`, `lost`, `status`             | the judgement                 |
 | `proposal-disaster` | `proposal`, `lost`, `status`             | the judgement                 |
 | `intent-ended`      | `proposal`                               | the way was closed            |
+| `seat-blamed`       | `lost`, `status`                         | people died on a voted or silent day |
+| `seat-praised`      | `born`, `status`                         | children were born on a voted day |
 | `seat-banished`     | none                                     | status reached 0              |
 
 `proposal`, `leader` and `winner` are themselves keys, such as
@@ -301,7 +337,7 @@ ___
 
 ```yaml
 council:
-  part: morning
+  part: evening
   spread: 0.2
   voice:
     share: 0.5
@@ -315,10 +351,11 @@ council:
     move_worked: 4
     move_failed: -6
     move_disaster: -20
-    rest: 2
     stay_worked: 3
     stay_failed: -6
     stay_disaster: -20
+    death: -5
+    birth: 5
 ```
 
 `part` must be one of `time.day_parts`. `spread` must be above 0.
@@ -331,20 +368,22 @@ ___
 
 ## Examples
 
-A band of 15 in the morning, status 50, so the player speaks with 3.75
-voices. The others score staying to gather 0.5, a move east 0.4, a rest
-0.07 and the seven other moves 0. With a spread of 0.2 the fourteen
-votes lie 6.09, 3.70, 0.71 and 0.50 for each other move; by the largest
-remainder staying gets 6, the move east 4, the rest 1, and the first
-three other moves in the fixed order 1 each.
+A band of 15 in the evening, status 50, so the player speaks with 3.75
+voices. The others score staying to gather 0.5, a move east 0.4 and the
+seven other moves 0. With a spread of 0.2 the fourteen votes lie 6.42,
+3.89 and 0.53 for each other move; by the largest remainder staying
+gets 6, the move east 4, and the first four other moves in the fixed
+order 1 each.
 
 ```text
 seq 500          council-opened leader proposal-stay-and-gather
-                 table: stay-and-gather 6, move-east 4, rest 1, move-north 1, ...
+                 table: stay-and-gather 6, move-north 1, move-north-east 1, move-east 4, ...
 ```
 
-The player backs the move east: 4 + 3.75 = 7.75 beats 6. The band walks
-east for the day and the move is judged the next morning.
+The player backs the move east: 4 + 3.75 = 7.75 beats 6. The band roams
+east the next day and the move is judged the next evening against the
+0.5 staying promised: the land reached scores 0.55 by the same measure,
+and the move worked.
 
 ```text
 POST /commands   {"id": "c-7", "kind": "vote", "proposal": {"kind": "move", "towards": "east"}}
@@ -359,9 +398,10 @@ does not beat 6, and staying to gather wins.
 seq 500          council-outvoted proposal-move-north, winner proposal-stay-and-gather, status 49
 ```
 
-The player backs staying to gather: the leader wins, the band decides
-freely and status does not move. The player does not answer in time:
-the leader wins and status falls by 2.
+The player backs staying to gather: the leader wins, the band stays and
+gathers, and the next day is the player's. The player does not answer in
+time: the leader wins, status falls by 2, and the deaths of the next
+day are still the player's.
 
 ```text
 seq 500          council-followed proposal-stay-and-gather
@@ -375,9 +415,6 @@ ___
 - **A vote without chance** - the table is a formula. A draw around the
   shares would make the council less of a calculation and the game less
   easy to play by a program.
-- **A rest that kills** - a rest the player carried raises status even
-  when people starved in it. Whether a disaster during a rest is still a
-  disaster is seen in play.
 - **The band's own luck** - an encounter within the day of a move counts
   against the player, though no proposal causes a bear.
 - **Directions by landmark** - a proposal names a compass point only. "To
@@ -387,4 +424,4 @@ ___
   of the old design gave it three. Whether one day shows a move's worth
   is seen in the lab.
 - **The emergency council** - a meeting with another band calls a
-  council at once, outside the morning; it is designed with stage 3.
+  council at once, outside the evening; it is designed with stage 3.

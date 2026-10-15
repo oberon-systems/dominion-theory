@@ -215,15 +215,35 @@ def _is_land(land: Land, x: int, y: int) -> bool:
 
 def speed(rules: Rules, band: Band) -> float:
     pace = max(rules.speed.slowest, rules.speed.base - rules.speed.slowdown * band.population / 10)
-    return pace * _slowed(rules, band)
+    return pace * efficiency(rules, band)
 
 
-def _slowed(rules: Rules, band: Band) -> float:
-    return rules.states.tiredness.slows if TIREDNESS in band.states else 1.0
+def efficiency(rules: Rules, band: Band) -> float:
+    """
+    The share of its pace and its gathering a band still has for its fatigue.
+    """
+    return 1.0 - rules.fatigue.slows * band.fatigue
 
 
 def weight(params: Params, band: Band) -> float:
     return sum(band.held(name) * params.resources[name].weight_kg for name in band.stores)
+
+
+def held_days(params: Params, band: Band, prop: str) -> float:
+    """
+    The days the stores of a property last the band; endless when nobody eats it.
+    """
+    resources = [name for name, held in params.resources.items() if held.property == prop]
+    eaten = band.population * sum(params.units.band.consumption_per_day.get(name, 0.0) for name in resources)
+    return sum(band.held(name) for name in resources) / eaten if eaten > 0 else math.inf
+
+
+def short(params: Params, band: Band, name: str) -> bool:
+    """
+    Whether the band holds fewer days of what a resource feeds than the top level of its needs asks.
+    """
+    top = max(level.days for level in params.units.band.decisions.levels.values())
+    return held_days(params, band, params.resources[name].property) < top
 
 
 def room(params: Params, band: Band) -> float:
@@ -271,14 +291,15 @@ def _move(land: Land, band: Band, action: Action, rules: Rules, pace: float) -> 
 
 def _roam(land: Land, band: Band, action: Action, rules: Rules, day: int) -> Action:
     """
-    A share of a gathering tick of every resource the cell ahead gives, then a slow step into it.
+    A share of a gathering tick of every resource the cell ahead gives that the band is short of, then a slow
+    step into it.
     """
     dx, dy = DIRECTIONS[action['towards']]
     ahead = band.x + dx, band.y + dy
     if not enterable(land, *ahead):
         return camp()
     for name in rules.gathering:
-        if name in _era(land, *ahead).resources:
+        if name in _era(land, *ahead).resources and short(land.params, band, name):
             _take(land, band, name, rules, day, rules.roaming.share, ahead)
     return _move(land, band, action, rules, rules.roaming.speed)
 
@@ -295,7 +316,7 @@ def _take(land: Land, band: Band, name: str, rules: Rules, day: int, share: floa
     params = land.params
     resource = params.resources[name]
     wanted = band.population * rules.gathering.get(name, 0.0) * land.value(resource.property, *at)
-    taken = min(wanted * share * _slowed(rules, band), room(params, band) / resource.weight_kg)
+    taken = min(wanted * share * efficiency(rules, band), room(params, band) / resource.weight_kg)
     if taken > 0:
         _stored(band, name, day, taken)
         capacity = params.eras[land.era].capacity.get(resource.property)

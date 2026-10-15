@@ -257,17 +257,19 @@ day is judged against the day the leader promised.
 | Measure    | Is                                                         |
 |------------|------------------------------------------------------------|
 | `expected` | the score of [the day](#the-table-of-votes) of the leader at the decision; of staying when no option had a vote |
-| `reached`  | `weights.move` times what the cell the band stands on is worth to it, as [Decisions](decisions.md#what-a-cell-is-worth) counts it, weighed by the needs the band had at the decision |
-| `lost`     | the people who died since the decision, of any cause, as a share of the people at the decision |
+| `reached`  | `weights.move` times what the cell the band stands on is worth to it, as [Decisions](decisions.md#what-a-cell-is-worth) counts it, weighed by the needs and the unease the band had at the decision |
+| `before`   | `reached` of the cell the band stood on at the decision    |
+| `lost`     | the people who died since the decision, of a cause in `council.blamed`, as a share of the people at the decision |
 
-Every proposal gets one of three verdicts, the first that fits.
+Every proposal gets one of four verdicts, the first that fits.
 
 | Verdict    | When                                                     |
 |------------|----------------------------------------------------------|
 | `disaster` | `lost` is at least `council.judgement.disaster`, 0.2     |
 | `failed`   | anybody died                                             |
-| `failed`   | `reached` is below `expected`                            |
-| `worked`   | otherwise                                                |
+| `worked`   | `reached` is at least `expected`                         |
+| `even`     | `reached` is at least `before` less `council.judgement.slack`, 0.1 |
+| `failed`   | otherwise                                                |
 
 A move and a stay are judged by the land and not by the stores: a band
 that walks for a day gathers nothing and eats a day of food, so its
@@ -276,6 +278,12 @@ land beats stripped land, so the measure is not the land the band left
 but the day the band would have had: a player who turns a band that did
 not care where it went gains about as often as they lose, and one who
 turns it from a clear choice mostly loses.
+
+A turn that cost nobody and reached land no worse than the band left is
+`even` and moves no status. In an even forest a day of walking reaches
+land like the land left: before the verdict `even`, such a turn failed,
+and a player who tried to lead the band out of danger lost status for
+it while nobody died.
 
 The judgement sits before the night, so the deaths of hunger and thirst
 at the end of the judged day are not in `lost`. They are paid as every
@@ -294,9 +302,11 @@ ___
 | a move the player carried worked                        | +4      |
 | a move failed                                           | -6      |
 | a move ended in disaster                                | -20     |
+| a move came out even                                    | 0       |
 | staying to gather worked                                | +3      |
 | staying to gather failed                                | -6      |
 | staying ended in disaster                               | -20     |
+| staying came out even                                   | 0       |
 | a death on a day the player voted for or kept silent on | -5 each |
 | a birth on a day the player voted for                   | +5 each |
 
@@ -342,6 +352,11 @@ command of the seat is refused with `refused-seat-banished`.
 The band is not harmed by it. In a game with more seats it would simply
 go on without that voice.
 
+A client says why its game ended: the console screen names banishment
+when the status of the seat is 0, and the end of the band when it is
+gone. Status is shown with one decimal, so a player at 0.7 does not
+read 1.
+
 ___
 
 ## Events
@@ -357,6 +372,7 @@ Every event is a message key with values, in both catalogues.
 | `council-outvoted`  | `proposal`, `winner`, `status`           | the player lost the vote      |
 | `council-abstained` | `status`                                 | the player did not vote       |
 | `proposal-worked`   | `proposal`, `status`                     | the judgement                 |
+| `proposal-even`     | `proposal`, `status`                     | the judgement                 |
 | `proposal-failed`   | `proposal`, `lost`, `status`             | the judgement                 |
 | `proposal-disaster` | `proposal`, `lost`, `status`             | the judgement                 |
 | `intent-ended`      | `proposal`                               | the way was closed            |
@@ -381,6 +397,7 @@ council:
     least: 2.0
   judgement:
     disaster: 0.2
+    slack: 0.1
   status:
     start: 50
     abstained: -2
@@ -388,9 +405,11 @@ council:
     move_worked: 4
     move_failed: -6
     move_disaster: -20
+    move_even: 0
     stay_worked: 3
     stay_failed: -6
     stay_disaster: -20
+    stay_even: 0
     death: -5
     birth: 5
   blamed: [hunger, thirst, encounter]

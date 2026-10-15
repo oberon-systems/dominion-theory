@@ -70,12 +70,16 @@ units:
       tiredness: {begins: 0.8, ends: 0.3}
     sight: 2
     memory: {days: 20}
+    dread: {encounter: 0.3, lasts: {days: 20}}
+    unease: {gain: 0.1, fade: 0.2}
     decisions:
       levels:
         sated: {days: 2, need: 0.1}
         fed: {days: 1, need: 0.4}
         hungry: {days: 0, need: 0.8}
       distance: 0.25
+      horizon: 0
+      unknown: {food: 0.5, water: 0.5, threat: 0.2}
       idle: 0.05
       wander: {days: 1}
       weights:

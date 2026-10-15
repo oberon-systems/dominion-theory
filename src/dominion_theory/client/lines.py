@@ -35,6 +35,7 @@ INTENT = 'play-intent'
 RIVER = 'play-river'
 GONE = 'play-gone'
 OVER = 'play-over'
+ENDS = ('banished', 'died')
 EVENING = 'play-evening'
 NEXT = 'play-next'
 AGREED = 'council-agreed'
@@ -59,6 +60,7 @@ MESSAGES: tuple[str, ...] = (
     RIVER,
     GONE,
     OVER,
+    *(f'{OVER}-{end}' for end in ENDS),
     EVENING,
     NEXT,
     UNKNOWN,

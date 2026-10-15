@@ -6,6 +6,7 @@ from textual.pilot import Pilot
 from textual.widgets import RichLog, Static
 
 from dominion_theory.client import Api, Screen, Session
+from dominion_theory.client.screen import ended
 
 type Body = dict[str, Any]
 
@@ -166,3 +167,12 @@ def test_an_evening_with_no_council_waits_until_the_day_is_read() -> None:
 
     assert seen['waiting'] == [{'id': 'pass-3', 'kind': 'pass'}]
     assert api.sent == [{'id': 'pass-3', 'kind': 'pass'}, {'id': 'pass-4', 'kind': 'pass'}]
+
+
+def test_the_end_of_a_game_says_why() -> None:
+    def session(status: float, band: Body | None) -> Any:
+        return type('Told', (), {'status': status, 'band': band})()
+
+    assert ended(session(0.0, BAND)) == 'play-over-banished'
+    assert ended(session(12.5, None)) == 'play-over-died'
+    assert ended(session(12.5, BAND)) == 'play-over'

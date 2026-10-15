@@ -6,7 +6,12 @@ from dominion_theory.content import Params, load_params
 from dominion_theory.engine import Game, decisions
 from dominion_theory.engine.band import Band, adults, held_days
 
-SMALL = {'planet.circumference_km': 4000, 'planet.window.width': 32, 'planet.window.height': 16}
+SMALL = {
+    'planet.circumference_km': 4000,
+    'planet.window.width': 32,
+    'planet.window.height': 16,
+    'units.band.decisions.horizon': 0,
+}
 ERA = 'band'
 HOME = (100, 50)
 FOREST = {'biome': 'forest', 'river': False, 'water': 0.6, 'food': 0.9, 'threat': 0.4, 'passability': 0.6, 'seen': 0}
@@ -53,6 +58,48 @@ def test_a_state_makes_its_need_whole(params: Params) -> None:
 
 def test_a_calm_band_is_one_that_neither_hunger_nor_thirst_presses() -> None:
     assert decisions.calm({'hunger': 0.4, 'thirst': 0.1}) == pytest.approx(0.6)
+
+
+def around(cell: dict[str, Any]) -> dict[tuple[int, int], dict[str, Any]]:
+    return {(HOME[0] + dx, HOME[1] + dy): cell for dx in range(-2, 3) for dy in range(-2, 3)}
+
+
+def best_move(params: Params, band: Band) -> float:
+    return max(held.score for held in decisions.options(params, band, ERA, allowed={'move'}, walking=True))
+
+
+def test_dread_raises_the_threat_seen_and_unease_sharpens_the_fear_of_it(params: Params) -> None:
+    band = held({HOME: FOREST}, 15.0, 15.0)
+    band.dread[HOME], band.unease = 0.3, 0.2
+    wanted = decisions.needs(params, band)
+    fear = 2.0 * decisions.calm(wanted) * 0.7
+
+    assert decisions.seen(band, HOME) == {**FOREST, 'threat': pytest.approx(0.7)}
+    assert decisions.here(params, band, wanted) == pytest.approx(
+        decisions.worth(params, {**FOREST, 'threat': 0.7}, wanted)[0] - 0.2 * fear
+    )
+
+
+def test_a_sated_band_leans_out_of_a_forest_to_the_unknown_but_not_out_of_grass() -> None:
+    blind = load_params(overrides=SMALL)
+    hoping = load_params(overrides={**SMALL, 'units.band.decisions.horizon': 1})
+
+    forest, grass = held(around(FOREST), 30.0, 30.0), held(around(GRASS), 30.0, 30.0)
+
+    assert best_move(blind, forest) < 0 < best_move(hoping, forest)
+    assert best_move(hoping, grass) < 0
+
+
+def test_unease_sends_a_band_to_poorer_but_safer_land_and_not_on_through_the_same() -> None:
+    params = load_params(overrides=SMALL)
+    poorer = {**around(FOREST), EAST: {**FOREST, 'threat': 0.3, 'food': 0.1}}
+    band, alike = held(poorer, 30.0, 30.0), held(around(FOREST), 30.0, 30.0)
+
+    calm = best_move(params, band)
+    band.unease = alike.unease = 0.5
+
+    assert calm < 0 < best_move(params, band)
+    assert best_move(params, alike) < 0
 
 
 def test_wellbeing_is_the_mean_of_fed_watered_safe_and_rested(params: Params) -> None:

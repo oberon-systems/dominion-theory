@@ -16,6 +16,8 @@ SMALL = {
     'planet.window.width': 32,
     'planet.window.height': 16,
     'encounters.chance': 0.0,
+    'units.band.decisions.horizon': 0,
+    'units.band.unease.gain': 0.0,
     'units.band.people.birth.conceive_per_day': 0.0,
     'units.band.people.injury.per_day': 0.0,
     'units.band.people.age.per_year': 0.0,
@@ -479,6 +481,8 @@ def test_a_move_goes_round_a_closed_way_and_ends_when_all_three_are_closed(param
     [
         (EAST, {}, 0.3, 'worked'),
         (EAST, {}, 0.2, 'failed'),
+        (EAST, {}, 0.25, 'even'),
+        (STAY, {}, 0.28, 'even'),
         (EAST, {'hunger': 1}, 0.9, 'failed'),
         (EAST, {'encounter': 2, 'thirst': 1}, 0.9, 'disaster'),
         (STAY, {}, 0.5, 'worked'),
@@ -490,7 +494,7 @@ def test_a_move_goes_round_a_closed_way_and_ends_when_all_three_are_closed(param
 def test_the_verdicts_of_the_document(
     params: Params, proposal: dict[str, Any], lost: dict[str, int], now: float, verdict: str
 ) -> None:
-    judgement = {'proposal': proposal, 'population': 15, 'expected': 0.3, 'lost': lost}
+    judgement = {'proposal': proposal, 'population': 15, 'expected': 0.3, 'before': 0.35, 'lost': lost}
 
     assert council.verdict(params, judgement, now) == verdict
 
@@ -513,12 +517,12 @@ def test_what_moves_status(params: Params, proposal: dict[str, Any], verdict: st
 def test_the_worth_of_the_land_is_weighed_by_the_needs_given(params: Params) -> None:
     game = land(params, stripped=STRIPPED)
     hungry = {'hunger': 1.0, 'thirst': 0.0}
-    stripped = council.worth(params, band(game), hungry)
+    stripped = council.worth(params, band(game), hungry, 0.0)
     band(game).x = WEST + 3
     bands.look(game, band(game), game.day)
 
-    assert council.worth(params, band(game), hungry) > stripped
-    assert council.worth(params, band(game), {'hunger': 0.0, 'thirst': 0.0}) < 0
+    assert council.worth(params, band(game), hungry, 0.0) > stripped
+    assert council.worth(params, band(game), {'hunger': 0.0, 'thirst': 0.0}, 0.0) < 0
 
 
 def test_staying_carried_fails_on_an_encounter_and_only_the_day_voted_for_is_blamed(params: Params) -> None:

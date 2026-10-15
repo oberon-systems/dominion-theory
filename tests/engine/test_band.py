@@ -18,6 +18,8 @@ SMALL = {
     'planet.window.height': 16,
     'encounters.chance': 0.0,
     'units.band.camp_parts': [],
+    'units.band.decisions.horizon': 0,
+    'units.band.unease.gain': 0.0,
     'units.band.people.birth.conceive_per_day': 0.0,
     'units.band.people.injury.per_day': 0.0,
     'units.band.people.age.per_year': 0.0,
@@ -469,6 +471,20 @@ def test_a_fed_band_conceives_and_gives_birth_with_a_pause_after() -> None:
     assert (held.members[-1].age_days, held.members[0].rest_until) == (0, 21)
 
 
+def test_an_encounter_leaves_dread_and_a_dangerous_day_unease_and_both_fade() -> None:
+    params = load_params()
+    held = bands.Band(id=1, x=WEST, y=NORTH, members=bands.adults(4), stores={})
+
+    bands.frighten(params, held)
+    bands.unsettle(params, held, 0.4)
+    uneasy, dreaded = held.unease, held.dread[held.place]
+    bands.unsettle(params, held, 0.0)
+
+    assert (uneasy, dreaded) == pytest.approx((0.1 * 0.7, 0.3 - 0.015))
+    assert held.unease == pytest.approx(uneasy * 0.8 + 0.1 * dreaded)
+    assert held.dread[held.place] == pytest.approx(0.3 - 0.03)
+
+
 def test_nobody_conceives_in_a_hungry_band_or_one_without_a_man() -> None:
     params = load_params(overrides={**SMALL, 'units.band.people.birth.conceive_per_day': 1.0})
     women = bands.Band(id=1, x=WEST, y=NORTH, members=bands.adults(3)[0::2], stores={})
@@ -545,7 +561,7 @@ def test_a_restored_game_carries_the_band_in_the_middle_of_a_day(params: Params)
 def test_a_snapshot_of_the_format_before_the_band_is_refused(params: Params) -> None:
     snapshot = land(params).snapshot()
 
-    assert snapshot['format'] == 9
+    assert snapshot['format'] == 10
     with pytest.raises(ValueError, match='format 2'):
         Game.restore({**snapshot, 'format': 2})
 

@@ -75,7 +75,7 @@ def test_council_is_the_one_of_its_document() -> None:
     council = load_params().council
 
     assert (council.part, council.spread, council.voice.share, council.voice.least) == ('evening', 0.2, 0.5, 2.0)
-    assert council.judgement.disaster == 0.2
+    assert (council.judgement.disaster, council.judgement.slack) == (0.2, 0.1)
     assert council.status.model_dump() == {
         'start': 50.0,
         'abstained': -2.0,
@@ -83,9 +83,11 @@ def test_council_is_the_one_of_its_document() -> None:
         'move_worked': 4.0,
         'move_failed': -6.0,
         'move_disaster': -20.0,
+        'move_even': 0.0,
         'stay_worked': 3.0,
         'stay_failed': -6.0,
         'stay_disaster': -20.0,
+        'stay_even': 0.0,
         'death': -5.0,
         'birth': 5.0,
     }

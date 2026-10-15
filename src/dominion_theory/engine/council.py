@@ -15,6 +15,7 @@ from .commands import ABSTAIN, MOVE, PROPOSALS, STAY
 from .events import NO_LEADER, PROPOSAL
 
 WORKED = 'worked'
+EVEN = 'even'
 FAILED = 'failed'
 DISASTER = 'disaster'
 STATUS = {MOVE: 'move', STAY: 'stay'}
@@ -70,9 +71,7 @@ def score(params: Params, band: Band, era: str) -> dict[str, float]:
     the best land that way.
     """
     weights = params.units.band.decisions.weights
-    wanted = decisions.needs(params, band)
-    own = band.known.get(band.place)
-    here = decisions.worth(params, own, wanted)[0] if own else 0.0
+    here = decisions.here(params, band, decisions.needs(params, band))
     found = {key(STAYING): weights.move * here}
     for held in decisions.options(params, band, era, allowed={bands.MOVE}, walking=True):
         found[key({'kind': MOVE, 'towards': held.action['towards']})] = held.score + weights.move * here
@@ -148,12 +147,12 @@ def voice(params: Params, voting: int, status: float) -> float:
     return max(held.least, held.share * voting * status / HIGHEST)
 
 
-def worth(params: Params, band: Band, wanted: dict[str, float]) -> float:
+def worth(params: Params, band: Band, wanted: dict[str, float], unease: float) -> float:
     """
-    What the cell the band stands on is worth to it, weighed by the needs given.
+    What the cell the band stands on is worth to it, weighed by the needs and the unease given.
     """
-    cell = band.known.get(band.place)
-    return decisions.worth(params, cell, wanted)[0] if cell else 0.0
+    cell = decisions.seen(band, band.place)
+    return decisions.worth(params, cell, wanted, unease)[0] if cell else 0.0
 
 
 def expected(params: Params, band: Band, era: str, leader: Proposal | None) -> float:
@@ -164,20 +163,23 @@ def expected(params: Params, band: Band, era: str, leader: Proposal | None) -> f
     return days.get(key(leader), days[key(STAYING)])
 
 
-def reached(params: Params, band: Band, wanted: dict[str, float]) -> float:
-    return params.units.band.decisions.weights.move * worth(params, band, wanted)
+def reached(params: Params, band: Band, wanted: dict[str, float], unease: float) -> float:
+    return params.units.band.decisions.weights.move * worth(params, band, wanted, unease)
 
 
 def verdict(params: Params, judgement: dict[str, Any], now: float) -> str:
     """
-    How a proposal ended: lives lost first, then the day reached against the day the leader promised.
+    How a proposal ended: lives lost first, then the day reached against the day the leader promised, then
+    against the land the band left.
     """
     died = sum(judgement['lost'].values())
     if died / judgement['population'] >= params.council.judgement.disaster:
         return DISASTER
     if died:
         return FAILED
-    return WORKED if now >= judgement['expected'] else FAILED
+    if now >= judgement['expected']:
+        return WORKED
+    return EVEN if now >= judgement['before'] - params.council.judgement.slack else FAILED
 
 
 def amount(params: Params, proposal: Proposal, found: str) -> float:

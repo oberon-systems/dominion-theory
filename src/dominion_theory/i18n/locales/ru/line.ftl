@@ -24,7 +24,7 @@ line-stage-elder =
 line-pregnant = беременных { $count }
 line-injured = раненых { $count }
 line-store = { NAME("resource", $resource) } { NUMBER($amount, maximumFractionDigits: 1) }
-line-status = Ваш вес { NUMBER($status, maximumFractionDigits: 0) }.
+line-status = Ваш вес { NUMBER($status, maximumFractionDigits: 1) }.
 line-council = Голоса: { $table }.
 line-votes = { $proposal } - { $votes }
 
@@ -52,6 +52,8 @@ play-intent = намерение: { $proposal }
 play-river = река
 play-gone = Общины больше нет.
 play-over = Игра окончена. q - выход.
+play-over-banished = Община изгнала вас: ваш вес упал до 0. Игра окончена. q - выход.
+play-over-died = Общины больше нет. Игра окончена. q - выход.
 play-evening = День окончен. Прочитайте, что он принёс.
 play-next = дальше
 play-unknown = Община не знает этого места.

@@ -61,6 +61,17 @@ class Left(Exception):
     """
 
 
+def ended(session: Session) -> str:
+    """
+    The words of the end of a game: why it ended, when the session tells.
+    """
+    if session.status <= 0:
+        return f'{OVER}-banished'
+    if session.band is None:
+        return f'{OVER}-died'
+    return OVER
+
+
 def _bar(value: float) -> str:
     filled = round(min(max(value, 0.0), 1.0) * BAR)
     return '█' * filled + '░' * (BAR - filled)
@@ -237,7 +248,7 @@ class Screen(App[str | None]):
         menu.focus()
 
     def _over(self) -> None:
-        self.query_one('#question', Static).update(render(OVER, lang=self._lang))
+        self.query_one('#question', Static).update(render(ended(self._session), lang=self._lang))
         self.query_one('#menu').display = False
         self.query_one('#council').display = True
 

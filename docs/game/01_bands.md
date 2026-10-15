@@ -143,7 +143,9 @@ that fit the biome and the action. A kind takes a share of the people,
 drawn between its two bounds, and may injure a share of those left,
 drawn with the same number. The share is taken of the people weighed by
 how exposed their stage is, so children and elders die first; see
-[Deaths](../units/band.md#deaths).
+[Deaths](../units/band.md#deaths). An encounter that killed or injured
+somebody leaves the band dreading its cell; see
+[Dread](decisions.md#dread).
 
 | Kind        | Where                 | During   | Weight | People lost  | Injured   |
 |-------------|-----------------------|----------|--------|--------------|-----------|

@@ -25,6 +25,7 @@ from .band import (
     gathering,
     held_days,
     moving,
+    perceived,
     roaming,
     room,
     short,
@@ -96,6 +97,24 @@ def wellbeing(params: Params, band: Band, threat: float) -> float:
     return sum(weight * part for weight, part in parts) / sum(weight for weight, _ in parts)
 
 
+def seen(band: Band, at: Place) -> dict[str, Any] | None:
+    """
+    A known cell as the band sees it: its threat with the dread of what happened there.
+    """
+    cell = band.known.get(at)
+    if cell is None or at not in band.dread:
+        return cell
+    return {**cell, THREAT: perceived(band, at, cell.get(THREAT, 0.0))}
+
+
+def here(params: Params, band: Band, wanted: dict[str, float]) -> float:
+    """
+    What staying is worth: the cell the band stands on, its threat sharpened by unease.
+    """
+    own = seen(band, band.place)
+    return worth(params, own, wanted, band.unease)[0] if own else 0.0
+
+
 def reachable(params: Params, band: Band, at: Place, era: str) -> bool:
     """
     Whether the band believes a cell can be entered: a shore only beside land it knows.
@@ -110,13 +129,14 @@ def reachable(params: Params, band: Band, at: Place, era: str) -> bool:
     return any(not held.shore and held.properties[PASSABILITY].base > 0 for held in eras)
 
 
-def worth(params: Params, cell: dict[str, Any], wanted: dict[str, float]) -> tuple[float, str]:
+def worth(params: Params, cell: dict[str, Any], wanted: dict[str, float], unease: float = 0.0) -> tuple[float, str]:
     """
-    How good it would be to stand on a known cell now, and the need that says so loudest.
+    How good it would be to stand on a known cell now, and the need that says so loudest; unease makes a calm
+    band fear its threat more.
     """
     parts = {need: wanted[need] * cell.get(prop, 0.0) for prop, (need, _) in NEEDS.items()}
     loudest = max(parts, key=lambda need: parts[need])
-    fear = params.units.band.decisions.weights.safety * calm(wanted) * cell.get(THREAT, 0.0)
+    fear = params.units.band.decisions.weights.safety * calm(wanted) * (1.0 + unease) * cell.get(THREAT, 0.0)
     return sum(parts.values()) - fear, loudest
 
 
@@ -141,7 +161,8 @@ def options(
     weights = rules.decisions.weights
     wanted = needs(params, band)
     own = band.known.get(band.place, {})
-    here, _ = worth(params, own, wanted) if own else (0.0, REST)
+    staying = here(params, band, wanted)
+    unknown = dict(rules.decisions.unknown)
     found: list[Scored] = []
     if allowed is None or CAMP in allowed:
         found.append(Scored(camp(), 0.0, REST))
@@ -158,10 +179,10 @@ def options(
             if target not in enterable or (towards is not None and name not in towards):
                 continue
             if towards is not None:
-                gain, need, source, kept, pace = weights.intent - here, REST, None, 0.0, 1.0
+                gain, need, source, kept, pace = weights.intent - staying, REST, None, 0.0, 1.0
             else:
-                pull, need, source = _pull(params, band, target, enterable, wanted)
-                gain, kept = pull - here, weights.momentum if band.target == target else 0.0
+                pull, need, source = _pull(params, band, (dx, dy), enterable, wanted, unknown)
+                gain, kept = pull - staying, weights.momentum if band.target == target else 0.0
                 pace = rules.roaming.speed
             moves.append(Scored(moving(name), weights.move * gain + kept, need, source))
             ahead = _gathered(params, band, band.known[target], era, wanted)
@@ -196,18 +217,37 @@ def _gathered(params: Params, band: Band, own: dict[str, Any], era: str, wanted:
 
 
 def _pull(
-    params: Params, band: Band, target: Place, enterable: set[Place], wanted: dict[str, float]
+    params: Params,
+    band: Band,
+    step: Place,
+    enterable: set[Place],
+    wanted: dict[str, float],
+    unknown: dict[str, float],
 ) -> tuple[float, str, Place]:
-    distance = params.units.band.decisions.distance
+    """
+    The best land that way: a known cell nearer that way than here, or the unknown `horizon` cells past what
+    the band sees, which is worth what the band expects of land it does not know.
+    """
+    rules = params.units.band
+    distance = rules.decisions.distance
+    target = band.x + step[0], band.y + step[1]
+    beyond = rules.sight + rules.decisions.horizon
+    past = band.x + step[0] * beyond, band.y + step[1] * beyond
+    nearer = [at for at in sorted(enterable) if at == target or _far(target, at) < _far(band.place, at)]
+    candidates = [(at, seen(band, at)) for at in nearer]
+    if rules.decisions.horizon and past not in band.known:
+        candidates.append((past, unknown))
     best: tuple[float, str, Place] | None = None
-    for at in sorted(enterable):
+    for at, cell in candidates:
         away = _far(band.place, at)
-        if at == target or _far(target, at) < away:
-            value, need = worth(params, band.known[at], wanted)
-            # Distance makes good land less good and bad land worse.
-            value = value / (1.0 + away * distance) if value > 0 else value * (1.0 + away * distance)
-            if best is None or value > best[0]:
-                best = value, need, at
+        value, need = worth(params, cell or {}, wanted, band.unease)
+        # Distance makes good land less good and known bad land worse; the unknown is no worse for being far.
+        if value > 0:
+            value = value / (1.0 + away * distance)
+        elif cell is not unknown:
+            value = value * (1.0 + away * distance)
+        if best is None or value > best[0]:
+            best = value, need, at
     return best or (0.0, REST, target)
 
 

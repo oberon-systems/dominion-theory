@@ -81,7 +81,7 @@ A cell the band knows has a worth, the answer to "how good would it be
 to stand there now".
 
 ```text
-worth = hunger * food + thirst * water - weights.safety * calm * threat
+worth = hunger * food + thirst * water - weights.safety * calm * (1 + unease) * threat
 ```
 
 The properties are the values the band remembers, stock and season
@@ -90,7 +90,31 @@ is worth more than the forest, and to a calm band the open grass is
 worth more than the forest with wolves in it.
 
 A cell that cannot be entered is worth nothing, and neither is a cell
-the band does not know.
+the band does not know, but for the unknown of [the pull](#scoring-the-actions).
+
+### Dread
+
+The threat in the worth is the threat as the band sees it: the cell's
+own and the dread of what happened there, at most 1. An encounter that
+killed or injured somebody adds `dread.encounter`, 0.3, to the dread of
+the cell it struck on. Every day takes `dread.encounter` divided by the
+days of `dread.lasts` away, so a dread fades in 20 days.
+
+### Unease
+
+A band that stays where it is afraid grows uneasy. At the end of every
+day the unease fades by `unease.fade` and grows by `unease.gain` times
+the threat the band sees on its cell.
+
+```text
+unease = unease * (1 - unease.fade) + unease.gain * threat seen
+```
+
+Unease makes a calm band fear the threat of every cell more, the one it
+stands on and those it could walk to alike. An uneasy band leaves for
+poorer but safer land it would not leave for when calm. It does not
+walk on through land as dangerous as its own. In a forest of threat 0.4
+the unease settles at 0.2.
 
 ___
 
@@ -108,8 +132,8 @@ need it serves.
 | `roam` to a cell| see below                                                    |
 
 ```text
-move = weights.move * (pull - worth of the own cell)
-roam = roaming.speed * weights.move * (pull - worth of the own cell)
+move = weights.move * (pull - staying)
+roam = roaming.speed * weights.move * (pull - staying)
        + roaming.share * (the gatherings of what the band is short of, scored on the cell ahead)
 ```
 
@@ -120,9 +144,17 @@ roam = roaming.speed * weights.move * (pull - worth of the own cell)
   in cells times `distance`. The neighbour itself is one of them. A
   worth below zero is multiplied instead, so that distance never makes
   bad land look better.
+- **The unknown** is one more of them: the cell `decisions.horizon`
+  cells past the sight that way, when the band does not know it. It is
+  worth what the band expects of land it has not seen,
+  `decisions.unknown`, and a worth of it below zero is not made worse by
+  distance. A sated band on dangerous land leans out towards it; on safe
+  land, or hungry on good land, it stays. A horizon of 0 turns it off,
+  and it is off by default: fatigue counts in no decision, so a band
+  in a forest wider than its sight walks on until it is worn out.
 
-A move scores above zero only when something known is better than the
-place the band stands on. A band on good land stays; a band on stripped
+A move scores above zero only when something known, or the unknown, is
+better than staying. A band on good land stays; a band on stripped
 land goes.
 
 A roam gets there slower, so it gets a part of the move's gain, and
@@ -203,6 +235,8 @@ units:
         fed: {days: 1, need: 0.4}
         hungry: {days: 0, need: 0.8}
       distance: 0.25
+      horizon: 0
+      unknown: {food: 0.5, water: 0.5, threat: 0.2}
       idle: 0.05
       wander: {days: 1}
       weights:
@@ -212,11 +246,14 @@ units:
         move: 3.0
         momentum: 0.1
         intent: 0.6
+    dread: {encounter: 0.3, lasts: {days: 20}}
+    unease: {gain: 0.1, fade: 0.2}
 ```
 
 `levels` are read from
 the most days down; their days must differ, one of them must be 0, and
-every need lies between 0 and 1.
+every need lies between 0 and 1. Every name of `unknown` is a property
+of every era.
 
 ___
 
@@ -286,6 +323,11 @@ ___
 - **Stores that spoil** - a band gathers up to its carrying weight even
   when the lot will spoil before it is eaten.
 - **Safety** - a calm band leaves dangerous land, a hungry one does not.
-  A band that was just struck is not more afraid than before it.
+  A band fears a cell where it was struck and fears every threat more
+  once it has stayed in danger; it does not yet tell one kind of danger
+  from another.
+- **Rest** - fatigue counts in no decision, so nothing stops a band
+  that always sees better land ahead. The unknown stays off until a
+  band rests when it is worn out.
 - **Weights per band** - one set of weights serves every band until
   stage 3 names temperaments.

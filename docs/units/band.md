@@ -44,6 +44,8 @@ is no number of a band in the code.
 | `action`     | what it did in the last tick                            |
 | `intent`     | what the council bound it to, if anything               |
 | `known`      | the cells it has seen and when                          |
+| `dread`      | the extra threat it sees on cells where it was struck   |
+| `unease`     | how much more staying in danger makes it fear threat    |
 
 Stage 2 puts one band on the map, the player's. Other bands are stage 3.
 
@@ -454,7 +456,11 @@ units:
       tiredness: {begins: 0.8, ends: 0.3}
     sight: 2
     memory: {days: 20}
+    dread: {encounter: 0.3, lasts: {days: 20}}
+    unease: {gain: 0.1, fade: 0.2}
 ```
+
+`dread` and `unease` are told in [Decisions](../game/decisions.md#dread).
 
 ```yaml
 eras:

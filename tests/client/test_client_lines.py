@@ -43,6 +43,7 @@ SAMPLES: dict[str, dict[str, Any]] = {
     'council-outvoted': {'proposal': 'proposal-move-north', 'winner': 'proposal-stay-and-gather', 'status': 49.0},
     'council-abstained': {'status': 48.0},
     'proposal-worked': {'proposal': 'proposal-stay-and-gather', 'status': 53.0},
+    'proposal-even': {'proposal': 'proposal-stay-and-gather', 'status': 53.0},
     'proposal-failed': {'proposal': 'proposal-move-west', 'lost': 0, 'status': 44.0},
     'proposal-disaster': {'proposal': 'proposal-move-north', 'lost': 4, 'status': 24.0},
     'intent-ended': {'proposal': 'proposal-move-south'},

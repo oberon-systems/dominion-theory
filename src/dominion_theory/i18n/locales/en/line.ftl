@@ -21,7 +21,7 @@ line-stage-elder =
 line-pregnant = { $count } with child
 line-injured = { $count } injured
 line-store = { NAME("resource", $resource) } { NUMBER($amount, maximumFractionDigits: 1) }
-line-status = Your standing is { NUMBER($status, maximumFractionDigits: 0) }.
+line-status = Your standing is { NUMBER($status, maximumFractionDigits: 1) }.
 line-council = The votes: { $table }.
 line-votes = { $proposal } - { $votes }
 
@@ -49,6 +49,8 @@ play-intent = intent: { $proposal }
 play-river = a river
 play-gone = The band is no more.
 play-over = The game is over. Press q to leave.
+play-over-banished = The band has turned you out: your standing fell to 0. The game is over. Press q to leave.
+play-over-died = The band is no more. The game is over. Press q to leave.
 play-evening = The day is over. Read what it brought.
 play-next = go on
 play-unknown = The band does not know this place.

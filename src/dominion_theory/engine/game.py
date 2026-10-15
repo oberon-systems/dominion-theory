@@ -38,6 +38,7 @@ from .events import (
     PEOPLE_INJURED,
     PEOPLE_LOST,
     PROPOSAL_DISASTER,
+    PROPOSAL_EVEN,
     PROPOSAL_FAILED,
     PROPOSAL_WORKED,
     REFUSED_ALREADY_VOTED,
@@ -55,7 +56,7 @@ from .events import (
 from .hashing import digest
 from .streams import Streams
 
-SNAPSHOT_FORMAT = 9
+SNAPSHOT_FORMAT = 10
 DIED = 'died'
 BANISHED = 'banished'
 VOTED = 'voted'
@@ -64,7 +65,12 @@ ERA = 'band'
 SEATS: tuple[str, ...] = ('player',)
 UNIT_COLUMNS: tuple[str, ...] = bands.COLUMNS
 TOTALS = ('moves', 'roams', 'gathers', 'camps', 'deaths', 'encounters')
-VERDICTS = {council.WORKED: PROPOSAL_WORKED, council.FAILED: PROPOSAL_FAILED, council.DISASTER: PROPOSAL_DISASTER}
+VERDICTS = {
+    council.WORKED: PROPOSAL_WORKED,
+    council.EVEN: PROPOSAL_EVEN,
+    council.FAILED: PROPOSAL_FAILED,
+    council.DISASTER: PROPOSAL_DISASTER,
+}
 
 # The order is part of the rules: docs/architecture/overview.md, One tick.
 PHASES = ('commands', 'councils', 'decisions', 'actions', 'world', 'calendar', 'report')
@@ -545,6 +551,8 @@ class Game:
                 'population': band.population,
                 'needs': decisions.needs(self.params, band),
                 'expected': council.expected(self.params, band, self.era, sitting['leader']),
+                'before': council.reached(self.params, band, decisions.needs(self.params, band), band.unease),
+                'unease': band.unease,
                 'lost': {},
             }
 
@@ -623,11 +631,12 @@ class Game:
     def _verdict(self, tick: _Tick, band: Band, judgement: dict[str, Any]) -> None:
         self.judgement = None
         proposal = judgement['proposal']
-        now = council.reached(self.params, band, judgement['needs'])
+        # The land reached is weighed with the unease of the day it was promised, as the promise was.
+        now = council.reached(self.params, band, judgement['needs'], judgement['unease'])
         found = council.verdict(self.params, judgement, now)
         self._status(tick, council.amount(self.params, proposal, found))
         values: dict[str, Any] = {'proposal': council.key(proposal), 'status': self.status}
-        if found != council.WORKED:
+        if found in (council.FAILED, council.DISASTER):
             values['lost'] = sum(judgement['lost'].values())
         tick.events.append(Event(VERDICTS[found], values))
         self._banish(tick)
@@ -651,6 +660,8 @@ class Game:
             return
         kind, taken, hurt = met
         lost, injured = bands.struck(self.params, band, taken, hurt, self.day, self.streams['people'])
+        if lost or injured:
+            bands.frighten(self.params, band)
         self._totals['encounters'] += 1
         tick.events.append(Event(ENCOUNTER, {'kind': f'{KIND}{kind}', 'lost': lost}))
         if lost:
@@ -667,6 +678,7 @@ class Game:
             self._lost(tick, cause, count)
         threat = self.value(decisions.THREAT, band.x, band.y)
         lived = bands.live(self.params, band, self.day, decisions.wellbeing(self.params, band, threat), feeds, people)
+        bands.unsettle(self.params, band, threat)
         for cause, count in lived.lost:
             self._lost(tick, cause, count)
         if lived.injured:

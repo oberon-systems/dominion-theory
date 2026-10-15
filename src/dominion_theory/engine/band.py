@@ -123,6 +123,8 @@ class Band:
     short: dict[str, int] = field(default_factory=dict)
     reason: dict[str, Any] | None = None
     wander: dict[str, Any] | None = None
+    dread: dict[Place, float] = field(default_factory=dict)
+    unease: float = 0.0
     counted: tuple[int, Census] | None = field(default=None, init=False, repr=False, compare=False)
 
     @classmethod
@@ -148,6 +150,8 @@ class Band:
             short=dict(plain['short']),
             reason=plain['reason'],
             wander=plain['wander'],
+            dread={(held['x'], held['y']): held['amount'] for held in plain['dread']},
+            unease=plain['unease'],
         )
 
     @property
@@ -189,6 +193,8 @@ class Band:
             'short': dict(sorted(self.short.items())),
             'reason': self.reason,
             'wander': self.wander,
+            'dread': [{'x': x, 'y': y, 'amount': self.dread[x, y]} for x, y in sorted(self.dread)],
+            'unease': self.unease,
         }
 
     def shown(self, params: Params, scale: int) -> dict[str, Any]:
@@ -479,6 +485,31 @@ def tire(rules: Rules, band: Band) -> tuple[list[str], list[str]]:
 def _begin(band: Band, state: str) -> list[str]:
     band.states = [held for held in STATES if held in band.states or held == state]
     return [state]
+
+
+def perceived(band: Band, at: Place, threat: float) -> float:
+    """
+    The threat of a cell as the band sees it: its own and the dread of what happened there.
+    """
+    return min(threat + band.dread.get(at, 0.0), 1.0)
+
+
+def frighten(params: Params, band: Band) -> None:
+    """
+    An encounter hurt the band: its cell is dreaded.
+    """
+    band.dread[band.place] = band.dread.get(band.place, 0.0) + params.units.band.dread.encounter
+
+
+def unsettle(params: Params, band: Band, threat: float) -> None:
+    """
+    The end of a day: unease grows with the threat the band sees where it stands and fades, and dread fades.
+    """
+    rules = params.units.band
+    band.unease = band.unease * (1.0 - rules.unease.fade) + rules.unease.gain * perceived(band, band.place, threat)
+    fall = rules.dread.encounter / max(params.days(rules.dread.lasts), 1)
+    # What the steps of a float leave of a faded dread is not dread.
+    band.dread = {at: held - fall for at, held in band.dread.items() if held - fall > fall * 1e-6}
 
 
 def look(land: Land, band: Band, day: int) -> list[Place]:

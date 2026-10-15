@@ -6,6 +6,7 @@ council:
     least: 2.0
   judgement:
     disaster: 0.2
+    slack: 0.1
   status:
     start: 50
     abstained: -2
@@ -13,9 +14,11 @@ council:
     move_worked: 4
     move_failed: -6
     move_disaster: -20
+    move_even: 0
     stay_worked: 3
     stay_failed: -6
     stay_disaster: -20
+    stay_even: 0
     death: -5
     birth: 5
   blamed: [hunger, thirst, encounter]

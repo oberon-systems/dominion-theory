@@ -466,6 +466,30 @@ class Birth(Node):
     mother_dies: Share
 
 
+class Dread(Node):
+    """
+    The threat an encounter that hurt the band adds to its cell in the band's eyes, gone after a span.
+    """
+
+    encounter: Share
+    lasts: Duration
+
+    @model_validator(mode='after')
+    def _lasts(self) -> Self:
+        if self.lasts.amount == 0:
+            raise ValueError('a span that is not zero')
+        return self
+
+
+class Unease(Node):
+    """
+    What a day on a dangerous cell adds to the unease of a band, and the share of it a day takes away.
+    """
+
+    gain: Factor
+    fade: Share
+
+
 class People(Node):
     stages: dict[Name, LifeStage] = Field(min_length=1)
     age: Ageing
@@ -546,6 +570,8 @@ class Stage(Node):
 class Decisions(Node):
     levels: dict[Name, Stage]
     distance: Factor
+    horizon: Span
+    unknown: dict[Name, Share]
     idle: Factor
     wander: Duration
     weights: Weights
@@ -573,6 +599,8 @@ class Band(Node):
     sight: Span
     memory: Duration
     decisions: Decisions
+    dread: Dread
+    unease: Unease
 
 
 class Units(Node):
@@ -596,6 +624,7 @@ class Voice(Node):
 
 class Judgement(Node):
     disaster: Share
+    slack: Factor
 
 
 class Status(Node):
@@ -605,9 +634,11 @@ class Status(Node):
     move_worked: Amount
     move_failed: Amount
     move_disaster: Amount
+    move_even: Amount
     stay_worked: Amount
     stay_failed: Amount
     stay_disaster: Amount
+    stay_even: Amount
     death: Amount
     birth: Amount
 
@@ -829,6 +860,11 @@ class Params(Node):
             if part not in self.time.day_parts:
                 expected = f'one of {", ".join(self.time.day_parts)}'
                 raise _invalid('units.band.camp_parts', part, expected)
+        for prop in band.decisions.unknown:
+            for era, held in self.eras:
+                if prop not in held.properties:
+                    expected = f'a property of the era {era}: {", ".join(held.properties)}'
+                    raise _invalid('units.band.decisions.unknown', prop, expected)
         self._check_people()
 
     def _check_people(self) -> None:

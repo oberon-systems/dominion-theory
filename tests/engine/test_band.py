@@ -435,7 +435,7 @@ def test_a_band_with_no_water_thirsts_a_day_sooner_and_loses_more() -> None:
 def test_a_created_band_is_of_adults_of_random_age_and_sex_the_first_the_player(params: Params) -> None:
     members = band(Game.create(seed=7, params=params)).members
 
-    assert all(400 <= member.age_days < 1700 for member in members)
+    assert all(400 <= member.age_days < 1500 for member in members)
     assert {member.sex for member in members} == {'female', 'male'}
     assert [member.player for member in members] == [True] + [False] * 14
 

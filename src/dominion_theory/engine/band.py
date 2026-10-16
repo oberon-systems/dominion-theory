@@ -251,11 +251,14 @@ def roaming(towards: str) -> Action:
 
 def start(land: Land, x: int, y: int, day: int, rng: np.random.Generator) -> Band:
     """
-    The band of the start: members of random age inside the start stage and random sex, the first the player.
+    The band of the start: members of random age inside the start stage, none older than its oldest, and random
+    sex, the first the player.
     """
     params = land.params
     rules = params.units.band
     low, high = bounds(params, rules.start.stage)
+    if rules.start.oldest is not None:
+        high = min(high, params.days(rules.start.oldest))
     count = rules.start.population
     ages = rng.integers(low, high, size=count)
     sexes = rng.integers(len(SEXES), size=count)

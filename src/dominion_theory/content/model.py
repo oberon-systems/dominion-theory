@@ -381,6 +381,7 @@ class Start(Node):
     stores: dict[Name, Factor]
     biomes: tuple[Name, ...] = Field(min_length=1)
     stage: Name
+    oldest: Duration | None = None
 
 
 class Wellbeing(Node):
@@ -897,6 +898,14 @@ class Params(Node):
         start = self.units.band.start.stage
         if start not in names[:-1]:
             raise _invalid('units.band.start.stage', start, f'one of {", ".join(names[:-1])}')
+        oldest = self.units.band.start.oldest
+        youngest = 0
+        for name, stage in people.stages.items():
+            if name == start:
+                break
+            youngest = self.days(stage.until) if stage.until is not None else youngest
+        if oldest is not None and self.days(oldest) <= youngest:
+            raise _invalid('units.band.start.oldest', oldest.model_dump(), 'an age above the start of the start stage')
         pause = people.birth.pause
         if self.days(pause.min) > self.days(pause.max):
             raise _invalid(f'{path}.birth.pause', pause.model_dump(), 'min not above max')

@@ -32,6 +32,7 @@ def test_band_is_the_one_of_its_document() -> None:
     assert band is params.units['band']
     assert (band.start.population, band.start.stores) == (15, {'water': 15.0, 'forage': 15.0})
     assert (band.start.biomes, band.start.stage) == (('grass', 'forest', 'floodplain'), 'adult')
+    assert band.start.oldest == Duration(years=15)
     assert band.population.least == 5
     assert band.population.wellbeing.model_dump() == {'food': 1.0, 'water': 1.0, 'safety': 1.0, 'rest': 1.0}
     assert (band.carry_kg, band.gathering, band.consumption_per_day) == (
@@ -251,6 +252,7 @@ def test_people_are_those_of_the_band_document() -> None:
         ({f'{STAGES}.adult.until': {'years': 3}}, f'{STAGES}.adult.until', 'an age above the stage before'),
         ({f'{STAGES}.adult.conceives': False}, STAGES, 'a stage that conceives'),
         ({f'{BAND}.start.stage': 'elder'}, f'{BAND}.start.stage', 'one of child, adult'),
+        ({f'{BAND}.start.oldest': {'years': 4}}, f'{BAND}.start.oldest', 'an age above the start of the start stage'),
         ({f'{BAND}.people.birth.pause.min': {'months': 3}}, f'{BAND}.people.birth.pause', 'min not above max'),
         ({'council.blamed': ['boredom']}, 'council.blamed', 'one of hunger, thirst, encounter, age, frailty, birth'),
     ],

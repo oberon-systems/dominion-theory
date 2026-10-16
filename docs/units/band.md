@@ -60,7 +60,9 @@ a day, injured until a day. The population is the number of members,
 and a band dies when fewer than 5 are left; the game ends with it.
 
 A band starts with 15 members: the player and 14 others, adults of a
-random age from 4 to 16 years and of a random sex. The player is a
+random age from 4 to 15 years and of a random sex. None is older than
+`start.oldest`, so the first elder comes as the third year begins, about
+when the first child born grows up. The player is a
 member who never dies, the line the player stands for; a family of the
 player is a later step. Every draw of this document comes from the
 stream `people` of the game, so the same seed lives the same band.
@@ -395,6 +397,7 @@ units:
       stores: {water: 15, forage: 15}
       biomes: [grass, forest, floodplain]
       stage: adult
+      oldest: {years: 15}
     population:
       least: 5
       wellbeing: {food: 1.0, water: 1.0, safety: 1.0, rest: 1.0}

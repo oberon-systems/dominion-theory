@@ -12,7 +12,7 @@ from .drawing import GLYPHS
 
 # The vocabulary of the API, as docs/api/commands.md and docs/api/protocol.md state it.
 DIRECTIONS = ('north', 'north-east', 'east', 'south-east', 'south', 'south-west', 'west', 'north-west')
-ACTIONS = ('move', 'roam', 'gather', 'camp')
+ACTIONS = ('move', 'roam', 'gather', 'camp', 'build')
 STAGES = ('child', 'adult', 'elder')
 STATE = 'state-'
 PEOPLE = 'line-people'
@@ -23,6 +23,7 @@ BADLY = 'line-injured-badly'
 WOUNDS = 'wounds'
 HEAVY = 'heavy'
 STORE = 'line-store'
+CAMP = 'line-camp'
 STATUS = 'line-status'
 COUNCIL = 'line-council'
 VOTES = 'line-votes'
@@ -64,6 +65,7 @@ MESSAGES: tuple[str, ...] = (
     PEOPLE,
     BADLY,
     STORE,
+    CAMP,
     STATUS,
     COUNCIL,
     VOTES,
@@ -91,17 +93,18 @@ MESSAGES: tuple[str, ...] = (
     *(f'{STAGE}{name}' for name in STAGES),
     *(f'{CONDITION}{name}' for name in CONDITIONS),
     *(f'{DIRECTION}{towards}' for towards in DIRECTIONS),
-    *(f'{KIND}{kind}' for kind in ('go', 'stay-and-gather', 'abstain')),
+    *(f'{KIND}{kind}' for kind in ('go', 'stay-and-gather', 'winter-camp', 'abstain')),
     *(f'{LAND}{biome}' for biome in GLYPHS),
     *(f'{THROUGH}{biome}' for biome in GLYPHS),
 )
 
 GO = 'go'
 STAY = 'stay-and-gather'
+WINTER = 'winter-camp'
 ABSTAIN = 'abstain'
 SILENCE = {'kind': ABSTAIN}
 # The answers of the menu in its order; a go opens the places it may lead to.
-KINDS = (GO, STAY, ABSTAIN)
+KINDS = (GO, STAY, WINTER, ABSTAIN)
 LOSSES = frozenset(
     {
         'command-refused',
@@ -190,6 +193,8 @@ def band_parts(band: Unit, lang: str) -> list[Part]:
     if len(ages) > 1:
         pieces += [Part(Look.BAND, render(f'{STAGE}{name}', {'count': count}, lang)) for name, count in ages.items()]
     pieces += [Part(Look.STATE, _condition(band, name, lang)) for name in CONDITIONS if band.get(name)]
+    if _sheltered(band):
+        pieces.append(Part(Look.BAND, render(CAMP, lang=lang)))
     pieces += [
         Part(Look.BAND, render(STORE, {'resource': name, 'amount': amount}, lang))
         for name, amount in band['stores'].items()
@@ -197,6 +202,13 @@ def band_parts(band: Unit, lang: str) -> list[Part]:
     pieces += [Part(Look.STATE, render(f'{STATE}{state}', lang=lang)) for state in band['states']]
     pieces.append(Part(Look.BAND, render(f'{ACTION}{action["kind"]}', told, lang)))
     return [*_joined(pieces, ', '), Part(Look.PLAIN, '.')]
+
+
+def _sheltered(band: Unit) -> bool:
+    camp, place = band.get('camp'), band.get('place')
+    if camp is None or place is None:
+        return False
+    return bool(camp['built'] >= 1 and (camp['x'], camp['y']) == (place['x'], place['y']))
 
 
 def _condition(band: Unit, name: str, lang: str) -> str:
@@ -278,10 +290,12 @@ def menu(council: Mapping[str, Any], place: Place | None, known: Known) -> Menu:
     def winnable(entry: Mapping[str, Any]) -> bool:
         return won(entry['votes'], [other['votes'] for other in table if other is not entry])
 
-    stay = sum(entry['votes'] for entry in table if entry['proposal']['kind'] == STAY)
     answers = [Option(GO, None, leader.get('kind') == GO)]
-    if won(stay, [entry['votes'] for entry in table if entry['proposal']['kind'] != STAY]):
-        answers.append(Option(STAY, {'kind': STAY}, leader.get('kind') == STAY))
+    for kind in (STAY, WINTER):
+        votes = sum(entry['votes'] for entry in table if entry['proposal']['kind'] == kind)
+        others = [entry['votes'] for entry in table if entry['proposal']['kind'] != kind]
+        if (kind != WINTER or council.get('winter')) and won(votes, others):
+            answers.append(Option(kind, {'kind': kind}, leader.get('kind') == kind))
     answers.append(Option(ABSTAIN, SILENCE, False))
     goes = [entry for entry in table if entry['proposal']['kind'] == GO and winnable(entry)]
     levels = sorted({entry['votes'] for entry in goes}, reverse=True)[:LEVELS]

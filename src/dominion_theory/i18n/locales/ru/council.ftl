@@ -31,6 +31,7 @@ proposal-go-through-ice = идём по льдам
 proposal-go-unknown = идём в незнакомые земли
 proposal-go = идём дальше к намеченной земле
 proposal-stay-and-gather = остаёмся собирать
+proposal-winter-camp = ставим здесь зимний лагерь
 proposal-none = ничего особенного
 
 council-opened = Собрался совет: { $occasion }. Большинство склоняется: { $leader }.

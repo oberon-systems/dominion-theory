@@ -17,6 +17,7 @@ MOVE = 'move'
 ROAM = 'roam'
 GATHER = 'gather'
 CAMP = 'camp'
+BUILD = 'build'
 NORMAL = 'normal'
 STARVATION = 'starvation'
 THIRST = 'thirst'
@@ -133,6 +134,8 @@ class Band:
     route: dict[str, Any] | None = None
     # The parts of today out of camp_parts in which the band camped.
     camped: int = 0
+    # The cell of a winter camp and the share of its building done.
+    camp: dict[str, Any] | None = None
     counted: tuple[int, Census] | None = field(default=None, init=False, repr=False, compare=False)
 
     @classmethod
@@ -162,6 +165,7 @@ class Band:
             unease=plain['unease'],
             route=plain['route'],
             camped=plain['camped'],
+            camp=plain['camp'],
         )
 
     @property
@@ -207,6 +211,7 @@ class Band:
             'unease': self.unease,
             'route': self.route,
             'camped': self.camped,
+            'camp': self.camp,
         }
 
     def shown(self, params: Params, scale: int) -> dict[str, Any]:
@@ -229,6 +234,7 @@ class Band:
             'action': dict(self.action),
             'intent': self.intent,
             'route': [] if self.route is None else [{'x': x, 'y': y} for x, y in self.route['cells']],
+            'camp': self.camp,
             'reason': self.reason,
         }
 
@@ -244,6 +250,10 @@ class Band:
 
 def camp() -> Action:
     return {'kind': CAMP}
+
+
+def building() -> Action:
+    return {'kind': BUILD}
 
 
 def gathering(resource: str) -> Action:
@@ -392,13 +402,28 @@ def weight(params: Params, band: Band) -> float:
     return sum(band.held(name) * params.resources[name].weight_kg for name in band.stores)
 
 
+def sheltered(band: Band) -> bool:
+    """
+    Whether the band stands on its winter camp and the camp is built.
+    """
+    camp = band.camp
+    return camp is not None and (camp['x'], camp['y']) == band.place and camp['built'] >= 1.0
+
+
+def appetite(params: Params, band: Band) -> float:
+    """
+    The share of its daily need a band eats and drinks: less in a winter camp.
+    """
+    return params.units.band.winter_camp.consumption if sheltered(band) else 1.0
+
+
 def held_days(params: Params, band: Band, prop: str) -> float:
     """
     The days the stores of a property last the band; endless when nobody eats it.
     """
     resources = [name for name, held in params.resources.items() if held.property == prop]
     rates = params.units.band.consumption_per_day
-    eaten = census(params, band).eaters * sum(rates.get(name, 0.0) for name in resources)
+    eaten = census(params, band).eaters * appetite(params, band) * sum(rates.get(name, 0.0) for name in resources)
     return sum(band.held(name) for name in resources) / eaten if eaten > 0 else math.inf
 
 
@@ -430,13 +455,17 @@ def act(land: Land, band: Band, action: Action, day: int) -> Action:
         done = _roam(land, band, action, rules, day)
     elif kind == GATHER:
         done = _gather(land, band, action, rules, day)
+    elif kind == BUILD:
+        done = _build(land, band)
     else:
         done = camp()
-    if done['kind'] == GATHER:
+    if done['kind'] in (GATHER, BUILD):
         band.progress, band.target = 0.0, None
     tired = getattr(rules.fatigue, done['kind'])
     if tired > 0:
         tired *= census(land.params, band).tires
+    elif done['kind'] == CAMP and sheltered(band):
+        tired *= rules.winter_camp.rest
     band.fatigue = min(max(band.fatigue + tired, 0.0), 1.0)
     band.action = done
     return done
@@ -452,7 +481,7 @@ def _move(land: Land, band: Band, action: Action, rules: Rules, pace: float) -> 
     band.progress += speed(land.params, band) * pace * land.value(PASSABILITY, *target)
     if band.progress >= 1.0:
         band.x, band.y = target
-        band.progress, band.target = 0.0, None
+        band.progress, band.target, band.camp = 0.0, None, None
     return {'kind': action['kind'], 'towards': action['towards']}
 
 
@@ -478,6 +507,22 @@ def _gather(land: Land, band: Band, action: Action, rules: Rules, day: int) -> A
         return camp()
     _take(land, band, name, rules, day, 1.0, at)
     return gathering(name)
+
+
+def _build(land: Land, band: Band) -> Action:
+    """
+    A part of work on the winter camp of the cell the band stands on; a camp elsewhere is given up.
+    """
+    params = land.params
+    if band.camp is None or (band.camp['x'], band.camp['y']) != band.place:
+        band.camp = {'x': band.x, 'y': band.y, 'built': 0.0}
+    rules = params.units.band
+    # The days of the build are counted in the parts a band works, not those it camps in.
+    per_day = params.time.parts_per_day
+    working = params.parts(rules.winter_camp.build) * (per_day - len(rules.camp_parts)) / per_day
+    share = params.eras[land.era].parts_per_tick / working if working > 0 else 1.0
+    band.camp['built'] = min(round(band.camp['built'] + share, 9), 1.0)
+    return building()
 
 
 def _take(land: Land, band: Band, name: str, rules: Rules, day: int, share: float, at: Place) -> None:
@@ -589,10 +634,14 @@ def reseason(land: Land, band: Band, was: str) -> list[Place]:
 
 
 def spoil(params: Params, band: Band, day: int) -> None:
+    """
+    Drops the lots older than their resource keeps; in a winter camp they age slower.
+    """
     per_day = params.time.parts_per_day
+    ages = params.units.band.winter_camp.spoil if sheltered(band) else 1.0
     for name in list(band.stores):
         keeps = params.parts(params.resources[name].spoils) // per_day
-        band.stores[name] = [lot for lot in band.stores[name] if lot[0] + keeps > day]
+        band.stores[name] = [lot for lot in band.stores[name] if (day - lot[0]) * ages < keeps]
 
 
 def eat(params: Params, band: Band) -> dict[str, float]:
@@ -600,7 +649,7 @@ def eat(params: Params, band: Band) -> dict[str, float]:
     The people eat and drink for a day, the oldest lots first; gives the share of each need that was met.
     """
     met: dict[str, float] = {}
-    eaters = census(params, band).eaters
+    eaters = census(params, band).eaters * appetite(params, band)
     for name, rate in params.units.band.consumption_per_day.items():
         need = left = eaters * rate
         lots = band.stores.get(name, [])

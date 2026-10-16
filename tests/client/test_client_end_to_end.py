@@ -14,7 +14,8 @@ DAY = 5
 EVENING = 3
 # The cell north of where the band of seed 42 starts.
 NORTHWARD = {'id': 'c-3', 'kind': 'vote', 'proposal': {'kind': 'go', 'to': {'x': 107, 'y': 46}}}
-# A band that needs nothing, sees nothing and meets nothing: it camps, so the frame is tested alone.
+# A band that needs nothing, sees nothing, meets nothing and gains nothing by a winter camp: it camps, so the
+# frame is tested alone.
 QUIET = (
     'units.band.sight=0',
     'units.band.consumption_per_day.forage=0',
@@ -25,6 +26,7 @@ QUIET = (
     'units.band.people.stages.adult.dies.frailty=0',
     'units.band.people.stages.adult.until.years=100',
     'encounters.chance=0',
+    'units.band.winter_camp.threat=1.0',
 )
 PLANET = ('planet.circumference_km=4000', 'planet.window.width=32', 'planet.window.height=16')
 SMALL = tuple(part for given in (*PLANET, *QUIET) for part in ('--set', given))

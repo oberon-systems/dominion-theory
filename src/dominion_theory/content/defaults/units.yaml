@@ -71,6 +71,7 @@ units:
       roam: 0.15
       gather: 0.1
       camp: -0.3
+      build: 0.15
       slows: 0.5
     camp_parts: [evening, night]
     states:
@@ -84,6 +85,14 @@ units:
     unease: {gain: 0.1, fade: 0.2}
     route: {margin: 4, threat: 2.0, hunger: 1.0, thirst: 1.0}
     shelter: {encounter: 0.5, frailty: 0.5}
+    winter_camp:
+      # Offered through the winter and the last days of the autumn before it.
+      offered: {seasons: [winter], before: {days: 10}}
+      build: {days: 2}
+      threat: 0.5
+      spoil: 0.5
+      consumption: 0.8
+      rest: 1.5
     decisions:
       levels:
         sated: {days: 2, need: 0.1}

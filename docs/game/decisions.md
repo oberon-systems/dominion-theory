@@ -198,6 +198,7 @@ tiredness ends.
 |-------------------|-----------------------------------------------------------|
 | `go` to a place   | a move or a roam to the next cell of the route, a gathering, or a camp |
 | `stay-and-gather` | gathering of any resource, or a camp                      |
+| `winter-camp`     | a build until the camp stands, then as `stay-and-gather`; a hungry band gathers first |
 
 Under a `go` intent the moves and the roams are scored with the pull
 replaced by a fixed `weights.intent`, and a roam gets the whole of that

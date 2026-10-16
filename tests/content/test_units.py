@@ -41,7 +41,14 @@ def test_band_is_the_one_of_its_document() -> None:
         {'forage': 1.0, 'water': 1.0},
     )
     assert (band.speed.base, band.speed.slowdown, band.speed.slowest) == (1.2, 0.03, 0.3)
-    assert band.fatigue.model_dump() == {'move': 0.3, 'roam': 0.15, 'gather': 0.1, 'camp': -0.3, 'slows': 0.5}
+    assert band.fatigue.model_dump() == {
+        'move': 0.3,
+        'roam': 0.15,
+        'gather': 0.1,
+        'camp': -0.3,
+        'build': 0.15,
+        'slows': 0.5,
+    }
     assert band.roaming.model_dump() == {'speed': 0.75, 'share': 0.5, 'hunger': 0.8}
     assert (band.states.short, band.states.starvation.loss_per_day, band.states.thirst.loss_per_day) == (
         0.75,
@@ -52,6 +59,14 @@ def test_band_is_the_one_of_its_document() -> None:
     assert (band.sight, band.memory.model_dump()) == (2, {'days': 20})
     assert band.camp_parts == ('evening', 'night')
     assert band.shelter.model_dump() == {'encounter': 0.5, 'frailty': 0.5}
+    assert band.winter_camp.model_dump() == {
+        'offered': {'seasons': ('winter',), 'before': {'days': 10}},
+        'build': {'days': 2},
+        'threat': 0.5,
+        'spoil': 0.5,
+        'consumption': 0.8,
+        'rest': 1.5,
+    }
     injury = band.people.injury
     assert (injury.per_day, injury.heal_in_camp) == (0.002, 2.0)
     assert injury.drawn == {'light': 0.5, 'medium': 0.3, 'heavy': 0.2}
@@ -96,6 +111,9 @@ def test_council_is_the_one_of_its_document() -> None:
         'stay_worked': 3.0,
         'stay_failed': -6.0,
         'stay_even': 0.0,
+        'camp_worked': 3.0,
+        'camp_failed': -6.0,
+        'camp_even': 0.0,
         'death': -5.0,
         'birth': 5.0,
     }
@@ -105,7 +123,10 @@ def test_encounters_are_those_of_their_document() -> None:
     encounters = load_params().encounters
     drowning, predator = encounters.kinds['drowning'], encounters.kinds['predator']
 
-    assert (encounters.chance, encounters.actions) == (0.02, {'camp': 0.5, 'gather': 1.0, 'roam': 1.2, 'move': 1.5})
+    assert (encounters.chance, encounters.actions) == (
+        0.02,
+        {'camp': 0.5, 'build': 1.0, 'gather': 1.0, 'roam': 1.2, 'move': 1.5},
+    )
     assert set(encounters.actions) == set(ACTIONS)
     assert list(encounters.kinds) == ['predator', 'accident', 'drowning', 'poisoning']
     assert (predator.biomes, predator.rivers, predator.actions, predator.resources) == ((), False, (), ())
@@ -324,7 +345,7 @@ def test_status_starts_within_its_scale() -> None:
     ('section', 'value', 'expected'),
     [
         ('biomes', ['alpha'], None),
-        ('actions', ['swim'], 'one of move, roam, gather, camp'),
+        ('actions', ['swim'], 'one of move, roam, gather, camp, build'),
         ('resources', ['stone'], 'one of water, forage'),
     ],
 )
@@ -344,7 +365,7 @@ def test_factor_of_an_action_names_an_action() -> None:
     assert refused({'encounters.actions': {'swim': 1.0}}) == {
         'path': 'encounters.actions',
         'found': 'swim',
-        'expected': 'one of move, roam, gather, camp',
+        'expected': 'one of move, roam, gather, camp, build',
     }
 
 
@@ -357,6 +378,15 @@ def test_era_names_its_own_properties(section: str) -> None:
         'found': 'soil',
         'expected': 'one of water, food, threat, passability',
     }
+
+
+def test_a_winter_camp_is_offered_in_seasons_of_the_year_and_takes_some_time_to_build() -> None:
+    assert refused({f'{BAND}.winter_camp.offered.seasons': ['monsoon']}) == {
+        'path': f'{BAND}.winter_camp.offered.seasons',
+        'found': 'monsoon',
+        'expected': 'one of spring, summer, autumn, winter',
+    }
+    assert refused({f'{BAND}.winter_camp.build': {'days': 0}})['path'] == f'{BAND}.winter_camp'
 
 
 def test_recovery_names_a_season_of_the_year() -> None:

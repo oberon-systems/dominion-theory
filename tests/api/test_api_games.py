@@ -143,6 +143,7 @@ def test_the_snapshot_is_what_the_caller_may_see(client: TestClient, new_game: N
         'action': {'kind': 'camp'},
         'intent': None,
         'route': [],
+        'camp': None,
         'reason': None,
     }
     assert place['scale'] == 0

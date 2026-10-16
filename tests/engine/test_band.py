@@ -644,6 +644,7 @@ def test_a_tick_carries_the_row_of_the_band(params: Params) -> None:
             'roams': 0,
             'gathers': 1,
             'camps': 0,
+            'builds': 0,
             'deaths': 0,
             'encounters': 0,
             'status': 50.0,
@@ -676,7 +677,7 @@ def test_a_restored_game_carries_the_band_in_the_middle_of_a_day(params: Params)
 def test_a_snapshot_of_the_format_before_the_band_is_refused(params: Params) -> None:
     snapshot = land(params).snapshot()
 
-    assert snapshot['format'] == 13
+    assert snapshot['format'] == 14
     with pytest.raises(ValueError, match='format 2'):
         Game.restore({**snapshot, 'format': 2})
 
@@ -691,3 +692,73 @@ def test_food_grows_back_slower_in_winter(params: Params, parts: int, pace: floa
 
     assert game.cells.stock(FOREST, 'food') == pytest.approx(0.5 + pace / (30 * DAY))
     assert game.cells.stock(FOREST, 'water') == pytest.approx(0.5 + 1 / (3 * DAY))
+
+
+def built(game: Game, at: tuple[int, int] = HOME) -> None:
+    band(game).camp = {'x': at[0], 'y': at[1], 'built': 1.0}
+
+
+def test_a_winter_camp_is_built_in_two_days_of_work_without_gathering(params: Params) -> None:
+    game = land(params)
+
+    do(game, bands.building(), 2 * DAY - 1)
+    unfinished = (dict(band(game).camp or {}), bands.sheltered(band(game)))
+    last = do(game, bands.building())
+
+    assert unfinished == ({'x': WEST, 'y': NORTH + 1, 'built': pytest.approx(0.9)}, False)
+    assert band(game).camp == {'x': WEST, 'y': NORTH + 1, 'built': 1.0}
+    assert bands.sheltered(band(game))
+    assert last.units[0][4] == 'build'
+    assert counted(game)['builds'] == 2 * DAY
+    assert game.cells.stock(HOME, 'food') == 1.0
+
+
+def test_a_band_in_its_winter_camp_eats_less_and_its_stores_spoil_slower(params: Params) -> None:
+    stores = {'forage': [[0.0, 20.0]], 'water': [[0.0, 20.0]]}
+    held = bands.Band(id=1, x=WEST, y=NORTH, members=bands.adults(10), stores=stores)
+    held.camp = {'x': WEST, 'y': NORTH, 'built': 1.0}
+
+    bands.eat(params, held)
+    days = bands.held_days(params, held, 'food')
+    bands.spoil(params, held, 5)
+    kept = held.plain()['stores']
+    bands.spoil(params, held, 6)
+
+    assert kept == {'forage': [[0.0, 12.0]], 'water': [[0.0, 12.0]]}
+    assert held.plain()['stores'] == {'forage': [], 'water': [[0.0, 12.0]]}
+    assert days == pytest.approx(12.0 / 8.0)
+
+
+def test_a_band_in_its_winter_camp_rests_deeper_and_meets_less_threat(params: Params) -> None:
+    game = land(params)
+    built(game)
+    band(game).fatigue = 0.6
+
+    do(game, camp())
+
+    assert band(game).fatigue == pytest.approx(0.6 - 0.3 * 1.5)
+    assert game._threat(band(game)) == pytest.approx(game.value('threat', *HOME) * 0.5)
+
+
+def test_a_band_that_leaves_its_cell_loses_its_winter_camp_and_builds_anew_elsewhere(params: Params) -> None:
+    game = land(params)
+    built(game)
+
+    do(game, moving('east'))
+    left = band(game).camp
+    built(game, HOME)
+    do(game, bands.building())
+
+    assert (band(game).place, left) == (MEADOW, None)
+    assert band(game).camp == {'x': WEST + 1, 'y': NORTH + 1, 'built': pytest.approx(0.1)}
+    assert not bands.sheltered(band(game))
+
+
+def test_a_winter_camp_is_carried_by_the_snapshot(params: Params) -> None:
+    game = land(params)
+    do(game, bands.building(), 3)
+
+    copy = Game.restore(carried(game))
+
+    assert band(copy).camp == band(game).camp
+    assert copy.state_hash() == game.state_hash()

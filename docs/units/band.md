@@ -3,7 +3,7 @@
 #unit #band #stage2
 
 A band is the first unit of the game: some tens of foraging nomads who
-walk, roam, gather, camp and nothing else. This document says what a band is
+walk, roam, gather, camp, build a winter camp and nothing else. This document says what a band is
 made of and gives every number it reads. Part of the stage 2 design in
 [the roadmap](../roadmap.md); how a band lives through a day is told in
 [Bands](../game/01_bands.md).
@@ -14,6 +14,7 @@ made of and gives every number it reads. Part of the stage 2 design in
 - [Deaths](#deaths)
 - [Injuries](#injuries)
 - [Shelter](#shelter)
+- [Winter camp](#winter-camp)
 - [Stores](#stores)
 - [Gathering](#gathering)
 - [Consumption](#consumption)
@@ -270,6 +271,31 @@ a band that walks all day has none of it.
 
 ___
 
+## Winter camp
+
+A winter camp is the council's answer `winter-camp`, offered through the
+winter and the last 10 days of the autumn. The band builds it on the cell
+it stands on with the action `build`: `winter_camp.build`, 2 days of the
+active parts, 6 ticks, with no gathering; while its hunger or thirst
+reaches `roaming.hunger` it gathers instead, and the share built waits
+for it. The band holds the camp as its
+cell and the share built, `camp: {x, y, built}`.
+
+Once built, while the band stands on that cell, whatever its intent:
+
+| Effect                               | Factor                     |
+|--------------------------------------|----------------------------|
+| the threat of encounters and of wellbeing, and the threat the band sees | `winter_camp.threat`, 0.5 |
+| the age of a lot against its time to spoil | `winter_camp.spoil`, 0.5 |
+| what the people eat and drink, and so the days the stores last | `winter_camp.consumption`, 0.8 |
+| what a camp takes off fatigue        | `winter_camp.rest`, 1.5    |
+
+Gathering goes on, and the shelter of a camp holds as it does anywhere.
+A band that steps into another cell loses the camp, built or not, and a
+band that builds on another cell starts anew.
+
+___
+
 ## Stores
 
 A band carries food and water, and each resource is an entry of the
@@ -389,6 +415,7 @@ by `camp_parts`; it never walks or gathers then.
 | `roam`    | plus 0.15        |
 | `gather`  | plus 0.1         |
 | `camp`    | minus 0.3        |
+| `build`   | plus 0.15        |
 
 A gain is multiplied by the mean tiring of the members, so a band of
 many children and elders tires sooner. Fatigue weighs in no decision. It takes from what the band can do: its
@@ -537,6 +564,7 @@ units:
       roam: 0.15
       gather: 0.1
       camp: -0.3
+      build: 0.15
       slows: 0.5
     camp_parts: [evening, night]
     states:
@@ -550,6 +578,13 @@ units:
     unease: {gain: 0.1, fade: 0.2}
     route: {margin: 4, threat: 2.0, hunger: 1.0, thirst: 1.0}
     shelter: {encounter: 0.5, frailty: 0.5}
+    winter_camp:
+      offered: {seasons: [winter], before: {days: 10}}
+      build: {days: 2}
+      threat: 0.5
+      spoil: 0.5
+      consumption: 0.8
+      rest: 1.5
 ```
 
 `dread` and `unease` are told in [Decisions](../game/decisions.md#dread),
@@ -588,6 +623,8 @@ A game does not start from a band that does not add up.
 - A start biome exists and can be entered.
 - `tiredness.ends` is below `tiredness.begins`, and both lie in 0 to 1.
 - Every name of `camp_parts` is one of `time.day_parts`.
+- Every season of `winter_camp.offered` is one of `time.seasons`, and
+  `winter_camp.build` is not zero.
 - A share, a chance and a loss lie between 0 and 1.
 
 ___

@@ -41,7 +41,7 @@ LEVELS = {
     'water': 'water',
     'status': 'status',
 }
-TOTALS = ('deaths', 'moves', 'roams', 'gathers', 'camps', 'encounters')
+TOTALS = ('deaths', 'moves', 'roams', 'gathers', 'camps', 'builds', 'encounters')
 STATES = {'starvation': 'starving', 'thirst': 'thirsty', 'tiredness': 'tired'}
 YEAR = (
     'year',
@@ -61,6 +61,7 @@ YEAR = (
     'roams',
     'gathers',
     'camps',
+    'builds',
     *STATES.values(),
     'encounters',
     'status',

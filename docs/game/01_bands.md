@@ -10,7 +10,7 @@ and how the game ends. Part of the stage 2 design in
 
 - [The start](#the-start)
 - [A day](#a-day)
-- [The four actions](#the-four-actions)
+- [The actions](#the-actions)
 - [Movement](#movement)
 - [The shore](#the-shore)
 - [Chance encounters](#chance-encounters)
@@ -54,7 +54,7 @@ counts hunger and thirst, and adds the day's births.
 
 ___
 
-## The four actions
+## The actions
 
 | Action   | Does                                                            | Fatigue   |
 |----------|-----------------------------------------------------------------|-----------|
@@ -62,6 +62,7 @@ ___
 | `roam`   | walks there slower, foraging the cell ahead on the way          | grows less |
 | `gather` | takes one resource from the cell it stands on                   | grows     |
 | `camp`   | rests where it stands                                           | falls     |
+| `build`  | builds a winter camp on the cell it stands on                   | grows     |
 
 A roaming band takes `roaming.share` of what a tick of gathering would
 give, of every resource the cell ahead gives that the band is short of,
@@ -69,7 +70,10 @@ and that cell pays for it
 as for a gathering; see [Band](../units/band.md#gathering). The band
 picks between walking and roaming itself, but a hungry band does not
 walk: hungry or thirsty, it only roams. A camp is not a thing on the map: nothing is
-built and nothing is left behind.
+built and nothing is left behind. A winter camp is the one thing a band
+builds, and only under the council's `winter-camp`; it is the band's
+while the band stands on its cell, see
+[Band](../units/band.md#winter-camp).
 
 ___
 
@@ -179,7 +183,7 @@ so a new one is a block of the tree and a message in two catalogues.
 ```yaml
 encounters:
   chance: 0.02
-  actions: {camp: 0.5, gather: 1.0, roam: 1.2, move: 1.5}
+  actions: {camp: 0.5, build: 1.0, gather: 1.0, roam: 1.2, move: 1.5}
   kinds:
     predator: {weight: 3, loss: {min: 0.0, max: 0.1}, injured: {min: 0.0, max: 0.1}}
     accident:
@@ -239,14 +243,16 @@ What stage 2 puts into the phases of
 2. **Councils** - a council that sits is decided with the player's
    answer, and rises. The winner becomes the band's intent; an option the
    player carried against the leader is also judged at the next council.
-3. **Decisions** - the band picks its action, among all three or among
-   those its intent allows, along its route under a go; in the tick of a
-   council, and while it is tired under an intent, it camps.
-4. **Actions** - the band moves, gathers or camps; fatigue and what it
+3. **Decisions** - the band picks its action, among all it may take or
+   among those its intent allows, along its route under a go, building
+   first under a winter camp; in the tick of a council, and while it is
+   tired under an intent, it camps.
+4. **Actions** - the band moves, gathers, camps or builds; fatigue and what it
    knows are brought up to date; a band that stands on the place of its
    go has arrived.
 5. **World** - cells recover; on the first tick of a day stores spoil;
-   an encounter is drawn; on the last tick of a day people eat, states
+   an encounter is drawn, under the threat a winter camp lowers; on the
+   last tick of a day people eat, states
    begin and end, and the members age, die, heal, are hurt, give birth
    and conceive, in the order of [Deaths](../units/band.md#deaths). The
    share of the active parts the band camped heals faster and shelters
@@ -259,7 +265,7 @@ What stage 2 puts into the phases of
    one counter per thing the lab will ask about.
 
 The counters added: `population`, `food`, `water`, `status`, `moves`,
-`gathers`, `camps`, `encounters`, `deaths`, `councils`, then one per
+`gathers`, `camps`, `builds`, `encounters`, `deaths`, `councils`, then one per
 stage (`child`, `adult`, `elder`), `pregnant` and `injured`.
 
 ___
@@ -301,7 +307,8 @@ of them. Both views of the API show the same for now.
       "states": [],
       "action": {"kind": "gather", "resource": "forage"},
       "intent": {"proposal": {"kind": "go", "to": {"x": 2304, "y": 742}}},
-      "route": [{"x": 2302, "y": 743}, {"x": 2303, "y": 742}, {"x": 2304, "y": 742}]
+      "route": [{"x": 2302, "y": 743}, {"x": 2303, "y": 742}, {"x": 2304, "y": 742}],
+      "camp": null
     }
   ],
   "seat": {"name": "player", "unit": 1, "status": 50.0, "seated": true, "council": null}
@@ -312,6 +319,8 @@ of them. Both views of the API show the same for now.
 members who are, `wounds` the injured by severity; the members themselves stay in the state of the game.
 `route` is the cells still ahead to the place of a go, empty when the
 band is not on its way.
+`camp` is the winter camp, `{x, y, built}` with `built` the share done,
+or null.
 `council` is the table of the council of the day while it sits; see
 [The snapshot](../api/protocol.md#the-seat). What the band knows is read as a map: the rectangle of the map address
 takes `known=1` and answers only with the cells that band knows, as

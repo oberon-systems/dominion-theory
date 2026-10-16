@@ -156,7 +156,8 @@ not start at the origin; see
   the `leader`, the option the others lean to or `null`, the `table`,
   every option with its words, `key`, and its votes, as
   [Indirect control](../game/indirect_control.md#the-table-of-votes)
-  lays them out, and the `voice`, the votes the player's word adds.
+  lays them out, the `voice`, the votes the player's word adds, and
+  `winter`, whether a winter camp is offered.
 
 ```json
 {
@@ -166,7 +167,8 @@ not start at the origin; see
     {"proposal": {"kind": "go", "to": {"x": 2301, "y": 740}}, "key": "proposal-go-through-grass", "votes": 1},
     {"proposal": {"kind": "go", "to": {"x": 2304, "y": 744}}, "key": "proposal-go-forest", "votes": 5}
   ],
-  "voice": 3.75
+  "voice": 3.75,
+  "winter": false
 }
 ```
 
@@ -186,9 +188,10 @@ A unit is a band in stage 2, as
 | `stores`     | the amount held of each resource                            |
 | `fatigue`    | 0 for rested, growing with work                             |
 | `states`     | `starvation`, `thirst`, `tiredness`, in that order          |
-| `action`     | what it did in the last tick: `camp`, `gather`, `move` or `roam` |
+| `action`     | what it did in the last tick: `camp`, `build`, `gather`, `move` or `roam` |
 | `intent`     | the proposal the council bound it to, or `null`             |
 | `route`      | the cells still ahead to the place of a go, each `{"x", "y"}` |
+| `camp`       | its winter camp, `{"x", "y", "built"}` with the share built, or `null` |
 | `reason`     | why it took that action; see [Decisions](../game/decisions.md#the-reason) |
 
 An action of `gather` names its `resource` and one of `move` its

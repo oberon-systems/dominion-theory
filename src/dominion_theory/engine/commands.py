@@ -11,11 +11,12 @@ VOTE = 'vote'
 ABSTAIN = 'abstain'
 GO = 'go'
 STAY = 'stay-and-gather'
+WINTER = 'winter-camp'
 
 BUILT = frozenset({PASS, VOTE})
 ENVELOPE = ('id', 'kind')
 # The fields of a proposal besides its kind.
-PROPOSALS: dict[str, tuple[str, ...]] = {GO: ('to',), STAY: ()}
+PROPOSALS: dict[str, tuple[str, ...]] = {GO: ('to',), STAY: (), WINTER: ()}
 
 
 @dataclass(frozen=True, kw_only=True)

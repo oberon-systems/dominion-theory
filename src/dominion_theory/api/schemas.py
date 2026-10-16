@@ -116,6 +116,10 @@ class Camp(BaseModel):
     kind: Literal['camp']
 
 
+class Build(BaseModel):
+    kind: Literal['build']
+
+
 class Gather(BaseModel):
     kind: Literal['gather']
     resource: str
@@ -131,7 +135,7 @@ class Roam(BaseModel):
     towards: str
 
 
-Action = Annotated[Camp | Gather | Walk | Roam, Field(discriminator='kind')]
+Action = Annotated[Camp | Build | Gather | Walk | Roam, Field(discriminator='kind')]
 
 
 class GoProposal(BaseModel):
@@ -143,7 +147,11 @@ class StayProposal(BaseModel):
     kind: Literal['stay-and-gather']
 
 
-Proposal = Annotated[GoProposal | StayProposal, Field(discriminator='kind')]
+class WinterCampProposal(BaseModel):
+    kind: Literal['winter-camp']
+
+
+Proposal = Annotated[GoProposal | StayProposal | WinterCampProposal, Field(discriminator='kind')]
 
 
 class Intent(BaseModel):
@@ -162,10 +170,20 @@ class Reason(BaseModel):
     model_config = ConfigDict(extra='allow')
     __pydantic_extra__: dict[str, str] = Field(init=False)
 
-    action: Literal['camp', 'gather', 'move', 'roam']
+    action: Literal['camp', 'build', 'gather', 'move', 'roam']
     need: str
     score: float
     pull: Spot | None
+
+
+class Site(BaseModel):
+    """
+    The cell of a winter camp and the share of its building done; it shelters the band at 1.
+    """
+
+    x: int
+    y: int
+    built: float
 
 
 class Unit(BaseModel):
@@ -187,6 +205,7 @@ class Unit(BaseModel):
     action: Action
     intent: Intent | None
     route: list[Spot]
+    camp: Site | None
     reason: Reason | None
 
 
@@ -202,12 +221,14 @@ class Votes(BaseModel):
 
 class Council(BaseModel):
     """
-    The council of the day while it sits: the others' votes, the option they lead with and the player's voice.
+    The council of the day while it sits: the others' votes, the option they lead with, the player's voice and
+    whether a winter camp is offered.
     """
 
     leader: Proposal | None
     table: list[Votes]
     voice: float | None = None
+    winter: bool = False
 
 
 class Seat(BaseModel):

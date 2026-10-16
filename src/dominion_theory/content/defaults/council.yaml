@@ -16,6 +16,9 @@ council:
     stay_worked: 3
     stay_failed: -6
     stay_even: 0
+    camp_worked: 3
+    camp_failed: -6
+    camp_even: 0
     death: -5
     birth: 5
   blamed: [hunger, thirst, encounter]

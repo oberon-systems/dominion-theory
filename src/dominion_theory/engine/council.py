@@ -13,7 +13,8 @@ from . import band as bands
 from . import decisions, routes
 from .band import Band, voters
 from .cells import Place
-from .commands import ABSTAIN, GO, PROPOSALS, STAY
+from .clock import SeasonSchedule
+from .commands import ABSTAIN, GO, PROPOSALS, STAY, WINTER
 from .events import NO_LEADER, PROPOSAL
 
 UNKNOWN = 'unknown'
@@ -22,8 +23,9 @@ THROUGH = 'through-'
 WORKED = 'worked'
 EVEN = 'even'
 FAILED = 'failed'
-STATUS = {GO: 'go', STAY: 'stay'}
+STATUS = {GO: 'go', STAY: 'stay', WINTER: 'camp'}
 STAYING = {'kind': STAY}
+WINTERING = {'kind': WINTER}
 HIGHEST = 100.0
 OCCASION = 'occasion-'
 # What calls a council, in the order the first that holds is named: docs/game/indirect_control.md, Occasions.
@@ -95,12 +97,12 @@ def key(proposal: Proposal | None, band: Band | None = None) -> str:
 
 
 def score(
-    params: Params, band: Band, era: str, inside: Inside, extra: Sequence[Proposal] = ()
+    params: Params, band: Band, era: str, inside: Inside, extra: Sequence[Proposal] = (), wintering: bool = False
 ) -> list[tuple[Proposal, float]]:
     """
     What a day of every proposal is worth to the band, in the fixed order: staying on the land it stands on,
-    a go to the best land it knows each way clockwise from the north, a target named in the same way once,
-    then every extra one it can reach.
+    a winter camp on it while one is offered, a go to the best land it knows each way clockwise from the north,
+    a target named in the same way once, then every extra one it can reach.
     """
     weights = params.units.band.decisions.weights
     here = decisions.here(params, band, decisions.needs(params, band), era)
@@ -114,7 +116,10 @@ def score(
             aimed = _aimed(params, band, era, inside, target(proposal))
             if aimed is not None:
                 found[target(proposal)] = aimed
-    return [(STAYING if to is None else going(to), held) for to, held in found.items()]
+    days = [(STAYING if to is None else going(to), held) for to, held in found.items()]
+    if wintering:
+        days.insert(1, (WINTERING, weights.move * decisions.wintering(params, band, era)))
+    return days
 
 
 def _aimed(params: Params, band: Band, era: str, inside: Inside, to: Place) -> float | None:
@@ -136,6 +141,21 @@ def _aimed(params: Params, band: Band, era: str, inside: Inside, to: Place) -> f
     return rules.weights.move * value
 
 
+def offered(params: Params, day: int) -> bool:
+    """
+    Whether a winter camp is offered on a day of the game: in one of its seasons, or in the days before one of
+    them begins.
+    """
+    window = params.units.band.winter_camp.offered
+    per_year = params.time.days_per_year
+    schedule = SeasonSchedule(params.time, 1)
+    today = day % per_year + 1
+    if schedule.season(today) in window.seasons:
+        return True
+    before = params.days(window.before)
+    return any(0 < (start - today) % per_year <= before for name, start in schedule.starts if name in window.seasons)
+
+
 def votes(scores: list[float], members: int, spread: float) -> list[int]:
     """
     Whole votes by the weight exp(score / spread) of every option, by the largest remainder, ties to the earlier
@@ -153,12 +173,14 @@ def votes(scores: list[float], members: int, spread: float) -> list[int]:
     return whole
 
 
-def table(params: Params, band: Band, era: str, inside: Inside, extra: Sequence[Proposal] = ()) -> Table:
+def table(
+    params: Params, band: Band, era: str, inside: Inside, extra: Sequence[Proposal] = (), wintering: bool = False
+) -> Table:
     """
     How the others' votes lie over the options the band can take, each with its words; options without a vote
     are left out.
     """
-    days = score(params, band, era, inside, extra)
+    days = score(params, band, era, inside, extra, wintering)
     given = votes([held for _, held in days], voters(params, band) - 1, params.council.spread)
     laid = [
         {'proposal': proposal, 'key': key(proposal, band), 'votes': held}
@@ -214,11 +236,13 @@ def worth(params: Params, band: Band, era: str, wanted: dict[str, float], unease
     return decisions.worth(params, cell, wanted, unease)[0] if cell else 0.0
 
 
-def expected(params: Params, band: Band, era: str, inside: Inside, leader: Proposal | None) -> float:
+def expected(
+    params: Params, band: Band, era: str, inside: Inside, leader: Proposal | None, wintering: bool = False
+) -> float:
     """
     The day the leader promised, or staying when nobody voted.
     """
-    days = score(params, band, era, inside, () if leader is None else (leader,))
+    days = score(params, band, era, inside, () if leader is None else (leader,), wintering)
     return next((held for proposal, held in days if proposal == leader), days[0][1])
 
 

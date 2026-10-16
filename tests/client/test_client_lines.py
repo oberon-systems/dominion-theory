@@ -124,6 +124,16 @@ def test_a_line_without_events_is_the_date_alone() -> None:
             'en',
             '15 people, 3 injured (1 badly), forage 22.5, water 30, camps.',
         ),
+        (
+            {**BAND, 'camp': {'x': 2301, 'y': 744, 'built': 0.5}, 'action': {'kind': 'build'}},
+            'en',
+            '15 people, forage 22.5, water 30, builds a winter camp.',
+        ),
+        (
+            {**BAND, 'camp': {'x': 2301, 'y': 744, 'built': 1.0}},
+            'ru',
+            '15 человек, в зимнем лагере, подножный корм 22,5, вода 30, стоит лагерем.',
+        ),
     ],
 )
 def test_the_band_is_its_people_stores_states_and_action(band: dict[str, object], lang: str, said: str) -> None:

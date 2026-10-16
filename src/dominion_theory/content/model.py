@@ -16,7 +16,7 @@ PARAMS_INVALID = 'error-params-invalid'
 DURATION_UNITS = ('parts', 'days', 'months', 'years')
 MODIFIER_KINDS = ('plus', 'times')
 LAYERS = ('elevation', 'relief', 'moisture', 'temperature', 'flow')
-ACTIONS = ('move', 'roam', 'gather', 'camp')
+ACTIONS = ('move', 'roam', 'gather', 'camp', 'build')
 CAUSES = ('hunger', 'thirst', 'encounter', 'age', 'frailty', 'birth')
 BAND = 'band'
 PASSABILITY = 'passability'
@@ -484,6 +484,35 @@ class Shelter(Node):
     frailty: Share
 
 
+class Offered(Node):
+    """
+    When a winter camp is offered: in its seasons and in the days before the first of them begins.
+    """
+
+    seasons: tuple[Name, ...] = Field(min_length=1)
+    before: Duration
+
+
+class WinterCamp(Node):
+    """
+    A camp built for the cold in days of work without gathering. While the band stands on its cell the threat,
+    the spoiling and the eating are multiplied by their factors, and so is what a camp takes off fatigue.
+    """
+
+    offered: Offered
+    build: Duration
+    threat: Share
+    spoil: Share
+    consumption: Share
+    rest: Factor
+
+    @model_validator(mode='after')
+    def _built(self) -> Self:
+        if self.build.amount == 0:
+            raise ValueError('a build that takes some time')
+        return self
+
+
 class Pause(Node):
     min: Duration
     max: Duration
@@ -556,6 +585,7 @@ class Fatigue(Node):
     roam: Amount
     gather: Amount
     camp: Amount
+    build: Amount
     slows: Share
 
 
@@ -647,6 +677,7 @@ class Band(Node):
     unease: Unease
     route: Route
     shelter: Shelter
+    winter_camp: WinterCamp
 
 
 class Units(Node):
@@ -682,6 +713,9 @@ class Status(Node):
     stay_worked: Amount
     stay_failed: Amount
     stay_even: Amount
+    camp_worked: Amount
+    camp_failed: Amount
+    camp_even: Amount
     death: Amount
     birth: Amount
 
@@ -902,6 +936,10 @@ class Params(Node):
             if part not in self.time.day_parts:
                 expected = f'one of {", ".join(self.time.day_parts)}'
                 raise _invalid('units.band.camp_parts', part, expected)
+        seasons = [season.name for season in self.time.seasons]
+        for season in band.winter_camp.offered.seasons:
+            if season not in seasons:
+                raise _invalid('units.band.winter_camp.offered.seasons', season, f'one of {", ".join(seasons)}')
         for prop in band.decisions.unknown:
             for era, held in self.eras:
                 if prop not in held.properties:

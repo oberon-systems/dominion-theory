@@ -7,3 +7,4 @@ refused-no-council = совет сейчас не собран
 refused-already-voted = вы уже высказались на этом совете
 refused-no-such-place = община не найдёт туда пути
 refused-seat-banished = игрок больше не в общине
+refused-out-of-season = зимний лагерь в это время года не ставят

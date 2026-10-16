@@ -17,6 +17,7 @@ def test_every_key_is_declared_once_with_its_values() -> None:
         'refused-already-voted',
         'refused-no-such-place',
         'refused-seat-banished',
+        'refused-out-of-season',
     )
 
 

@@ -31,6 +31,7 @@ proposal-go-through-ice = we go on across the ice
 proposal-go-unknown = we go into land we do not know
 proposal-go = we go on to the land we set out for
 proposal-stay-and-gather = we stay and gather
+proposal-winter-camp = we make a winter camp here
 proposal-none = nothing in particular
 
 council-opened = The council sits: { $occasion }. Most lean to: { $leader }.

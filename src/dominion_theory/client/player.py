@@ -42,7 +42,14 @@ STYLES: dict[Look, dict[str, Any]] = {
     Look.COUNCIL: {'fg': 'magenta'},
     Look.LOSS: {'fg': 'red'},
 }
-NAMES = {'go': GO, 'roam': GO, **{kind: kind for kind in KINDS}, 'stay': 'stay-and-gather'}
+NAMES = {
+    'go': GO,
+    'roam': GO,
+    **{kind: kind for kind in KINDS},
+    'stay': 'stay-and-gather',
+    'winter': 'winter-camp',
+    'w': 'winter-camp',
+}
 LEADING: dict[str, Any] = {'fg': 'green', 'bold': True}
 # A place answered with nothing: back to the answers.
 RETURN: Mapping[str, Any] = {'kind': 'back'}

@@ -319,3 +319,16 @@ def test_the_debug_line_tells_the_band_cell_under_the_map() -> None:
         '@ 1,0 | forest river | known food 0.4 | stock water 1, food 0.75',
         'Your standing is 50.',
     ]
+
+
+def test_a_winter_camp_is_answered_only_while_the_council_offers_it() -> None:
+    offered = menu({**COUNCIL, 'winter': True}, (1, 0), WATCHED.get)
+
+    assert [option.kind for option in offered.answers] == ['go', 'stay-and-gather', 'winter-camp', 'abstain']
+    assert label(offered.answers[2], 'en') == 'Make a winter camp here'
+    assert understood('w', offered.answers) == offered.answers[2]
+    assert [option.kind for option in menu(COUNCIL, (1, 0), WATCHED.get).answers] == [
+        'go',
+        'stay-and-gather',
+        'abstain',
+    ]

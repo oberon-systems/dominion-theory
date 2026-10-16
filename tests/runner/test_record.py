@@ -43,6 +43,7 @@ COUNTERS = (
     'roams',
     'gathers',
     'camps',
+    'builds',
     'deaths',
     'encounters',
     'status',

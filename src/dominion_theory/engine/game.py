@@ -17,7 +17,7 @@ from . import council, decisions, encounters, routes
 from .band import Action, Band
 from .cells import Cells, Place
 from .clock import DAY_STARTED, SEASON_STARTED, Clock, Date
-from .commands import ABSTAIN, BUILT, GO, VOTE, Command
+from .commands import ABSTAIN, BUILT, GO, VOTE, WINTER, Command
 from .counters import Counters
 from .events import (
     BAND_DIED,
@@ -44,6 +44,7 @@ from .events import (
     REFUSED_ALREADY_VOTED,
     REFUSED_NO_COUNCIL,
     REFUSED_NO_SUCH_PLACE,
+    REFUSED_OUT_OF_SEASON,
     REFUSED_SEAT_BANISHED,
     REFUSED_UNKNOWN_COMMAND,
     REFUSED_UNKNOWN_SEAT,
@@ -56,7 +57,7 @@ from .events import (
 from .hashing import digest
 from .streams import Streams
 
-SNAPSHOT_FORMAT = 13
+SNAPSHOT_FORMAT = 14
 DIED = 'died'
 BANISHED = 'banished'
 VOTED = 'voted'
@@ -64,7 +65,7 @@ SILENT = 'silent'
 ERA = 'band'
 SEATS: tuple[str, ...] = ('player',)
 UNIT_COLUMNS: tuple[str, ...] = bands.COLUMNS
-TOTALS = ('moves', 'roams', 'gathers', 'camps', 'deaths', 'encounters')
+TOTALS = ('moves', 'roams', 'gathers', 'camps', 'builds', 'deaths', 'encounters')
 VERDICTS = {
     council.WORKED: PROPOSAL_WORKED,
     council.EVEN: PROPOSAL_EVEN,
@@ -282,6 +283,10 @@ class Game:
         """
         return self.clock.parts // self.params.time.parts_per_day
 
+    @property
+    def wintering(self) -> bool:
+        return council.offered(self.params, self.day)
+
     def inside(self, x: int, y: int) -> bool:
         window = self.window
         return window.x <= x < window.x + window.width and window.y <= y < window.y + window.height
@@ -459,6 +464,8 @@ class Game:
             return REFUSED_ALREADY_VOTED
         if answer['kind'] == GO and self._way(self.band, council.target(answer)) is None:
             return REFUSED_NO_SUCH_PLACE
+        if answer['kind'] == WINTER and not self.wintering:
+            return REFUSED_OUT_OF_SEASON
         return None
 
     def _way(self, band: Band, to: Place) -> list[list[int]] | None:
@@ -494,7 +501,8 @@ class Game:
         if band is None or self.over:
             return
         standing = None if band.intent is None else band.intent['proposal']
-        laid = council.table(self.params, band, self.era, self.inside, () if standing is None else (standing,))
+        extra = () if standing is None else (standing,)
+        laid = council.table(self.params, band, self.era, self.inside, extra, self.wintering)
         occasion = self._occasion(band, laid)
         if occasion is None:
             return
@@ -515,7 +523,12 @@ class Game:
             self._bind(band, leader)
             tick.events.append(Event(COUNCIL_AGREED, values))
             return
-        self.council = tick.seat['council'] = {'leader': leader, 'table': laid, 'voice': spoken}
+        self.council = tick.seat['council'] = {
+            'leader': leader,
+            'table': laid,
+            'voice': spoken,
+            'winter': self.wintering,
+        }
         self._totals['councils'] += 1
         tick.events.append(Event(COUNCIL_OPENED, values))
 
@@ -526,8 +539,11 @@ class Game:
         since = self.since
         hungry = max(decisions.needs(self.params, band).values()) >= self.params.units.band.roaming.hunger
         standing = None if band.intent is None else band.intent['proposal']
-        # A band on its way to a place does not turn for another wish before it gets there.
-        restless = (standing is None or standing['kind'] != GO) and council.restless(laid, standing)
+        kept = standing is not None and standing['kind'] in (GO, WINTER)
+        # A band on its way to a place, or wintering, does not turn for another wish before it gets there.
+        restless = not kept and council.restless(laid, standing)
+        # A winter camp ends with the season that offers it, not with the one it was built in.
+        wintered = standing is not None and standing['kind'] == WINTER and self.wintering
         held = {
             council.FIRST: since[council.FIRST],
             council.DEATH: since[council.DEATH] > 0,
@@ -535,7 +551,7 @@ class Game:
             council.HUNGER: hungry,
             council.CLOSED: since[council.CLOSED],
             council.RESTLESS: restless,
-            council.SEASON: since[council.SEASON],
+            council.SEASON: since[council.SEASON] and not wintered,
             council.RIVER: since[council.RIVER],
         }
         return next((name for name in council.OCCASIONS if held[name]), None)
@@ -562,7 +578,7 @@ class Game:
         laid = sitting['table']
         if all(entry['proposal'] != answer for entry in laid):
             # A point the others did not name is weighed by them like their own, and the votes are laid again.
-            laid = council.table(self.params, band, self.era, self.inside, (answer,))
+            laid = council.table(self.params, band, self.era, self.inside, (answer,), self.wintering)
         winner, yes = council.decide(laid, answer, spoken)
         self.answered['tomorrow'] = VOTED if winner == answer else None
         self._bind(band, winner)
@@ -581,7 +597,9 @@ class Game:
                 'proposal': answer,
                 'key': said,
                 'needs': decisions.needs(self.params, band),
-                'expected': council.expected(self.params, band, self.era, self.inside, sitting['leader']),
+                'expected': council.expected(
+                    self.params, band, self.era, self.inside, sitting['leader'], self.wintering
+                ),
                 'before': council.reached(self.params, band, self.era, decisions.needs(self.params, band), band.unease),
                 'unease': band.unease,
             }
@@ -706,8 +724,15 @@ class Game:
             tick.events.append(Event(SEAT_BANISHED, {}))
             self.over, self.outcome = True, BANISHED
 
+    def _threat(self, band: Band) -> float:
+        """
+        The threat of the band's cell, lowered by a winter camp built on it.
+        """
+        threat = self.value(decisions.THREAT, band.x, band.y)
+        return threat * self.params.units.band.winter_camp.threat if bands.sheltered(band) else threat
+
     def _encounter(self, tick: _Tick, band: Band) -> None:
-        threat = self.value('threat', band.x, band.y)
+        threat = self._threat(band)
         biome, river = self.biome(band.x, band.y), self.river(band.x, band.y)
         rng = self.streams['encounters']
         met = encounters.strike(self.params, biome, river, threat, band.action, rng)
@@ -732,7 +757,7 @@ class Game:
         self._states(tick, began, ended)
         for cause, count in lost:
             self._lost(tick, cause, count)
-        threat = self.value(decisions.THREAT, band.x, band.y)
+        threat = self._threat(band)
         wellbeing = decisions.wellbeing(self.params, band, threat)
         active = self.params.time.parts_per_day - len(self.params.units.band.camp_parts)
         camped = min(band.camped / active, 1.0) if active > 0 else 1.0

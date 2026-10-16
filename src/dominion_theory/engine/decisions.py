@@ -20,6 +20,7 @@ from .band import (
     THIRST,
     Action,
     Band,
+    building,
     camp,
     census,
     gathering,
@@ -28,12 +29,14 @@ from .band import (
     perceived,
     roaming,
     room,
+    sheltered,
     short,
 )
 from .cells import Place
 
 HUNGER = 'hunger'
 REST = 'rest'
+SHELTER = 'shelter'
 WANDER = 'wander'
 THREAT = 'threat'
 # The need a property of a cell answers, and the state that makes it whole.
@@ -42,6 +45,7 @@ NEEDS: dict[str, tuple[str, str]] = {'food': (HUNGER, STARVATION), 'water': (THI
 NARROWED: dict[str, frozenset[str]] = {
     commands.GO: frozenset({MOVE, ROAM, GATHER, CAMP}),
     commands.STAY: frozenset({GATHER, CAMP}),
+    commands.WINTER: frozenset({GATHER, CAMP}),
 }
 
 
@@ -99,8 +103,9 @@ def wellbeing(params: Params, band: Band, threat: float) -> float:
 
 def seen(params: Params, band: Band, at: Place, era: str) -> dict[str, Any] | None:
     """
-    A known cell as the band sees it: its threat with the dread of what happened there, and what a known shore
-    beside it gives where that is more, since a band gathers from a shore it stands by.
+    A known cell as the band sees it: its threat with the dread of what happened there and lowered by a winter
+    camp built on it, and what a known shore beside it gives where that is more, since a band gathers from a
+    shore it stands by.
     """
     cell = band.known.get(at)
     if cell is None:
@@ -112,6 +117,8 @@ def seen(params: Params, band: Band, at: Place, era: str) -> dict[str, Any] | No
                 held = {**held, prop: shore[prop]}
     if at in band.dread:
         held = {**held, THREAT: perceived(band, at, cell.get(THREAT, 0.0))}
+    if at == band.place and sheltered(band):
+        held = {**held, THREAT: held.get(THREAT, 0.0) * params.units.band.winter_camp.threat}
     return held
 
 
@@ -149,6 +156,18 @@ def here(params: Params, band: Band, wanted: dict[str, float], era: str) -> floa
     """
     own = seen(params, band, band.place, era)
     return worth(params, own, wanted, band.unease)[0] if own else 0.0
+
+
+def wintering(params: Params, band: Band, era: str) -> float:
+    """
+    What a winter camp on the cell the band stands on is worth: staying, under the threat a built camp leaves.
+    """
+    own = seen(params, band, band.place, era)
+    if own is None:
+        return 0.0
+    if not sheltered(band):
+        own = {**own, THREAT: own.get(THREAT, 0.0) * params.units.band.winter_camp.threat}
+    return worth(params, own, needs(params, band), band.unease)[0]
 
 
 def reachable(band: Band, at: Place) -> bool:
@@ -296,8 +315,12 @@ def looks(params: Params, band: Band, era: str, at: Place) -> dict[str, Any] | N
 
 def intended(params: Params, band: Band, proposal: dict[str, Any], era: str, towards: str | None) -> Scored:
     """
-    The best of what an intent leaves the band, a go narrowed to the direction of the next cell of its route.
+    The best of what an intent leaves the band, a go narrowed to the direction of the next cell of its route;
+    a winter camp is built before anything else unless hunger or thirst press.
     """
+    hungry = max(needs(params, band).values()) >= params.units.band.roaming.hunger
+    if proposal['kind'] == commands.WINTER and not sheltered(band) and not hungry:
+        return Scored(building(), 0.0, SHELTER)
     found = options(params, band, era, NARROWED[proposal['kind']], None if towards is None else {towards})
     return max(found, key=lambda held: held.score)
 

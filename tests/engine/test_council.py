@@ -39,7 +39,11 @@ CALENDAR = ('day-started', 'month-started', 'season-started', 'year-started')
 EAST = council.going((WEST + 2, NORTH + 1))
 NORTHWARD = council.going((WEST, NORTH))
 STAY = {'kind': 'stay-and-gather'}
+WINTERING = {'kind': 'winter-camp'}
 ABSTAIN = {'kind': 'abstain'}
+# A morning in the middle of the winter, and the first morning of the second year.
+WINTER = 75 * DAY
+SPRING = 100 * DAY
 
 
 @pytest.fixture
@@ -527,7 +531,7 @@ def test_a_band_that_reaches_its_target_calls_the_council_that_evening(params: P
     assert told(evening)[-1][1]['occasion'] == 'occasion-arrived'
 
 
-@pytest.mark.parametrize('proposal', [EAST, STAY])
+@pytest.mark.parametrize('proposal', [EAST, STAY, WINTERING])
 def test_a_tired_band_rests_whatever_it_is_bound_to(params: Params, proposal: dict[str, Any]) -> None:
     game = land(params, stripped=STRIPPED, parts=SUMMER + 1)
     band(game).intent = {'proposal': proposal}
@@ -579,6 +583,9 @@ def test_the_verdicts_of_the_document_judge_the_land_only(
         (STAY, 'worked', 3.0),
         (STAY, 'failed', -6.0),
         (STAY, 'even', 0.0),
+        (WINTERING, 'worked', 3.0),
+        (WINTERING, 'failed', -6.0),
+        (WINTERING, 'even', 0.0),
     ],
 )
 def test_what_moves_status(params: Params, proposal: dict[str, Any], verdict: str, amount: float) -> None:
@@ -692,3 +699,77 @@ def test_a_year_of_votes_gives_the_same_hashes_twice(params: Params) -> None:
     assert first == year(Game.create(seed=7, params=params, seated=True))
     assert first[2] > 0
     assert first[1] != params.council.status.start
+
+
+@pytest.mark.parametrize(
+    ('day', 'offered'),
+    [(20, False), (59, False), (60, True), (70, True), (99, True), (100, False), (160, True)],
+)
+def test_a_winter_camp_is_offered_in_the_winter_and_the_ten_days_before_it(
+    params: Params, day: int, offered: bool
+) -> None:
+    assert council.offered(params, day) is offered
+
+
+def test_a_winter_camp_is_scored_as_staying_under_less_threat_and_only_while_offered(params: Params) -> None:
+    game = land(params, parts=WINTER + 2)
+
+    offered = council.score(params, band(game), ERA, game.inside, wintering=True)
+    summer = council.score(params, band(game), ERA, game.inside)
+
+    assert [proposal for proposal, _ in offered[:2]] == [STAY, WINTERING]
+    assert offered[1][1] > offered[0][1]
+    assert WINTERING not in [proposal for proposal, _ in summer]
+    assert game.wintering
+    assert council.key(WINTERING) == 'proposal-winter-camp'
+
+
+def test_a_winter_camp_named_out_of_its_season_is_refused(params: Params) -> None:
+    summer, winter = land(params), land(params, parts=WINTER + 3)
+    for game in (summer, winter):
+        sit(game, (STAY, 14))
+
+    refused, taken = vote(summer, WINTERING), vote(winter, WINTERING)
+
+    assert told(refused)[0] == ('command-refused', {'id': 'c-1', 'reason': 'refused-out-of-season'})
+    assert told(taken)[0] == ('command-accepted', {'id': 'c-1'})
+
+
+def test_a_band_bound_to_a_winter_camp_builds_it_for_two_days_and_then_stays(params: Params) -> None:
+    game = land(params, parts=WINTER)
+    quiet(game)
+    band(game).intent = {'proposal': WINTERING}
+    band(game).stores = {'forage': [[float(game.day), 45.0]], 'water': [[float(game.day), 45.0]]}
+
+    kinds = [result.units[0][4] for result in steps(game, 3 * DAY)]
+
+    assert kinds[: 2 * DAY] == ['build'] * 3 + ['camp'] * 2 + ['build'] * 3 + ['camp'] * 2
+    assert set(kinds[2 * DAY :]) <= {'gather', 'camp'}
+    assert bands.sheltered(band(game))
+    assert band(game).intent == {'proposal': WINTERING}
+    assert band(game).reason is not None
+
+
+def test_the_winter_does_not_end_a_winter_camp_and_the_spring_calls_the_council(params: Params) -> None:
+    wintered, sprung = land(params, parts=WINTER + 2), land(params, parts=SPRING + 2)
+    for game in (wintered, sprung):
+        quiet(game)
+        band(game).intent = {'proposal': WINTERING}
+        game.since['season'] = True
+
+    held, ended = wintered.step(), sprung.step()
+
+    assert [key for key, _ in told(held) if key.startswith('council-')] == []
+    assert told(ended)[-1][1]['occasion'] == 'occasion-season'
+
+
+def test_a_hungry_band_bound_to_a_winter_camp_gathers_before_it_builds(params: Params) -> None:
+    game = land(params, parts=WINTER)
+    quiet(game)
+    band(game).intent = {'proposal': WINTERING}
+    band(game).stores = {}
+
+    game.step()
+
+    assert band(game).action['kind'] in ('gather', 'camp')
+    assert band(game).camp is None

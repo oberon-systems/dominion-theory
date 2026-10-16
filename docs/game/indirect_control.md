@@ -88,7 +88,7 @@ council left them.
 | `hunger`   | hunger or thirst reaches `roaming.hunger`                    |
 | `closed`   | the way of the decision in force was closed                  |
 | `restless` | the decision in force is a stay with fewer than half the votes of the leader: the band wants another thing |
-| `season`   | a season began since the last council                        |
+| `season`   | a season began since the last council, unless a winter camp is in force and still offered |
 | `river`    | the band saw a river it did not know since the last council  |
 
 The first that holds, in this order, is named in the event. An
@@ -129,7 +129,8 @@ each: the adults and the elders; children have no say. They are not
 people with names: how their votes lie follows from how good each option
 looks to the band.
 
-The options are a stay to gather and a go to a place. The band names
+The options are a stay to gather, a winter camp while one is offered,
+and a go to a place. The band names
 one place each way, the land its [pull](decisions.md#scoring-the-actions)
 finds there: the best cell it knows nearer that way, or the land it does
 not know `decisions.horizon` cells past its sight. Two ways that lead to
@@ -143,12 +144,21 @@ with the needs of [Decisions](decisions.md#needs):
 | Option            | Score                                                       |
 |-------------------|-------------------------------------------------------------|
 | `stay-and-gather` | `weights.move` times the worth of the own cell              |
+| `winter-camp`     | the same, with the threat a built camp leaves               |
 | `go` to a place   | `weights.move` times the pull that way                      |
 
 ```text
-stay = weights.move * worth(own)
-go   = weights.move * pull
+stay   = weights.move * worth(own)
+winter = weights.move * worth(own, threat * winter_camp.threat)
+go     = weights.move * pull
 ```
+
+A winter camp is offered in the seasons of
+`units.band.winter_camp.offered`, the winter, and in its `before` days
+ahead of them, the last 10 days of the autumn. Its other effects - less
+eaten, slower spoiling, a deeper rest - are no part of the worth of a
+cell, so on safe land it ties with the stay and the stay, first in the
+fixed order, leads.
 
 A band on good land stays; a band on stripped land leans to better land
 it knows or hopes for. How the band moves - walking or roaming - is its
@@ -213,7 +223,7 @@ The weight of the voice is the status as a share of
 voice = max(least, share * voters * status / 100)
 ```
 
-A refused `vote` costs nothing. It is refused for one of four reasons.
+A refused `vote` costs nothing. It is refused for one of five reasons.
 
 | Reason                      | When                                               |
 |-----------------------------|----------------------------------------------------|
@@ -221,6 +231,7 @@ A refused `vote` costs nothing. It is refused for one of four reasons.
 | `refused-already-voted`     | the seat has answered this council                 |
 | `refused-no-such-place`     | the place is the band's own, lies outside the window, cannot be entered, or no route leads there |
 | `refused-seat-banished`     | the player is no longer in the band                |
+| `refused-out-of-season`     | a winter camp is named while none is offered       |
 
 ___
 
@@ -254,6 +265,7 @@ whatever the intent.
 |-------------------|---------------------------------------------|
 | `go`              | follows its route to the place, walking, roaming or gathering as it sees fit |
 | `stay-and-gather` | stays on its cell, gathers and camps        |
+| `winter-camp`     | builds a winter camp on its cell, then gathers and camps there |
 
 A tired band camps whatever its intent, until its tiredness ends. A go
 holds until the band stands on its place, which ends it and calls the
@@ -262,6 +274,15 @@ as [Decisions](decisions.md#under-an-intent) tells. A band on its way
 does not turn for another wish: `restless` never holds for a go. A band
 that agreed to stay goes on gathering a stripped cell until hunger calls
 the council.
+
+A winter camp is built first, for `winter_camp.build` days of work
+without gathering; a band whose hunger or thirst reaches `roaming.hunger`
+gathers and camps as under a stay, and builds on once it has eaten.
+See [Band](../units/band.md#winter-camp) for what it gives. Like a go it is never `restless`, and the season it was built in
+does not end it: the first season that no longer offers it, the spring,
+calls the council and the camp is judged there, as a stay is. The camp
+stands as long as the band stands on its cell, under any intent; leaving
+the cell loses it.
 
 ___
 
@@ -324,6 +345,9 @@ ___
 | staying to gather worked                                | +3      |
 | staying to gather failed                                | -6      |
 | staying came out even                                   | 0       |
+| a winter camp worked                                    | +3      |
+| a winter camp failed                                    | -6      |
+| a winter camp came out even                             | 0       |
 | a death on a day the player voted for or kept silent on | -5 each |
 | a birth on a day the player voted for                   | +5 each |
 
@@ -429,6 +453,9 @@ council:
     stay_worked: 3
     stay_failed: -6
     stay_even: 0
+    camp_worked: 3
+    camp_failed: -6
+    camp_even: 0
     death: -5
     birth: 5
   blamed: [hunger, thirst, encounter]

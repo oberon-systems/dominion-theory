@@ -117,12 +117,13 @@ judges a `vote` when the game next steps. A vote backs an option of the
 table, proposes a place of the player's own, or abstains with
 `{"kind": "abstain"}`.
 
-A proposal is one of two.
+A proposal is one of three.
 
 | Proposal          | Fields                         | In the game                           |
 |-------------------|--------------------------------|---------------------------------------|
 | `go`              | `to`: a cell, `{"x", "y"}`     | "we go to the land where the sun rises" |
 | `stay-and-gather` | none                           | "we stay and gather"                  |
+| `winter-camp`     | none                           | "we make a winter camp here"          |
 
 The cell of a `go` is in planet coordinates at the scale of the window,
 two whole numbers. A go is said by the direction of its place from the
@@ -136,6 +137,7 @@ Reasons a vote may be refused, checked in this order:
 | `refused-no-council`         | no council sits now, or the seat is empty    |
 | `refused-already-voted`      | the seat has answered this council           |
 | `refused-no-such-place`      | the place is the band's own, outside the window, cannot be entered, or has no route |
+| `refused-out-of-season`      | a winter camp is named while none is offered |
 
 The rules behind them are in
 [Indirect control](../game/indirect_control.md#the-players-answer).

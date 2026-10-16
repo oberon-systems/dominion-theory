@@ -145,11 +145,14 @@ with the needs of [Decisions](decisions.md#needs):
 |-------------------|-------------------------------------------------------------|
 | `stay-and-gather` | `weights.move` times the worth of the own cell              |
 | `winter-camp`     | the same with the reach of the camp, under the threat a built camp leaves |
+
+A built camp the band stands in adds `winter_camp.kept`, 0.2, to the
+worth of both: staying in it is worth more than standing on its land.
 | `go` to a place   | `weights.move` times the pull that way                      |
 
 ```text
-stay   = weights.move * worth(own)
-winter = weights.move * worth(own and its reach, threat * winter_camp.threat)
+stay   = weights.move * (worth(own) + kept)
+winter = weights.move * (worth(own and its reach, threat * winter_camp.threat) + kept)
 go     = weights.move * pull
 ```
 
@@ -279,8 +282,8 @@ that agreed to stay goes on gathering a stripped cell until hunger calls
 the council.
 
 A winter camp is built first, for `winter_camp.build` days of work
-without gathering; a band whose hunger or thirst reaches `roaming.hunger`
-gathers and camps as under a stay, and builds on once it has eaten.
+without gathering; a band in the state of starvation or thirst gathers
+and camps as under a stay, and builds on once the state ends.
 See [Band](../units/band.md#winter-camp) for what it gives. Like a go it is never `restless`, and the season it was built in
 does not end it: the first season that no longer offers it, the spring,
 calls the council and the camp is judged there, as a stay is. The camp

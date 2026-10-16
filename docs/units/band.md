@@ -276,9 +276,10 @@ ___
 A winter camp is the council's answer `winter-camp`, offered through the
 winter and the last 10 days of the autumn. The band builds it on the cell
 it stands on with the action `build`: `winter_camp.build`, 2 days of the
-active parts, 6 ticks, with no gathering; while its hunger or thirst
-reaches `roaming.hunger` it gathers instead, and the share built waits
-for it. The band holds the camp as its
+active parts, 6 ticks, with no gathering; while it starves or thirsts
+it gathers instead, and the share built waits for it. Before game
+d67475ee a band whose stores fell under a day already stopped building,
+which in winter was nearly always, so a camp lost was never built again. The band holds the camp as its
 cell and the share built, `camp: {x, y, built}`.
 
 Once built, while the band stands on that cell, whatever its intent:
@@ -289,6 +290,7 @@ Once built, while the band stands on that cell, whatever its intent:
 | the age of a lot against its time to spoil | `winter_camp.spoil`, 0.5 |
 | what the people eat and drink, and so the days the stores last | `winter_camp.consumption`, 0.8 |
 | what a camp takes off fatigue        | `winter_camp.rest`, 1.5    |
+| what staying in it is worth to the others, added | `winter_camp.kept`, 0.2 |
 
 Gathering goes on, and the shelter of a camp holds as it does anywhere.
 A band that steps into another cell loses the camp, built or not, and a
@@ -599,6 +601,7 @@ units:
       build: {days: 2}
       reach: 1
       afar: 1.0
+      kept: 0.2
       threat: 0.5
       spoil: 0.5
       consumption: 0.8

@@ -17,15 +17,15 @@ WATER = 'water'
 THREAT = 'threat'
 
 
-def cost(params: Params, cell: dict[str, Any], wanted: dict[str, float]) -> float:
+def cost(params: Params, cell: dict[str, Any], wanted: dict[str, float], done: float = 0.0) -> float:
     """
-    What a step into a cell costs: the time its passability takes, its threat, and the food and water it
-    lacks as much as the band wants them.
+    What a step into a cell costs: the time its passability takes but for the share already walked, its
+    threat, and the food and water it lacks as much as the band wants them.
     """
     weights = params.units.band.route
     lacks = weights.hunger * wanted['hunger'] * (1.0 - cell.get(FOOD, 0.0))
     lacks += weights.thirst * wanted['thirst'] * (1.0 - cell.get(WATER, 0.0))
-    return float(1.0 / cell[PASSABILITY] + weights.threat * cell.get(THREAT, 0.0) + lacks)
+    return float((1.0 - done) / cell[PASSABILITY] + weights.threat * cell.get(THREAT, 0.0) + lacks)
 
 
 def lay(
@@ -38,7 +38,8 @@ def lay(
 ) -> list[Place] | None:
     """
     The cells from the next one to `to`, by eight neighbours within a box around the band and the target;
-    looks(at) gives a cell as the band sees it, or None where it cannot step. None when there is no way.
+    looks(at) gives a cell as the band sees it, or None where it cannot step. None when there is no way. The
+    cell the band is partway into costs only the rest of its step, so a way laid anew keeps it.
     """
     margin = params.units.band.route.margin
     left, right = min(band.x, to[0]) - margin, max(band.x, to[0]) + margin
@@ -61,7 +62,8 @@ def lay(
             cell = looks(step)
             if cell is None:
                 continue
-            total = held + cost(params, cell, wanted)
+            done = band.progress if at == start and step == band.target else 0.0
+            total = held + cost(params, cell, wanted, done)
             if total < spent.get(step, float('inf')):
                 spent[step], came[step] = total, at
                 pushed += 1

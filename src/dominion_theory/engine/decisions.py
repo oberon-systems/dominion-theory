@@ -347,10 +347,10 @@ def looks(params: Params, band: Band, era: str, at: Place) -> dict[str, Any] | N
 def intended(params: Params, band: Band, proposal: dict[str, Any], era: str, towards: str | None) -> Scored:
     """
     The best of what an intent leaves the band, a go narrowed to the direction of the next cell of its route;
-    a winter camp is built before anything else unless hunger or thirst press.
+    a winter camp is built before anything else unless the band starves or thirsts.
     """
-    hungry = max(needs(params, band).values()) >= params.units.band.roaming.hunger
-    if proposal['kind'] == commands.WINTER and not sheltered(band) and not hungry:
+    suffering = STARVATION in band.states or THIRST in band.states
+    if proposal['kind'] == commands.WINTER and not sheltered(band) and not suffering:
         return Scored(building(), 0.0, SHELTER)
     found = options(params, band, era, NARROWED[proposal['kind']], None if towards is None else {towards})
     return max(found, key=lambda held: held.score)

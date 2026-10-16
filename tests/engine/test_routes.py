@@ -36,6 +36,17 @@ def test_a_step_costs_its_time_its_threat_and_what_it_lacks(params: Params) -> N
 
     assert routes.cost(params, FOREST, SATED) == pytest.approx(1 / 0.6 + 2.0 * 0.4 + 0.1 * 0.1 + 0.1 * 0.4)
     assert routes.cost(params, GRASS, thirsty) > routes.cost(params, GRASS, SATED)
+    assert routes.cost(params, FOREST, SATED, 0.25) == pytest.approx(0.75 / 0.6 + 2.0 * 0.4 + 0.1 * 0.1 + 0.1 * 0.4)
+
+
+def test_a_route_laid_anew_keeps_the_cell_the_band_is_partway_into(params: Params) -> None:
+    band = held(field(GRASS))
+    to = (HOME[0] + 2, HOME[1] - 1)
+    fresh = laid(params, band, to)
+    band.target, band.progress = (HOME[0] + 1, HOME[1]), 0.5
+
+    assert fresh == [(101, 49), (102, 49)]
+    assert laid(params, band, to) == [(101, 50), (102, 49)]
 
 
 def test_a_route_on_even_land_runs_straight_to_the_target(params: Params) -> None:

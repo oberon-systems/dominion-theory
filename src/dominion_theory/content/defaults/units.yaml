@@ -92,6 +92,8 @@ units:
       # Gathered from the own cell and the cells around it, a cell away giving afar of a gathering.
       reach: 1
       afar: 1.0
+      # What staying in a built camp is worth more to the others than standing on its land.
+      kept: 0.2
       threat: 0.5
       spoil: 0.5
       consumption: 0.8

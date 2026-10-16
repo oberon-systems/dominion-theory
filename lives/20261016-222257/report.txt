@@ -1,0 +1,1087 @@
+seed 1
+year  people  child  adult  elder  pregnant  injured  growth   rate  least  born  grown  child-deaths  deaths  of-hunger  of-thirst  of-encounter  of-age  of-frailty  of-birth  food  water  moves  roams  gathers  camps  builds  starving  thirsty  tired  encounters  status  known  snapshot
+   1      18      4     14      0         2        0       3     20     14     4      0             0       1          0          0             1       0           0         0  15.1   49.3     17     26      158    293       6         0        0      6           2      50     25      29.2
+   2      14      2     12      0         3        0      -4  -22.2     14     2      0             4       6          0          3             1       0           1         1  16.6   37.6     12     23      164    295       6         0        5     18           1      50     25      28.8
+   3      13      3     10      0         2        0      -1   -7.1     13     1      0             0       2          0          0             1       0           0         1  12.1     34      0      0      183    311       6         0        0      0           2      50     25      28.7
+   4      10      2      8      0         1        0      -3  -23.1     10     0      0             1       3          0          0             3       0           0         0  17.1   19.5      8      8      168    307       9         0        0     10           5      50     25      28.5
+   5      10      3      7      0         0        1       0      0      9     2      0             1       2          0          2             0       0           0         0  14.6   16.8     18     28      165    283       6         0        5      7           1      50     25      28.4
+   6       9      3      6      0         1        0      -1    -10      9     1      1             0       2          0          2             0       0           0         0  12.2   16.3      3     14      165    312       6         0        5      0           0      50     25      28.3
+   7       7      2      4      1         1        0      -2  -22.2      7     0      0             1       2          0          0             0       0           1         1   8.6   11.3      0      0      190    304       6         0        0      0           0      50     25      27.9
+   8       6      2      3      1         0        0      -1  -14.3      6     0      0             0       1          0          1             0       0           0         0   3.8   12.6      0      1      202    291       6         0        5      0           0      50     25      27.7
+   9       6      1      4      1         1        0       0      0      5     1      1             1       1          0          1             0       0           0         0   8.2   11.8      0      1      181    312       6         0        5      0           2      50     25      27.8
+  10       6      1      4      1         0        0       0      0      5     3      0             3       3          0          1             0       0           2         0   8.5   11.6      0      0      185    309       6         0        5      0           3      50     25      27.9
+  11       0      0      0      0         0        0      -6   -100      0     0      0             1       2          0          0             0       1           1         0     0      0      0      0       24     26       0         0        0      0           1      50      0      23.7
+died at tick 5050: no growth, 150 people never, 2 of 14 children grew up
+took 11.1 s, 2.20 ms a tick, 2.7 ms a pack
+
+seed 2
+year  people  child  adult  elder  pregnant  injured  growth   rate  least  born  grown  child-deaths  deaths  of-hunger  of-thirst  of-encounter  of-age  of-frailty  of-birth  food  water  moves  roams  gathers  camps  builds  starving  thirsty  tired  encounters  status  known  snapshot
+   1      16      3     13      0         1        1       1    6.7     14     4      0             1       3          0          3             0       0           0         0  18.6     40      4     24      209    257       6         0        5      0           0      50     25      31.6
+   2      13      1     12      0         3        1      -3  -18.8     13     1      0             3       4          0          3             1       0           0         0  15.5     38      9     22      174    289       6         0        5      0           1      50     25        31
+   3      16      6     10      0         2        1       3   23.1     13     7      0             2       4          0          3             0       0           1         0  10.9   37.3      3     10      163    318       6         0        5      0           1      50     25      31.3
+   4      16      8      8      0         2        1       0      0     16     2      0             0       2          0          0             0       0           1         1  16.4   21.5      3     12      173    306       6         0        0      0           0      50     25      31.5
+   5      12      6      5      1         2        0      -4    -25     12     0      1             1       4          0          3             0       0           1         0  14.9   13.2      2     14      164    314       6         0        5      0           0      50     25      30.8
+   6       0      0      0      0         0        0     -12   -100      0     1      0             7       9          1          8             0       0           0         0     0      0      1      5      120    208       6         5       20      0           1      50      0      25.9
+died at tick 2840: no growth, 150 people never, 1 of 15 children grew up
+took 7.0 s, 2.46 ms a tick, 3.1 ms a pack
+
+seed 3
+year  people  child  adult  elder  pregnant  injured  growth   rate  least  born  grown  child-deaths  deaths  of-hunger  of-thirst  of-encounter  of-age  of-frailty  of-birth  food  water  moves  roams  gathers  camps  builds  starving  thirsty  tired  encounters  status  known  snapshot
+   1      15      0     15      0         3        0       0      0     15     1      0             1       1          0          0             0       0           1         0    33     33     28     43      138    285       6         0        0      0           1      50     25      30.2
+   2      14      2     12      0         2        0      -1   -6.7     13     2      0             0       3          0          0             2       0           0         1  23.2     31     23     29      141    301       6         0        0      3           3      50     25        30
+   3      12      3      8      1         1        1      -2  -14.3     12     2      0             1       4          0          3             0       0           0         1   8.8   30.4     14     27      159    294       6         0        5      7           0      50     25      29.7
+   4      15      6      7      2         0        0       3     25     12     3      0             0       0          0          0             0       0           0         0  14.8   20.2     13     21      185    275       6         0        0      9           0      50     25      30.1
+   5      13      5      6      2         0        1      -2  -13.3     12     1      0             2       3          0          3             0       0           0         0  10.5   23.2      9     24      192    269       6         0        5      7           0      50     25      30.1
+   6      13      4      6      3         1        0       0      0     12     1      1             1       1          0          0             0       0           1         0   9.5   25.3      3     24      193    274       6         0        0      0           0      50     25      29.9
+   7       9      3      4      2         0        0      -4  -30.8      9     1      0             2       5          0          3             0       1           1         0  12.1   10.7      5     27      166    296       6         0        5      5           1      50     25      29.2
+   8       6      1      4      1         2        1      -3  -33.3      6     1      2             1       4          0          2             1       1           0         0   9.1   11.1      5     11      185    293       6         0        5      2           3      50     25        29
+   9       5      2      2      1         0        0      -1  -16.7      5     2      0             1       3          0          2             0       0           1         0   4.4    7.7      1      7      206    280       6         0        5      0           0      50     25      28.8
+  10       5      2      2      1         0        0       0      0      5     0      0             0       0          0          0             0       0           0         0   1.6    6.1      0      0      222    275       3         0        0      0           1      50     25      28.8
+  11       0      0      0      0         0        0      -5   -100      0     0      0             2       1          0          1             0       0           0         0     0      0      0      0      123    184       3         0        0      0           2      50      0      24.6
+died at tick 5310: no growth, 150 people never, 3 of 14 children grew up
+took 12.0 s, 2.26 ms a tick, 2.8 ms a pack
+
+seed 4
+year  people  child  adult  elder  pregnant  injured  growth   rate  least  born  grown  child-deaths  deaths  of-hunger  of-thirst  of-encounter  of-age  of-frailty  of-birth  food  water  moves  roams  gathers  camps  builds  starving  thirsty  tired  encounters  status  known  snapshot
+   1      13      3     10      0         2        0      -2  -13.3     13     3      0             0       5          0          3             2       0           0         0  20.8   25.3      6      7      150    331       6         0        5      3           1      50     25      29.1
+   2      10      4      6      0         2        0      -3  -23.1     10     2      0             1       5          0          3             0       0           0         2  17.6   11.6      0      0      163    331       6         0        5      0           0      50     25      28.5
+   3       7      4      2      1         1        0      -3    -30      7     3      0             3       6          0          2             1       1           1         1   4.6    8.9      5     18      189    282       6         0        5      2           2      50     25      28.1
+   4       6      5      1      0         0        0      -1  -14.3      5     2      0             1       3          0          2             0       1           0         0     0    2.1     11     26      217    243       3         0        5     14           3      50     25      27.9
+   5       0      0      0      0         0        0      -6   -100      0     0      1             4       2          0          0             1       0           1         0     0      0      6     24      102    128       0         0        0      0           1      50      0        24
+died at tick 2260: no growth, 150 people never, 1 of 10 children grew up
+took 6.1 s, 2.72 ms a tick, 2.7 ms a pack
+
+seed 5
+year  people  child  adult  elder  pregnant  injured  growth   rate  least  born  grown  child-deaths  deaths  of-hunger  of-thirst  of-encounter  of-age  of-frailty  of-birth  food  water  moves  roams  gathers  camps  builds  starving  thirsty  tired  encounters  status  known  snapshot
+   1      15      2     13      0         2        0       0      0     13     2      0             0       2          0          0             1       0           1         0  15.2   43.4     11     22      201    260       6         0        0      0           3      50     25        29
+   2      10      1      9      0         1        0      -5  -33.3     10     0      0             1       5          0          0             5       0           0         0  19.4   20.9     21     20      148    305       6         0        0     12           6      50     25      27.9
+   3       9      1      7      1         1        0      -1    -10      9     1      0             1       2          0          2             0       0           0         0  16.7   16.7      0      0      167    327       6         0        5      0           4      50     25      27.9
+   4       6      0      6      0         0        1      -3  -33.3      6     0      0             1       3          0          2             0       1           0         0  14.8   11.6      0      0      167    327       6         0        5      0           2      50     25      27.6
+   5       6      0      5      1         1        0       0      0      6     0      0             0       0          0          0             0       0           0         0  10.4   13.4      0      0      170    324       6         0        0      0           2      50     25      27.4
+   6       6      1      4      1         1        0       0      0      5     2      0             1       2          0          2             0       0           0         0   9.1   11.1      0      0      161    333       6         0        5      0           0      50     25      27.5
+   7       5      1      2      2         0        0      -1  -16.7      5     0      0             0       1          0          1             0       0           0         0   6.9    6.3      0      0      183    311       6         0        5      0           3      50     25      27.3
+   8       5      1      2      2         0        0       0      0      5     0      0             0       0          0          0             0       0           0         0   8.2    5.1      2      6      188    298       6         0        0      0           3      50     25      27.3
+   9       0      0      0      0         0        0      -5   -100      0     0      0             1       1          0          0             0       1           0         0     0      0      1      6       94    169       0         0        0      0           1      50      0      23.4
+died at tick 4270: no growth, 150 people never, 0 of 5 children grew up
+took 9.3 s, 2.17 ms a tick, 2.7 ms a pack
+
+first year: 0 of 50 bands died, took 137.4 s
+
+tests/runner/lives.json is rewritten: 1017 values moved
+  1.growth: 0.007 -> None
+  1.hashes.1: 3c804b389d66319179c695d17b98fb43d633c06b0a1bfb8f7162e0df0547b852 -> 15b889d5e66ba6d14dbd38adbd00ed3819ee1b97468756f892e880e3d508b496
+  1.hashes.10: 48faa2542e1985b96b4c2f3a0465452180ee91d8c816417311e4393dc8267e49 -> d00486c89ff12216ad2734ffb1e536551aa31668cbbf0be2927b20a8a4f0bb64
+  1.hashes.11: cf6b36f737f1cc951cbb4347f9cd46bfac58b9d84de3176e9ae24c0dab0a3286 -> 56e0693e2cd96325188c03de2c33126772e27a617dd7f2d3afbf8351ffba270d
+  1.hashes.12: cf19b1022633c1afb160f93f994ea72f304e6043f8307f3cd796f80ab731c4f8 -> None
+  1.hashes.13: 7430c5b652f834dc1d55eee5595ad888895527b4e5ca8ded261ae5b71d30122b -> None
+  1.hashes.14: 0bac4a4a11c5acb4a055b6234c903fd1fb36fab0e615b93ade7f31b398febd63 -> None
+  1.hashes.15: 7bb2ff96a4e445e7f43bb29ccfb0a76954de89fbe1cdd4e54eec7d2a1205f3d0 -> None
+  1.hashes.16: 665c893abffe5d7b5c4f2d0bb88f805ee776f4f5bf4657f5c0ba2878be748cdd -> None
+  1.hashes.17: 00fc31846c57b256a83b7d72828ed309f2ecce6ac2cd180f940231973e364755 -> None
+  1.hashes.18: 83dec6b72d3d6e06f84f4b0a00512c94c2f3e1e1ff243295e8dcfa503b206ce8 -> None
+  1.hashes.2: 039ebed206c1865c47b51efd56dee9dcc10929bfb94f14e4ae3d83b70b52870d -> e5c4e028d816d5aeb26fc67a3cf3d7d27b36932a063db27cbcfea4481fbd96e0
+  1.hashes.3: 51635088b5d02a5a61000267a7bc4b7ff1b2f1be5dd4277324e6500a543e6bc7 -> 1d55c79137dfbf90964ac0e8760b6f868e1902960c62f58b067d2dbcc5d1be16
+  1.hashes.4: a502d955c8348a86f9d2cb6005e51f1621680f290fc467eefaab37cb319d4c4a -> edb35a52a1063286fcea1fcd8a60443650d85204978f0fd8f459bf1a1816add7
+  1.hashes.5: 9cae52e94302777e680a5f8d323ecb60a02d60d25f7488e445fbda48827f8674 -> 9317577ddd38f2f3ce473b395d16d9c3597a4c61814f6ec6be12d95c2d4657b5
+  1.hashes.6: a8d2af211c30d066a2bd641e02e928c9a9ab145f8acf81c3fbe613f7cf1b1b38 -> 64727d98d748858382e5aefe440cee6c68a4e41c09a203117d661db5cb9b82d7
+  1.hashes.7: 1b44c00ef2e0271170afee6e8c645136a2e3c03c2619a0ce9567702d1f94b4bf -> a666a6d3bc69f18d752c64f6507de4de52fc6552dde11762f6d112d7a83e3c9e
+  1.hashes.8: bc6e7cd76ec65add38fd6647005d3d35fc0e41895c6e2dcf6da278374a3898b8 -> 353ae9a7ae7457c3e1a458ad72d0e7e8dc5df16933e27ea0591624863301969c
+  1.hashes.9: 169f39fe7bc061335e039e3d2197e06993a9dd70083a10e73bcb2bae50f7f6c5 -> 9f327489eef59ca3bb3d9056ebd0c864b95b85c6385cb975a335551ea4042389
+  1.outcome: alive -> died
+  1.tick: 9000 -> 5050
+  1.tribe: 331.1 -> None
+  1.years.1.camps: 301 -> 293
+  1.years.1.food: 13.1 -> 15.1
+  1.years.1.gathers: 155 -> 158
+  1.years.1.moves: 13 -> 17
+  1.years.1.roams: 25 -> 26
+  1.years.1.snapshot: 28.9 -> 29.2
+  1.years.1.water: 51.3 -> 49.3
+  1.years.10.adult: 10.0 -> 4.0
+  1.years.10.born: 2.0 -> 3.0
+  1.years.10.builds: 9 -> 6
+  1.years.10.camps: 318 -> 309
+  1.years.10.child: 6.0 -> 1.0
+  1.years.10.child-deaths: 2.0 -> 3.0
+  1.years.10.elder: 0.0 -> 1.0
+  1.years.10.food: 15.9 -> 8.5
+  1.years.10.gathers: 156 -> 185
+  1.years.10.grown: 2.0 -> 0.0
+  1.years.10.growth: -1 -> 0
+  1.years.10.least: 14 -> 5
+  1.years.10.moves: 7 -> 0
+  1.years.10.of-age: 1.0 -> 0.0
+  1.years.10.of-encounter: 2.0 -> 0.0
+  1.years.10.of-frailty: 0.0 -> 2.0
+  1.years.10.of-thirst: 0.0 -> 1.0
+  1.years.10.people: 16 -> 6
+  1.years.10.pregnant: 2.0 -> 0.0
+  1.years.10.rate: -5.9 -> 0.0
+  1.years.10.roams: 10 -> 0
+  1.years.10.snapshot: 28.9 -> 27.9
+  1.years.10.thirsty: 0.0 -> 5.0
+  1.years.10.tired: 4.0 -> 0.0
+  1.years.10.water: 32.3 -> 11.6
+  1.years.11.adult: 8.0 -> 0
+  1.years.11.born: 2.0 -> 0.0
+  1.years.11.builds: 9 -> 0
+  1.years.11.camps: 308 -> 26
+  1.years.11.child: 6.0 -> 0
+  1.years.11.child-deaths: 0.0 -> 1.0
+  1.years.11.deaths: 1 -> 2
+  1.years.11.elder: 3.0 -> 0
+  1.years.11.encounters: 2 -> 1
+  1.years.11.food: 22.3 -> 0.0
+  1.years.11.gathers: 183 -> 24
+  1.years.11.grown: 2.0 -> 0.0
+  1.years.11.growth: 1 -> -6
+  1.years.11.injured: 1.0 -> 0
+  1.years.11.known: 25 -> 0
+  1.years.11.least: 16 -> 0
+  1.years.11.of-age: 0.0 -> 1.0
+  1.years.11.of-birth: 1.0 -> 0.0
+  1.years.11.of-frailty: 0.0 -> 1.0
+  1.years.11.people: 17 -> 0
+  1.years.11.pregnant: 1.0 -> 0
+  1.years.11.rate: 6.2 -> -100.0
+  1.years.11.snapshot: 29.1 -> 23.7
+  1.years.11.water: 22.4 -> 0.0
+  1.years.12: {'year': 12, 'people': 16, 'child': 4.0, 'adult': 8.0, 'elder': 4.0, 'pregnant': 1.0, 'injured': 0.0, 'growth': -1, 'rate': -5.9, 'least': 16, 'born': 0.0, 'grown': 2.0, 'child-deaths': 0.0, 'deaths': 1, 'of-hunger': 0.0, 'of-thirst': 0.0, 'of-encounter': 0.0, 'of-age': 1.0, 'of-frailty': 0.0, 'of-birth': 0.0, 'food': 29.2, 'water': 16.3, 'moves': 9, 'roams': 23, 'gathers': 162, 'camps': 297, 'builds': 9, 'starving': 0.0, 'thirsty': 0.0, 'tired': 4.0, 'encounters': 1, 'status': 50.0, 'known': 25, 'snapshot': 29.1} -> None
+  1.years.13: {'year': 13, 'people': 14, 'child': 5.0, 'adult': 6.0, 'elder': 3.0, 'pregnant': 0.0, 'injured': 0.0, 'growth': -2, 'rate': -12.5, 'least': 13, 'born': 2.0, 'grown': 0.0, 'child-deaths': 1.0, 'deaths': 4, 'of-hunger': 0.0, 'of-thirst': 0.0, 'of-encounter': 3.0, 'of-age': 0.0, 'of-frailty': 1.0, 'of-birth': 0.0, 'food': 16.7, 'water': 18.6, 'moves': 4, 'roams': 21, 'gathers': 166, 'camps': 300, 'builds': 9, 'starving': 0.0, 'thirsty': 0.0, 'tired': 0.0, 'encounters': 3, 'status': 50.0, 'known': 25, 'snapshot': 28.9} -> None
+  1.years.14: {'year': 14, 'people': 15, 'child': 4.0, 'adult': 8.0, 'elder': 3.0, 'pregnant': 1.0, 'injured': 0.0, 'growth': 1, 'rate': 7.1, 'least': 14, 'born': 1.0, 'grown': 2.0, 'child-deaths': 0.0, 'deaths': 0, 'of-hunger': 0.0, 'of-thirst': 0.0, 'of-encounter': 0.0, 'of-age': 0.0, 'of-frailty': 0.0, 'of-birth': 0.0, 'food': 10.8, 'water': 32.8, 'moves': 3, 'roams': 21, 'gathers': 160, 'camps': 310, 'builds': 6, 'starving': 0.0, 'thirsty': 0.0, 'tired': 4.0, 'encounters': 0, 'status': 50.0, 'known': 25, 'snapshot': 28.7} -> None
+  1.years.15: {'year': 15, 'people': 15, 'child': 3.0, 'adult': 9.0, 'elder': 3.0, 'pregnant': 3.0, 'injured': 0.0, 'growth': 0, 'rate': 0.0, 'least': 14, 'born': 1.0, 'grown': 2.0, 'child-deaths': 0.0, 'deaths': 1, 'of-hunger': 0.0, 'of-thirst': 0.0, 'of-encounter': 1.0, 'of-age': 0.0, 'of-frailty': 0.0, 'of-birth': 0.0, 'food': 10.7, 'water': 36.6, 'moves': 1, 'roams': 5, 'gathers': 162, 'camps': 324, 'builds': 8, 'starving': 0.0, 'thirsty': 0.0, 'tired': 0.0, 'encounters': 1, 'status': 50.0, 'known': 25, 'snapshot': 28.8} -> None
+  1.years.16: {'year': 16, 'people': 15, 'child': 5.0, 'adult': 8.0, 'elder': 2.0, 'pregnant': 2.0, 'injured': 0.0, 'growth': 0, 'rate': 0.0, 'least': 14, 'born': 2.0, 'grown': 0.0, 'child-deaths': 0.0, 'deaths': 2, 'of-hunger': 0.0, 'of-thirst': 0.0, 'of-encounter': 0.0, 'of-age': 1.0, 'of-frailty': 0.0, 'of-birth': 1.0, 'food': 19.5, 'water': 22.3, 'moves': 0, 'roams': 0, 'gathers': 169, 'camps': 323, 'builds': 8, 'starving': 0.0, 'thirsty': 0.0, 'tired': 0.0, 'encounters': 1, 'status': 50.0, 'known': 25, 'snapshot': 29.0} -> None
+  1.years.17: {'year': 17, 'people': 16, 'child': 6.0, 'adult': 9.0, 'elder': 1.0, 'pregnant': 2.0, 'injured': 1.0, 'growth': 1, 'rate': 6.7, 'least': 14, 'born': 2.0, 'grown': 1.0, 'child-deaths': 0.0, 'deaths': 1, 'of-hunger': 0.0, 'of-thirst': 0.0, 'of-encounter': 0.0, 'of-age': 1.0, 'of-frailty': 0.0, 'of-birth': 0.0, 'food': 11.5, 'water': 34.2, 'moves': 0, 'roams': 5, 'gathers': 169, 'camps': 317, 'builds': 9, 'starving': 0.0, 'thirsty': 0.0, 'tired': 0.0, 'encounters': 0, 'status': 50.0, 'known': 25, 'snapshot': 29.1} -> None
+  1.years.18: {'year': 18, 'people': 17, 'child': 7.0, 'adult': 9.0, 'elder': 1.0, 'pregnant': 3.0, 'injured': 0.0, 'growth': 1, 'rate': 6.2, 'least': 16, 'born': 3.0, 'grown': 1.0, 'child-deaths': 1.0, 'deaths': 2, 'of-hunger': 0.0, 'of-thirst': 0.0, 'of-encounter': 0.0, 'of-age': 0.0, 'of-frailty': 2.0, 'of-birth': 0.0, 'food': 11.6, 'water': 34.8, 'moves': 2, 'roams': 10, 'gathers': 161, 'camps': 319, 'builds': 8, 'starving': 0.0, 'thirsty': 0.0, 'tired': 0.0, 'encounters': 0, 'status': 50.0, 'known': 25, 'snapshot': 29.1} -> None
+  1.years.2.adult: 14.0 -> 12.0
+  1.years.2.born: 6.0 -> 2.0
+  1.years.2.builds: 8 -> 6
+  1.years.2.camps: 294 -> 295
+  1.years.2.child: 8.0 -> 2.0
+  1.years.2.child-deaths: 2.0 -> 4.0
+  1.years.2.deaths: 2 -> 6
+  1.years.2.food: 14.8 -> 16.6
+  1.years.2.gathers: 172 -> 164
+  1.years.2.growth: 4 -> -4
+  1.years.2.least: 17 -> 14
+  1.years.2.moves: 9 -> 12
+  1.years.2.of-birth: 0.0 -> 1.0
+  1.years.2.of-thirst: 0.0 -> 3.0
+  1.years.2.people: 22 -> 14
+  1.years.2.pregnant: 2.0 -> 3.0
+  1.years.2.rate: 22.2 -> -22.2
+  1.years.2.roams: 17 -> 23
+  1.years.2.snapshot: 29.5 -> 28.8
+  1.years.2.thirsty: 0.0 -> 5.0
+  1.years.2.tired: 0.0 -> 18.0
+  1.years.2.water: 52.4 -> 37.6
+  1.years.3.adult: 13.0 -> 10.0
+  1.years.3.builds: 8 -> 6
+  1.years.3.camps: 309 -> 311
+  1.years.3.child: 6.0 -> 3.0
+  1.years.3.child-deaths: 3.0 -> 0.0
+  1.years.3.deaths: 4 -> 2
+  1.years.3.encounters: 3 -> 2
+  1.years.3.food: 32.4 -> 12.1
+  1.years.3.gathers: 180 -> 183
+  1.years.3.growth: -3 -> -1
+  1.years.3.injured: 1.0 -> 0.0
+  1.years.3.least: 19 -> 13
+  1.years.3.moves: 1 -> 0
+  1.years.3.of-birth: 0.0 -> 1.0
+  1.years.3.of-encounter: 3.0 -> 1.0
+  1.years.3.of-frailty: 1.0 -> 0.0
+  1.years.3.people: 19 -> 13
+  1.years.3.pregnant: 1.0 -> 2.0
+  1.years.3.rate: -13.6 -> -7.1
+  1.years.3.roams: 2 -> 0
+  1.years.3.snapshot: 29.4 -> 28.7
+  1.years.3.water: 29.0 -> 34.0
+  1.years.4.adult: 9.0 -> 8.0
+  1.years.4.born: 2.0 -> 0.0
+  1.years.4.builds: 6 -> 9
+  1.years.4.camps: 299 -> 307
+  1.years.4.child: 6.0 -> 2.0
+  1.years.4.child-deaths: 2.0 -> 1.0
+  1.years.4.deaths: 5 -> 3
+  1.years.4.elder: 1.0 -> 0.0
+  1.years.4.food: 21.9 -> 17.1
+  1.years.4.gathers: 154 -> 168
+  1.years.4.injured: 1.0 -> 0.0
+  1.years.4.least: 15 -> 10
+  1.years.4.moves: 17 -> 8
+  1.years.4.of-encounter: 5.0 -> 3.0
+  1.years.4.people: 16 -> 10
+  1.years.4.pregnant: 0.0 -> 1.0
+  1.years.4.rate: -15.8 -> -23.1
+  1.years.4.roams: 24 -> 8
+  1.years.4.snapshot: 29.0 -> 28.5
+  1.years.4.tired: 12.0 -> 10.0
+  1.years.4.water: 23.7 -> 19.5
+  1.years.5.adult: 10.0 -> 7.0
+  1.years.5.born: 0.0 -> 2.0
+  1.years.5.camps: 313 -> 283
+  1.years.5.child: 2.0 -> 3.0
+  1.years.5.child-deaths: 2.0 -> 1.0
+  1.years.5.deaths: 3 -> 2
+  1.years.5.elder: 1.0 -> 0.0
+  1.years.5.encounters: 2 -> 1
+  1.years.5.food: 27.2 -> 14.6
+  1.years.5.gathers: 173 -> 165
+  1.years.5.grown: 2.0 -> 0.0
+  1.years.5.growth: -3 -> 0
+  1.years.5.injured: 0.0 -> 1.0
+  1.years.5.least: 13 -> 9
+  1.years.5.moves: 3 -> 18
+  1.years.5.of-age: 1.0 -> 0.0
+  1.years.5.of-encounter: 2.0 -> 0.0
+  1.years.5.of-thirst: 0.0 -> 2.0
+  1.years.5.people: 13 -> 10
+  1.years.5.pregnant: 1.0 -> 0.0
+  1.years.5.rate: -18.8 -> 0.0
+  1.years.5.roams: 5 -> 28
+  1.years.5.snapshot: 28.8 -> 28.4
+  1.years.5.thirsty: 0.0 -> 5.0
+  1.years.5.tired: 0.0 -> 7.0
+  1.years.5.water: 20.1 -> 16.8
+  1.years.6.adult: 10.0 -> 6.0
+  1.years.6.born: 3.0 -> 1.0
+  1.years.6.builds: 9 -> 6
+  1.years.6.camps: 326 -> 312
+  1.years.6.child: 4.0 -> 3.0
+  1.years.6.deaths: 1 -> 2
+  1.years.6.elder: 1.0 -> 0.0
+  1.years.6.food: 14.7 -> 12.2
+  1.years.6.gathers: 162 -> 165
+  1.years.6.growth: 2 -> -1
+  1.years.6.least: 13 -> 9
+  1.years.6.moves: 1 -> 3
+  1.years.6.of-birth: 1.0 -> 0.0
+  1.years.6.of-thirst: 0.0 -> 2.0
+  1.years.6.people: 15 -> 9
+  1.years.6.rate: 15.4 -> -10.0
+  1.years.6.roams: 2 -> 14
+  1.years.6.snapshot: 28.9 -> 28.3
+  1.years.6.thirsty: 0.0 -> 5.0
+  1.years.6.water: 34.0 -> 16.3
+  1.years.7.adult: 9.0 -> 4.0
+  1.years.7.born: 2.0 -> 0.0
+  1.years.7.builds: 9 -> 6
+  1.years.7.camps: 322 -> 304
+  1.years.7.child: 6.0 -> 2.0
+  1.years.7.child-deaths: 0.0 -> 1.0
+  1.years.7.deaths: 1 -> 2
+  1.years.7.food: 27.9 -> 8.6
+  1.years.7.gathers: 169 -> 190
+  1.years.7.growth: 1 -> -2
+  1.years.7.least: 14 -> 7
+  1.years.7.of-age: 1.0 -> 0.0
+  1.years.7.of-birth: 0.0 -> 1.0
+  1.years.7.of-frailty: 0.0 -> 1.0
+  1.years.7.people: 16 -> 7
+  1.years.7.rate: 6.7 -> -22.2
+  1.years.7.snapshot: 29.0 -> 27.9
+  1.years.7.water: 17.8 -> 11.3
+  1.years.8.adult: 9.0 -> 3.0
+  1.years.8.born: 2.0 -> 0.0
+  1.years.8.builds: 9 -> 6
+  1.years.8.camps: 320 -> 291
+  1.years.8.child: 7.0 -> 2.0
+  1.years.8.food: 30.6 -> 3.8
+  1.years.8.gathers: 171 -> 202
+  1.years.8.grown: 1.0 -> 0.0
+  1.years.8.growth: 1 -> -1
+  1.years.8.least: 15 -> 6
+  1.years.8.of-age: 1.0 -> 0.0
+  1.years.8.of-thirst: 0.0 -> 1.0
+  1.years.8.people: 17 -> 6
+  1.years.8.pregnant: 2.0 -> 0.0
+  1.years.8.rate: 6.2 -> -14.3
+  1.years.8.roams: 0 -> 1
+  1.years.8.snapshot: 29.1 -> 27.7
+  1.years.8.thirsty: 0.0 -> 5.0
+  1.years.8.water: 15.8 -> 12.6
+  1.years.9.adult: 9.0 -> 4.0
+  1.years.9.born: 3.0 -> 1.0
+  1.years.9.builds: 9 -> 6
+  1.years.9.camps: 317 -> 312
+  1.years.9.child: 8.0 -> 1.0
+  1.years.9.child-deaths: 2.0 -> 1.0
+  1.years.9.deaths: 3 -> 1
+  1.years.9.elder: 0.0 -> 1.0
+  1.years.9.food: 13.1 -> 8.2
+  1.years.9.gathers: 145 -> 181
+  1.years.9.grown: 0.0 -> 1.0
+  1.years.9.least: 15 -> 5
+  1.years.9.moves: 8 -> 0
+  1.years.9.of-age: 1.0 -> 0.0
+  1.years.9.of-encounter: 2.0 -> 0.0
+  1.years.9.of-thirst: 0.0 -> 1.0
+  1.years.9.people: 17 -> 6
+  1.years.9.pregnant: 0.0 -> 1.0
+  1.years.9.roams: 21 -> 1
+  1.years.9.snapshot: 29.1 -> 27.8
+  1.years.9.thirsty: 0.0 -> 5.0
+  1.years.9.water: 32.1 -> 11.8
+  2.growth: 0.0102 -> None
+  2.hashes.1: 3315fe19bbff76de8a4f941ac6f6af22a3f25ca6eace96c78fe75d1b3e522492 -> 046d80bc59a6dd7c222ae886ae8c2bfc68d0f8a60566d475d9f673f156417bb8
+  2.hashes.10: 86fbfe8d69ca1cb1b6038321a27aa18c00ebbca95d81bb38452c0ac6502db328 -> None
+  2.hashes.11: fd5125694926028faffe2afd8c132d65a6af787409fa6da14edde215bf266a78 -> None
+  2.hashes.12: afca4371d3460b988bd2a596af3b21832799913e0860e99ca8c66b065a363dc3 -> None
+  2.hashes.13: 2bb72f3e8461fdc70e0405bd234cf9e63ae25506ae15f09a0a8df052571b52f2 -> None
+  2.hashes.14: 1b3261bb7dee77e1c2eb179bff0e897cd867d9ef16126e4698364c00519e6626 -> None
+  2.hashes.15: a558398a835ff6ba21a6b264984ae833bf2379c72aca74f92b9257b80644139d -> None
+  2.hashes.16: 026cf737e7d8d47bc5e78ebb2d8288b2e12cb53314e2c6100561cb0b2240243c -> None
+  2.hashes.17: 04b3c26faba7712bebf8f468f78ec23bc078619aaed38e4eab36bf8338262e92 -> None
+  2.hashes.18: d7248d304f489780a6494700bd017bfd369fbdf2edf6e83122bbe79107f696c0 -> None
+  2.hashes.2: d6c1b67b8ffe7d929545c058aafc3aa5e211e4c8a3a6eab41ce7c0759c45fa73 -> 44b7779658bd8410869776bdf3bb93b7ccd9c2f1b900acc150685d7834595949
+  2.hashes.3: c05f55e7ea628ac5de182502352b8a5ce07f4026f5b85f18c1d8aa38547d939d -> b6c090da8188c5557f1340691c345d66224c61be56e41b79c06c465750169b5f
+  2.hashes.4: 401827bd7eb30a3fa0895e585dab21e8e6d2290e29bfe2bbea068bc4da1ff9aa -> f3c76700a0094e1e98b35ca1854ca981138c3209e5761cbcc6b0af5079768080
+  2.hashes.5: 01e737f7b2e4ebe788e1b3e5885694ee600cffd2b6f03b01ca0df6af91934f96 -> 74e07f5cade7ae9d79f37b22f4498fe58f644516e14ac3463bc400250e6f3271
+  2.hashes.6: 8c014a5cbe3754818c71c8ab244523d65fded6567aeb50974a4a5871e736ddb4 -> 1100c917cb70b7f5b0078a50a885fc6aa466c7759613164941972020b0ec7f49
+  2.hashes.7: 56e4a95c7c4718ba89335f4100a07852781853e5d2546393491b9b67a64d4567 -> None
+  2.hashes.8: f9b631a3a5f97360d2dc0132bfa3efbc2c98147045787253d5119c9be69c3b26 -> None
+  2.hashes.9: 32faf751e8490e90c799b22c1f18a80b0e21eaaee13e5dcc03ecec254833ae8d -> None
+  2.outcome: alive -> died
+  2.tick: 9000 -> 2840
+  2.tribe: 227.3 -> None
+  2.years.1.adult: 15.0 -> 13.0
+  2.years.1.camps: 255 -> 257
+  2.years.1.child: 4.0 -> 3.0
+  2.years.1.child-deaths: 0.0 -> 1.0
+  2.years.1.deaths: 0 -> 3
+  2.years.1.food: 30.3 -> 18.6
+  2.years.1.gathers: 211 -> 209
+  2.years.1.growth: 4 -> 1
+  2.years.1.injured: 0.0 -> 1.0
+  2.years.1.least: 15 -> 14
+  2.years.1.of-thirst: 0.0 -> 3.0
+  2.years.1.people: 19 -> 16
+  2.years.1.pregnant: 2.0 -> 1.0
+  2.years.1.rate: 26.7 -> 6.7
+  2.years.1.snapshot: 31.8 -> 31.6
+  2.years.1.thirsty: 0.0 -> 5.0
+  2.years.1.water: 38.5 -> 40.0
+  2.years.10: {'year': 10, 'people': 16, 'child': 2.0, 'adult': 11.0, 'elder': 3.0, 'pregnant': 1.0, 'injured': 2.0, 'growth': 0, 'rate': 0.0, 'least': 16, 'born': 1.0, 'grown': 2.0, 'child-deaths': 0.0, 'deaths': 1, 'of-hunger': 0.0, 'of-thirst': 0.0, 'of-encounter': 0.0, 'of-age': 1.0, 'of-frailty': 0.0, 'of-birth': 0.0, 'food': 12.5, 'water': 42.9, 'moves': 5, 'roams': 27, 'gathers': 155, 'camps': 304, 'builds': 9, 'starving': 0.0, 'thirsty': 0.0, 'tired': 0.0, 'encounters': 0, 'status': 50.0, 'known': 25, 'snapshot': 31.6} -> None
+  2.years.11: {'year': 11, 'people': 16, 'child': 4.0, 'adult': 9.0, 'elder': 3.0, 'pregnant': 0.0, 'injured': 1.0, 'growth': 0, 'rate': 0.0, 'least': 15, 'born': 2.0, 'grown': 0.0, 'child-deaths': 0.0, 'deaths': 2, 'of-hunger': 0.0, 'of-thirst': 0.0, 'of-encounter': 0.0, 'of-age': 0.0, 'of-frailty': 1.0, 'of-birth': 1.0, 'food': 12.8, 'water': 35.3, 'moves': 4, 'roams': 6, 'gathers': 173, 'camps': 309, 'builds': 8, 'starving': 0.0, 'thirsty': 0.0, 'tired': 0.0, 'encounters': 0, 'status': 50.0, 'known': 25, 'snapshot': 31.6} -> None
+  2.years.12: {'year': 12, 'people': 17, 'child': 4.0, 'adult': 10.0, 'elder': 3.0, 'pregnant': 1.0, 'injured': 0.0, 'growth': 1, 'rate': 6.2, 'least': 16, 'born': 1.0, 'grown': 1.0, 'child-deaths': 0.0, 'deaths': 0, 'of-hunger': 0.0, 'of-thirst': 0.0, 'of-encounter': 0.0, 'of-age': 0.0, 'of-frailty': 0.0, 'of-birth': 0.0, 'food': 23.2, 'water': 27.1, 'moves': 0, 'roams': 16, 'gathers': 167, 'camps': 309, 'builds': 8, 'starving': 0.0, 'thirsty': 0.0, 'tired': 0.0, 'encounters': 0, 'status': 50.0, 'known': 25, 'snapshot': 31.5} -> None
+  2.years.13: {'year': 13, 'people': 18, 'child': 5.0, 'adult': 8.0, 'elder': 5.0, 'pregnant': 0.0, 'injured': 0.0, 'growth': 1, 'rate': 5.9, 'least': 17, 'born': 1.0, 'grown': 0.0, 'child-deaths': 0.0, 'deaths': 0, 'of-hunger': 0.0, 'of-thirst': 0.0, 'of-encounter': 0.0, 'of-age': 0.0, 'of-frailty': 0.0, 'of-birth': 0.0, 'food': 12.5, 'water': 35.6, 'moves': 5, 'roams': 16, 'gathers': 189, 'camps': 281, 'builds': 9, 'starving': 0.0, 'thirsty': 0.0, 'tired': 2.0, 'encounters': 0, 'status': 50.0, 'known': 25, 'snapshot': 31.8} -> None
+  2.years.14: {'year': 14, 'people': 15, 'child': 5.0, 'adult': 7.0, 'elder': 3.0, 'pregnant': 1.0, 'injured': 0.0, 'growth': -3, 'rate': -16.7, 'least': 15, 'born': 1.0, 'grown': 1.0, 'child-deaths': 0.0, 'deaths': 4, 'of-hunger': 0.0, 'of-thirst': 0.0, 'of-encounter': 1.0, 'of-age': 2.0, 'of-frailty': 1.0, 'of-birth': 0.0, 'food': 14.2, 'water': 25.7, 'moves': 1, 'roams': 27, 'gathers': 165, 'camps': 299, 'builds': 8, 'starving': 0.0, 'thirsty': 0.0, 'tired': 0.0, 'encounters': 2, 'status': 50.0, 'known': 25, 'snapshot': 31.2} -> None
+  2.years.15: {'year': 15, 'people': 18, 'child': 6.0, 'adult': 9.0, 'elder': 3.0, 'pregnant': 1.0, 'injured': 0.0, 'growth': 3, 'rate': 20.0, 'least': 15, 'born': 3.0, 'grown': 2.0, 'child-deaths': 0.0, 'deaths': 0, 'of-hunger': 0.0, 'of-thirst': 0.0, 'of-encounter': 0.0, 'of-age': 0.0, 'of-frailty': 0.0, 'of-birth': 0.0, 'food': 21.6, 'water': 24.1, 'moves': 3, 'roams': 11, 'gathers': 171, 'camps': 306, 'builds': 9, 'starving': 0.0, 'thirsty': 0.0, 'tired': 2.0, 'encounters': 0, 'status': 50.0, 'known': 25, 'snapshot': 31.7} -> None
+  2.years.16: {'year': 16, 'people': 18, 'child': 6.0, 'adult': 9.0, 'elder': 3.0, 'pregnant': 1.0, 'injured': 1.0, 'growth': 0, 'rate': 0.0, 'least': 17, 'born': 1.0, 'grown': 1.0, 'child-deaths': 0.0, 'deaths': 1, 'of-hunger': 0.0, 'of-thirst': 0.0, 'of-encounter': 0.0, 'of-age': 0.0, 'of-frailty': 1.0, 'of-birth': 0.0, 'food': 14.7, 'water': 34.8, 'moves': 4, 'roams': 17, 'gathers': 166, 'camps': 304, 'builds': 9, 'starving': 0.0, 'thirsty': 0.0, 'tired': 2.0, 'encounters': 0, 'status': 50.0, 'known': 25, 'snapshot': 31.6} -> None
+  2.years.17: {'year': 17, 'people': 17, 'child': 6.0, 'adult': 9.0, 'elder': 2.0, 'pregnant': 1.0, 'injured': 1.0, 'growth': -1, 'rate': -5.6, 'least': 17, 'born': 2.0, 'grown': 1.0, 'child-deaths': 1.0, 'deaths': 3, 'of-hunger': 0.0, 'of-thirst': 0.0, 'of-encounter': 0.0, 'of-age': 1.0, 'of-frailty': 1.0, 'of-birth': 1.0, 'food': 16.0, 'water': 31.5, 'moves': 6, 'roams': 30, 'gathers': 162, 'camps': 293, 'builds': 9, 'starving': 0.0, 'thirsty': 0.0, 'tired': 0.0, 'encounters': 0, 'status': 50.0, 'known': 25, 'snapshot': 31.7} -> None
+  2.years.18: {'year': 18, 'people': 18, 'child': 7.0, 'adult': 9.0, 'elder': 2.0, 'pregnant': 3.0, 'injured': 0.0, 'growth': 1, 'rate': 5.9, 'least': 16, 'born': 2.0, 'grown': 1.0, 'child-deaths': 0.0, 'deaths': 1, 'of-hunger': 0.0, 'of-thirst': 0.0, 'of-encounter': 0.0, 'of-age': 0.0, 'of-frailty': 1.0, 'of-birth': 0.0, 'food': 16.6, 'water': 31.6, 'moves': 8, 'roams': 24, 'gathers': 156, 'camps': 303, 'builds': 9, 'starving': 0.0, 'thirsty': 0.0, 'tired': 0.0, 'encounters': 1, 'status': 50.0, 'known': 25, 'snapshot': 31.7} -> None
+  2.years.2.adult: 14.0 -> 12.0
+  2.years.2.born: 3.0 -> 1.0
+  2.years.2.builds: 9 -> 6
+  2.years.2.camps: 286 -> 289
+  2.years.2.child: 6.0 -> 1.0
+  2.years.2.child-deaths: 1.0 -> 3.0
+  2.years.2.deaths: 2 -> 4
+  2.years.2.food: 28.6 -> 15.5
+  2.years.2.gathers: 183 -> 174
+  2.years.2.growth: 1 -> -3
+  2.years.2.least: 17 -> 13
+  2.years.2.moves: 7 -> 9
+  2.years.2.of-frailty: 1.0 -> 0.0
+  2.years.2.of-thirst: 0.0 -> 3.0
+  2.years.2.people: 20 -> 13
+  2.years.2.pregnant: 2.0 -> 3.0
+  2.years.2.rate: 5.3 -> -18.8
+  2.years.2.roams: 15 -> 22
+  2.years.2.snapshot: 31.9 -> 31.0
+  2.years.2.thirsty: 0.0 -> 5.0
+  2.years.2.tired: 2.0 -> 0.0
+  2.years.2.water: 36.5 -> 38.0
+  2.years.3.adult: 13.0 -> 10.0
+  2.years.3.born: 2.0 -> 7.0
+  2.years.3.builds: 9 -> 6
+  2.years.3.camps: 310 -> 318
+  2.years.3.deaths: 2 -> 4
+  2.years.3.elder: 1.0 -> 0.0
+  2.years.3.food: 13.5 -> 10.9
+  2.years.3.gathers: 176 -> 163
+  2.years.3.growth: 0 -> 3
+  2.years.3.injured: 0.0 -> 1.0
+  2.years.3.least: 19 -> 13
+  2.years.3.moves: 2 -> 3
+  2.years.3.of-frailty: 2.0 -> 1.0
+  2.years.3.of-thirst: 0.0 -> 3.0
+  2.years.3.people: 20 -> 16
+  2.years.3.rate: 0.0 -> 23.1
+  2.years.3.roams: 3 -> 10
+  2.years.3.snapshot: 31.9 -> 31.3
+  2.years.3.thirsty: 0.0 -> 5.0
+  2.years.3.tired: 2.0 -> 0.0
+  2.years.3.water: 49.8 -> 37.3
+  2.years.4.adult: 11.0 -> 8.0
+  2.years.4.born: 1.0 -> 2.0
+  2.years.4.builds: 8 -> 6
+  2.years.4.camps: 307 -> 306
+  2.years.4.child: 6.0 -> 8.0
+  2.years.4.child-deaths: 1.0 -> 0.0
+  2.years.4.deaths: 1 -> 2
+  2.years.4.elder: 3.0 -> 0.0
+  2.years.4.encounters: 1 -> 0
+  2.years.4.food: 13.3 -> 16.4
+  2.years.4.gathers: 168 -> 173
+  2.years.4.injured: 0.0 -> 1.0
+  2.years.4.least: 19 -> 16
+  2.years.4.moves: 4 -> 3
+  2.years.4.of-birth: 0.0 -> 1.0
+  2.years.4.of-encounter: 1.0 -> 0.0
+  2.years.4.of-frailty: 0.0 -> 1.0
+  2.years.4.people: 20 -> 16
+  2.years.4.roams: 13 -> 12
+  2.years.4.snapshot: 31.9 -> 31.5
+  2.years.4.water: 44.9 -> 21.5
+  2.years.5.adult: 12.0 -> 5.0
+  2.years.5.born: 3.0 -> 0.0
+  2.years.5.builds: 8 -> 6
+  2.years.5.camps: 288 -> 314
+  2.years.5.child-deaths: 0.0 -> 1.0
+  2.years.5.deaths: 3 -> 4
+  2.years.5.elder: 2.0 -> 1.0
+  2.years.5.food: 25.0 -> 14.9
+  2.years.5.gathers: 169 -> 164
+  2.years.5.grown: 3.0 -> 1.0
+  2.years.5.growth: 0 -> -4
+  2.years.5.least: 19 -> 12
+  2.years.5.moves: 7 -> 2
+  2.years.5.of-age: 1.0 -> 0.0
+  2.years.5.of-frailty: 2.0 -> 1.0
+  2.years.5.of-thirst: 0.0 -> 3.0
+  2.years.5.people: 20 -> 12
+  2.years.5.pregnant: 0.0 -> 2.0
+  2.years.5.rate: 0.0 -> -25.0
+  2.years.5.roams: 28 -> 14
+  2.years.5.snapshot: 31.9 -> 30.8
+  2.years.5.thirsty: 0.0 -> 5.0
+  2.years.5.tired: 6.0 -> 0.0
+  2.years.5.water: 33.0 -> 13.2
+  2.years.6.adult: 12.0 -> 0
+  2.years.6.born: 3.0 -> 1.0
+  2.years.6.builds: 9 -> 6
+  2.years.6.camps: 307 -> 208
+  2.years.6.child: 7.0 -> 0
+  2.years.6.child-deaths: 1.0 -> 7.0
+  2.years.6.deaths: 3 -> 9
+  2.years.6.elder: 1.0 -> 0
+  2.years.6.food: 20.0 -> 0.0
+  2.years.6.gathers: 171 -> 120
+  2.years.6.grown: 1.0 -> 0.0
+  2.years.6.growth: 0 -> -12
+  2.years.6.known: 25 -> 0
+  2.years.6.least: 18 -> 0
+  2.years.6.moves: 3 -> 1
+  2.years.6.of-age: 1.0 -> 0.0
+  2.years.6.of-birth: 1.0 -> 0.0
+  2.years.6.of-encounter: 1.0 -> 0.0
+  2.years.6.of-hunger: 0.0 -> 1.0
+  2.years.6.of-thirst: 0.0 -> 8.0
+  2.years.6.people: 20 -> 0
+  2.years.6.pregnant: 1.0 -> 0
+  2.years.6.rate: 0.0 -> -100.0
+  2.years.6.roams: 10 -> 5
+  2.years.6.snapshot: 31.9 -> 25.9
+  2.years.6.starving: 0.0 -> 5.0
+  2.years.6.thirsty: 0.0 -> 20.0
+  2.years.6.water: 39.5 -> 0.0
+  2.years.7: {'year': 7, 'people': 19, 'child': 7.0, 'adult': 11.0, 'elder': 1.0, 'pregnant': 1.0, 'injured': 1.0, 'growth': -1, 'rate': -5.0, 'least': 19, 'born': 1.0, 'grown': 0.0, 'child-deaths': 1.0, 'deaths': 2, 'of-hunger': 0.0, 'of-thirst': 0.0, 'of-encounter': 0.0, 'of-age': 1.0, 'of-frailty': 1.0, 'of-birth': 0.0, 'food': 12.4, 'water': 42.7, 'moves': 5, 'roams': 10, 'gathers': 180, 'camps': 296, 'builds': 9, 'starving': 0.0, 'thirsty': 0.0, 'tired': 2.0, 'encounters': 1, 'status': 50.0, 'known': 25, 'snapshot': 31.8} -> None
+  2.years.8: {'year': 8, 'people': 20, 'child': 7.0, 'adult': 11.0, 'elder': 2.0, 'pregnant': 3.0, 'injured': 1.0, 'growth': 1, 'rate': 5.3, 'least': 19, 'born': 2.0, 'grown': 1.0, 'child-deaths': 1.0, 'deaths': 1, 'of-hunger': 0.0, 'of-thirst': 0.0, 'of-encounter': 0.0, 'of-age': 0.0, 'of-frailty': 1.0, 'of-birth': 0.0, 'food': 26.2, 'water': 26.4, 'moves': 4, 'roams': 21, 'gathers': 169, 'camps': 298, 'builds': 8, 'starving': 0.0, 'thirsty': 0.0, 'tired': 0.0, 'encounters': 0, 'status': 50.0, 'known': 25, 'snapshot': 31.9} -> None
+  2.years.9: {'year': 9, 'people': 16, 'child': 3.0, 'adult': 10.0, 'elder': 3.0, 'pregnant': 0.0, 'injured': 1.0, 'growth': -4, 'rate': -20.0, 'least': 16, 'born': 1.0, 'grown': 3.0, 'child-deaths': 2.0, 'deaths': 5, 'of-hunger': 0.0, 'of-thirst': 0.0, 'of-encounter': 2.0, 'of-age': 1.0, 'of-frailty': 2.0, 'of-birth': 0.0, 'food': 22.6, 'water': 27.1, 'moves': 10, 'roams': 28, 'gathers': 169, 'camps': 284, 'builds': 9, 'starving': 0.0, 'thirsty': 0.0, 'tired': 4.0, 'encounters': 3, 'status': 50.0, 'known': 25, 'snapshot': 31.5} -> None
+  3.growth: 0.0655 -> None
+  3.hashes.1: 750561cd4ebf5e118130d7d5345a9abc78d38e10d5ee0ed7b3cf7daf824cd918 -> 5950e7d3436f5b77c64169c3ce38cec4af2a43b200b21af73b48e4c66549c23c
+  3.hashes.10: f8d75185d858c25a079303b5c85c3fd285410523962a4dbcd114f297b102f667 -> 6fa17bcaaa369ec6829bfe2d2ba644c77cd56683cf6609ae70618719b3284891
+  3.hashes.11: f8320774e5800162732775571f33b4a3d5542c2daa1de229c7abafe9e73a3948 -> febc018ef5b06046c7e7cfd913b316f5d07ef873dfe9e8f063d54a0fb99c0427
+  3.hashes.12: 618072691fda77bca55024ae341b14b8fa55a4603dc0713955feecc2cff54ae2 -> None
+  3.hashes.13: eaf55376834cfda64bb9722d82eed9b42e00474e8cd3222dc6224fbb10ef7736 -> None
+  3.hashes.14: 8ddcb1feeece6600a443ecb10ac05127aeb04b163377882323fc1690d014da12 -> None
+  3.hashes.15: f5c2596fd550cd5d6536f47cf7c912396a16924fcadac412019571f9b9cbf3a4 -> None
+  3.hashes.16: 51b40db39139524aee5271ba1fee4f4f94780cb9aa37da3cca95678ebb9b526f -> None
+  3.hashes.17: 45a0f10cf5fee18a3a3fd7828285dae737116e2c362ff81c61f587e8323b6068 -> None
+  3.hashes.18: e85dbabc3a05f3030dadca2d51ebe0443b613a779a8b4508c27a6e6da2c7afe5 -> None
+  3.hashes.2: d1a4a07b4b3ae695ea103fbf9d56e644bd3779726284e97f82ecc5dc6ff8584a -> 163b6a3d938dc04b11b7ff2548e0d80a7fe3f736b3fa2932fcf050df2adf16fe
+  3.hashes.3: aef3526dbee0b0deb5c9e1055ddc2c8938253124f8c239f66e6a568c36f9f54b -> 8773bc2dafbe0ca6f32bf6eb4c323e9c571328d62b4757531fbc95d33b49ebf7
+  3.hashes.4: 40756f210d364b38b0dac676999d3b7a07883d08c1412ab0943e787809a71544 -> e277ea16d5b1758746c2dd9f6fbc6191c67839f6f6ae077d0b676ec4b83743ef
+  3.hashes.5: 0be4942de5b0f84f9cd06a4c475e8bcef9bcda9240b4598fa56ec41f9751f37f -> f66a0993dd58da867e098bf901de5f3b686a3c4384d0a324087cc31417d9231b
+  3.hashes.6: 2350113fa062be5f4bf0751d9710f9127497e9c1d724238e098babdb7afab630 -> 8a5cababd7fd15e640f204e25365d927a022740b112c5cd91fa3181d416432f5
+  3.hashes.7: cd369724288db64aa9ae07663991a7ebfc4b5d1cd971579caded1ce4bc931f8d -> b5974306bfb13905757835ed81dea5dea10781849f452ffbcf3ede3f70f0095c
+  3.hashes.8: 00225e43c32b3bc22acd22a50430fad816cc5f4c61ece71fc47d21977a91c86c -> e46355beec718978589088400e6b2131a6ba3c9fa4ab15128ef444f6cc36bfcb
+  3.hashes.9: 181f6a89d53efe65759431837e1de56793358c5e251ced85e2907ff72558a442 -> 302832226f1fba791352df43a6aa99b12a482f987a38aefdd6a46f08f1962c9b
+  3.outcome: alive -> died
+  3.tick: 9000 -> 5310
+  3.tribe: 36.3 -> None
+  3.years.1.adult: 14.0 -> 15.0
+  3.years.1.born: 3.0 -> 1.0
+  3.years.1.camps: 284 -> 285
+  3.years.1.child: 2.0 -> 0.0
+  3.years.1.deaths: 2 -> 1
+  3.years.1.food: 16.2 -> 33.0
+  3.years.1.gathers: 145 -> 138
+  3.years.1.growth: 1 -> 0
+  3.years.1.least: 14 -> 15
+  3.years.1.moves: 25 -> 28
+  3.years.1.of-encounter: 1.0 -> 0.0
+  3.years.1.people: 16 -> 15
+  3.years.1.pregnant: 1.0 -> 3.0
+  3.years.1.rate: 6.7 -> 0.0
+  3.years.1.roams: 40 -> 43
+  3.years.1.tired: 3.0 -> 0.0
+  3.years.1.water: 46.8 -> 33.0
+  3.years.10.adult: 11.0 -> 2.0
+  3.years.10.born: 6.0 -> 0.0
+  3.years.10.builds: 8 -> 3
+  3.years.10.camps: 239 -> 275
+  3.years.10.child: 16.0 -> 2.0
+  3.years.10.child-deaths: 1.0 -> 0.0
+  3.years.10.deaths: 2 -> 0
+  3.years.10.elder: 3.0 -> 1.0
+  3.years.10.food: 1.4 -> 1.6
+  3.years.10.gathers: 159 -> 222
+  3.years.10.growth: 4 -> 0
+  3.years.10.least: 26 -> 5
+  3.years.10.moves: 13 -> 0
+  3.years.10.of-frailty: 2.0 -> 0.0
+  3.years.10.people: 30 -> 5
+  3.years.10.rate: 15.4 -> 0.0
+  3.years.10.roams: 81 -> 0
+  3.years.10.snapshot: 31.6 -> 28.8
+  3.years.10.tired: 9.0 -> 0.0
+  3.years.10.water: 30.7 -> 6.1
+  3.years.11.adult: 11.0 -> 0
+  3.years.11.born: 4.0 -> 0.0
+  3.years.11.builds: 6 -> 3
+  3.years.11.camps: 244 -> 184
+  3.years.11.child: 17.0 -> 0
+  3.years.11.child-deaths: 3.0 -> 2.0
+  3.years.11.deaths: 4 -> 1
+  3.years.11.elder: 2.0 -> 0
+  3.years.11.food: 3.8 -> 0.0
+  3.years.11.gathers: 172 -> 123
+  3.years.11.growth: 0 -> -5
+  3.years.11.known: 25 -> 0
+  3.years.11.least: 26 -> 0
+  3.years.11.moves: 20 -> 0
+  3.years.11.of-age: 1.0 -> 0.0
+  3.years.11.of-encounter: 3.0 -> 0.0
+  3.years.11.of-thirst: 0.0 -> 1.0
+  3.years.11.people: 30 -> 0
+  3.years.11.pregnant: 4.0 -> 0
+  3.years.11.rate: 0.0 -> -100.0
+  3.years.11.roams: 58 -> 0
+  3.years.11.snapshot: 31.6 -> 24.6
+  3.years.11.tired: 6.0 -> 0.0
+  3.years.11.water: 48.0 -> 0.0
+  3.years.12: {'year': 12, 'people': 34, 'child': 17.0, 'adult': 14.0, 'elder': 3.0, 'pregnant': 4.0, 'injured': 0.0, 'growth': 4, 'rate': 13.3, 'least': 30, 'born': 7.0, 'grown': 4.0, 'child-deaths': 3.0, 'deaths': 3, 'of-hunger': 0.0, 'of-thirst': 0.0, 'of-encounter': 2.0, 'of-age': 0.0, 'of-frailty': 1.0, 'of-birth': 0.0, 'food': 3.6, 'water': 55.7, 'moves': 13, 'roams': 53, 'gathers': 193, 'camps': 234, 'builds': 7, 'starving': 0.0, 'thirsty': 0.0, 'tired': 11.0, 'encounters': 1, 'status': 50.0, 'known': 25, 'snapshot': 32.1} -> None
+  3.years.13: {'year': 13, 'people': 43, 'child': 25.0, 'adult': 17.0, 'elder': 1.0, 'pregnant': 1.0, 'injured': 1.0, 'growth': 9, 'rate': 26.5, 'least': 34, 'born': 12.0, 'grown': 4.0, 'child-deaths': 0.0, 'deaths': 3, 'of-hunger': 0.0, 'of-thirst': 0.0, 'of-encounter': 0.0, 'of-age': 1.0, 'of-frailty': 1.0, 'of-birth': 1.0, 'food': 0, 'water': 45.5, 'moves': 27, 'roams': 83, 'gathers': 150, 'camps': 233, 'builds': 7, 'starving': 0.0, 'thirsty': 0.0, 'tired': 22.0, 'encounters': 0, 'status': 50.0, 'known': 25, 'snapshot': 32.9} -> None
+  3.years.14: {'year': 14, 'people': 43, 'child': 24.0, 'adult': 18.0, 'elder': 1.0, 'pregnant': 4.0, 'injured': 2.0, 'growth': 0, 'rate': 0.0, 'least': 37, 'born': 7.0, 'grown': 3.0, 'child-deaths': 5.0, 'deaths': 7, 'of-hunger': 0.0, 'of-thirst': 0.0, 'of-encounter': 6.0, 'of-age': 0.0, 'of-frailty': 1.0, 'of-birth': 0.0, 'food': 0, 'water': 38.3, 'moves': 30, 'roams': 96, 'gathers': 139, 'camps': 229, 'builds': 6, 'starving': 0.0, 'thirsty': 0.0, 'tired': 23.0, 'encounters': 1, 'status': 50.0, 'known': 25, 'snapshot': 32.9} -> None
+  3.years.15: {'year': 15, 'people': 45, 'child': 25.0, 'adult': 19.0, 'elder': 1.0, 'pregnant': 2.0, 'injured': 0.0, 'growth': 2, 'rate': 4.7, 'least': 40, 'born': 6.0, 'grown': 3.0, 'child-deaths': 2.0, 'deaths': 4, 'of-hunger': 0.0, 'of-thirst': 0.0, 'of-encounter': 3.0, 'of-age': 0.0, 'of-frailty': 0.0, 'of-birth': 1.0, 'food': 0, 'water': 36.8, 'moves': 33, 'roams': 113, 'gathers': 124, 'camps': 224, 'builds': 6, 'starving': 0.0, 'thirsty': 0.0, 'tired': 36.0, 'encounters': 1, 'status': 50.0, 'known': 25, 'snapshot': 33.1} -> None
+  3.years.16: {'year': 16, 'people': 49, 'child': 24.0, 'adult': 24.0, 'elder': 1.0, 'pregnant': 4.0, 'injured': 0.0, 'growth': 4, 'rate': 8.9, 'least': 44, 'born': 8.0, 'grown': 6.0, 'child-deaths': 3.0, 'deaths': 4, 'of-hunger': 0.0, 'of-thirst': 0.0, 'of-encounter': 0.0, 'of-age': 0.0, 'of-frailty': 3.0, 'of-birth': 1.0, 'food': 0, 'water': 96.0, 'moves': 48, 'roams': 104, 'gathers': 115, 'camps': 227, 'builds': 6, 'starving': 0.0, 'thirsty': 0.0, 'tired': 49.0, 'encounters': 0, 'status': 50.0, 'known': 34, 'snapshot': 34.8} -> None
+  3.years.17: {'year': 17, 'people': 48, 'child': 19.0, 'adult': 28.0, 'elder': 1.0, 'pregnant': 4.0, 'injured': 0.0, 'growth': -1, 'rate': -2.0, 'least': 48, 'born': 7.0, 'grown': 7.0, 'child-deaths': 5.0, 'deaths': 8, 'of-hunger': 3.0, 'of-thirst': 0.0, 'of-encounter': 1.0, 'of-age': 0.0, 'of-frailty': 4.0, 'of-birth': 0.0, 'food': 0, 'water': 46.4, 'moves': 55, 'roams': 112, 'gathers': 94, 'camps': 231, 'builds': 8, 'starving': 5.0, 'thirsty': 0.0, 'tired': 61.0, 'encounters': 1, 'status': 50.0, 'known': 39, 'snapshot': 35.5} -> None
+  3.years.18: {'year': 18, 'people': 47, 'child': 17.0, 'adult': 28.0, 'elder': 2.0, 'pregnant': 3.0, 'injured': 2.0, 'growth': -1, 'rate': -2.1, 'least': 46, 'born': 11.0, 'grown': 5.0, 'child-deaths': 8.0, 'deaths': 12, 'of-hunger': 6.0, 'of-thirst': 0.0, 'of-encounter': 0.0, 'of-age': 0.0, 'of-frailty': 5.0, 'of-birth': 1.0, 'food': 0, 'water': 53.1, 'moves': 53, 'roams': 58, 'gathers': 139, 'camps': 241, 'builds': 9, 'starving': 10.0, 'thirsty': 0.0, 'tired': 53.0, 'encounters': 0, 'status': 50.0, 'known': 34, 'snapshot': 34.8} -> None
+  3.years.2.born: 5.0 -> 2.0
+  3.years.2.builds: 9 -> 6
+  3.years.2.camps: 300 -> 301
+  3.years.2.child: 6.0 -> 2.0
+  3.years.2.child-deaths: 1.0 -> 0.0
+  3.years.2.food: 14.2 -> 23.2
+  3.years.2.gathers: 148 -> 141
+  3.years.2.growth: 2 -> -1
+  3.years.2.least: 16 -> 13
+  3.years.2.moves: 13 -> 23
+  3.years.2.of-birth: 0.0 -> 1.0
+  3.years.2.of-encounter: 3.0 -> 2.0
+  3.years.2.people: 18 -> 14
+  3.years.2.pregnant: 1.0 -> 2.0
+  3.years.2.rate: 12.5 -> -6.7
+  3.years.2.roams: 30 -> 29
+  3.years.2.snapshot: 30.5 -> 30.0
+  3.years.2.tired: 7.0 -> 3.0
+  3.years.2.water: 42.8 -> 31.0
+  3.years.3.adult: 11.0 -> 8.0
+  3.years.3.born: 4.0 -> 2.0
+  3.years.3.builds: 8 -> 6
+  3.years.3.camps: 287 -> 294
+  3.years.3.child: 10.0 -> 3.0
+  3.years.3.child-deaths: 0.0 -> 1.0
+  3.years.3.deaths: 0 -> 4
+  3.years.3.food: 14.3 -> 8.8
+  3.years.3.gathers: 173 -> 159
+  3.years.3.growth: 4 -> -2
+  3.years.3.injured: 0.0 -> 1.0
+  3.years.3.least: 18 -> 12
+  3.years.3.moves: 10 -> 14
+  3.years.3.of-birth: 0.0 -> 1.0
+  3.years.3.of-thirst: 0.0 -> 3.0
+  3.years.3.people: 22 -> 12
+  3.years.3.pregnant: 4.0 -> 1.0
+  3.years.3.rate: 22.2 -> -14.3
+  3.years.3.roams: 22 -> 27
+  3.years.3.snapshot: 30.8 -> 29.7
+  3.years.3.thirsty: 0.0 -> 5.0
+  3.years.3.tired: 4.0 -> 7.0
+  3.years.3.water: 43.0 -> 30.4
+  3.years.4.adult: 10.0 -> 7.0
+  3.years.4.born: 4.0 -> 3.0
+  3.years.4.builds: 8 -> 6
+  3.years.4.camps: 260 -> 275
+  3.years.4.child: 13.0 -> 6.0
+  3.years.4.child-deaths: 1.0 -> 0.0
+  3.years.4.deaths: 2 -> 0
+  3.years.4.elder: 1.0 -> 2.0
+  3.years.4.food: 13.1 -> 14.8
+  3.years.4.gathers: 193 -> 185
+  3.years.4.growth: 2 -> 3
+  3.years.4.injured: 1.0 -> 0.0
+  3.years.4.least: 22 -> 12
+  3.years.4.moves: 10 -> 13
+  3.years.4.of-birth: 1.0 -> 0.0
+  3.years.4.of-frailty: 1.0 -> 0.0
+  3.years.4.people: 24 -> 15
+  3.years.4.pregnant: 1.0 -> 0.0
+  3.years.4.rate: 9.1 -> 25.0
+  3.years.4.roams: 29 -> 21
+  3.years.4.snapshot: 31.1 -> 30.1
+  3.years.4.tired: 2.0 -> 9.0
+  3.years.4.water: 41.9 -> 20.2
+  3.years.5.adult: 11.0 -> 6.0
+  3.years.5.born: 2.0 -> 1.0
+  3.years.5.builds: 8 -> 6
+  3.years.5.camps: 244 -> 269
+  3.years.5.child: 13.0 -> 5.0
+  3.years.5.child-deaths: 0.0 -> 2.0
+  3.years.5.deaths: 1 -> 3
+  3.years.5.elder: 1.0 -> 2.0
+  3.years.5.food: 15.2 -> 10.5
+  3.years.5.gathers: 180 -> 192
+  3.years.5.grown: 2.0 -> 0.0
+  3.years.5.growth: 1 -> -2
+  3.years.5.injured: 0.0 -> 1.0
+  3.years.5.least: 24 -> 12
+  3.years.5.moves: 14 -> 9
+  3.years.5.of-birth: 1.0 -> 0.0
+  3.years.5.of-thirst: 0.0 -> 3.0
+  3.years.5.people: 25 -> 13
+  3.years.5.rate: 4.2 -> -13.3
+  3.years.5.roams: 54 -> 24
+  3.years.5.snapshot: 31.2 -> 30.1
+  3.years.5.thirsty: 0.0 -> 5.0
+  3.years.5.tired: 16.0 -> 7.0
+  3.years.5.water: 44.1 -> 23.2
+  3.years.6.adult: 12.0 -> 6.0
+  3.years.6.born: 0.0 -> 1.0
+  3.years.6.builds: 8 -> 6
+  3.years.6.camps: 278 -> 274
+  3.years.6.child: 9.0 -> 4.0
+  3.years.6.child-deaths: 0.0 -> 1.0
+  3.years.6.deaths: 0 -> 1
+  3.years.6.elder: 4.0 -> 3.0
+  3.years.6.food: 16.7 -> 9.5
+  3.years.6.gathers: 159 -> 193
+  3.years.6.grown: 4.0 -> 1.0
+  3.years.6.least: 25 -> 12
+  3.years.6.moves: 15 -> 3
+  3.years.6.of-frailty: 0.0 -> 1.0
+  3.years.6.people: 25 -> 13
+  3.years.6.pregnant: 0.0 -> 1.0
+  3.years.6.roams: 40 -> 24
+  3.years.6.snapshot: 31.2 -> 29.9
+  3.years.6.tired: 10.0 -> 0.0
+  3.years.6.water: 49.9 -> 25.3
+  3.years.7.adult: 13.0 -> 4.0
+  3.years.7.born: 3.0 -> 1.0
+  3.years.7.builds: 9 -> 6
+  3.years.7.camps: 258 -> 296
+  3.years.7.child: 8.0 -> 3.0
+  3.years.7.child-deaths: 0.0 -> 2.0
+  3.years.7.deaths: 2 -> 5
+  3.years.7.elder: 5.0 -> 2.0
+  3.years.7.food: 1.3 -> 12.1
+  3.years.7.gathers: 148 -> 166
+  3.years.7.grown: 4.0 -> 0.0
+  3.years.7.growth: 1 -> -4
+  3.years.7.least: 24 -> 9
+  3.years.7.moves: 20 -> 5
+  3.years.7.of-encounter: 1.0 -> 0.0
+  3.years.7.of-frailty: 0.0 -> 1.0
+  3.years.7.of-thirst: 0.0 -> 3.0
+  3.years.7.people: 26 -> 9
+  3.years.7.pregnant: 1.0 -> 0.0
+  3.years.7.rate: 4.0 -> -30.8
+  3.years.7.roams: 65 -> 27
+  3.years.7.snapshot: 31.2 -> 29.2
+  3.years.7.thirsty: 0.0 -> 5.0
+  3.years.7.tired: 7.0 -> 5.0
+  3.years.7.water: 21.1 -> 10.7
+  3.years.8.adult: 12.0 -> 4.0
+  3.years.8.born: 5.0 -> 1.0
+  3.years.8.builds: 7 -> 6
+  3.years.8.camps: 276 -> 293
+  3.years.8.child: 7.0 -> 1.0
+  3.years.8.child-deaths: 3.0 -> 1.0
+  3.years.8.deaths: 10 -> 4
+  3.years.8.elder: 2.0 -> 1.0
+  3.years.8.food: 14.9 -> 9.1
+  3.years.8.gathers: 142 -> 185
+  3.years.8.grown: 3.0 -> 2.0
+  3.years.8.growth: -5 -> -3
+  3.years.8.injured: 0.0 -> 1.0
+  3.years.8.least: 18 -> 6
+  3.years.8.moves: 23 -> 5
+  3.years.8.of-birth: 1.0 -> 0.0
+  3.years.8.of-encounter: 7.0 -> 1.0
+  3.years.8.of-frailty: 1.0 -> 0.0
+  3.years.8.of-thirst: 0.0 -> 2.0
+  3.years.8.people: 21 -> 6
+  3.years.8.pregnant: 4.0 -> 2.0
+  3.years.8.rate: -19.2 -> -33.3
+  3.years.8.roams: 52 -> 11
+  3.years.8.snapshot: 30.8 -> 29.0
+  3.years.8.thirsty: 0.0 -> 5.0
+  3.years.8.tired: 17.0 -> 2.0
+  3.years.8.water: 46.5 -> 11.1
+  3.years.9.adult: 12.0 -> 2.0
+  3.years.9.born: 7.0 -> 2.0
+  3.years.9.builds: 8 -> 6
+  3.years.9.camps: 260 -> 280
+  3.years.9.child: 11.0 -> 2.0
+  3.years.9.deaths: 2 -> 3
+  3.years.9.elder: 3.0 -> 1.0
+  3.years.9.food: 18.8 -> 4.4
+  3.years.9.gathers: 180 -> 206
+  3.years.9.grown: 2.0 -> 0.0
+  3.years.9.growth: 5 -> -1
+  3.years.9.injured: 2.0 -> 0.0
+  3.years.9.least: 21 -> 5
+  3.years.9.moves: 15 -> 1
+  3.years.9.of-birth: 1.0 -> 0.0
+  3.years.9.of-thirst: 0.0 -> 2.0
+  3.years.9.people: 26 -> 5
+  3.years.9.pregnant: 3.0 -> 0.0
+  3.years.9.rate: 23.8 -> -16.7
+  3.years.9.roams: 37 -> 7
+  3.years.9.snapshot: 31.3 -> 28.8
+  3.years.9.thirsty: 0.0 -> 5.0
+  3.years.9.tired: 6.0 -> 0.0
+  3.years.9.water: 46.6 -> 7.7
+  4.growth: 0.0373 -> None
+  4.hashes.1: b123c4c255089d64953bda734134c84c2b6908f4cc526da351dd325bec48ee1f -> f175944ad4fe10bf6d9ed9a2970977a2ec23d25ac497cbec237495f72864b7bc
+  4.hashes.10: f0b0da492fa977adf5e8d0abec6ba385947d14893704b29c4a0a53db71147816 -> None
+  4.hashes.11: 6ac6d8179f22a42c9f8a85bfec5cb7512e5f46385168f802bf511d69a8f36c7e -> None
+  4.hashes.12: a37e44de734d4456a1fdf8f055302d33c38e83c655613e7319db696b92f3b68b -> None
+  4.hashes.13: 41e7c57b387abcd18c5a39efa7969c9f91507ff28b7903e9168a076b14aeb2a5 -> None
+  4.hashes.14: 23db0cf0a98e6ff65667035de1e3ccde28ec56a03c46231ede53cc8dea3a792a -> None
+  4.hashes.15: 8240d674e1550ffefef69b11c9d6925f1ffc2c30b6c096156721c0bbb433423e -> None
+  4.hashes.16: 862643bdd7f1f956fa8de5a33bec95ec5dd745ea1b9f0d82b2dff824a0c1c2ac -> None
+  4.hashes.17: dc08c0b4ed7e8156aba842717687767216e1e52ee5a50a6441cde516e2c2dacb -> None
+  4.hashes.18: 03d2efa68fa5eba280a44f92282add839d3c81115ebefaeb6552c69147ef8aff -> None
+  4.hashes.2: e040d5559de2b3257499ae8c4731da748fca8f98125332784ac2f1abaca1e79c -> 771897ca57872167d03ffb4fbc38d022cc7874d8726814f255027f22d2e43ac6
+  4.hashes.3: da2497c20f136e3d600285298efac49031a8cb9a801f029b80cb2b0c5bbe462b -> 1b36a22b6a465e1113d294a5c4d84d5ce8c88d067d756219497b5e4063a53134
+  4.hashes.4: 6a4313f5aa1d4ec4684c6d4814919d2dcca3e2b1b2f7712735fbcbc41435830a -> b6c3b94d785b39f64b0d8b6ca929ac33dd4f199cafa5207434cde1ff3dde7c64
+  4.hashes.5: 29fa932e55439806a2b82f75e3d5c1dfde095143718109d086a9dbe5758580e6 -> 8438d55a5b92b10e8869e161343e3af92154385c8d6f65e84c7f11f0a8a3e4c4
+  4.hashes.6: b54339d569801a72242cc856c6adb78f15bbc888fd0a1451105aaa3ec6ae55fa -> None
+  4.hashes.7: f26aaeec6b440919f5816e95245fca62ad0b6907f2ee143e0993265462a5864f -> None
+  4.hashes.8: f0bdd0641c6c5d46ff06c194a451406cb72600c87094a44c82b660b3a22f3546 -> None
+  4.hashes.9: 2254649f336378a3d25aa3a4267a161e7c87d0d65d21dfb158f95536a3d0e405 -> None
+  4.outcome: alive -> died
+  4.tick: 9000 -> 2260
+  4.tribe: 62.9 -> None
+  4.years.1.adult: 12.0 -> 10.0
+  4.years.1.born: 4.0 -> 3.0
+  4.years.1.camps: 330 -> 331
+  4.years.1.child: 4.0 -> 3.0
+  4.years.1.deaths: 3 -> 5
+  4.years.1.food: 23.0 -> 20.8
+  4.years.1.gathers: 151 -> 150
+  4.years.1.growth: 1 -> -2
+  4.years.1.least: 15 -> 13
+  4.years.1.of-birth: 1.0 -> 0.0
+  4.years.1.of-thirst: 0.0 -> 3.0
+  4.years.1.people: 16 -> 13
+  4.years.1.pregnant: 1.0 -> 2.0
+  4.years.1.rate: 6.7 -> -13.3
+  4.years.1.snapshot: 29.4 -> 29.1
+  4.years.1.thirsty: 0.0 -> 5.0
+  4.years.1.water: 32.6 -> 25.3
+  4.years.10: {'year': 10, 'people': 20, 'child': 7.0, 'adult': 11.0, 'elder': 2.0, 'pregnant': 1.0, 'injured': 0.0, 'growth': -3, 'rate': -13.0, 'least': 20, 'born': 0.0, 'grown': 2.0, 'child-deaths': 1.0, 'deaths': 3, 'of-hunger': 0.0, 'of-thirst': 0.0, 'of-encounter': 3.0, 'of-age': 0.0, 'of-frailty': 0.0, 'of-birth': 0.0, 'food': 25.1, 'water': 28.8, 'moves': 9, 'roams': 19, 'gathers': 171, 'camps': 292, 'builds': 9, 'starving': 0.0, 'thirsty': 0.0, 'tired': 2.0, 'encounters': 2, 'status': 50.0, 'known': 25, 'snapshot': 29.9} -> None
+  4.years.11: {'year': 11, 'people': 20, 'child': 7.0, 'adult': 12.0, 'elder': 1.0, 'pregnant': 2.0, 'injured': 0.0, 'growth': 0, 'rate': 0.0, 'least': 19, 'born': 1.0, 'grown': 1.0, 'child-deaths': 0.0, 'deaths': 1, 'of-hunger': 0.0, 'of-thirst': 0.0, 'of-encounter': 0.0, 'of-age': 1.0, 'of-frailty': 0.0, 'of-birth': 0.0, 'food': 14.9, 'water': 44.7, 'moves': 5, 'roams': 16, 'gathers': 159, 'camps': 311, 'builds': 9, 'starving': 0.0, 'thirsty': 0.0, 'tired': 2.0, 'encounters': 0, 'status': 50.0, 'known': 25, 'snapshot': 29.8} -> None
+  4.years.12: {'year': 12, 'people': 23, 'child': 6.0, 'adult': 15.0, 'elder': 2.0, 'pregnant': 5.0, 'injured': 0.0, 'growth': 3, 'rate': 15.0, 'least': 20, 'born': 3.0, 'grown': 4.0, 'child-deaths': 0.0, 'deaths': 0, 'of-hunger': 0.0, 'of-thirst': 0.0, 'of-encounter': 0.0, 'of-age': 0.0, 'of-frailty': 0.0, 'of-birth': 0.0, 'food': 25.8, 'water': 48.2, 'moves': 5, 'roams': 20, 'gathers': 168, 'camps': 299, 'builds': 8, 'starving': 0.0, 'thirsty': 0.0, 'tired': 0.0, 'encounters': 1, 'status': 50.0, 'known': 25, 'snapshot': 30.3} -> None
+  4.years.13: {'year': 13, 'people': 21, 'child': 7.0, 'adult': 13.0, 'elder': 1.0, 'pregnant': 3.0, 'injured': 1.0, 'growth': -2, 'rate': -8.7, 'least': 21, 'born': 7.0, 'grown': 2.0, 'child-deaths': 4.0, 'deaths': 9, 'of-hunger': 2.0, 'of-thirst': 0.0, 'of-encounter': 5.0, 'of-age': 0.0, 'of-frailty': 2.0, 'of-birth': 0.0, 'food': 15.2, 'water': 48.8, 'moves': 12, 'roams': 35, 'gathers': 153, 'camps': 280, 'builds': 20, 'starving': 5.0, 'thirsty': 0.0, 'tired': 4.0, 'encounters': 3, 'status': 50.0, 'known': 25, 'snapshot': 30.1} -> None
+  4.years.14: {'year': 14, 'people': 24, 'child': 10.0, 'adult': 13.0, 'elder': 1.0, 'pregnant': 3.0, 'injured': 0.0, 'growth': 3, 'rate': 14.3, 'least': 21, 'born': 3.0, 'grown': 0.0, 'child-deaths': 0.0, 'deaths': 0, 'of-hunger': 0.0, 'of-thirst': 0.0, 'of-encounter': 0.0, 'of-age': 0.0, 'of-frailty': 0.0, 'of-birth': 0.0, 'food': 29.8, 'water': 31.1, 'moves': 8, 'roams': 25, 'gathers': 162, 'camps': 297, 'builds': 8, 'starving': 0.0, 'thirsty': 0.0, 'tired': 4.0, 'encounters': 0, 'status': 50.0, 'known': 25, 'snapshot': 30.4} -> None
+  4.years.15: {'year': 15, 'people': 25, 'child': 11.0, 'adult': 13.0, 'elder': 1.0, 'pregnant': 3.0, 'injured': 1.0, 'growth': 1, 'rate': 4.2, 'least': 24, 'born': 3.0, 'grown': 1.0, 'child-deaths': 1.0, 'deaths': 2, 'of-hunger': 0.0, 'of-thirst': 0.0, 'of-encounter': 1.0, 'of-age': 0.0, 'of-frailty': 0.0, 'of-birth': 1.0, 'food': 18.5, 'water': 48.3, 'moves': 10, 'roams': 31, 'gathers': 169, 'camps': 275, 'builds': 15, 'starving': 0.0, 'thirsty': 0.0, 'tired': 2.0, 'encounters': 1, 'status': 50.0, 'known': 25, 'snapshot': 30.6} -> None
+  4.years.16: {'year': 16, 'people': 28, 'child': 13.0, 'adult': 14.0, 'elder': 1.0, 'pregnant': 5.0, 'injured': 0.0, 'growth': 3, 'rate': 12.0, 'least': 24, 'born': 5.0, 'grown': 2.0, 'child-deaths': 1.0, 'deaths': 2, 'of-hunger': 0.0, 'of-thirst': 0.0, 'of-encounter': 0.0, 'of-age': 0.0, 'of-frailty': 1.0, 'of-birth': 1.0, 'food': 17.2, 'water': 55.4, 'moves': 10, 'roams': 27, 'gathers': 167, 'camps': 288, 'builds': 8, 'starving': 0.0, 'thirsty': 0.0, 'tired': 5.0, 'encounters': 0, 'status': 50.0, 'known': 25, 'snapshot': 30.8} -> None
+  4.years.17: {'year': 17, 'people': 28, 'child': 11.0, 'adult': 16.0, 'elder': 1.0, 'pregnant': 5.0, 'injured': 0.0, 'growth': 0, 'rate': 0.0, 'least': 26, 'born': 6.0, 'grown': 4.0, 'child-deaths': 4.0, 'deaths': 6, 'of-hunger': 0.0, 'of-thirst': 0.0, 'of-encounter': 4.0, 'of-age': 0.0, 'of-frailty': 1.0, 'of-birth': 1.0, 'food': 24.1, 'water': 55.9, 'moves': 14, 'roams': 28, 'gathers': 166, 'camps': 284, 'builds': 8, 'starving': 0.0, 'thirsty': 0.0, 'tired': 10.0, 'encounters': 2, 'status': 50.0, 'known': 25, 'snapshot': 30.8} -> None
+  4.years.18: {'year': 18, 'people': 29, 'child': 12.0, 'adult': 14.0, 'elder': 3.0, 'pregnant': 3.0, 'injured': 2.0, 'growth': 1, 'rate': 3.6, 'least': 26, 'born': 4.0, 'grown': 2.0, 'child-deaths': 1.0, 'deaths': 3, 'of-hunger': 0.0, 'of-thirst': 0.0, 'of-encounter': 2.0, 'of-age': 0.0, 'of-frailty': 1.0, 'of-birth': 0.0, 'food': 23.6, 'water': 52.1, 'moves': 7, 'roams': 34, 'gathers': 161, 'camps': 289, 'builds': 9, 'starving': 0.0, 'thirsty': 0.0, 'tired': 2.0, 'encounters': 1, 'status': 50.0, 'known': 25, 'snapshot': 30.9} -> None
+  4.years.2.adult: 12.0 -> 6.0
+  4.years.2.builds: 9 -> 6
+  4.years.2.camps: 321 -> 331
+  4.years.2.child: 6.0 -> 4.0
+  4.years.2.child-deaths: 0.0 -> 1.0
+  4.years.2.deaths: 0 -> 5
+  4.years.2.food: 30.0 -> 17.6
+  4.years.2.gathers: 170 -> 163
+  4.years.2.growth: 2 -> -3
+  4.years.2.least: 16 -> 10
+  4.years.2.of-birth: 0.0 -> 2.0
+  4.years.2.of-thirst: 0.0 -> 3.0
+  4.years.2.people: 18 -> 10
+  4.years.2.pregnant: 3.0 -> 2.0
+  4.years.2.rate: 12.5 -> -23.1
+  4.years.2.snapshot: 29.6 -> 28.5
+  4.years.2.thirsty: 0.0 -> 5.0
+  4.years.2.water: 27.0 -> 11.6
+  4.years.3.adult: 8.0 -> 2.0
+  4.years.3.builds: 9 -> 6
+  4.years.3.camps: 304 -> 282
+  4.years.3.child: 9.0 -> 4.0
+  4.years.3.child-deaths: 0.0 -> 3.0
+  4.years.3.deaths: 1 -> 6
+  4.years.3.elder: 3.0 -> 1.0
+  4.years.3.food: 23.7 -> 4.6
+  4.years.3.gathers: 139 -> 189
+  4.years.3.growth: 2 -> -3
+  4.years.3.least: 18 -> 7
+  4.years.3.moves: 3 -> 5
+  4.years.3.of-age: 0.0 -> 1.0
+  4.years.3.of-birth: 0.0 -> 1.0
+  4.years.3.of-frailty: 0.0 -> 1.0
+  4.years.3.of-thirst: 0.0 -> 2.0
+  4.years.3.people: 20 -> 7
+  4.years.3.pregnant: 3.0 -> 1.0
+  4.years.3.rate: 11.1 -> -30.0
+  4.years.3.roams: 45 -> 18
+  4.years.3.snapshot: 29.8 -> 28.1
+  4.years.3.thirsty: 0.0 -> 5.0
+  4.years.3.tired: 0.0 -> 2.0
+  4.years.3.water: 23.3 -> 8.9
+  4.years.4.adult: 8.0 -> 1.0
+  4.years.4.born: 6.0 -> 2.0
+  4.years.4.builds: 6 -> 3
+  4.years.4.camps: 286 -> 243
+  4.years.4.child: 15.0 -> 5.0
+  4.years.4.child-deaths: 0.0 -> 1.0
+  4.years.4.deaths: 2 -> 3
+  4.years.4.elder: 1.0 -> 0.0
+  4.years.4.encounters: 2 -> 3
+  4.years.4.food: 17.3 -> 0
+  4.years.4.gathers: 173 -> 217
+  4.years.4.growth: 4 -> -1
+  4.years.4.least: 20 -> 5
+  4.years.4.moves: 3 -> 11
+  4.years.4.of-frailty: 1.0 -> 0.0
+  4.years.4.of-thirst: 0.0 -> 2.0
+  4.years.4.people: 24 -> 6
+  4.years.4.pregnant: 3.0 -> 0.0
+  4.years.4.rate: 20.0 -> -14.3
+  4.years.4.roams: 32 -> 26
+  4.years.4.snapshot: 30.2 -> 27.9
+  4.years.4.thirsty: 0.0 -> 5.0
+  4.years.4.tired: 0.0 -> 14.0
+  4.years.4.water: 29.6 -> 2.1
+  4.years.5.adult: 9.0 -> 0
+  4.years.5.builds: 9 -> 0
+  4.years.5.camps: 271 -> 128
+  4.years.5.child: 7.0 -> 0
+  4.years.5.deaths: 6 -> 2
+  4.years.5.elder: 2.0 -> 0
+  4.years.5.encounters: 2 -> 1
+  4.years.5.food: 11.3 -> 0.0
+  4.years.5.gathers: 166 -> 102
+  4.years.5.grown: 4.0 -> 1.0
+  4.years.5.known: 25 -> 0
+  4.years.5.least: 18 -> 0
+  4.years.5.moves: 9 -> 6
+  4.years.5.of-encounter: 4.0 -> 1.0
+  4.years.5.of-frailty: 2.0 -> 1.0
+  4.years.5.people: 18 -> 0
+  4.years.5.pregnant: 5.0 -> 0
+  4.years.5.rate: -25.0 -> -100.0
+  4.years.5.roams: 45 -> 24
+  4.years.5.snapshot: 29.6 -> 24.0
+  4.years.5.tired: 5.0 -> 0.0
+  4.years.5.water: 37.0 -> 0.0
+  4.years.6: {'year': 6, 'people': 20, 'child': 7.0, 'adult': 11.0, 'elder': 2.0, 'pregnant': 1.0, 'injured': 0.0, 'growth': 2, 'rate': 11.1, 'least': 18, 'born': 3.0, 'grown': 2.0, 'child-deaths': 1.0, 'deaths': 1, 'of-hunger': 0.0, 'of-thirst': 0.0, 'of-encounter': 0.0, 'of-age': 0.0, 'of-frailty': 1.0, 'of-birth': 0.0, 'food': 15.4, 'water': 41.7, 'moves': 12, 'roams': 22, 'gathers': 168, 'camps': 292, 'builds': 6, 'starving': 0.0, 'thirsty': 0.0, 'tired': 8.0, 'encounters': 1, 'status': 50.0, 'known': 25, 'snapshot': 29.9} -> None
+  4.years.7: {'year': 7, 'people': 22, 'child': 8.0, 'adult': 12.0, 'elder': 2.0, 'pregnant': 3.0, 'injured': 0.0, 'growth': 2, 'rate': 10.0, 'least': 20, 'born': 4.0, 'grown': 2.0, 'child-deaths': 1.0, 'deaths': 2, 'of-hunger': 0.0, 'of-thirst': 0.0, 'of-encounter': 0.0, 'of-age': 0.0, 'of-frailty': 1.0, 'of-birth': 1.0, 'food': 14.6, 'water': 48.3, 'moves': 23, 'roams': 35, 'gathers': 155, 'camps': 279, 'builds': 8, 'starving': 0.0, 'thirsty': 0.0, 'tired': 19.0, 'encounters': 0, 'status': 50.0, 'known': 25, 'snapshot': 30.2} -> None
+  4.years.8: {'year': 8, 'people': 21, 'child': 8.0, 'adult': 11.0, 'elder': 2.0, 'pregnant': 1.0, 'injured': 0.0, 'growth': -1, 'rate': -4.5, 'least': 20, 'born': 4.0, 'grown': 3.0, 'child-deaths': 1.0, 'deaths': 5, 'of-hunger': 0.0, 'of-thirst': 0.0, 'of-encounter': 2.0, 'of-age': 2.0, 'of-frailty': 0.0, 'of-birth': 1.0, 'food': 16.7, 'water': 37.4, 'moves': 11, 'roams': 43, 'gathers': 178, 'camps': 260, 'builds': 8, 'starving': 0.0, 'thirsty': 0.0, 'tired': 5.0, 'encounters': 1, 'status': 50.0, 'known': 25, 'snapshot': 30.1} -> None
+  4.years.9: {'year': 9, 'people': 23, 'child': 10.0, 'adult': 11.0, 'elder': 2.0, 'pregnant': 0.0, 'injured': 1.0, 'growth': 2, 'rate': 9.5, 'least': 21, 'born': 2.0, 'grown': 0.0, 'child-deaths': 0.0, 'deaths': 0, 'of-hunger': 0.0, 'of-thirst': 0.0, 'of-encounter': 0.0, 'of-age': 0.0, 'of-frailty': 0.0, 'of-birth': 0.0, 'food': 17.6, 'water': 41.5, 'moves': 8, 'roams': 24, 'gathers': 155, 'camps': 304, 'builds': 9, 'starving': 0.0, 'thirsty': 0.0, 'tired': 8.0, 'encounters': 0, 'status': 50.0, 'known': 25, 'snapshot': 30.3} -> None
+  5.hashes.1: 688a195113c2a71d31216d0be4cc9c897f6d1741f13efff3754bc8e297f60c58 -> f4e249cfb90e02695e4b45467b92d3e6581b722653738ecb50a88b6b8f7ec616
+  5.hashes.10: 4008563b9a5383febc5c9c93aa4914a5a9bf248ce91d1f40645fdd22221273d7 -> None
+  5.hashes.2: 6f01409a1181ed1a5bd6535d57953f49356a909e8d18416e0c676e496c090dde -> 937194f46e397be8ce3665579feb3422edb96023e219d3d5af17e933d6ad93e2
+  5.hashes.3: 812641af1ad9eb4da7a741b1051dfd91ff1002a9374a935c54b3a478187c66c5 -> 946817e9728a8c392b622a21209820e9c981c27230c4b6c7bb95069fe0dbca26
+  5.hashes.4: 6f805e53794e0019d1e6f88fdb7ac2b105d644b3c76f5092bcd7625f3327b2bb -> fa60be9a2fa332d24f610d47c29cc5526aa8472084e46fe38360da5f6711e759
+  5.hashes.5: 2e864c7f72e2799564e6d7472442555a559962f897f4354737b4e8798b5d42a2 -> 6bdd7a8217e560c29287488bf742882f0cf975475e376a3f7bfc22ff06b8f95d
+  5.hashes.6: f1c108177ca2c84c358e0c7677449fddb660a5e8e65f4f1c0fe5429aa0fd3ff3 -> 48d33b8b7e81fc5377d0b553edc75fcda6509408bbd1a3d9e631c0557bd89926
+  5.hashes.7: 581338421e41d9ebef82d7c052b599d75639c7b120356198ca83ef6c7ca5dd16 -> a9074e59f9ccc1998cfa4d67a90b9195b2c9d07c4b0be83f9bdc03994beb1682
+  5.hashes.8: bf493f861e6b920f15fb9bbaf05d097b2792e2e57f0ba528dbca5889bbd5cc61 -> 95448d080bdb56662ac5f7b1a0634cde4c57fced8a48cc58ce170c007b174db7
+  5.hashes.9: 297933536c70c6c959c37b22c36d7018f4b1891f95d783a38c6770e93d536595 -> 56dc0527e188775d3f93872552ccba3cbca37b095d683a8a03ee619cf4c84742
+  5.tick: 4935 -> 4270
+  5.years.1.camps: 261 -> 260
+  5.years.1.food: 12.8 -> 15.2
+  5.years.1.gathers: 200 -> 201
+  5.years.1.injured: 1.0 -> 0.0
+  5.years.1.water: 45.8 -> 43.4
+  5.years.10: {'year': 10, 'people': 0, 'child': 0, 'adult': 0, 'elder': 0, 'pregnant': 0, 'injured': 0, 'growth': -8, 'rate': -100.0, 'least': 0, 'born': 0.0, 'grown': 0.0, 'child-deaths': 1.0, 'deaths': 4, 'of-hunger': 3.0, 'of-thirst': 0.0, 'of-encounter': 1.0, 'of-age': 0.0, 'of-frailty': 0.0, 'of-birth': 0.0, 'food': 0.0, 'water': 0.0, 'moves': 1, 'roams': 15, 'gathers': 194, 'camps': 216, 'builds': 9, 'starving': 10.0, 'thirsty': 0.0, 'tired': 0.0, 'encounters': 3, 'status': 50.0, 'known': 0, 'snapshot': 23.5} -> None
+  5.years.2.born: 3.0 -> 0.0
+  5.years.2.builds: 8 -> 6
+  5.years.2.camps: 298 -> 305
+  5.years.2.child: 2.0 -> 1.0
+  5.years.2.child-deaths: 3.0 -> 1.0
+  5.years.2.deaths: 7 -> 5
+  5.years.2.food: 31.4 -> 19.4
+  5.years.2.gathers: 163 -> 148
+  5.years.2.growth: -4 -> -5
+  5.years.2.least: 11 -> 10
+  5.years.2.moves: 18 -> 21
+  5.years.2.of-encounter: 6.0 -> 5.0
+  5.years.2.of-frailty: 1.0 -> 0.0
+  5.years.2.people: 11 -> 10
+  5.years.2.rate: -26.7 -> -33.3
+  5.years.2.roams: 13 -> 20
+  5.years.2.snapshot: 28.0 -> 27.9
+  5.years.2.tired: 6.0 -> 12.0
+  5.years.2.water: 9.6 -> 20.9
+  5.years.3.born: 2.0 -> 1.0
+  5.years.3.builds: 8 -> 6
+  5.years.3.camps: 322 -> 327
+  5.years.3.child: 4.0 -> 1.0
+  5.years.3.child-deaths: 0.0 -> 1.0
+  5.years.3.deaths: 0 -> 2
+  5.years.3.elder: 2.0 -> 1.0
+  5.years.3.food: 17.0 -> 16.7
+  5.years.3.gathers: 170 -> 167
+  5.years.3.growth: 2 -> -1
+  5.years.3.least: 11 -> 9
+  5.years.3.of-thirst: 0.0 -> 2.0
+  5.years.3.people: 13 -> 9
+  5.years.3.rate: 18.2 -> -10.0
+  5.years.3.snapshot: 28.2 -> 27.9
+  5.years.3.thirsty: 0.0 -> 5.0
+  5.years.3.water: 20.3 -> 16.7
+  5.years.4.adult: 7.0 -> 6.0
+  5.years.4.born: 2.0 -> 0.0
+  5.years.4.builds: 9 -> 6
+  5.years.4.camps: 319 -> 327
+  5.years.4.child: 6.0 -> 0.0
+  5.years.4.child-deaths: 0.0 -> 1.0
+  5.years.4.deaths: 2 -> 3
+  5.years.4.food: 11.0 -> 14.8
+  5.years.4.gathers: 157 -> 167
+  5.years.4.growth: 0 -> -3
+  5.years.4.injured: 0.0 -> 1.0
+  5.years.4.least: 12 -> 6
+  5.years.4.moves: 5 -> 0
+  5.years.4.of-frailty: 1.0 -> 0.0
+  5.years.4.of-thirst: 0.0 -> 2.0
+  5.years.4.people: 13 -> 6
+  5.years.4.pregnant: 1.0 -> 0.0
+  5.years.4.rate: 0.0 -> -33.3
+  5.years.4.roams: 10 -> 0
+  5.years.4.snapshot: 28.3 -> 27.6
+  5.years.4.thirsty: 0.0 -> 5.0
+  5.years.4.tired: 2.0 -> 0.0
+  5.years.4.water: 23.3 -> 11.6
+  5.years.5.adult: 7.0 -> 5.0
+  5.years.5.builds: 9 -> 6
+  5.years.5.camps: 303 -> 324
+  5.years.5.child: 4.0 -> 0.0
+  5.years.5.child-deaths: 1.0 -> 0.0
+  5.years.5.deaths: 2 -> 0
+  5.years.5.elder: 0.0 -> 1.0
+  5.years.5.food: 11.8 -> 10.4
+  5.years.5.gathers: 146 -> 170
+  5.years.5.grown: 1.0 -> 0.0
+  5.years.5.growth: -2 -> 0
+  5.years.5.least: 11 -> 6
+  5.years.5.moves: 18 -> 0
+  5.years.5.of-encounter: 2.0 -> 0.0
+  5.years.5.people: 11 -> 6
+  5.years.5.pregnant: 0.0 -> 1.0
+  5.years.5.rate: -15.4 -> 0.0
+  5.years.5.roams: 24 -> 0
+  5.years.5.snapshot: 28.0 -> 27.4
+  5.years.5.tired: 19.0 -> 0.0
+  5.years.5.water: 21.8 -> 13.4
+  5.years.6.adult: 7.0 -> 4.0
+  5.years.6.born: 1.0 -> 2.0
+  5.years.6.builds: 9 -> 6
+  5.years.6.camps: 328 -> 333
+  5.years.6.child: 4.0 -> 1.0
+  5.years.6.child-deaths: 0.0 -> 1.0
+  5.years.6.deaths: 1 -> 2
+  5.years.6.elder: 0.0 -> 1.0
+  5.years.6.food: 20.0 -> 9.1
+  5.years.6.gathers: 163 -> 161
+  5.years.6.grown: 1.0 -> 0.0
+  5.years.6.injured: 1.0 -> 0.0
+  5.years.6.least: 11 -> 5
+  5.years.6.of-frailty: 1.0 -> 0.0
+  5.years.6.of-thirst: 0.0 -> 2.0
+  5.years.6.people: 11 -> 6
+  5.years.6.pregnant: 2.0 -> 1.0
+  5.years.6.snapshot: 28.1 -> 27.5
+  5.years.6.thirsty: 0.0 -> 5.0
+  5.years.6.water: 13.6 -> 11.1
+  5.years.7.adult: 9.0 -> 2.0
+  5.years.7.builds: 9 -> 6
+  5.years.7.camps: 246 -> 311
+  5.years.7.child: 2.0 -> 1.0
+  5.years.7.deaths: 0 -> 1
+  5.years.7.elder: 0.0 -> 2.0
+  5.years.7.food: 11.2 -> 6.9
+  5.years.7.gathers: 215 -> 183
+  5.years.7.grown: 2.0 -> 0.0
+  5.years.7.growth: 0 -> -1
+  5.years.7.least: 11 -> 5
+  5.years.7.moves: 6 -> 0
+  5.years.7.of-thirst: 0.0 -> 1.0
+  5.years.7.people: 11 -> 5
+  5.years.7.pregnant: 1.0 -> 0.0
+  5.years.7.rate: 0.0 -> -16.7
+  5.years.7.roams: 24 -> 0
+  5.years.7.snapshot: 28.7 -> 27.3
+  5.years.7.thirsty: 0.0 -> 5.0
+  5.years.7.tired: 7.0 -> 0.0
+  5.years.7.water: 29.7 -> 6.3
+  5.years.8.adult: 8.0 -> 2.0
+  5.years.8.builds: 9 -> 6
+  5.years.8.camps: 238 -> 298
+  5.years.8.child: 0.0 -> 1.0
+  5.years.8.child-deaths: 1.0 -> 0.0
+  5.years.8.deaths: 2 -> 0
+  5.years.8.elder: 1.0 -> 2.0
+  5.years.8.encounters: 2 -> 3
+  5.years.8.food: 9.1 -> 8.2
+  5.years.8.gathers: 247 -> 188
+  5.years.8.grown: 1.0 -> 0.0
+  5.years.8.growth: -2 -> 0
+  5.years.8.least: 9 -> 5
+  5.years.8.moves: 0 -> 2
+  5.years.8.of-encounter: 2.0 -> 0.0
+  5.years.8.people: 9 -> 5
+  5.years.8.pregnant: 1.0 -> 0.0
+  5.years.8.rate: -18.2 -> 0.0
+  5.years.8.snapshot: 28.5 -> 27.3
+  5.years.8.water: 28.0 -> 5.1
+  5.years.9.adult: 6.0 -> 0
+  5.years.9.born: 2.0 -> 0.0
+  5.years.9.builds: 9 -> 0
+  5.years.9.camps: 237 -> 169
+  5.years.9.child: 1.0 -> 0
+  5.years.9.deaths: 3 -> 1
+  5.years.9.elder: 1.0 -> 0
+  5.years.9.encounters: 2 -> 1
+  5.years.9.food: 7.5 -> 0.0
+  5.years.9.gathers: 246 -> 94
+  5.years.9.growth: -1 -> -5
+  5.years.9.known: 25 -> 0
+  5.years.9.least: 7 -> 0
+  5.years.9.moves: 2 -> 1
+  5.years.9.of-age: 0.0 -> 1.0
+  5.years.9.of-birth: 1.0 -> 0.0
+  5.years.9.of-encounter: 2.0 -> 0.0
+  5.years.9.people: 8 -> 0
+  5.years.9.rate: -11.1 -> -100.0
+  5.years.9.snapshot: 28.2 -> 23.4
+  5.years.9.tired: 2.0 -> 0.0
+  5.years.9.water: 19.9 -> 0.0

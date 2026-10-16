@@ -496,14 +496,16 @@ class Offered(Node):
 class WinterCamp(Node):
     """
     A camp built for the cold in days of work without gathering, gathered around within reach, a cell away
-    giving afar of a gathering. Once built, while the band stands on its cell the threat, the spoiling and the
-    eating are multiplied by their factors, and so is what a camp takes off fatigue.
+    giving afar of a gathering. Once built, while the band stands on its cell staying in it is worth kept more
+    to the others, the threat, the spoiling and the eating are multiplied by their factors, and so is what a
+    camp takes off fatigue.
     """
 
     offered: Offered
     build: Duration
     reach: Span
     afar: Share
+    kept: Factor
     threat: Share
     spoil: Share
     consumption: Share

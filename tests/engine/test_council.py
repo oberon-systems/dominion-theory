@@ -763,16 +763,22 @@ def test_the_winter_does_not_end_a_winter_camp_and_the_spring_calls_the_council(
     assert told(ended)[-1][1]['occasion'] == 'occasion-season'
 
 
-def test_a_hungry_band_bound_to_a_winter_camp_gathers_before_it_builds(params: Params) -> None:
-    game = land(params, parts=WINTER)
-    quiet(game)
-    band(game).intent = {'proposal': WINTERING}
-    band(game).stores = {}
+def test_a_starving_band_bound_to_a_winter_camp_gathers_before_it_builds_and_a_hungry_one_builds(
+    params: Params,
+) -> None:
+    starving, hungry = land(params, parts=WINTER), land(params, parts=WINTER)
+    for game in (starving, hungry):
+        quiet(game)
+        band(game).intent = {'proposal': WINTERING}
+        band(game).stores = {}
+    band(starving).states = ['starvation']
 
-    game.step()
+    starving.step()
+    hungry.step()
 
-    assert band(game).action['kind'] in ('gather', 'camp')
-    assert band(game).camp is None
+    assert band(starving).action['kind'] in ('gather', 'camp')
+    assert band(starving).camp is None
+    assert band(hungry).action == {'kind': 'build'}
 
 
 def test_the_others_judge_a_winter_camp_by_its_reach(params: Params) -> None:
@@ -791,6 +797,7 @@ def test_a_hungry_band_bound_to_a_winter_camp_gathers_its_reach(params: Params) 
     quiet(game)
     band(game).intent = {'proposal': WINTERING}
     band(game).stores = {'water': [[float(game.day), 45.0]]}
+    band(game).states = ['starvation']
 
     game.step()
     near = [at for at in bands.around(HOME, 1) if game.inside(*at)]
@@ -812,3 +819,18 @@ def test_a_winter_camp_is_left_with_the_first_season_that_does_not_offer_it(
 
     assert game.date.part == 'morning'
     assert band(game).camp == (camp if kept else None)
+
+
+def test_staying_in_a_built_camp_is_worth_kept_more_to_the_others() -> None:
+    even = {'units.band.winter_camp.threat': 1.0, 'units.band.winter_camp.consumption': 1.0}
+    params = load_params(overrides={**SMALL, **even})
+    game = land(params, parts=WINTER + 2)
+    camp = {'x': HOME[0], 'y': HOME[1], 'built': 0.5}
+    band(game).camp = dict(camp)
+    building = council.score(params, band(game), ERA, game.inside, wintering=True)
+    band(game).camp = {**camp, 'built': 1.0}
+    built = council.score(params, band(game), ERA, game.inside, wintering=True)
+
+    assert [proposal for proposal, _ in built] == [proposal for proposal, _ in building]
+    assert [held for _, held in built[:2]] == pytest.approx([held + 3.0 * 0.2 for _, held in building[:2]])
+    assert [held for _, held in built[2:]] == pytest.approx([held for _, held in building[2:]])

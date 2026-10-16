@@ -64,6 +64,7 @@ def test_band_is_the_one_of_its_document() -> None:
         'build': {'days': 2},
         'reach': 1,
         'afar': 1.0,
+        'kept': 0.2,
         'threat': 0.5,
         'spoil': 0.5,
         'consumption': 0.8,

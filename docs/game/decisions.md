@@ -201,7 +201,7 @@ tiredness ends.
 |-------------------|-----------------------------------------------------------|
 | `go` to a place   | a move or a roam to the next cell of the route, a gathering, or a camp |
 | `stay-and-gather` | gathering of any resource, or a camp                      |
-| `winter-camp`     | a build until the camp stands, then as `stay-and-gather`; a hungry band gathers first |
+| `winter-camp`     | a build until the camp stands, then as `stay-and-gather`; a starving or thirsting band gathers first |
 
 Under a `go` intent the moves and the roams are scored with the pull
 replaced by a fixed `weights.intent`, and a roam gets the whole of that
@@ -218,9 +218,15 @@ passability takes, its threat as the band sees it, and the food and
 water it lacks as much as the band wants them.
 
 ```text
-cost = 1 / passability + route.threat * threat
+cost = (1 - walked) / passability + route.threat * threat
      + route.hunger * hunger * (1 - food) + route.thirst * thirst * (1 - water)
 ```
+
+`walked` is the share of the step the band has already walked into that
+cell, its progress, and 0 for every other cell. Before game d67475ee a
+route laid anew each morning flipped between two cells of the same cost,
+and a band that had walked 0.97 of the way into one lost it to the
+other, six days in a row.
 
 A cell the band does not know costs what it expects of unseen land,
 `decisions.unknown`; a cell it knows it cannot enter is no step. So a

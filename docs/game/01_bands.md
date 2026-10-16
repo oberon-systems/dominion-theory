@@ -50,7 +50,7 @@ and a seated band holds its council in the evening.
 
 Things that are counted by the day happen at its edges. The first tick
 of a day throws away spoiled stores. The last tick feeds the people,
-counts hunger and thirst, and adds the day's births.
+counts every member's hunger and thirst, and adds the day's births.
 
 ___
 

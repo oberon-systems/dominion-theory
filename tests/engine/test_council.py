@@ -444,6 +444,8 @@ def test_the_deaths_of_a_day_the_player_voted_or_kept_silent_on_cost_five_each(
 ) -> None:
     game = land(params)
     band(game).stores = {}
+    for member in band(game).members[1:4]:
+        member.thirsty = 1.5
     game.answered = {'today': answered, 'tomorrow': None}
 
     lost = said(steps(game, 2))

@@ -78,12 +78,12 @@ def test_a_band_with_no_food_starves_and_dies_on_schedule() -> None:
         result = game.step()
         events.extend((result.tick, event.key, event.values) for event in result.events)
 
-    # Starvation begins after two short days and takes one person a day, from 15 to 4, below the least of 5.
+    # Every adult is hungry after the first day without food and dies at the end of the second; the player lives.
     assert [(tick, values) for tick, key, values in events if key == BAND_STATE_BEGAN] == [
-        (10, {'state': 'state-starvation'})
+        (5, {'state': 'state-starvation'})
     ]
     assert [(tick, values) for tick, key, values in events if key == PEOPLE_LOST] == [
-        (tick, {'count': 1, 'cause': 'hunger'}) for tick in range(10, 65, 5)
+        (10, {'count': 14, 'cause': 'hunger'})
     ]
-    assert [tick for tick, key, _ in events if key == BAND_DIED] == [60]
-    assert (game.outcome, game.counters.row()[game.counters.names.index('deaths')]) == ('died', 11)
+    assert [tick for tick, key, _ in events if key == BAND_DIED] == [10]
+    assert (game.outcome, game.counters.row()[game.counters.names.index('deaths')]) == ('died', 14)

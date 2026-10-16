@@ -411,40 +411,76 @@ def test_people_eat_the_oldest_lot_first(params: Params) -> None:
 
     assert held.stores == {'forage': [[1.0, 3.0]], 'water': []}
     assert met == {'forage': 1.0, 'water': 0.5}
+    assert [member.thirsty for member in held.members] == [0.0] * 5 + [1.0] * 5
 
 
-def test_a_band_with_no_food_starves_on_the_day_its_document_says() -> None:
-    game = land(needing(water=0.0))
-
-    fed = told(do(game, camp(), DAY))
-    short = told(do(game, camp(), DAY))
-    began = told(do(game, camp(), DAY))
-    held = told(do(game, camp(), DAY))
-    band(game).stores['forage'] = [[float(game.day), 30.0]]
-    ended = told(do(game, camp(), DAY))
-
-    assert (fed, short) == ([], [])
-    assert began == [
-        ('band-state-began', {'state': 'state-starvation'}),
-        ('people-lost', {'count': 1, 'cause': 'hunger'}),
-    ]
-    assert held == [('people-lost', {'count': 1, 'cause': 'hunger'})]
-    assert ended == [('band-state-ended', {'state': 'state-starvation'})]
-    assert (band(game).population, band(game).states, counted(game)['deaths']) == (13, [], 2)
-
-
-def test_a_band_with_no_water_thirsts_a_day_sooner_and_loses_more() -> None:
-    game = land(needing(forage=0.0))
+@pytest.mark.parametrize(
+    ('needs', 'state', 'cause'),
+    [({'water': 0.0}, 'state-starvation', 'hunger'), ({'forage': 0.0}, 'state-thirst', 'thirst')],
+)
+def test_an_adult_who_ate_in_full_is_hungry_the_second_day_without_and_dies_on_the_third(
+    needs: dict[str, float], state: str, cause: str
+) -> None:
+    game = land(needing(**needs))
 
     fed = told(do(game, camp(), DAY))
-    began = told(do(game, camp(), DAY))
+    wanting = told(do(game, camp(), DAY))
+    dead = told(do(game, camp(), DAY))
 
     assert fed == []
-    assert began == [
-        ('band-state-began', {'state': 'state-thirst'}),
-        ('people-lost', {'count': 3, 'cause': 'thirst'}),
+    assert wanting == [('band-state-began', {'state': state})]
+    assert dead == [('people-lost', {'count': 14, 'cause': cause}), ('band-died', {})]
+
+
+def test_what_little_there_is_goes_to_those_nearest_death_and_the_rest_die() -> None:
+    game = land(needing(water=0.0))
+    do(game, camp(), 2 * DAY)
+    nearest = band(game).members[10]
+    nearest.hungry = 1.5
+    band(game).stores['forage'] = [[float(game.day), 7.0]]
+
+    last = told(do(game, camp(), DAY))
+
+    assert last == [
+        ('band-state-ended', {'state': 'state-starvation'}),
+        ('people-lost', {'count': 8, 'cause': 'hunger'}),
     ]
-    assert (band(game).population, band(game).states) == (12, ['thirst'])
+    assert (band(game).population, band(game).members[-1] is nearest) == (7, True)
+    assert band(game).members[0].player
+    assert [member.hungry for member in band(game).members] == [0.0] * 7
+
+
+def test_a_newborn_dies_after_a_day_without_and_an_adult_is_only_hungry(params: Params) -> None:
+    held = bands.Band(id=1, x=WEST, y=NORTH, members=[*bands.adults(2), bands.Member(0, 'female')], stores={})
+
+    bands.eat(params, held)
+    began, ended, lost = bands.suffer(params, held)
+
+    assert (began, ended, lost) == (['starvation', 'thirst'], [], [('hunger', 1)])
+    assert held.population == 2
+
+
+@pytest.mark.parametrize(
+    ('stage', 'age', 'days'),
+    [('child', 0, 1.0), ('child', 200, 1.5), ('child', 399, 1.9975), ('adult', 400, 2.0), ('elder', 1700, 1.5)],
+)
+def test_a_reserve_grows_with_a_child_and_is_smaller_for_an_elder(
+    params: Params, stage: str, age: int, days: float
+) -> None:
+    assert bands.reserve(params, stage, age, 'food') == pytest.approx(days)
+
+
+def test_a_hungry_member_gathers_and_walks_as_a_weakened_one_and_does_not_conceive() -> None:
+    params = load_params(overrides={**SMALL, 'units.band.people.birth.conceive_per_day': 1.0})
+    held = bands.Band(id=1, x=WEST, y=NORTH, members=bands.adults(4), stores={})
+    held.members[2].hungry = 1.0
+    held.changed()
+
+    counted = bands.census(params, held)
+    bands.live(params, held, 10, 1.0, True, 0.0, dice())
+
+    assert (counted.gatherers, counted.pace) == pytest.approx((3.6, 0.9))
+    assert [member.pregnant_until is not None for member in held.members] == [True, False, False, False]
 
 
 def test_a_created_band_is_of_adults_of_random_age_and_sex_the_first_the_player(params: Params) -> None:
@@ -489,7 +525,7 @@ def test_the_dead_are_drawn_from_the_exposed_and_never_the_player(params: Params
     lost, injured = bands.struck(params, held, 1.0, 0.0, {}, np.random.default_rng(7))
 
     assert (lost, injured, held.population, held.members[0].player) == (1, 0, 1, True)
-    assert bands.vulnerable(params, held, 'thirst') == [0.0]
+    assert bands.vulnerable(params, held, 'encounter') == [0.0]
 
 
 def test_a_child_is_most_exposed_at_birth_and_nears_an_adult_as_it_grows(params: Params) -> None:
@@ -677,7 +713,7 @@ def test_a_restored_game_carries_the_band_in_the_middle_of_a_day(params: Params)
 def test_a_snapshot_of_the_format_before_the_band_is_refused(params: Params) -> None:
     snapshot = land(params).snapshot()
 
-    assert snapshot['format'] == 14
+    assert snapshot['format'] == 15
     with pytest.raises(ValueError, match='format 2'):
         Game.restore({**snapshot, 'format': 2})
 

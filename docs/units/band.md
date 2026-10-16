@@ -18,6 +18,7 @@ made of and gives every number it reads. Part of the stage 2 design in
 - [Stores](#stores)
 - [Gathering](#gathering)
 - [Consumption](#consumption)
+- [Hunger and thirst](#hunger-and-thirst)
 - [Speed](#speed)
 - [Fatigue](#fatigue)
 - [States](#states)
@@ -88,13 +89,15 @@ member does against an adult, whose weights are all 1.
 
 A band sums its members where an amount grows with the people, and
 takes the mean where it is a pace. A wounded member gathers and walks
-at the shares of its severity, see [Injuries](#injuries).
+at the shares of its severity, see [Injuries](#injuries), and a hungry
+or thirsty one at `people.weakened`, 0.6, see
+[Hunger and thirst](#hunger-and-thirst).
 
 ```text
-gatherers = sum of gathers, times severity.gathers for the wounded
+gatherers = sum of gathers, times severity.gathers for the wounded, times weakened.gathers for the hungry
 eaters    = sum of eats
 carriers  = sum of carries
-pace      = mean of pace, times severity.pace for the wounded
+pace      = mean of pace, times severity.pace for the wounded, times weakened.pace for the hungry
 tires     = mean of tires
 ```
 
@@ -157,17 +160,18 @@ those of a newborn; see [Children grow safer](#children-grow-safer).
 
 | Cause       | How many die                                            | Child | Adult | Elder |
 |-------------|---------------------------------------------------------|-------|-------|-------|
-| `hunger`    | `starvation.loss_per_day` of the sum of weights, a day  | 2     | 1     | 1.5   |
-| `thirst`    | `thirst.loss_per_day` of the sum of weights, a day      | 2     | 1     | 1.5   |
+| `hunger`    | every member with nothing left of its food, a day       | -     | -     | -     |
+| `thirst`    | every member with nothing left of its water, a day      | -     | -     | -     |
 | `encounter` | the share the encounter took of the sum of weights      | 3     | 1     | 2     |
 | `frailty`   | each member by its own chance, a day                    | 1.2   | 0.05  | 0.3   |
 | `age`       | each member past `age.begins` by its own chance, a day  | -     | -     | -     |
 | `birth`     | a mother at the birth                                   | -     | -     | -     |
 
-A state rounds its count up, so it costs somebody every day it holds;
-an encounter rounds to the nearest, so it may be a scare. Who dies of
-a count is drawn by the weights, nobody twice: a newborn is twice as
-likely as an adult to die of hunger and three times of a predator.
+Hunger and thirst take every member whose reserve ran out; see
+[Hunger and thirst](#hunger-and-thirst). An encounter rounds to the
+nearest, so it may be a scare. Who dies of its count is drawn by the
+weights, nobody twice: a newborn is three times as likely as an adult
+to die of a predator.
 
 Frailty is illness, cold and all else a band in poor shape suffers. Its
 chance falls as wellbeing rises:
@@ -200,7 +204,6 @@ The child settles in 7 months:
 | Age       | 0   | 7 months | 14 months | 21 months | 3 years |
 |-----------|-----|----------|-----------|-----------|---------|
 | encounter | 3   | 2        | 1.5       | 1.25      | 1.1     |
-| hunger    | 2   | 1.5      | 1.25      | 1.13      | 1.05    |
 | frailty   | 1.2 | 0.63     | 0.34      | 0.19      | 0.11    |
 | injury    | 0.5 | 0.75     | 0.88      | 0.94      | 0.97    |
 
@@ -396,8 +399,52 @@ brings 40 kg of food, in a winter forest 16, and in the desert no day is
 long enough. The cell is what gives out: a forest cell holds 200 kg, a
 fortnight for 15 people, and needs a month to grow back.
 
-What is missing is counted per resource as a share of the day's need.
-That share drives hunger and thirst below.
+What is missing is counted per member as a share of its ration; see
+[Hunger and thirst](#hunger-and-thirst).
+
+___
+
+## Hunger and thirst
+
+Every member holds a reserve of food and one of water, in days: how long
+it lives on without them once it ate and drank in full. A child's grows
+with its age from the reserve of a newborn to an adult's at the end of
+childhood.
+
+| Stage   | Food              | Water             |
+|---------|-------------------|-------------------|
+| `child` | 1 at birth, to 2  | 1 at birth, to 2  |
+| `adult` | 2                 | 2                 |
+| `elder` | 1.5               | 1.5               |
+
+A member keeps the days it went without, `hungry` and `thirsty`. A day
+with its full ration sets them to 0; a part of the ration adds what was
+missing, a day with nothing adds 1. A member is hungry, or thirsty,
+while it went short and a day or less of the reserve is left, and it
+dies when nothing is left; the player never dies of it.
+
+```text
+left    = reserve(stage, age) - days gone without
+hungry  = days gone without > 0 and left <= 1
+dies    = left <= 0
+```
+
+So an adult that ate in full lives through a day without food, is
+hungry the second day and dies at the end of it, on the third; the same
+with water. A newborn dies after a single day without.
+
+What a day gives is shared before anyone else's ration is filled: the
+members with the least of that reserve left eat first, children first
+on a tie, so the ones nearest death are fed and people die one by one,
+not the whole band on the same night. A hungry or thirsty member does
+not conceive and gathers and walks at `people.weakened`, 0.6.
+
+The band starves while at least one of its members is hungry, and
+thirsts while one is thirsty; see [States](#states). Before game
+7d5ec243 hunger and thirst were counted for the band as a whole: thirst
+began after a single day short and took 15% of the people a day, and a
+band that spent two days building a winter camp on a day of water lost
+four people the same night, every autumn.
 
 ___
 
@@ -458,13 +505,12 @@ independent and may hold together.
 
 | State        | Begins when                         | Does                            | Ends when                  |
 |--------------|-------------------------------------|---------------------------------|----------------------------|
-| `starvation` | food was short for 2 days running   | 5% of the people die every day  | a day's food is eaten in full |
-| `thirst`     | water was short for 1 day           | 15% of the people die every day | a day's water is drunk in full |
+| `starvation` | a member is hungry                  | nobody hungry conceives, see [Hunger and thirst](#hunger-and-thirst) | no member is hungry |
+| `thirst`     | a member is thirsty                 | nobody thirsty conceives        | no member is thirsty       |
 | `tiredness`  | fatigue reaches 0.8                 | nobody is born                  | fatigue falls to 0.3       |
 
-A day counts as short when less than 0.75 of the need was met. Deaths
-are whole people: the share is taken of the population and rounded up,
-so a state that holds always costs somebody.
+The members die of hunger and thirst by their own reserves, not by a
+share of the band.
 
 The beginning and the end of a state are events, and so is every death,
 with its cause.
@@ -529,7 +575,8 @@ units:
           tires: 1.3
           conceives: false
           votes: false
-          dies: {hunger: 2.0, thirst: 2.0, encounter: 3.0, frailty: 1.2, injury: 0.5}
+          dies: {encounter: 3.0, frailty: 1.2, injury: 0.5}
+          reserve: {food: 1.0, water: 1.0, grows: true}
         adult:
           until: {years: 17}
           gathers: 1.0
@@ -539,7 +586,8 @@ units:
           tires: 1.0
           conceives: true
           votes: true
-          dies: {hunger: 1.0, thirst: 1.0, encounter: 1.0, frailty: 0.05, injury: 1.0}
+          dies: {encounter: 1.0, frailty: 0.05, injury: 1.0}
+          reserve: {food: 2.0, water: 2.0}
         elder:
           gathers: 0.0
           carries: 0.5
@@ -548,7 +596,8 @@ units:
           tires: 1.3
           conceives: false
           votes: true
-          dies: {hunger: 1.5, thirst: 1.5, encounter: 2.0, frailty: 0.3, injury: 1.5}
+          dies: {encounter: 2.0, frailty: 0.3, injury: 1.5}
+          reserve: {food: 1.5, water: 1.5}
       age: {begins: {years: 17}, per_year: 0.15, doubles: {years: 2}}
       injury:
         per_day: 0.002
@@ -558,6 +607,7 @@ units:
           medium: {days: 15, pace: 0.6, gathers: 0.4}
           heavy: {days: 20, pace: 0.4, gathers: 0.2}
         drawn: {light: 0.5, medium: 0.3, heavy: 0.2}
+      weakened: {pace: 0.6, gathers: 0.6}
       birth:
         pregnancy: {months: 3}
         pause: {min: {months: 1}, max: {months: 2}}
@@ -586,9 +636,6 @@ units:
       slows: 0.5
     camp_parts: [evening, night]
     states:
-      short: 0.75
-      starvation: {after: {days: 2}, loss_per_day: 0.05}
-      thirst: {after: {days: 1}, loss_per_day: 0.15}
       tiredness: {begins: 0.8, ends: 0.3}
     sight: 2
     memory: {days: 20}
@@ -644,6 +691,7 @@ A game does not start from a band that does not add up.
 - A start biome exists and can be entered.
 - `tiredness.ends` is below `tiredness.begins`, and both lie in 0 to 1.
 - Every name of `camp_parts` is one of `time.day_parts`.
+- A reserve is above 0, and the last stage does not grow.
 - Every season of `winter_camp.offered` is one of `time.seasons`, and
   `winter_camp.build` is not zero.
 - A share, a chance and a loss lie between 0 and 1.

@@ -50,6 +50,10 @@ DIRECTIONS: dict[str, Place] = {
 }
 # The state a shortage brings and the cause of death it is, by the property a resource is gathered by.
 SHORTAGES: dict[str, tuple[str, str]] = {'food': (STARVATION, HUNGER), 'water': (THIRST, THIRST)}
+# The field of a member that keeps the days it went without, by the property.
+DEFICITS: dict[str, str] = {'food': 'hungry', 'water': 'thirsty'}
+# What is left of a reserve below this is nothing: the steps of a float are not a day.
+NOTHING = 1e-9
 STATES = (STARVATION, THIRST, TIREDNESS)
 COLUMNS = ('id', 'x', 'y', 'state', 'action', 'people', 'food', 'water')
 
@@ -84,6 +88,9 @@ class Member:
     # The severity of a wound and the days of healing it still needs.
     wound: dict[str, Any] | None = None
     player: bool = False
+    # The days of food and of water gone without since the last full ration.
+    hungry: float = 0.0
+    thirsty: float = 0.0
 
     @classmethod
     def read(cls, plain: dict[str, Any]) -> Member:
@@ -126,7 +133,6 @@ class Band:
     known: dict[Place, dict[str, Any]] = field(default_factory=dict)
     progress: float = 0.0
     target: Place | None = None
-    short: dict[str, int] = field(default_factory=dict)
     reason: dict[str, Any] | None = None
     wander: dict[str, Any] | None = None
     dread: dict[Place, float] = field(default_factory=dict)
@@ -159,7 +165,6 @@ class Band:
             known=known,
             progress=plain['progress'],
             target=None if target is None else (target[0], target[1]),
-            short=dict(plain['short']),
             reason=plain['reason'],
             wander=plain['wander'],
             dread={(held['x'], held['y']): held['amount'] for held in plain['dread']},
@@ -205,7 +210,6 @@ class Band:
             'known': [{'x': x, 'y': y, **self.known[x, y]} for x, y in sorted(self.known)],
             'progress': self.progress,
             'target': None if self.target is None else list(self.target),
-            'short': dict(sorted(self.short.items())),
             'reason': self.reason,
             'wander': self.wander,
             'dread': [{'x': x, 'y': y, 'amount': self.dread[x, y]} for x, y in sorted(self.dread)],
@@ -324,6 +328,7 @@ def census(params: Params, band: Band) -> Census:
     limits = [(name, math.inf if stage.until is None else params.days(stage.until)) for name, stage in stages.items()]
     named = tuple(next(name for name, until in limits if member.age_days < until) for member in band.members)
     severities = people.injury.severities
+    weakened = people.weakened
     gatherers = eaters = carriers = pace = tires = 0.0
     voters = pregnant = 0
     counts = dict.fromkeys(stages, 0)
@@ -331,11 +336,14 @@ def census(params: Params, band: Band) -> Census:
     for member, name in zip(band.members, named, strict=True):
         stage = stages[name]
         wound = None if member.wound is None else member.wound['severity']
+        weak = any(wanting(params, member, name, prop) for prop in DEFICITS)
         counts[name] += 1
-        gatherers += stage.gathers * (1.0 if wound is None else severities[wound].gathers)
+        gatherers += (
+            stage.gathers * (1.0 if wound is None else severities[wound].gathers) * (weakened.gathers if weak else 1.0)
+        )
         eaters += stage.eats
         carriers += stage.carries
-        pace += stage.pace * (1.0 if wound is None else severities[wound].pace)
+        pace += stage.pace * (1.0 if wound is None else severities[wound].pace) * (weakened.pace if weak else 1.0)
         tires += stage.tires
         voters += stage.votes
         pregnant += member.pregnant_until is not None
@@ -348,6 +356,40 @@ def census(params: Params, band: Band) -> Census:
     )
     band.counted = id(params), counted
     return counted
+
+
+def reserve(params: Params, name: str, age_days: int, prop: str) -> float:
+    """
+    The days of food or of water a member of a stage at an age lives on once it ate and drank in full: its
+    stage's, or in a stage that grows, nearing the next stage's over the span of the stage.
+    """
+    stages = params.units.band.people.stages
+    stage = stages[name]
+    own: float = getattr(stage.reserve, prop)
+    if not stage.reserve.grows or stage.until is None:
+        return own
+    names = list(stages)
+    at = names.index(name)
+    before = stages[names[at - 1]].until if at else None
+    begins = 0 if before is None else params.days(before)
+    span = max(params.days(stage.until) - begins, 1)
+    following: float = getattr(stages[names[at + 1]].reserve, prop)
+    return own + (following - own) * min(max((age_days - begins) / span, 0.0), 1.0)
+
+
+def left(params: Params, member: Member, name: str, prop: str) -> float:
+    """
+    The days of a reserve a member of a stage still has.
+    """
+    gone: float = getattr(member, DEFICITS[prop])
+    return reserve(params, name, member.age_days, prop) - gone
+
+
+def wanting(params: Params, member: Member, name: str, prop: str) -> bool:
+    """
+    Whether a member is hungry, or thirsty: it went short and a day or less of the reserve is left.
+    """
+    return getattr(member, DEFICITS[prop]) > NOTHING and left(params, member, name, prop) <= 1.0 + NOTHING
 
 
 def voters(params: Params, band: Band) -> int:
@@ -696,52 +738,76 @@ def spoil(params: Params, band: Band, day: int) -> None:
 
 def eat(params: Params, band: Band) -> dict[str, float]:
     """
-    The people eat and drink for a day, the oldest lots first; gives the share of each need that was met.
+    The people eat and drink for a day, the oldest lots first. What there is goes first to whoever has the
+    least of that reserve left, children first on a tie; a full ration fills the reserve again, a part of it
+    spends what was missing. Gives the share of each need that was met.
     """
+    rules = params.units.band
+    stages = rules.people.stages
+    named = census(params, band).stages
+    order = {name: at for at, name in enumerate(stages)}
+    eating = appetite(params, band)
+    shares: dict[str, list[float]] = {}
     met: dict[str, float] = {}
-    eaters = census(params, band).eaters * appetite(params, band)
-    for name, rate in params.units.band.consumption_per_day.items():
-        need = left = eaters * rate
+    for name, rate in rules.consumption_per_day.items():
+        prop = params.resources[name].property
+        rations = [stages[stage].eats * rate * eating for stage in named]
+        need = missing = sum(rations)
         lots = band.stores.get(name, [])
         for lot in lots:
-            eaten = min(lot[1], left)
+            eaten = min(lot[1], missing)
             lot[1] -= eaten
-            left -= eaten
+            missing -= eaten
         band.stores[name] = [lot for lot in lots if lot[1] > 0]
-        met[name] = 1.0 if need <= 0 else (need - left) / need
+        met[name] = 1.0 if need <= 0 else (need - missing) / need
+        if prop not in DEFICITS:
+            continue
+        given = need - missing
+        got = [1.0] * len(named)
+        first = sorted(
+            range(len(named)),
+            key=lambda at: (left(params, band.members[at], named[at], prop), order[named[at]], at),
+        )
+        for at in first:
+            if rations[at] > 0:
+                taken = min(rations[at], given)
+                given -= taken
+                got[at] = taken / rations[at]
+        shares[prop] = [min(a, b) for a, b in zip(shares.get(prop, got), got, strict=True)]
+    for prop, got in shares.items():
+        for member, share in zip(band.members, got, strict=True):
+            gone = 0.0 if share >= 1.0 - NOTHING else getattr(member, DEFICITS[prop]) + 1.0 - share
+            setattr(member, DEFICITS[prop], round(gone, 9))
+    band.changed()
     return met
 
 
-def suffer(
-    params: Params, band: Band, met: dict[str, float], rng: np.random.Generator
-) -> tuple[list[str], list[str], list[tuple[str, int]]]:
+def suffer(params: Params, band: Band) -> tuple[list[str], list[str], list[tuple[str, int]]]:
     """
-    What a day of eating did: the states that began, those that ended, and the people lost by cause.
+    What a day of eating did: every member with nothing left of a reserve dies, but the player, and the band
+    starves or thirsts while one of its members does. Gives the states that began, those that ended, and the
+    people lost by cause.
     """
-    rules = params.units.band
-    per_day = params.time.parts_per_day
-    worst: dict[str, float] = {}
-    for name, share in met.items():
-        prop = params.resources[name].property
-        if prop in SHORTAGES:
-            worst[prop] = min(worst.get(prop, 1.0), share)
+    lost: list[tuple[str, int]] = []
+    for prop, (_, cause) in SHORTAGES.items():
+        named = census(params, band).stages
+        dead = [
+            at
+            for at, (member, name) in enumerate(zip(band.members, named, strict=True))
+            if not member.player and left(params, member, name, prop) <= NOTHING
+        ]
+        if dead:
+            lost.append((cause, bury(band, dead)))
     began: list[str] = []
     ended: list[str] = []
-    lost: list[tuple[str, int]] = []
-    for prop, share in worst.items():
-        state, cause = SHORTAGES[prop]
-        hardship = getattr(rules.states, state)
-        band.short[prop] = band.short.get(prop, 0) + 1 if share < rules.states.short else 0
-        if state in band.states and share >= 1.0:
+    named = census(params, band).stages
+    for prop, (state, _) in SHORTAGES.items():
+        now = any(wanting(params, member, name, prop) for member, name in zip(band.members, named, strict=True))
+        if now and state not in band.states:
+            began.extend(_begin(band, state))
+        elif not now and state in band.states:
             band.states.remove(state)
             ended.append(state)
-        elif state not in band.states and band.short[prop] * per_day >= max(params.parts(hardship.after), 1):
-            began.extend(_begin(band, state))
-        if state in band.states:
-            weights = vulnerable(params, band, cause)
-            dead = bury(band, _drawn(rng, weights, math.ceil(hardship.loss_per_day * sum(weights))))
-            if dead:
-                lost.append((cause, dead))
     return began, ended, lost
 
 
@@ -931,11 +997,15 @@ def _births(params: Params, band: Band, day: int, rng: np.random.Generator) -> t
 
 def _conceive(params: Params, band: Band, day: int, rng: np.random.Generator) -> None:
     """
-    Every woman of a stage that conceives, neither pregnant nor resting, may conceive while such a man lives.
+    Every woman of a stage that conceives, neither pregnant, resting, hungry nor thirsty, may conceive while such
+    a man lives.
     """
     people = params.units.band.people
     named = census(params, band).stages
-    able = [people.stages[name].conceives for name in named]
+    able = [
+        people.stages[name].conceives and not any(wanting(params, member, name, prop) for prop in DEFICITS)
+        for member, name in zip(band.members, named, strict=True)
+    ]
     if not any(member.sex == MALE and can for member, can in zip(band.members, able, strict=True)):
         return
     drawn = rng.random(len(band.members))

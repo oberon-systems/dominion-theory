@@ -22,7 +22,9 @@ units:
           tires: 1.3
           conceives: false
           votes: false
-          dies: {hunger: 2.0, thirst: 2.0, encounter: 3.0, frailty: 1.2, injury: 0.5}
+          dies: {encounter: 3.0, frailty: 1.2, injury: 0.5}
+          # A day at birth, nearing the adult's two over the childhood.
+          reserve: {food: 1.0, water: 1.0, grows: true}
         adult:
           until: {years: 17}
           gathers: 1.0
@@ -32,7 +34,8 @@ units:
           tires: 1.0
           conceives: true
           votes: true
-          dies: {hunger: 1.0, thirst: 1.0, encounter: 1.0, frailty: 0.05, injury: 1.0}
+          dies: {encounter: 1.0, frailty: 0.05, injury: 1.0}
+          reserve: {food: 2.0, water: 2.0}
         elder:
           gathers: 0.0
           carries: 0.5
@@ -41,7 +44,8 @@ units:
           tires: 1.3
           conceives: false
           votes: true
-          dies: {hunger: 1.5, thirst: 1.5, encounter: 2.0, frailty: 0.3, injury: 1.5}
+          dies: {encounter: 2.0, frailty: 0.3, injury: 1.5}
+          reserve: {food: 1.5, water: 1.5}
       age: {begins: {years: 17}, per_year: 0.15, doubles: {years: 2}}
       injury:
         per_day: 0.002
@@ -51,6 +55,7 @@ units:
           medium: {days: 15, pace: 0.6, gathers: 0.4}
           heavy: {days: 20, pace: 0.4, gathers: 0.2}
         drawn: {light: 0.5, medium: 0.3, heavy: 0.2}
+      weakened: {pace: 0.6, gathers: 0.6}
       birth:
         pregnancy: {months: 3}
         pause: {min: {months: 1}, max: {months: 2}}
@@ -75,9 +80,6 @@ units:
       slows: 0.5
     camp_parts: [evening, night]
     states:
-      short: 0.75
-      starvation: {after: {days: 2}, loss_per_day: 0.05}
-      thirst: {after: {days: 1}, loss_per_day: 0.15}
       tiredness: {begins: 0.8, ends: 0.3}
     sight: 2
     memory: {days: 20}

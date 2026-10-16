@@ -29,7 +29,7 @@ PLANET = {'planet.circumference_km': 4000, 'planet.window.width': 32, 'planet.wi
 SMALL = {**PLANET, **QUIET}
 # A voice that outweighs the band, so that the council always sits and is never settled.
 LOUD = {'council.voice.least': 20.0}
-DYING = {**PLANET, 'units.band.consumption_per_day.water': 100.0, 'units.band.states.thirst.loss_per_day': 0.9}
+DYING = {**PLANET, 'units.band.consumption_per_day.water': 100.0, 'units.band.people.stages.adult.reserve.water': 1.0}
 # Where the player sends the band from where it stands, silence for None.
 VOTED = ((0, -1), None, (1, 0))
 COUNTERS = (

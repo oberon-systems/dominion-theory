@@ -2,9 +2,10 @@
 
 #resource #food #stage2
 
-The food of a band: whatever can be picked, dug up or caught by hand. A
-band short of it for two days begins to starve. The rules are in
-[Band](../../units/band.md#stores).
+The food of a band: whatever can be picked, dug up or caught by hand. An
+adult who ate in full lives through a day without it, is hungry the
+second day and dies on the third; a child holds out less. The rules are
+in [Band](../../units/band.md#hunger-and-thirst).
 
 ___
 

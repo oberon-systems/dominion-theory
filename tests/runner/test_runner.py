@@ -37,7 +37,7 @@ QUIET = {
 }
 PLANET = {'planet.circumference_km': 4000, 'planet.window.width': 32, 'planet.window.height': 16}
 SMALL = {**PLANET, **QUIET}
-DYING = {**PLANET, 'units.band.consumption_per_day.water': 100.0, 'units.band.states.thirst.loss_per_day': 0.9}
+DYING = {**PLANET, 'units.band.consumption_per_day.water': 100.0, 'units.band.people.stages.adult.reserve.water': 1.0}
 DAY = 5
 KEPT = 4
 WAIT = 5

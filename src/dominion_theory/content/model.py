@@ -411,11 +411,20 @@ class Vulnerability(Node):
     How much a member of a stage dies or is hurt of each cause, against an adult's 1.
     """
 
-    hunger: Factor
-    thirst: Factor
     encounter: Factor
     frailty: Factor
     injury: Factor
+
+
+class Reserve(Node):
+    """
+    The days a member of a stage lives on without food and without water once it ate and drank in full; a stage
+    that grows nears the next stage's reserve over its span.
+    """
+
+    food: Positive
+    water: Positive
+    grows: bool = Field(default=False, strict=True)
 
 
 class LifeStage(Node):
@@ -435,6 +444,7 @@ class LifeStage(Node):
     conceives: bool = Field(strict=True)
     votes: bool = Field(strict=True)
     dies: Vulnerability
+    reserve: Reserve
 
 
 class Ageing(Node):
@@ -568,11 +578,21 @@ class Route(Node):
     thirst: Factor
 
 
+class Weakened(Node):
+    """
+    The share of pace and gathering a hungry or thirsty member keeps.
+    """
+
+    pace: Annotated[float, Field(strict=True, gt=0, le=1)]
+    gathers: Share
+
+
 class People(Node):
     stages: dict[Name, LifeStage] = Field(min_length=1)
     age: Ageing
     injury: Injury
     birth: Birth
+    weakened: Weakened
 
 
 class Speed(Node):
@@ -605,11 +625,6 @@ class Roaming(Node):
     hunger: Share
 
 
-class Hardship(Node):
-    after: Duration
-    loss_per_day: Share
-
-
 class Tiredness(Node):
     begins: Share
     ends: Share
@@ -622,9 +637,6 @@ class Tiredness(Node):
 
 
 class States(Node):
-    short: Share
-    starvation: Hardship
-    thirst: Hardship
     tiredness: Tiredness
 
 
@@ -967,6 +979,8 @@ class Params(Node):
             if stage.settles is not None and (name == last or self.days(stage.settles) <= 0):
                 expected = 'a span above 0 on a stage before the last'
                 raise _invalid(f'{path}.stages.{name}.settles', stage.settles.model_dump(), expected)
+            if stage.reserve.grows and name == last:
+                raise _invalid(f'{path}.stages.{name}.reserve.grows', True, 'a stage before the last')
         if not any(stage.conceives for stage in people.stages.values()):
             raise _invalid(f'{path}.stages', names, 'a stage that conceives')
         start = self.units.band.start.stage

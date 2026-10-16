@@ -57,7 +57,7 @@ from .events import (
 from .hashing import digest
 from .streams import Streams
 
-SNAPSHOT_FORMAT = 14
+SNAPSHOT_FORMAT = 15
 DIED = 'died'
 BANISHED = 'banished'
 VOTED = 'voted'
@@ -753,7 +753,8 @@ class Game:
     def _day_ends(self, tick: _Tick, band: Band) -> None:
         people = self.streams['people']
         feeds = bands.fed(self.params, band)
-        began, ended, lost = bands.suffer(self.params, band, bands.eat(self.params, band), people)
+        bands.eat(self.params, band)
+        began, ended, lost = bands.suffer(self.params, band)
         self._states(tick, began, ended)
         for cause, count in lost:
             self._lost(tick, cause, count)

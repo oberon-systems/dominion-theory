@@ -50,11 +50,12 @@ def test_band_is_the_one_of_its_document() -> None:
         'slows': 0.5,
     }
     assert band.roaming.model_dump() == {'speed': 0.75, 'share': 0.5, 'hunger': 0.8}
-    assert (band.states.short, band.states.starvation.loss_per_day, band.states.thirst.loss_per_day) == (
-        0.75,
-        0.05,
-        0.15,
-    )
+    assert band.people.weakened.model_dump() == {'pace': 0.6, 'gathers': 0.6}
+    assert {name: stage.reserve.model_dump() for name, stage in band.people.stages.items()} == {
+        'child': {'food': 1.0, 'water': 1.0, 'grows': True},
+        'adult': {'food': 2.0, 'water': 2.0, 'grows': False},
+        'elder': {'food': 1.5, 'water': 1.5, 'grows': False},
+    }
     assert (band.states.tiredness.begins, band.states.tiredness.ends) == (0.8, 0.3)
     assert (band.sight, band.memory.model_dump()) == (2, {'days': 20})
     assert band.camp_parts == ('evening', 'night')
@@ -243,13 +244,17 @@ def test_wounds_are_drawn_from_severities_that_exist_by_some_weight(path: str) -
     assert refused({f'{path}.{name}': 0.0 for name in ('light', 'medium', 'heavy')})['path'] == path
 
 
+def test_the_last_stage_does_not_grow_its_reserve() -> None:
+    assert refused({f'{STAGES}.elder.reserve.grows': True})['path'] == f'{STAGES}.elder.reserve.grows'
+
+
 def test_tiredness_ends_below_where_it_begins() -> None:
     assert refused({f'{BAND}.states.tiredness.ends': 0.8})['path'] == f'{BAND}.states.tiredness'
 
 
 @pytest.mark.parametrize(
     'path',
-    [f'{BAND}.states.short', f'{BAND}.states.thirst.loss_per_day', 'encounters.chance', f'{BAND}.shelter.encounter'],
+    [f'{BAND}.people.weakened.gathers', 'encounters.chance', f'{BAND}.shelter.encounter'],
 )
 def test_share_lies_between_nothing_and_one(path: str) -> None:
     assert refused({path: 1.5})['path'] == path

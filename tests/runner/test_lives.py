@@ -44,6 +44,7 @@ def test_a_year_counts_every_tick_once_and_every_person_born_or_lost() -> None:
     assert (life.outcome, life.start) == (lives.ALIVE, 15)
     assert year['moves'] + year['roams'] + year['gathers'] + year['camps'] == life.tick
     assert year['growth'] == year['people'] - life.start == year['born'] - year['deaths']
+    assert year['child'] == year['born'] - year['grown'] - year['child-deaths']
     assert life.growth == pytest.approx(year['people'] / life.start - 1)
     assert year['known'] > 0
     assert year['snapshot'] > 0

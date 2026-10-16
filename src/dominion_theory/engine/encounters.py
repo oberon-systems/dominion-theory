@@ -5,7 +5,7 @@ Chance encounters: what the land does to a band, as docs/game/01_bands.md states
 import numpy as np
 
 from ..content import Encounter, Params
-from .band import GATHER, Action
+from .band import CAMP, GATHER, Action
 
 DRAWS = 3
 
@@ -32,9 +32,9 @@ def strike(
     rng: np.random.Generator,
 ) -> tuple[str, float, float] | None:
     """
-    The encounter of a tick, if any: its kind, the share of the people it takes and the share it injures.
-    Three numbers are drawn in every tick whatever comes of them, so the stream never depends on what
-    happened before.
+    The encounter of a tick, if any: its kind, the share of the people it takes, smaller for a band in camp, and
+    the share it injures. Three numbers are drawn in every tick whatever comes of them, so the stream never
+    depends on what happened before.
     """
     happens, which, share = (float(drawn) for drawn in rng.random(DRAWS))
     rules = params.encounters
@@ -51,4 +51,6 @@ def strike(
             name = candidate
             break
     loss, injured = kinds[name].loss, kinds[name].injured
-    return name, loss.min + share * (loss.max - loss.min), injured.min + share * (injured.max - injured.min)
+    sheltered = params.units.band.shelter.encounter if action['kind'] == CAMP else 1.0
+    taken = (loss.min + share * (loss.max - loss.min)) * sheltered
+    return name, taken, injured.min + share * (injured.max - injured.min)

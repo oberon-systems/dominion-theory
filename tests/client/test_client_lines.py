@@ -44,8 +44,7 @@ SAMPLES: dict[str, dict[str, Any]] = {
     'council-abstained': {'status': 48.0},
     'proposal-worked': {'proposal': 'proposal-stay-and-gather', 'status': 53.0},
     'proposal-even': {'proposal': 'proposal-stay-and-gather', 'status': 53.0},
-    'proposal-failed': {'proposal': 'proposal-go-unknown', 'lost': 0, 'status': 44.0},
-    'proposal-disaster': {'proposal': 'proposal-go', 'lost': 4, 'status': 24.0},
+    'proposal-failed': {'proposal': 'proposal-go-unknown', 'status': 44.0},
     'intent-ended': {'proposal': 'proposal-go-hills'},
     'intent-arrived': {},
     'seat-blamed': {'lost': 3, 'status': 35.0},
@@ -67,18 +66,17 @@ def test_a_line_is_the_date_and_the_words_of_the_events_in_order() -> None:
     update = {'seq': 100, 'date': DATE, 'events': [MONTH, SEASON]}
 
     assert line(update, 'en') == (
-        'morning, day 1, month 3, year 1, summer: '
-        'Month 3 of year 1 begins; the season is summer. Year 1: summer has come.'
+        'day 1, month 3, year 1, summer: ' 'Month 3 of year 1 begins; the season is summer. Year 1: summer has come.'
     )
     assert line(update, 'ru') == (
-        'утро, день 1, месяц 3, год 1, лето: ' 'Начался месяц 3 года 1; время года — лето. Год 1: наступило лето.'
+        'день 1, месяц 3, год 1, лето: ' 'Начался месяц 3 года 1; время года — лето. Год 1: наступило лето.'
     )
 
 
 def test_a_line_without_events_is_the_date_alone() -> None:
     update = {'seq': 101, 'date': {**DATE, 'part': 'midday'}, 'events': []}
 
-    assert line(update, 'en') == 'midday, day 1, month 3, year 1, summer'
+    assert line(update, 'en') == 'day 1, month 3, year 1, summer'
 
 
 @pytest.mark.parametrize(
@@ -116,6 +114,16 @@ def test_a_line_without_events_is_the_date_alone() -> None:
             'ru',
             '15 человек, раненых 2, подножный корм 22,5, вода 30, стоит лагерем.',
         ),
+        (
+            {**BAND, 'injured': 3, 'wounds': {'light': 2, 'medium': 0, 'heavy': 1}},
+            'ru',
+            '15 человек, раненых 3 (тяжело 1), подножный корм 22,5, вода 30, стоит лагерем.',
+        ),
+        (
+            {**BAND, 'injured': 3, 'wounds': {'light': 2, 'medium': 0, 'heavy': 1}},
+            'en',
+            '15 people, 3 injured (1 badly), forage 22.5, water 30, camps.',
+        ),
     ],
 )
 def test_the_band_is_its_people_stores_states_and_action(band: dict[str, object], lang: str, said: str) -> None:
@@ -127,16 +135,14 @@ def test_a_line_carries_the_band_and_the_status_when_it_moved() -> None:
     still = {'seq': 8, 'date': DATE, 'events': [], 'changes': {'seat': {'council': None}}}
 
     assert line(moved, 'en', BAND) == (
-        'morning, day 1, month 3, year 1, summer: '
+        'day 1, month 3, year 1, summer: '
         '15 people, forage 22.5, water 30, camps. Your standing is 52. Year 1: summer has come.'
     )
     assert line(moved, 'ru', BAND) == (
-        'утро, день 1, месяц 3, год 1, лето: '
+        'день 1, месяц 3, год 1, лето: '
         '15 человек, подножный корм 22,5, вода 30, стоит лагерем. Ваш вес 52. Год 1: наступило лето.'
     )
-    assert line(still, 'en', BAND) == (
-        'morning, day 1, month 3, year 1, summer: 15 people, forage 22.5, water 30, camps.'
-    )
+    assert line(still, 'en', BAND) == ('day 1, month 3, year 1, summer: 15 people, forage 22.5, water 30, camps.')
 
 
 def test_a_line_shows_the_table_of_a_council_that_sits() -> None:
@@ -149,10 +155,10 @@ def test_a_line_shows_the_table_of_a_council_that_sits() -> None:
     empty = {'seq': 9, 'date': DATE, 'events': [], 'changes': {'seat': {'council': {'leader': None, 'table': []}}}}
 
     assert line(opened, 'en') == (
-        'morning, day 1, month 3, year 1, summer: ' 'The votes: we stay and gather - 8; we go into the forest - 5.'
+        'day 1, month 3, year 1, summer: ' 'The votes: we stay and gather - 8; we go into the forest - 5.'
     )
     assert line(opened, 'ru').endswith('Голоса: остаёмся собирать - 8; идём в лес - 5.')
-    assert line(empty, 'en') == 'morning, day 1, month 3, year 1, summer'
+    assert line(empty, 'en') == 'day 1, month 3, year 1, summer'
 
 
 def test_the_band_follows_the_changes_and_leaves_when_gone() -> None:

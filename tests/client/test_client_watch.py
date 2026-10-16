@@ -52,7 +52,7 @@ def test_the_stream_is_joined_after_the_snapshot_and_every_update_is_a_line() ->
     lines = list(watch(api, 'alpha', 'en'))
 
     assert api.joined == [3]
-    assert lines == ['midday, day 1, month 1, year 1, spring'] * 2
+    assert lines == ['day 1, month 1, year 1, spring'] * 2
     assert api.sent == []
 
 
@@ -118,7 +118,7 @@ def test_the_band_of_the_snapshot_is_followed_through_the_updates() -> None:
     lines = list(watch(api, 'alpha', 'en'))
 
     assert lines == [
-        'midday, day 1, month 1, year 1, spring: 15 people, water 15, camps.',
-        'midday, day 1, month 1, year 1, spring: 15 people, water 15, walks west.',
-        'midday, day 1, month 1, year 1, spring',
+        'day 1, month 1, year 1, spring: 15 people, water 15, camps.',
+        'day 1, month 1, year 1, spring: 15 people, water 15, walks west.',
+        'day 1, month 1, year 1, spring',
     ]

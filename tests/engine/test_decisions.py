@@ -17,7 +17,7 @@ HOME = (100, 50)
 FOREST = {'biome': 'forest', 'river': False, 'water': 0.6, 'food': 0.9, 'threat': 0.4, 'passability': 0.6, 'seen': 0}
 STRIPPED = {**FOREST, 'food': 0.09}
 SEA = {'biome': 'water', 'river': False, 'water': 1.0, 'food': 0.3, 'threat': 0.2, 'passability': 0.0, 'seen': 0}
-SHALLOWS = {**SEA, 'biome': 'shallows', 'food': 0.5, 'threat': 0.6, 'passability': 0.3}
+SHALLOWS = {**SEA, 'biome': 'shallows', 'food': 0.5, 'threat': 0.6, 'passability': 0.0}
 GRASS = {'biome': 'grass', 'river': False, 'water': 0.28, 'food': 0.8, 'threat': 0.1, 'passability': 1.0, 'seen': 0}
 EAST = (HOME[0] + 1, HOME[1])
 
@@ -74,8 +74,8 @@ def test_dread_raises_the_threat_seen_and_unease_sharpens_the_fear_of_it(params:
     wanted = decisions.needs(params, band)
     fear = 2.0 * decisions.calm(wanted) * 0.7
 
-    assert decisions.seen(band, HOME) == {**FOREST, 'threat': pytest.approx(0.7)}
-    assert decisions.here(params, band, wanted) == pytest.approx(
+    assert decisions.seen(params, band, HOME, ERA) == {**FOREST, 'threat': pytest.approx(0.7)}
+    assert decisions.here(params, band, wanted, ERA) == pytest.approx(
         decisions.worth(params, {**FOREST, 'threat': 0.7}, wanted)[0] - 0.2 * fear
     )
 
@@ -239,15 +239,25 @@ def test_a_cell_gives_only_what_its_biome_lists(params: Params) -> None:
     assert set(scores(params, band)) == {'camp', 'water'}
 
 
-def test_water_is_no_way_and_a_shore_only_beside_known_land(params: Params) -> None:
-    east, further, north = (HOME[0] + 1, HOME[1]), (HOME[0] + 2, HOME[1]), (HOME[0], HOME[1] - 1)
-    band = held({HOME: FOREST, east: SHALLOWS, further: SHALLOWS, north: SEA}, forage=0.0, water=0.0)
+def test_water_and_shallows_are_no_way_and_a_band_beside_the_shallows_gathers_from_them(params: Params) -> None:
+    east, north = (HOME[0] + 1, HOME[1]), (HOME[0], HOME[1] - 1)
+    band = held({HOME: FOREST, east: SHALLOWS, north: SEA}, forage=0.0, water=0.0)
+    inland = held({HOME: FOREST}, forage=0.0, water=0.0)
 
-    assert decisions.reachable(params, band, east, ERA)
-    assert not decisions.reachable(params, band, further, ERA)
-    assert not decisions.reachable(params, band, north, ERA)
-    assert not decisions.reachable(params, band, (HOME[0] - 1, HOME[1]), ERA)
-    assert set(scores(params, band)) == {'camp', 'forage', 'water', 'roam-east'}
+    assert not any(decisions.reachable(band, at) for at in (east, north, (HOME[0] - 1, HOME[1])))
+    assert set(scores(params, band)) == {'camp', 'forage', 'water'}
+    assert decisions.seen(params, band, HOME, ERA) == {**FOREST, 'water': 1.0}
+    assert scores(params, band)['water'] > scores(params, inland)['water']
+    assert scores(params, band)['forage'] == scores(params, inland)['forage']
+
+
+def test_a_cell_by_the_shallows_lists_what_they_give(params: Params) -> None:
+    east = (HOME[0] + 1, HOME[1])
+    band = held({HOME: {**FOREST, 'biome': 'snow'}, east: SHALLOWS}, forage=0.0, water=0.0)
+
+    assert decisions.gathers(params, band, HOME, ERA) == {'water', 'forage'}
+    assert decisions.seen(params, band, HOME, ERA) == {**FOREST, 'biome': 'snow', 'water': 1.0}
+    assert set(scores(params, band)) == {'camp', 'forage', 'water'}
 
 
 def test_a_tie_goes_to_the_first_in_the_order_and_a_way_in_progress_is_kept(params: Params) -> None:

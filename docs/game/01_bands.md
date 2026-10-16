@@ -85,6 +85,9 @@ east, south-east, south, south-west, west, north-west.
 - **The cost is the passability of the target** and the size of the band,
   as [Band](../units/band.md#speed) states. A band of 15 enters grass in
   a tick, a forest in two, a swamp or a mountain in three.
+- **The way is kept overnight.** The camp of the evening and the night
+  keeps the progress into the next cell, so a cell that takes longer than
+  one day to cross is entered on the next. A gather loses it.
 - **A river slows the crossing** and never stops it. The bed of a great
   river is water and is not crossed.
 
@@ -95,14 +98,25 @@ ___
 
 ## The shore
 
-Deep water is never entered. Shallows are, but only at the very shore: a
-cell of a biome marked `shore` can be entered when it touches a cell of
-land, by a side or a corner.
+A band never enters water, deep or shallow: a cell is entered when its
+passability is above 0, and the shallows have 0 in the band era. Boats,
+a skill or the tribe era may open them later, by data alone.
 
-A band standing in the shallows gathers there like anywhere else: the
-water is plenty and the food is good. The price is the threat, which is
-high, and the encounters of the place: somebody drowns, or something in
-the water takes a person.
+A band gathers from the shallows from the land beside them. A biome
+marked `shore` is a source for a band on any cell next to it, by a side
+or a corner: gathering takes a resource from the cell itself or from the
+shore beside it that lists the resource, whichever gives more of it, and
+lowers the stock of that cell. A tie goes to the band's own cell, then
+to the shores clockwise from the north. Roaming still takes from the
+cell ahead only.
+
+The band sees a cell by the shore as that good: every property a
+resource of a known shore beside it feeds is the larger of the two,
+while the threat and the passability stay the cell's own. The decision
+function, the pull of the land, routes, the table of the council and
+the verdict all read the cell so. In winter the shallows keep their
+food and water while grass loses most of both, so a band winters well
+on a coast.
 
 ```yaml
 biomes:
@@ -114,7 +128,7 @@ biomes:
           water: {base: 1.0}
           food: {base: 0.5, recovery: {days: 20}}
           threat: {base: 0.6}
-          passability: {base: 0.3}
+          passability: {base: 0.0}
         resources: [water, forage]
 ```
 
@@ -142,8 +156,12 @@ When an encounter happens, its kind is drawn by weight among the kinds
 that fit the biome and the action. A kind takes a share of the people,
 drawn between its two bounds, and may injure a share of those left,
 drawn with the same number. The share is taken of the people weighed by
-how exposed their stage is, so children and elders die first; see
-[Deaths](../units/band.md#deaths). An encounter that killed or injured
+how exposed their stage and age are, so the youngest children and the
+elders die first; see
+[Deaths](../units/band.md#deaths). A band in camp loses half the share
+it would, and the wounded get a severity, heavier from an accident; see
+[Shelter](../units/band.md#shelter) and
+[Injuries](../units/band.md#injuries). An encounter that killed or injured
 somebody leaves the band dreading its cell; see
 [Dread](decisions.md#dread).
 
@@ -151,7 +169,7 @@ somebody leaves the band dreading its cell; see
 |-------------|-----------------------|----------|--------|--------------|-----------|
 | `predator`  | anywhere              | any      | 3      | 0 to 10%     | 0 to 10%  |
 | `accident`  | mountain, hills, outcrops, ice | `move`, `roam` | 2 | 0 to 10% | 5 to 15% |
-| `drowning`  | shallows, river cells | `move`, `roam`, `gather` | 3 | 5 to 15% | none |
+| `drowning`  | river cells; shallows once entered | `move`, `roam`, `gather` | 3 | 5 to 15% | none |
 | `poisoning` | swamp, marsh          | `gather` | 4      | 0 to 20%     | none      |
 
 A share that rounds to nobody is a scare: the event is reported and no
@@ -168,6 +186,7 @@ encounters:
       weight: 2
       loss: {min: 0.0, max: 0.1}
       injured: {min: 0.05, max: 0.15}
+      wounds: {light: 0.2, medium: 0.4, heavy: 0.4}
       biomes: [mountain, hills, outcrops, ice]
       actions: [move, roam]
     drowning:
@@ -228,8 +247,10 @@ What stage 2 puts into the phases of
    go has arrived.
 5. **World** - cells recover; on the first tick of a day stores spoil;
    an encounter is drawn; on the last tick of a day people eat, states
-   begin and end, and the members age, die, are hurt, give birth and
-   conceive, in the order of [Deaths](../units/band.md#deaths).
+   begin and end, and the members age, die, heal, are hurt, give birth
+   and conceive, in the order of [Deaths](../units/band.md#deaths). The
+   share of the active parts the band camped heals faster and shelters
+   from frailty.
 6. **Calendar** - as before; when the new part of the day is
    `council.part` and an occasion calls it, the intent ends and is
    judged, and the council sits down with its table. With an empty seat
@@ -274,6 +295,7 @@ of them. Both views of the API show the same for now.
       "ages": {"child": 3, "adult": 10, "elder": 2},
       "pregnant": 1,
       "injured": 0,
+      "wounds": {"light": 0, "medium": 0, "heavy": 0},
       "stores": {"water": 30.0, "forage": 22.5},
       "fatigue": 0.3,
       "states": [],
@@ -287,7 +309,7 @@ of them. Both views of the API show the same for now.
 ```
 
 `ages` counts the members by stage, `pregnant` and `injured` the
-members who are; the members themselves stay in the state of the game.
+members who are, `wounds` the injured by severity; the members themselves stay in the state of the game.
 `route` is the cells still ahead to the place of a go, empty when the
 band is not on its way.
 `council` is the table of the council of the day while it sits; see
@@ -307,5 +329,9 @@ ___
   size of the window in stage 3.
 - **Night marches** - a band never walks in the evening or the night.
   A flight from danger in the dark would need an exception to that.
+- **Open water** - the biome `water` lists water but is no shore, so a
+  band by a lake or the sea drinks only where the shallows lie between.
+- **Shore encounters** - a band gathering from the shallows beside it
+  meets the encounters of its own cell, not drowning.
 - **Encounters that give** - every kind takes. Finding a carcass or a
   spring would be the same block of data with a gain in place of a loss.

@@ -49,19 +49,7 @@ council-outvoted = Совет не согласился: { $proposal }; реши
 council-abstained = Вы промолчали на совете. Ваш вес теперь { NUMBER($status, maximumFractionDigits: 1) }.
 proposal-worked = Всё вышло хорошо: { $proposal }. Ваш вес теперь { NUMBER($status, maximumFractionDigits: 1) }.
 proposal-even = Ни хорошо, ни плохо: { $proposal }. Ваш вес остаётся { NUMBER($status, maximumFractionDigits: 1) }.
-proposal-failed =
-    { $lost ->
-        [0] Вышло плохо: { $proposal }. Ваш вес теперь { NUMBER($status, maximumFractionDigits: 1) }.
-        [one] Вышло плохо: { $proposal }; погиб { $lost } человек. Ваш вес теперь { NUMBER($status, maximumFractionDigits: 1) }.
-        [few] Вышло плохо: { $proposal }; погибли { $lost } человека. Ваш вес теперь { NUMBER($status, maximumFractionDigits: 1) }.
-       *[many] Вышло плохо: { $proposal }; погибло { $lost } человек. Ваш вес теперь { NUMBER($status, maximumFractionDigits: 1) }.
-    }
-proposal-disaster =
-    { $lost ->
-        [one] Беда: { $proposal }; погиб { $lost } человек. Ваш вес теперь { NUMBER($status, maximumFractionDigits: 1) }.
-        [few] Беда: { $proposal }; погибли { $lost } человека. Ваш вес теперь { NUMBER($status, maximumFractionDigits: 1) }.
-       *[many] Беда: { $proposal }; погибло { $lost } человек. Ваш вес теперь { NUMBER($status, maximumFractionDigits: 1) }.
-    }
+proposal-failed = Вышло плохо: { $proposal }. Ваш вес теперь { NUMBER($status, maximumFractionDigits: 1) }.
 intent-ended = Пути нет, община отступилась: { $proposal }.
 intent-arrived = Община пришла туда, куда шла.
 seat-blamed =

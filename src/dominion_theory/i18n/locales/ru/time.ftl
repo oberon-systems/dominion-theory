@@ -13,7 +13,7 @@ time-season-autumn = осень
 time-season-winter = зима
     .gender = feminine
 
-time-date = { NAME("time-part", $part) }, день { $day }, месяц { $month }, год { $year }, { NAME("time-season", $season) }
+time-date = день { $day }, месяц { $month }, год { $year }, { NAME("time-season", $season) }
 
 day-started = Начался день { $day } месяца { $month }, год { $year }.
 month-started = Начался месяц { $month } года { $year }; время года — { NAME("time-season", $season) }.

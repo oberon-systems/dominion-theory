@@ -25,14 +25,14 @@ def test_value_that_is_a_key_is_rendered_in_place() -> None:
 
 
 def test_date_is_rendered_through_its_own_message() -> None:
-    assert render('time-date', DATE, 'en') == 'evening, day 3, month 7, year 1, autumn'
-    assert render('time-date', DATE, 'ru') == 'вечер, день 3, месяц 7, год 1, осень'
+    assert render('time-date', DATE, 'en') == 'day 3, month 7, year 1, autumn'
+    assert render('time-date', DATE, 'ru') == 'день 3, месяц 7, год 1, осень'
 
 
 def test_date_as_a_value_is_put_in_place() -> None:
     words = render('error-game-not-found', {'id': DATE}, 'en')
 
-    assert words == 'There is no game evening, day 3, month 7, year 1, autumn.'
+    assert words == 'There is no game day 3, month 7, year 1, autumn.'
 
 
 def test_identifier_becomes_a_name() -> None:

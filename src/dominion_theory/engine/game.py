@@ -38,7 +38,6 @@ from .events import (
     PEOPLE_BORN,
     PEOPLE_INJURED,
     PEOPLE_LOST,
-    PROPOSAL_DISASTER,
     PROPOSAL_EVEN,
     PROPOSAL_FAILED,
     PROPOSAL_WORKED,
@@ -57,7 +56,7 @@ from .events import (
 from .hashing import digest
 from .streams import Streams
 
-SNAPSHOT_FORMAT = 11
+SNAPSHOT_FORMAT = 13
 DIED = 'died'
 BANISHED = 'banished'
 VOTED = 'voted'
@@ -70,7 +69,6 @@ VERDICTS = {
     council.WORKED: PROPOSAL_WORKED,
     council.EVEN: PROPOSAL_EVEN,
     council.FAILED: PROPOSAL_FAILED,
-    council.DISASTER: PROPOSAL_DISASTER,
 }
 
 # The order is part of the rules: docs/architecture/overview.md, One tick.
@@ -582,12 +580,10 @@ class Game:
             self.judgement = {
                 'proposal': answer,
                 'key': said,
-                'population': band.population,
                 'needs': decisions.needs(self.params, band),
                 'expected': council.expected(self.params, band, self.era, self.inside, sitting['leader']),
-                'before': council.reached(self.params, band, decisions.needs(self.params, band), band.unease),
+                'before': council.reached(self.params, band, self.era, decisions.needs(self.params, band), band.unease),
                 'unease': band.unease,
-                'lost': {},
             }
 
     @staticmethod
@@ -631,7 +627,7 @@ class Game:
         if [band.x, band.y] in cells:
             cells = cells[cells.index([band.x, band.y]) + 1 :]
         ahead = None if not cells else (cells[0][0], cells[0][1])
-        if ahead is None or not decisions.reachable(self.params, band, ahead, self.era):
+        if ahead is None or not decisions.reachable(band, ahead):
             laid = self._way(band, to)
             if laid is None:
                 return None
@@ -645,6 +641,8 @@ class Game:
             return
         done = bands.act(self, band, tick.action, self.day)
         self._totals[f'{done["kind"]}s'] += 1
+        if done['kind'] == bands.CAMP and self.date.part not in self.params.units.band.camp_parts:
+            band.camped += 1
         proposal = None if band.intent is None else band.intent['proposal']
         if proposal is not None and proposal['kind'] == GO and band.place == council.target(proposal):
             band.intent = band.route = None
@@ -675,17 +673,14 @@ class Game:
 
     def _lost(self, tick: _Tick, cause: str, count: int) -> None:
         """
-        People who died: of a cause the council is blamed for, counted against a judgement, and against the
-        player who voted or kept silent on the day.
+        People who died: of a cause the council is blamed for, against the player who voted or kept silent on
+        the day.
         """
         self._totals['deaths'] += count
         tick.events.append(Event(PEOPLE_LOST, {'count': count, 'cause': cause}))
         if cause not in self.params.council.blamed:
             return
         self.since[council.DEATH] += count
-        if self.judgement is not None:
-            lost = self.judgement['lost']
-            lost[cause] = lost.get(cause, 0) + count
         if self.answered['today'] is not None and not self.banished:
             self._status(tick, self.params.council.status.death * count)
             tick.events.append(Event(SEAT_BLAMED, {'lost': count, 'status': self.status}))
@@ -695,13 +690,10 @@ class Game:
         self.judgement = None
         proposal = judgement['proposal']
         # The land reached is weighed with the unease of the day it was promised, as the promise was.
-        now = council.reached(self.params, band, judgement['needs'], judgement['unease'])
+        now = council.reached(self.params, band, self.era, judgement['needs'], judgement['unease'])
         found = council.verdict(self.params, judgement, now)
         self._status(tick, council.amount(self.params, proposal, found))
-        values: dict[str, Any] = {'proposal': judgement['key'], 'status': self.status}
-        if found in (council.FAILED, council.DISASTER):
-            values['lost'] = sum(judgement['lost'].values())
-        tick.events.append(Event(VERDICTS[found], values))
+        tick.events.append(Event(VERDICTS[found], {'proposal': judgement['key'], 'status': self.status}))
         self._banish(tick)
 
     def _status(self, tick: _Tick, amount: float) -> None:
@@ -722,7 +714,8 @@ class Game:
         if met is None:
             return
         kind, taken, hurt = met
-        lost, injured = bands.struck(self.params, band, taken, hurt, self.day, self.streams['people'])
+        wounds = self.params.encounters.kinds[kind].wounds
+        lost, injured = bands.struck(self.params, band, taken, hurt, wounds, self.streams['people'])
         if lost or injured:
             bands.frighten(self.params, band)
         self._totals['encounters'] += 1
@@ -740,7 +733,11 @@ class Game:
         for cause, count in lost:
             self._lost(tick, cause, count)
         threat = self.value(decisions.THREAT, band.x, band.y)
-        lived = bands.live(self.params, band, self.day, decisions.wellbeing(self.params, band, threat), feeds, people)
+        wellbeing = decisions.wellbeing(self.params, band, threat)
+        active = self.params.time.parts_per_day - len(self.params.units.band.camp_parts)
+        camped = min(band.camped / active, 1.0) if active > 0 else 1.0
+        band.camped = 0
+        lived = bands.live(self.params, band, self.day, wellbeing, feeds, camped, people)
         bands.unsettle(self.params, band, threat)
         for cause, count in lived.lost:
             self._lost(tick, cause, count)

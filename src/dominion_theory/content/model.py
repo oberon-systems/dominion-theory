@@ -197,6 +197,10 @@ class Property(Node):
 
 
 class BiomeEra(Node):
+    """
+    What a biome is in an era. A shore is gathered from by a band on a cell beside it.
+    """
+
     properties: dict[Name, Property]
     resources: tuple[Name, ...]
     shore: bool = Field(default=False, strict=True)
@@ -417,9 +421,12 @@ class Vulnerability(Node):
 class LifeStage(Node):
     """
     A stage of life up to an age; the last one lasts to the end. The factors weigh a member against an adult.
+    A stage that settles dies by its own weights at its start and nears the next stage's, halving the difference
+    every span of settles.
     """
 
     until: Duration | None = None
+    settles: Duration | None = None
     gathers: Factor
     carries: Factor
     eats: Factor
@@ -446,11 +453,35 @@ class Ageing(Node):
         return self
 
 
-class Injury(Node):
-    per_day: Share
-    lasts: Duration
-    gathers: Share
+class Severity(Node):
+    """
+    How long a wound of a severity lasts in days of healing, and the share of pace and gathering it leaves.
+    """
+
+    days: Count
     pace: Annotated[float, Field(strict=True, gt=0, le=1)]
+    gathers: Share
+
+
+class Injury(Node):
+    """
+    The daily chance of a member to be hurt, the severities a wound is drawn from and how much faster a day in
+    camp heals it.
+    """
+
+    per_day: Share
+    heal_in_camp: Annotated[float, Field(strict=True, ge=1, allow_inf_nan=False)]
+    severities: dict[Name, Severity] = Field(min_length=1)
+    drawn: dict[Name, Factor]
+
+
+class Shelter(Node):
+    """
+    The share of the deaths of an encounter and of frailty a band still meets in camp.
+    """
+
+    encounter: Share
+    frailty: Share
 
 
 class Pause(Node):
@@ -615,6 +646,7 @@ class Band(Node):
     dread: Dread
     unease: Unease
     route: Route
+    shelter: Shelter
 
 
 class Units(Node):
@@ -637,7 +669,6 @@ class Voice(Node):
 
 
 class Judgement(Node):
-    disaster: Share
     slack: Factor
 
 
@@ -647,11 +678,9 @@ class Status(Node):
     outvoted: Amount
     go_worked: Amount
     go_failed: Amount
-    go_disaster: Amount
     go_even: Amount
     stay_worked: Amount
     stay_failed: Amount
-    stay_disaster: Amount
     stay_even: Amount
     death: Amount
     birth: Amount
@@ -684,12 +713,14 @@ class Loss(Node):
 class Encounter(Node):
     """
     A kind of encounter. It fits a cell of one of its biomes, or one with a river when rivers is set;
-    with neither it fits anywhere. Actions and resources left empty fit any.
+    with neither it fits anywhere. Actions and resources left empty fit any; wounds left empty are drawn as
+    units.band.people.injury.drawn.
     """
 
     weight: Positive
     loss: Loss
     injured: Loss = Loss(min=0.0, max=0.0)
+    wounds: dict[Name, Factor] = {}
     biomes: tuple[Name, ...] = ()
     rivers: bool = Field(default=False, strict=True)
     actions: tuple[Name, ...] = ()
@@ -767,9 +798,6 @@ class Params(Node):
                 for resource in given.resources:
                     if resource not in self.resources:
                         raise _invalid(f'{path}.{era}.resources', resource, f'one of {", ".join(self.resources)}')
-                if given.shore and PASSABILITY in given.properties and given.properties[PASSABILITY].base == 0:
-                    below = f'{path}.{era}.properties.{PASSABILITY}.base'
-                    raise _invalid(below, 0.0, 'a shore that can be entered')
                 for prop, held in given.properties.items():
                     for season in held.seasons:
                         if season not in seasons:
@@ -893,6 +921,9 @@ class Params(Node):
                 if self.days(stage.until) <= until:
                     raise _invalid(f'{path}.stages.{name}.until', stage.until, 'an age above the stage before')
                 until = self.days(stage.until)
+            if stage.settles is not None and (name == last or self.days(stage.settles) <= 0):
+                expected = 'a span above 0 on a stage before the last'
+                raise _invalid(f'{path}.stages.{name}.settles', stage.settles.model_dump(), expected)
         if not any(stage.conceives for stage in people.stages.values()):
             raise _invalid(f'{path}.stages', names, 'a stage that conceives')
         start = self.units.band.start.stage
@@ -909,6 +940,15 @@ class Params(Node):
         pause = people.birth.pause
         if self.days(pause.min) > self.days(pause.max):
             raise _invalid(f'{path}.birth.pause', pause.model_dump(), 'min not above max')
+        self._check_wounds(f'{path}.injury.drawn', people.injury.drawn)
+
+    def _check_wounds(self, path: str, weights: dict[str, float]) -> None:
+        severities = self.units.band.people.injury.severities
+        for name in weights:
+            if name not in severities:
+                raise _invalid(path, name, f'one of {", ".join(severities)}')
+        if sum(weights.values()) <= 0:
+            raise _invalid(path, dict(weights), 'at least one weight above 0')
 
     def _check_council(self) -> None:
         if self.council.part not in self.time.day_parts:
@@ -927,6 +967,8 @@ class Params(Node):
                 for name in getattr(held, section):
                     if name not in names:
                         raise _invalid(f'encounters.kinds.{kind}.{section}', name, f'one of {", ".join(names)}')
+            if held.wounds:
+                self._check_wounds(f'encounters.kinds.{kind}.wounds', held.wounds)
 
     def parts(self, duration: Duration) -> int:
         """

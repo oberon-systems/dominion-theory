@@ -96,7 +96,7 @@ keeps them; each part of the rules declares its own.
 - **The world**: bands alive, people alive, born, died by cause, cells
   exhausted.
 - **The seat**: status, councils that sat, proposals turned, outvoted,
-  abstained, judged as worked, failed or disaster.
+  abstained, judged as worked, even or failed.
 
 The names of the counters are listed once, in the header, and every tick
 line carries the values in that order. A reader therefore needs no

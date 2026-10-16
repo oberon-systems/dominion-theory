@@ -34,17 +34,17 @@ LOUD = {**SIZE, 'council.voice.least': 20.0}
 SPOKEN = {
     'en': {
         4: (
-            'morning, day 2, month 1, year 1, spring: 15 people, forage 15, water 15, camps. '
+            'day 2, month 1, year 1, spring: 15 people, forage 15, water 15, camps. '
             'Command pass-4 was accepted. Day 2 of month 1, year 1, begins.'
         ),
         99: (
-            'morning, day 1, month 3, year 1, summer: 15 people, forage 0, water 0, camps. '
+            'day 1, month 3, year 1, summer: 15 people, forage 0, water 0, camps. '
             'Command pass-99 was accepted. '
             'Day 1 of month 3, year 1, begins. Month 3 of year 1 begins; the season is summer. '
             'Year 1: summer has come.'
         ),
         499: (
-            'morning, day 1, month 1, year 2, spring: 15 people, forage 0, water 0, camps. '
+            'day 1, month 1, year 2, spring: 15 people, forage 0, water 0, camps. '
             'Command pass-499 was accepted. '
             'Day 1 of month 1, year 2, begins. Month 1 of year 2 begins; the season is spring. '
             'Year 2: spring has come. Year 2 begins.'
@@ -52,17 +52,17 @@ SPOKEN = {
     },
     'ru': {
         4: (
-            'утро, день 2, месяц 1, год 1, весна: 15 человек, подножный корм 15, вода 15, стоит лагерем. '
+            'день 2, месяц 1, год 1, весна: 15 человек, подножный корм 15, вода 15, стоит лагерем. '
             'Команда pass-4 принята. Начался день 2 месяца 1, год 1.'
         ),
         99: (
-            'утро, день 1, месяц 3, год 1, лето: 15 человек, подножный корм 0, вода 0, стоит лагерем. '
+            'день 1, месяц 3, год 1, лето: 15 человек, подножный корм 0, вода 0, стоит лагерем. '
             'Команда pass-99 принята. '
             'Начался день 1 месяца 3, год 1. Начался месяц 3 года 1; время года — лето. '
             'Год 1: наступило лето.'
         ),
         499: (
-            'утро, день 1, месяц 1, год 2, весна: 15 человек, подножный корм 0, вода 0, стоит лагерем. '
+            'день 1, месяц 1, год 2, весна: 15 человек, подножный корм 0, вода 0, стоит лагерем. '
             'Команда pass-499 принята. '
             'Начался день 1 месяца 1, год 2. Начался месяц 1 года 2; время года — весна. '
             'Год 2: наступила весна. Начался год 2.'

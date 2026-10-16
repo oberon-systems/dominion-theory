@@ -7,6 +7,7 @@ encounters:
       weight: 2
       loss: {min: 0.0, max: 0.1}
       injured: {min: 0.05, max: 0.15}
+      wounds: {light: 0.2, medium: 0.4, heavy: 0.4}
       biomes: [mountain, hills, outcrops, ice]
       actions: [move, roam]
     drowning:

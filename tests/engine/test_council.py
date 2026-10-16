@@ -552,24 +552,20 @@ def test_a_point_the_others_did_not_name_is_weighed_by_them_and_wins_some(params
 
 
 @pytest.mark.parametrize(
-    ('proposal', 'lost', 'now', 'verdict'),
+    ('proposal', 'now', 'verdict'),
     [
-        (EAST, {}, 0.3, 'worked'),
-        (EAST, {}, 0.2, 'failed'),
-        (EAST, {}, 0.25, 'even'),
-        (STAY, {}, 0.28, 'even'),
-        (EAST, {'hunger': 1}, 0.9, 'failed'),
-        (EAST, {'encounter': 2, 'thirst': 1}, 0.9, 'disaster'),
-        (STAY, {}, 0.5, 'worked'),
-        (STAY, {}, 0.1, 'failed'),
-        (STAY, {'encounter': 1}, 2.0, 'failed'),
-        (STAY, {'encounter': 3}, 2.0, 'disaster'),
+        (EAST, 0.3, 'worked'),
+        (EAST, 0.2, 'failed'),
+        (EAST, 0.25, 'even'),
+        (STAY, 0.28, 'even'),
+        (STAY, 0.5, 'worked'),
+        (STAY, 0.1, 'failed'),
     ],
 )
-def test_the_verdicts_of_the_document(
-    params: Params, proposal: dict[str, Any], lost: dict[str, int], now: float, verdict: str
+def test_the_verdicts_of_the_document_judge_the_land_only(
+    params: Params, proposal: dict[str, Any], now: float, verdict: str
 ) -> None:
-    judgement = {'proposal': proposal, 'population': 15, 'expected': 0.3, 'before': 0.35, 'lost': lost}
+    judgement = {'proposal': proposal, 'expected': 0.3, 'before': 0.35}
 
     assert council.verdict(params, judgement, now) == verdict
 
@@ -579,10 +575,10 @@ def test_the_verdicts_of_the_document(
     [
         (EAST, 'worked', 4.0),
         (EAST, 'failed', -6.0),
-        (EAST, 'disaster', -20.0),
+        (EAST, 'even', 0.0),
         (STAY, 'worked', 3.0),
         (STAY, 'failed', -6.0),
-        (STAY, 'disaster', -20.0),
+        (STAY, 'even', 0.0),
     ],
 )
 def test_what_moves_status(params: Params, proposal: dict[str, Any], verdict: str, amount: float) -> None:
@@ -592,15 +588,15 @@ def test_what_moves_status(params: Params, proposal: dict[str, Any], verdict: st
 def test_the_worth_of_the_land_is_weighed_by_the_needs_given(params: Params) -> None:
     game = land(params, stripped=STRIPPED)
     hungry = {'hunger': 1.0, 'thirst': 0.0}
-    stripped = council.worth(params, band(game), hungry, 0.0)
+    stripped = council.worth(params, band(game), 'band', hungry, 0.0)
     band(game).x = WEST + 3
     bands.look(game, band(game), game.day)
 
-    assert council.worth(params, band(game), hungry, 0.0) > stripped
-    assert council.worth(params, band(game), {'hunger': 0.0, 'thirst': 0.0}, 0.0) < 0
+    assert council.worth(params, band(game), 'band', hungry, 0.0) > stripped
+    assert council.worth(params, band(game), 'band', {'hunger': 0.0, 'thirst': 0.0}, 0.0) < 0
 
 
-def test_staying_carried_fails_on_an_encounter_and_only_the_day_voted_for_is_blamed(params: Params) -> None:
+def test_a_death_under_a_judgement_is_paid_once_and_only_on_the_day_voted_for(params: Params) -> None:
     struck = load_params(
         overrides={
             **SMALL,
@@ -608,7 +604,7 @@ def test_staying_carried_fails_on_an_encounter_and_only_the_day_voted_for_is_bla
             'encounters.kinds.predator.loss.min': 0.05,
             'encounters.kinds.predator.loss.max': 0.05,
             'biomes.forest.eras.band.properties.threat.base': 1.0,
-            'council.judgement.disaster': 1.0,
+            'units.band.shelter.encounter': 1.0,
         }
     )
     game = land(struck, at=(WEST + 3, NORTH + 1))
@@ -617,11 +613,12 @@ def test_staying_carried_fails_on_an_encounter_and_only_the_day_voted_for_is_bla
     results = [vote(game, STAY), *steps(game, DAY - 1)]
     taken = sum(values['lost'] for key, values in said(results) if key == 'encounter')
     blamed = sum(values['lost'] for key, values in said(results) if key == 'seat-blamed')
-    verdict = ('proposal-failed', {'proposal': 'proposal-stay-and-gather', 'lost': taken, 'status': 29.0})
+    [(found, values)] = judged(results[-1])
+    paid = {'proposal-worked': 3.0, 'proposal-even': 0.0, 'proposal-failed': -6.0}[found]
 
     assert said(results)[1][0] == 'council-turned'
     assert (taken, blamed) == (4, 3)
-    assert judged(results[-1]) == [verdict]
+    assert values == {'proposal': 'proposal-stay-and-gather', 'status': 50.0 - 5.0 * blamed + paid}
 
 
 def test_status_rises_slowly_near_the_top_and_is_held_at_a_hundred(params: Params) -> None:

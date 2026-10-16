@@ -30,10 +30,14 @@ ___
 |---------------|------|----------|---------|
 | `water`       | 1.0  | none     | none    |
 | `food`        | 0.5  | 20 days  | none    |
-| `threat`      | 0.1  | none     | none    |
+| `threat`      | 0.6  | none     | none    |
 | `passability` | 0.0  | none     | none    |
 
-Resources: `water`. Colour: `#3D9BD6`.
+Resources: `water`, `forage`. Colour: `#3D9BD6`.
+
+Shallows are a `shore`: a band never enters them in this era, but it
+gathers their water and forage from any land cell beside them; see
+[The shore](../game/01_bands.md#the-shore).
 
 The map tool paints water darker the deeper it lies, so the shelf shows
 around every coast.

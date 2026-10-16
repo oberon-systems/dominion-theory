@@ -88,7 +88,9 @@ The properties are the values the band remembers, stock and season
 included; a new season brings the memory to that season, as
 [What a band knows](../units/band.md#what-a-band-knows) tells. The worth changes with the needs: to a thirsty band the river
 is worth more than the forest, and to a calm band the open grass is
-worth more than the forest with wolves in it.
+worth more than the forest with wolves in it. A cell beside a known
+shore takes the shore's food and water where they are more, since the
+band gathers from it; see [The shore](01_bands.md#the-shore).
 
 A cell that cannot be entered is worth nothing, and neither is a cell
 the band does not know, but for the unknown of [the pull](#scoring-the-actions).

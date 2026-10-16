@@ -80,8 +80,9 @@ part  = parts % 5 + 1               -> 5, night
 ```
 
 Months have no names of their own yet. A date is shown with the number of
-the month in the year and the season beside it: "evening, day 3, month 7,
-year 1, autumn".
+the month in the year and the season beside it: "day 3, month 7, year 1,
+autumn". The part of the day is left out: the player decides once a day,
+and a longer tick of a later era has no parts at all.
 
 ___
 

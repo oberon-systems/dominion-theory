@@ -56,9 +56,7 @@ UPDATES = [
     },
     {'seq': 5, 'date': DATE, 'events': [], 'changes': {}, 'waiting': []},
 ]
-SAID = (
-    'midday, day 1, month 1, year 1, spring: ' 'You turned the band: we go into the forest. 9 voices of 14 were for it.'
-)
+SAID = 'day 1, month 1, year 1, spring: ' 'You turned the band: we go into the forest. 9 voices of 14 were for it.'
 WITHIN = 200
 PAUSE_S = 0.02
 

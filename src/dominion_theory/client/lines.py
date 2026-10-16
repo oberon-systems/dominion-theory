@@ -19,6 +19,9 @@ PEOPLE = 'line-people'
 STAGE = 'line-stage-'
 CONDITIONS = ('pregnant', 'injured')
 CONDITION = 'line-'
+BADLY = 'line-injured-badly'
+WOUNDS = 'wounds'
+HEAVY = 'heavy'
 STORE = 'line-store'
 STATUS = 'line-status'
 COUNCIL = 'line-council'
@@ -59,6 +62,7 @@ TITLE = 'play-title-'
 PANES = ('band', 'cell', 'target', 'log', 'council')
 MESSAGES: tuple[str, ...] = (
     PEOPLE,
+    BADLY,
     STORE,
     STATUS,
     COUNCIL,
@@ -108,7 +112,6 @@ LOSSES = frozenset(
         'council-outvoted',
         'council-abstained',
         'proposal-failed',
-        'proposal-disaster',
         'seat-blamed',
         'seat-banished',
     }
@@ -186,11 +189,7 @@ def band_parts(band: Unit, lang: str) -> list[Part]:
     # A band of one stage says no more than its people.
     if len(ages) > 1:
         pieces += [Part(Look.BAND, render(f'{STAGE}{name}', {'count': count}, lang)) for name, count in ages.items()]
-    pieces += [
-        Part(Look.STATE, render(f'{CONDITION}{name}', {'count': band[name]}, lang))
-        for name in CONDITIONS
-        if band.get(name)
-    ]
+    pieces += [Part(Look.STATE, _condition(band, name, lang)) for name in CONDITIONS if band.get(name)]
     pieces += [
         Part(Look.BAND, render(STORE, {'resource': name, 'amount': amount}, lang))
         for name, amount in band['stores'].items()
@@ -198,6 +197,13 @@ def band_parts(band: Unit, lang: str) -> list[Part]:
     pieces += [Part(Look.STATE, render(f'{STATE}{state}', lang=lang)) for state in band['states']]
     pieces.append(Part(Look.BAND, render(f'{ACTION}{action["kind"]}', told, lang)))
     return [*_joined(pieces, ', '), Part(Look.PLAIN, '.')]
+
+
+def _condition(band: Unit, name: str, lang: str) -> str:
+    badly = band.get(WOUNDS, {}).get(HEAVY, 0) if name == 'injured' else 0
+    if badly:
+        return render(BADLY, {'count': band[name], 'badly': badly}, lang)
+    return render(f'{CONDITION}{name}', {'count': band[name]}, lang)
 
 
 def band_words(band: Unit, lang: str) -> str:

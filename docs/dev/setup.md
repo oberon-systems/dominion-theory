@@ -112,7 +112,8 @@ whether it is better, so the pictures are still looked at.
 
 The life of a band is kept the same way, in `tests/runner/lives.json`.
 Five seeds live ten years with no player, a row a year: people, births and
-deaths by cause, stores, actions, states, encounters, the cells the band
+deaths by cause, children who grew up (`grown`) and children who died
+(`child-deaths`), stores, actions, states, encounters, the cells the band
 remembers (`known`) and the size of the snapshot the store would keep, in
 KB (`snapshot`), with a hash of the state at the end of every year, so a
 band that walks another way to the same totals still moves the reference.
@@ -174,8 +175,8 @@ Expected output, one line per update:
 
 ```text
 game 7f3a9c1e
-midday, day 1, month 1, year 1, spring
-afternoon, day 1, month 1, year 1, spring
+day 1, month 1, year 1, spring
+day 1, month 1, year 1, spring
 ```
 
 Options go through `WATCH`, and `PORT` names the port of the server. The
@@ -266,8 +267,8 @@ places to the answers.
 Saying nothing costs standing.
 [Indirect control](../game/indirect_control.md) tells what each answer
 does to the band and to your standing. Every other tick is answered with
-`pass`, one each `--pace` seconds, so the band is seen to move between two
-councils.
+`pass` at once, so the days between two councils pass without a stop;
+`--pace` slows them down to watch the band walk.
 
 Options go through `PLAY`:
 
@@ -284,7 +285,7 @@ make play PLAY='--preset harsh-winter --updates 200'
 | `--preset`   | the preset of the game                                     |
 | `--set`      | overrides one parameter, as `PATH=VALUE`                   |
 | `--updates`  | stops after that many updates                              |
-| `--pace`     | seconds between two ticks on the screen, 0.2 by default    |
+| `--pace`     | seconds between two ticks on the screen, 0 by default      |
 | `--debug`    | adds the stocks of the cell and the band's reason          |
 | `--server`   | plays on that server instead; `make play` sets it          |
 | `--wait`     | seconds to wait for the server to answer, 0 by default     |

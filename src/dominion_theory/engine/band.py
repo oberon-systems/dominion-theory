@@ -25,6 +25,7 @@ HUNGER = 'hunger'
 ENCOUNTER = 'encounter'
 AGE = 'age'
 FRAILTY = 'frailty'
+INJURY = 'injury'
 BIRTH = 'birth'
 PASSABILITY = 'passability'
 FEMALE = 'female'
@@ -32,6 +33,7 @@ MALE = 'male'
 SEXES = (FEMALE, MALE)
 PREGNANT = 'pregnant'
 INJURED = 'injured'
+WOUNDS = 'wounds'
 
 # Clockwise from the north; y grows to the south.
 DIRECTIONS: dict[str, Place] = {
@@ -77,7 +79,8 @@ class Member:
     sex: str
     pregnant_until: int | None = None
     rest_until: int | None = None
-    injured_until: int | None = None
+    # The severity of a wound and the days of healing it still needs.
+    wound: dict[str, Any] | None = None
     player: bool = False
 
     @classmethod
@@ -104,6 +107,7 @@ class Census:
     voters: int
     pregnant: int
     injured: int
+    wounds: dict[str, int]
 
 
 @dataclass
@@ -127,6 +131,8 @@ class Band:
     unease: float = 0.0
     # The cells still ahead to the target of a go, and the day they were laid.
     route: dict[str, Any] | None = None
+    # The parts of today out of camp_parts in which the band camped.
+    camped: int = 0
     counted: tuple[int, Census] | None = field(default=None, init=False, repr=False, compare=False)
 
     @classmethod
@@ -155,6 +161,7 @@ class Band:
             dread={(held['x'], held['y']): held['amount'] for held in plain['dread']},
             unease=plain['unease'],
             route=plain['route'],
+            camped=plain['camped'],
         )
 
     @property
@@ -199,6 +206,7 @@ class Band:
             'dread': [{'x': x, 'y': y, 'amount': self.dread[x, y]} for x, y in sorted(self.dread)],
             'unease': self.unease,
             'route': self.route,
+            'camped': self.camped,
         }
 
     def shown(self, params: Params, scale: int) -> dict[str, Any]:
@@ -214,6 +222,7 @@ class Band:
             'ages': dict(counted.counts),
             PREGNANT: counted.pregnant,
             INJURED: counted.injured,
+            WOUNDS: dict(counted.wounds),
             'stores': {name: self.held(name) for name in sorted(self.stores)},
             'fatigue': self.fatigue,
             'states': list(self.states),
@@ -303,24 +312,29 @@ def census(params: Params, band: Band) -> Census:
     stages = people.stages
     limits = [(name, math.inf if stage.until is None else params.days(stage.until)) for name, stage in stages.items()]
     named = tuple(next(name for name, until in limits if member.age_days < until) for member in band.members)
-    injury = people.injury
+    severities = people.injury.severities
     gatherers = eaters = carriers = pace = tires = 0.0
-    voters = pregnant = injured = 0
+    voters = pregnant = 0
     counts = dict.fromkeys(stages, 0)
+    wounds = dict.fromkeys(severities, 0)
     for member, name in zip(band.members, named, strict=True):
         stage = stages[name]
-        hurt = member.injured_until is not None
+        wound = None if member.wound is None else member.wound['severity']
         counts[name] += 1
-        gatherers += stage.gathers * (injury.gathers if hurt else 1.0)
+        gatherers += stage.gathers * (1.0 if wound is None else severities[wound].gathers)
         eaters += stage.eats
         carriers += stage.carries
-        pace += stage.pace * (injury.pace if hurt else 1.0)
+        pace += stage.pace * (1.0 if wound is None else severities[wound].pace)
         tires += stage.tires
         voters += stage.votes
         pregnant += member.pregnant_until is not None
-        injured += hurt
+        if wound is not None:
+            wounds[wound] += 1
     many = max(len(named), 1)
-    counted = Census(named, counts, gatherers, eaters, carriers, pace / many, tires / many, voters, pregnant, injured)
+    injured = sum(wounds.values())
+    counted = Census(
+        named, counts, gatherers, eaters, carriers, pace / many, tires / many, voters, pregnant, injured, wounds
+    )
     band.counted = id(params), counted
     return counted
 
@@ -331,27 +345,34 @@ def voters(params: Params, band: Band) -> int:
 
 def enterable(land: Land, x: int, y: int) -> bool:
     """
-    A cell of the window that can be walked into now; a shore only where it touches land.
+    A cell of the window that can be walked into now.
     """
-    if not land.inside(x, y) or land.value(PASSABILITY, x, y) <= 0:
-        return False
-    return not _shore(land, x, y) or any(_is_land(land, x + dx, y + dy) for dx, dy in DIRECTIONS.values())
+    return land.inside(x, y) and land.value(PASSABILITY, x, y) > 0
 
 
 def _era(land: Land, x: int, y: int) -> Any:
     return land.params.biomes[land.biome(x, y)].eras[land.era]
 
 
-def _shore(land: Land, x: int, y: int) -> bool:
-    shore: bool = _era(land, x, y).shore
-    return shore
-
-
-def _is_land(land: Land, x: int, y: int) -> bool:
-    if not land.inside(x, y) or _shore(land, x, y):
-        return False
-    base: float = _era(land, x, y).properties[PASSABILITY].base
-    return base > 0
+def source(land: Land, at: Place, name: str) -> Place | None:
+    """
+    The cell a band standing at a place gathers a resource from: the place itself or a shore beside it that
+    lists the resource, whichever gives more of it; the place first on a tie, then clockwise from the north.
+    """
+    prop = land.params.resources[name].property
+    found: Place | None = None
+    best = -math.inf
+    for dx, dy in [(0, 0), *DIRECTIONS.values()]:
+        x, y = at[0] + dx, at[1] + dy
+        if not land.inside(x, y):
+            continue
+        era = _era(land, x, y)
+        if ((dx or dy) and not era.shore) or name not in era.resources:
+            continue
+        value = land.value(prop, x, y)
+        if value > best:
+            found, best = (x, y), value
+    return found
 
 
 def speed(params: Params, band: Band) -> float:
@@ -398,7 +419,8 @@ def room(params: Params, band: Band) -> float:
 
 def act(land: Land, band: Band, action: Action, day: int) -> Action:
     """
-    Carries one action out and gives it back as it was done: a move that cannot be made is a camp.
+    Carries one action out and gives it back as it was done: a move that cannot be made is a camp. The way into
+    the next cell is kept over a camp and lost to a gather.
     """
     rules = land.params.units.band
     kind = action['kind']
@@ -410,7 +432,7 @@ def act(land: Land, band: Band, action: Action, day: int) -> Action:
         done = _gather(land, band, action, rules, day)
     else:
         done = camp()
-    if done['kind'] not in (MOVE, ROAM):
+    if done['kind'] == GATHER:
         band.progress, band.target = 0.0, None
     tired = getattr(rules.fatigue, done['kind'])
     if tired > 0:
@@ -451,9 +473,10 @@ def _roam(land: Land, band: Band, action: Action, rules: Rules, day: int) -> Act
 
 def _gather(land: Land, band: Band, action: Action, rules: Rules, day: int) -> Action:
     name = action['resource']
-    if name not in _era(land, band.x, band.y).resources:
+    at = source(land, band.place, name)
+    if at is None:
         return camp()
-    _take(land, band, name, rules, day, 1.0, band.place)
+    _take(land, band, name, rules, day, 1.0, at)
     return gathering(name)
 
 
@@ -625,14 +648,31 @@ def suffer(
 
 def vulnerable(params: Params, band: Band, cause: str) -> list[float]:
     """
-    How much each member is exposed to a cause, by stage; the player never dies.
+    How much each member is exposed to a cause, by stage and age; the player never dies.
     """
-    stages = params.units.band.people.stages
     named = census(params, band).stages
     return [
-        0.0 if member.player else getattr(stages[name].dies, cause)
+        0.0 if member.player else exposed(params, name, member.age_days, cause)
         for member, name in zip(band.members, named, strict=True)
     ]
+
+
+def exposed(params: Params, name: str, age_days: int, cause: str) -> float:
+    """
+    The weight of a cause for a member of a stage at an age: its stage's own, or, when the stage settles, the next
+    stage's plus the difference halved for every span of settles lived in the stage.
+    """
+    stages = params.units.band.people.stages
+    stage = stages[name]
+    own = getattr(stage.dies, cause)
+    if stage.settles is None:
+        return float(own)
+    names = list(stages)
+    at = names.index(name)
+    before = stages[names[at - 1]].until if at else None
+    begins = 0 if before is None else params.days(before)
+    following = getattr(stages[names[at + 1]].dies, cause)
+    return float(following + (own - following) * 0.5 ** ((age_days - begins) / params.days(stage.settles)))
 
 
 def _drawn(rng: np.random.Generator, weights: list[float], count: int) -> list[int]:
@@ -657,33 +697,41 @@ def bury(band: Band, picked: list[int]) -> int:
 
 
 def struck(
-    params: Params, band: Band, taken: float, hurt: float, day: int, rng: np.random.Generator
+    params: Params, band: Band, taken: float, hurt: float, wounds: dict[str, float], rng: np.random.Generator
 ) -> tuple[int, int]:
     """
     What an encounter does: the share taken of the people, weighed by how exposed they are, die, and the share
-    hurt of those left is injured. Gives the dead and the injured.
+    hurt of those left is wounded by the weights of its kind, the usual ones when it has none. Gives the dead
+    and the injured.
     """
     weights = vulnerable(params, band, ENCOUNTER)
     dead = bury(band, _drawn(rng, weights, int(taken * sum(weights) + 0.5)))
     weights = _injurable(params, band)
-    return dead, _injure(params, band, _drawn(rng, weights, int(hurt * sum(weights) + 0.5)), day)
+    picked = _drawn(rng, weights, int(hurt * sum(weights) + 0.5))
+    return dead, _injure(params, band, picked, wounds or params.units.band.people.injury.drawn, rng)
 
 
 def _injurable(params: Params, band: Band) -> list[float]:
-    stages = params.units.band.people.stages
     named = census(params, band).stages
     return [
-        0.0 if member.injured_until is not None else stages[name].dies.injury
+        0.0 if member.wound is not None else exposed(params, name, member.age_days, INJURY)
         for member, name in zip(band.members, named, strict=True)
     ]
 
 
-def _injure(params: Params, band: Band, picked: list[int], day: int) -> int:
-    lasts = params.days(params.units.band.people.injury.lasts)
-    for at in picked:
-        band.members[at].injured_until = day + max(lasts, 1)
-    if picked:
-        band.changed()
+def _injure(params: Params, band: Band, picked: list[int], weights: dict[str, float], rng: np.random.Generator) -> int:
+    """
+    Wounds the members picked, each of a severity drawn by the weights; nothing is drawn when nobody is picked.
+    """
+    if not picked:
+        return 0
+    severities = params.units.band.people.injury.severities
+    names = [name for name, held in weights.items() if held > 0]
+    bounds = np.cumsum([weights[name] for name in names]) / sum(weights.values())
+    for at, drawn in zip(picked, rng.random(len(picked)), strict=True):
+        name = names[min(int(np.searchsorted(bounds, drawn, side='right')), len(names) - 1)]
+        band.members[at].wound = {'severity': name, 'left': float(severities[name].days)}
+    band.changed()
     return len(picked)
 
 
@@ -707,17 +755,25 @@ class Lived:
     injured: int = 0
 
 
-def live(params: Params, band: Band, day: int, wellbeing: float, feeds: bool, rng: np.random.Generator) -> Lived:
+def live(
+    params: Params, band: Band, day: int, wellbeing: float, feeds: bool, camped: float, rng: np.random.Generator
+) -> Lived:
     """
     The day of the members at its end: they age, die of age and frailty, heal or are hurt, give birth and conceive.
+    Camped is the share of the active parts of the day the band camped: it heals faster and dies less of frailty.
     """
-    people = params.units.band.people
+    rules = params.units.band
+    people = rules.people
     per_year = params.time.days_per_year
     lived = Lived()
+    heals = 1.0 + (people.injury.heal_in_camp - 1.0) * camped
     for member in band.members:
         member.age_days += 1
-        if member.injured_until is not None and member.injured_until <= day:
-            member.injured_until = None
+        if member.wound is not None:
+            # Rounded so that shares of a day add up to the whole days of a wound.
+            member.wound['left'] = round(member.wound['left'] - heals, 9)
+            if member.wound['left'] <= 0:
+                member.wound = None
         if member.rest_until is not None and member.rest_until <= day:
             member.rest_until = None
     band.changed()
@@ -731,10 +787,11 @@ def live(params: Params, band: Band, day: int, wellbeing: float, feeds: bool, rn
         for member in band.members
     ]
     lived.lost.append((AGE, bury(band, _chanced(rng, old))))
-    frail = [held * (1.0 - wellbeing) / per_year for held in vulnerable(params, band, FRAILTY)]
+    sheltered = 1.0 - (1.0 - rules.shelter.frailty) * camped
+    frail = [held * (1.0 - wellbeing) * sheltered / per_year for held in vulnerable(params, band, FRAILTY)]
     lived.lost.append((FRAILTY, bury(band, _chanced(rng, frail))))
     hurt = [held * people.injury.per_day for held in _injurable(params, band)]
-    lived.injured = _injure(params, band, _chanced(rng, hurt), day)
+    lived.injured = _injure(params, band, _chanced(rng, hurt), people.injury.drawn, rng)
     lived.born, mothers = _births(params, band, day, rng)
     lived.lost.append((BIRTH, bury(band, mothers)))
     if feeds:

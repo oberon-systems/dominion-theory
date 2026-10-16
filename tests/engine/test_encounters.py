@@ -66,11 +66,19 @@ def test_the_kind_is_drawn_by_weight_among_those_that_fit(params: Params) -> Non
 
 @pytest.mark.parametrize('share', [0.0, 0.34, 0.99])
 def test_the_shares_lost_and_injured_are_drawn_between_the_bounds(params: Params, share: float) -> None:
-    met = encounters.strike(params, 'forest', False, 1.0, camp(), dice(0.0, 0.0, share))
+    met = encounters.strike(params, 'forest', False, 1.0, moving('east'), dice(0.0, 0.0, share))
 
     assert met is not None
     assert met[0] == 'predator'
     assert met[1:] == pytest.approx((0.1 * share, 0.1 * share))
+
+
+def test_a_band_in_camp_loses_half_the_share_and_is_hurt_the_same(params: Params) -> None:
+    sheltered = encounters.strike(params, 'forest', False, 1.0, camp(), dice(0.0, 0.0, 0.5))
+    walking = encounters.strike(params, 'forest', False, 1.0, moving('east'), dice(0.0, 0.0, 0.5))
+
+    assert sheltered is not None and walking is not None
+    assert sheltered[1:] == pytest.approx((walking[1] * 0.5, walking[2]))
 
 
 def test_a_drowning_always_takes_somebody(params: Params) -> None:
@@ -78,7 +86,7 @@ def test_a_drowning_always_takes_somebody(params: Params) -> None:
     band = Band(id=1, x=0, y=0, members=adults(15), stores={})
 
     assert met == ('drowning', 0.05, 0.0)
-    assert bands.struck(params, band, met[1], met[2], 0, np.random.default_rng(7)) == (1, 0)
+    assert bands.struck(params, band, met[1], met[2], {}, np.random.default_rng(7)) == (1, 0)
     assert (band.population, band.members[0].player) == (14, True)
 
 

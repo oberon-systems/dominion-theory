@@ -180,6 +180,7 @@ class Unit(BaseModel):
     ages: dict[str, int]
     pregnant: int
     injured: int
+    wounds: dict[str, int]
     stores: dict[str, float]
     fatigue: float
     states: list[str]

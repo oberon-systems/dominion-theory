@@ -136,6 +136,7 @@ def test_the_snapshot_is_what_the_caller_may_see(client: TestClient, new_game: N
         'ages': {'child': 0, 'adult': 15, 'elder': 0},
         'pregnant': 0,
         'injured': 0,
+        'wounds': {'light': 0, 'medium': 0, 'heavy': 0},
         'stores': {'forage': 15.0, 'water': 15.0},
         'fatigue': 0.0,
         'states': [],

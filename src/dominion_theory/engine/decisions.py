@@ -97,36 +97,66 @@ def wellbeing(params: Params, band: Band, threat: float) -> float:
     return sum(weight * part for weight, part in parts) / sum(weight for weight, _ in parts)
 
 
-def seen(band: Band, at: Place) -> dict[str, Any] | None:
+def seen(params: Params, band: Band, at: Place, era: str) -> dict[str, Any] | None:
     """
-    A known cell as the band sees it: its threat with the dread of what happened there.
+    A known cell as the band sees it: its threat with the dread of what happened there, and what a known shore
+    beside it gives where that is more, since a band gathers from a shore it stands by.
     """
     cell = band.known.get(at)
-    if cell is None or at not in band.dread:
-        return cell
-    return {**cell, THREAT: perceived(band, at, cell.get(THREAT, 0.0))}
+    if cell is None:
+        return None
+    held = cell
+    for shore in _shores(params, band, at, era):
+        for prop in _fed(params, shore, era):
+            if shore.get(prop, 0.0) > held.get(prop, 0.0):
+                held = {**held, prop: shore[prop]}
+    if at in band.dread:
+        held = {**held, THREAT: perceived(band, at, cell.get(THREAT, 0.0))}
+    return held
 
 
-def here(params: Params, band: Band, wanted: dict[str, float]) -> float:
+def _shores(params: Params, band: Band, at: Place, era: str) -> list[dict[str, Any]]:
+    around = (band.known.get((at[0] + dx, at[1] + dy)) for dx, dy in DIRECTIONS.values())
+    return [cell for cell in around if cell is not None and params.biomes[cell['biome']].eras[era].shore]
+
+
+def _fed(params: Params, cell: dict[str, Any], era: str) -> set[str]:
+    """
+    The properties the resources a known cell lists are gathered by.
+    """
+    return {params.resources[name].property for name in _listed(params, cell, era)}
+
+
+def _listed(params: Params, cell: dict[str, Any], era: str) -> tuple[str, ...]:
+    listed: tuple[str, ...] = params.biomes[cell['biome']].eras[era].resources
+    return listed
+
+
+def gathers(params: Params, band: Band, at: Place, era: str) -> set[str]:
+    """
+    The resources a band standing on a known cell can gather: those of the cell and of the shores beside it.
+    """
+    cell = band.known.get(at)
+    found = set() if cell is None else set(_listed(params, cell, era))
+    for shore in _shores(params, band, at, era):
+        found.update(_listed(params, shore, era))
+    return found
+
+
+def here(params: Params, band: Band, wanted: dict[str, float], era: str) -> float:
     """
     What staying is worth: the cell the band stands on, its threat sharpened by unease.
     """
-    own = seen(band, band.place)
+    own = seen(params, band, band.place, era)
     return worth(params, own, wanted, band.unease)[0] if own else 0.0
 
 
-def reachable(params: Params, band: Band, at: Place, era: str) -> bool:
+def reachable(band: Band, at: Place) -> bool:
     """
-    Whether the band believes a cell can be entered: a shore only beside land it knows.
+    Whether the band believes a cell can be entered.
     """
     cell = band.known.get(at)
-    if cell is None or cell[PASSABILITY] <= 0:
-        return False
-    if not params.biomes[cell['biome']].eras[era].shore:
-        return True
-    around = (band.known.get((at[0] + dx, at[1] + dy)) for dx, dy in DIRECTIONS.values())
-    eras = (params.biomes[seen['biome']].eras[era] for seen in around if seen is not None)
-    return any(not held.shore and held.properties[PASSABILITY].base > 0 for held in eras)
+    return cell is not None and cell[PASSABILITY] > 0
 
 
 def worth(params: Params, cell: dict[str, Any], wanted: dict[str, float], unease: float = 0.0) -> tuple[float, str]:
@@ -160,18 +190,18 @@ def options(
     rules = params.units.band
     weights = rules.decisions.weights
     wanted = needs(params, band)
-    own = band.known.get(band.place, {})
-    staying = here(params, band, wanted)
+    own = seen(params, band, band.place, era)
+    staying = here(params, band, wanted, era)
     unknown = dict(rules.decisions.unknown)
     found: list[Scored] = []
     if allowed is None or CAMP in allowed:
         found.append(Scored(camp(), 0.0, REST))
-    gathered = _gathered(params, band, own, era, wanted) if own else []
+    gathered = _gathered(params, band, own, gathers(params, band, band.place, era), wanted) if own else []
     if allowed is None or GATHER in allowed:
         found.extend(gathered)
     if allowed is None or MOVE in allowed or ROAM in allowed:
         hungry = max(wanted.values()) >= rules.roaming.hunger
-        enterable = {at for at in band.known if reachable(params, band, at, era)}
+        enterable = {at for at in band.known if reachable(band, at)}
         moves: list[Scored] = []
         roams: list[Scored] = []
         for name, (dx, dy) in DIRECTIONS.items():
@@ -181,12 +211,13 @@ def options(
             if towards is not None:
                 gain, need, source, kept, pace = weights.intent - staying, REST, None, 0.0, 1.0
             else:
-                pull, need, source = _pull(params, band, (dx, dy), enterable, wanted, unknown)
+                pull, need, source = _pull(params, band, era, (dx, dy), enterable, wanted, unknown)
                 gain, kept = pull - staying, weights.momentum if band.target == target else 0.0
                 pace = rules.roaming.speed
             moves.append(Scored(moving(name), weights.move * gain + kept, need, source))
-            ahead = _gathered(params, band, band.known[target], era, wanted)
-            short_of = [held.score for held in ahead if short(params, band, held.action['resource'])]
+            ahead = band.known[target]
+            ahead_of = _gathered(params, band, ahead, set(_listed(params, ahead, era)), wanted)
+            short_of = [held.score for held in ahead_of if short(params, band, held.action['resource'])]
             on_the_way = rules.roaming.share * sum(short_of)
             roams.append(Scored(roaming(name), weights.move * gain * pace + kept + on_the_way, need, source))
         if (allowed is None or MOVE in allowed) and (walking or not hungry):
@@ -196,13 +227,14 @@ def options(
     return found
 
 
-def _gathered(params: Params, band: Band, own: dict[str, Any], era: str, wanted: dict[str, float]) -> list[Scored]:
+def _gathered(
+    params: Params, band: Band, own: dict[str, Any], listed: Collection[str], wanted: dict[str, float]
+) -> list[Scored]:
     """
-    A gathering of every resource the cell gives, scored by the need it serves and the share that fits.
+    A gathering of every resource listed, scored by the need it serves and the share that fits.
     """
     rules = params.units.band
     free = room(params, band)
-    listed = params.biomes[own['biome']].eras[era].resources
     found = []
     for name, rate in rules.gathering.items():
         resource = params.resources[name]
@@ -219,6 +251,7 @@ def _gathered(params: Params, band: Band, own: dict[str, Any], era: str, wanted:
 def _pull(
     params: Params,
     band: Band,
+    era: str,
     step: Place,
     enterable: set[Place],
     wanted: dict[str, float],
@@ -234,7 +267,7 @@ def _pull(
     beyond = rules.sight + rules.decisions.horizon
     past = band.x + step[0] * beyond, band.y + step[1] * beyond
     nearer = [at for at in sorted(enterable) if at == target or _far(target, at) < _far(band.place, at)]
-    candidates = [(at, seen(band, at)) for at in nearer]
+    candidates = [(at, seen(params, band, at, era)) for at in nearer]
     if rules.decisions.horizon and past not in band.known:
         candidates.append((past, unknown))
     best: tuple[float, str, Place] | None = None
@@ -258,7 +291,7 @@ def looks(params: Params, band: Band, era: str, at: Place) -> dict[str, Any] | N
     """
     if at not in band.known:
         return dict(params.units.band.decisions.unknown)
-    return seen(band, at) if reachable(params, band, at, era) else None
+    return seen(params, band, at, era) if reachable(band, at) else None
 
 
 def intended(params: Params, band: Band, proposal: dict[str, Any], era: str, towards: str | None) -> Scored:

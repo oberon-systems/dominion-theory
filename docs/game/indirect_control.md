@@ -279,14 +279,11 @@ day is judged against the day the leader promised.
 | `expected` | the score of [the day](#the-table-of-votes) of the leader at the decision; of staying when no option had a vote |
 | `reached`  | `weights.move` times what the cell the band stands on is worth to it, as [Decisions](decisions.md#what-a-cell-is-worth) counts it, weighed by the needs and the unease the band had at the decision |
 | `before`   | `reached` of the cell the band stood on at the decision    |
-| `lost`     | the people who died since the decision, of a cause in `council.blamed`, as a share of the people at the decision |
 
-Every proposal gets one of four verdicts, the first that fits.
+Every proposal gets one of three verdicts, the first that fits.
 
 | Verdict    | When                                                     |
 |------------|----------------------------------------------------------|
-| `disaster` | `lost` is at least `council.judgement.disaster`, 0.2     |
-| `failed`   | anybody died                                             |
 | `worked`   | `reached` is at least `expected`                         |
 | `even`     | `reached` is at least `before` less `council.judgement.slack`, 0.1 |
 | `failed`   | otherwise                                                |
@@ -299,16 +296,18 @@ but the day the band would have had: a player who turns a band that did
 not care where it went gains about as often as they lose, and one who
 turns it from a clear choice mostly loses.
 
-A turn that cost nobody and reached land no worse than the band left is
-`even` and moves no status. In an even forest a day of walking reaches
+A turn that reached land no worse than the band left is `even` and
+moves no status. In an even forest a day of walking reaches
 land like the land left: before the verdict `even`, such a turn failed,
 and a player who tried to lead the band out of danger lost status for
 it while nobody died.
 
-The judgement sits before the night, so the deaths of hunger and thirst
-at the end of the judged day are not in `lost`. They are paid as every
-death of a day the player voted for is; see
-[What moves status](#what-moves-status).
+Deaths are no part of a verdict. Every death of a cause in
+`council.blamed` is paid once, by the player who voted for the day or
+kept silent on it, whether the player backed the leader or carried a
+turn; see [What moves status](#what-moves-status). Before game e483e859
+a death under a judgement was paid twice: once by itself and again by a
+verdict it turned `failed` or `disaster`.
 
 ___
 
@@ -321,11 +320,9 @@ ___
 | backed the leader                                       | 0       |
 | a go the player carried worked                          | +4      |
 | a go failed                                             | -6      |
-| a go ended in disaster                                  | -20     |
 | a go came out even                                      | 0       |
 | staying to gather worked                                | +3      |
 | staying to gather failed                                | -6      |
-| staying ended in disaster                               | -20     |
 | staying came out even                                   | 0       |
 | a death on a day the player voted for or kept silent on | -5 each |
 | a birth on a day the player voted for                   | +5 each |
@@ -397,8 +394,7 @@ Every event is a message key with values, in both catalogues.
 | `council-abstained` | `status`                                 | the player did not vote       |
 | `proposal-worked`   | `proposal`, `status`                     | the judgement                 |
 | `proposal-even`     | `proposal`, `status`                     | the judgement                 |
-| `proposal-failed`   | `proposal`, `lost`, `status`             | the judgement                 |
-| `proposal-disaster` | `proposal`, `lost`, `status`             | the judgement                 |
+| `proposal-failed`   | `proposal`, `status`                     | the judgement                 |
 | `intent-ended`      | `proposal`                               | the way was closed            |
 | `intent-arrived`    | none                                     | the band reached its place    |
 | `seat-blamed`       | `lost`, `status`                         | people died on a voted or silent day |
@@ -422,7 +418,6 @@ council:
     share: 0.5
     least: 2.0
   judgement:
-    disaster: 0.2
     slack: 0.1
   status:
     start: 50
@@ -430,11 +425,9 @@ council:
     outvoted: -1
     go_worked: 4
     go_failed: -6
-    go_disaster: -20
     go_even: 0
     stay_worked: 3
     stay_failed: -6
-    stay_disaster: -20
     stay_even: 0
     death: -5
     birth: 5

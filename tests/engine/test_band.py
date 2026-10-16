@@ -35,6 +35,7 @@ HOME = (WEST, NORTH + 1)
 MEADOW = (WEST + 1, NORTH + 1)
 FOREST = (WEST + 1, NORTH)
 SHORE = (WEST + 2, NORTH + 1)
+SHELF = (WEST + 2, NORTH)
 DEEPER = (WEST + 3, NORTH + 1)
 SUMMER = 100
 WINTER = 350
@@ -172,31 +173,45 @@ def test_a_band_crosses_grass_in_a_tick_and_a_forest_in_two(params: Params) -> N
     assert counted(game)['moves'] == 3
 
 
-def test_progress_is_lost_when_the_band_does_something_else(params: Params) -> None:
+def test_a_camp_keeps_the_way_into_a_cell_and_a_gather_loses_it(params: Params) -> None:
+    kept, lost = land(params, at=MEADOW), land(params, at=MEADOW)
+
+    do(kept, moving('north'))
+    do(kept, camp())
+    halfway = band(kept).progress, band(kept).target
+    do(kept, moving('north'))
+    do(lost, moving('north'))
+    do(lost, gathering('forage'))
+    do(lost, moving('north'))
+
+    assert halfway[0] == pytest.approx(PACE * 0.6)
+    assert (halfway[1], band(kept).place) == (FOREST, FOREST)
+    assert band(lost).place == MEADOW
+    assert band(lost).progress == pytest.approx(PACE * 0.6 * (1 - 0.5 * 0.4))
+
+
+def test_the_shallows_are_never_entered(params: Params) -> None:
     game = land(params, at=MEADOW)
 
-    do(game, moving('north'))
-    do(game, camp())
-    do(game, moving('north'))
+    refused = do(game, moving('east'))
+    roamed = do(game, roaming('east'))
 
     assert band(game).place == MEADOW
-    assert band(game).progress == pytest.approx(PACE * 0.6)
+    assert (refused.units[0][4], roamed.units[0][4]) == ('camp', 'camp')
+    assert [bands.enterable(game, *at) for at in (SHORE, DEEPER, (WEST + 4, NORTH))] == [False, False, False]
+    assert counted(game)['camps'] == 2
 
 
-def test_the_shallows_are_entered_at_the_shore_and_no_further() -> None:
-    game = land(load_params(overrides={**SMALL, 'units.band.fatigue.move': 0.0}), at=MEADOW)
+def test_a_band_by_the_shallows_gathers_from_them_when_they_give_more(params: Params) -> None:
+    game = land(params, at=MEADOW, parts=WINTER)
+    sources = bands.source(game, MEADOW, 'forage'), bands.source(game, HOME, 'forage')
 
-    do(game, moving('east'), 2)
-    wading = band(game).place
-    do(game, moving('east'))
-    refused = do(game, moving('east'))
+    do(game, gathering('forage'))
 
-    assert wading == MEADOW
-    assert band(game).place == SHORE
-    assert band(game).action == {'kind': 'camp'}
-    assert refused.changes['units'][0]['action'] == {'kind': 'camp'}
-    assert [bands.enterable(game, *at) for at in (SHORE, DEEPER, (WEST + 4, NORTH))] == [True, False, False]
-    assert counted(game)['camps'] == 1
+    assert sources == (SHELF, HOME)
+    assert game.cells.stock(SHELF, 'food') < 1.0
+    assert game.cells.stock(MEADOW, 'food') == 1.0
+    assert band(game).held('forage') == pytest.approx(15 + 15 * 3.0 * 0.5)
 
 
 def test_a_new_season_changes_what_the_band_expects_of_the_land_it_remembers() -> None:
@@ -299,7 +314,7 @@ def test_a_loaded_band_gathers_nothing_and_leaves_the_cell_alone(params: Params)
 
 
 def test_water_that_does_not_run_out_keeps_no_cell(params: Params) -> None:
-    game = land(params, at=SHORE)
+    game = land(params, at=MEADOW)
 
     do(game, gathering('water'))
 
@@ -332,7 +347,7 @@ def test_the_band_camps_in_the_evening_and_the_night_whatever_it_wants() -> None
 def test_fatigue_slows_the_pace_and_tiredness_begins_and_ends_in_camp(params: Params) -> None:
     game = land(params)
     before = [do(game, moving(towards)) for towards in ('east', 'west')]
-    began = do(game, moving('east'))
+    began = do(game, moving('north'))
     slowed = bands.speed(params, band(game))
     still = do(game, camp())
     ended = do(game, camp())
@@ -443,7 +458,7 @@ def test_a_created_band_is_of_adults_of_random_age_and_sex_the_first_the_player(
 def test_children_and_elders_gather_nothing_eat_less_and_walk_slower(params: Params) -> None:
     members = [*bands.adults(2), bands.Member(0, 'male'), bands.Member(1800, 'female')]
     held = bands.Band(id=1, x=WEST, y=NORTH, members=members, stores={})
-    held.members[1].injured_until = 9
+    held.members[1].wound = {'severity': 'heavy', 'left': 9.0}
 
     counted = bands.census(params, held)
 
@@ -451,15 +466,40 @@ def test_children_and_elders_gather_nothing_eat_less_and_walk_slower(params: Par
     assert (counted.gatherers, counted.eaters, counted.carriers) == pytest.approx((1.2, 3.2, 2.75))
     assert counted.pace == pytest.approx((1.0 + 0.4 + 0.7 + 0.8) / 4)
     assert (counted.voters, counted.injured, counted.pregnant) == (3, 1, 0)
+    assert counted.wounds == {'light': 0, 'medium': 0, 'heavy': 1}
+
+
+@pytest.mark.parametrize(
+    ('severity', 'pace', 'gathers'), [('light', 0.8, 0.7), ('medium', 0.6, 0.4), ('heavy', 0.4, 0.2)]
+)
+def test_a_wound_slows_and_keeps_from_gathering_by_its_severity(
+    params: Params, severity: str, pace: float, gathers: float
+) -> None:
+    held = bands.Band(id=1, x=WEST, y=NORTH, members=bands.adults(2), stores={})
+    held.members[1].wound = {'severity': severity, 'left': 1.0}
+
+    counted = bands.census(params, held)
+
+    assert (counted.pace, counted.gatherers) == pytest.approx(((1.0 + pace) / 2, 1.0 + gathers))
 
 
 def test_the_dead_are_drawn_from_the_exposed_and_never_the_player(params: Params) -> None:
     held = bands.Band(id=1, x=WEST, y=NORTH, members=[*bands.adults(1), bands.Member(0, 'female')], stores={})
 
-    lost, injured = bands.struck(params, held, 1.0, 0.0, 0, np.random.default_rng(7))
+    lost, injured = bands.struck(params, held, 1.0, 0.0, {}, np.random.default_rng(7))
 
     assert (lost, injured, held.population, held.members[0].player) == (1, 0, 1, True)
     assert bands.vulnerable(params, held, 'thirst') == [0.0]
+
+
+def test_a_child_is_most_exposed_at_birth_and_nears_an_adult_as_it_grows(params: Params) -> None:
+    children = [bands.Member(age, 'female') for age in (0, 70, 140, 210)]
+    members = [*bands.adults(2), *children, bands.Member(1800, 'male')]
+    held = bands.Band(id=1, x=WEST, y=NORTH, members=members, stores={})
+
+    assert bands.vulnerable(params, held, 'encounter') == pytest.approx([0.0, 1.0, 3.0, 2.0, 1.5, 1.25, 2.0])
+    assert bands.vulnerable(params, held, 'frailty')[2:6] == pytest.approx([1.2, 0.6, 0.3, 0.15])
+    assert bands._injurable(params, held)[2:6] == pytest.approx([0.5, 0.75, 0.875, 0.9375])
 
 
 def test_the_old_and_the_frail_die_and_the_hurt_are_injured_while_the_player_lives() -> None:
@@ -467,21 +507,77 @@ def test_the_old_and_the_frail_die_and_the_hurt_are_injured_while_the_player_liv
     params = load_params(overrides={**SMALL, **ageing})
     held = bands.Band(id=1, x=WEST, y=NORTH, members=[*bands.adults(2, 2000), bands.Member(0, 'female')], stores={})
 
-    lived = bands.live(params, held, 10, 0.5, False, dice())
+    lived = bands.live(params, held, 10, 0.5, False, 0.0, dice())
 
     assert lived.lost == [('age', 1), ('frailty', 1)]
     assert (held.population, held.members[0].player, held.members[0].age_days) == (1, True, 2001)
-    assert (lived.injured, held.members[0].injured_until) == (1, 30)
+    assert (lived.injured, held.members[0].wound) == (1, {'severity': 'light', 'left': 10.0})
+
+
+@pytest.mark.parametrize(('weights', 'severity'), [({}, 'medium'), ({'light': 0.0, 'heavy': 1.0}, 'heavy')])
+def test_the_severity_of_a_wound_is_drawn_by_the_weights_of_its_cause(weights: dict[str, float], severity: str) -> None:
+    usual = {'units.band.people.injury.drawn.light': 0.0, 'units.band.people.injury.drawn.heavy': 0.0}
+    params = load_params(overrides={**SMALL, **usual})
+    held = bands.Band(id=1, x=WEST, y=NORTH, members=bands.adults(4), stores={})
+
+    _, injured = bands.struck(params, held, 0.0, 1.0, weights, np.random.default_rng(7))
+
+    assert injured == 4
+    assert {member.wound['severity'] for member in held.members if member.wound} == {severity}
+
+
+@pytest.mark.parametrize(('camped', 'days'), [(0.0, 20), (0.5, 14), (1.0, 10)])
+def test_a_wound_heals_a_day_a_day_and_twice_as_fast_in_camp(params: Params, camped: float, days: int) -> None:
+    held = bands.Band(id=1, x=WEST, y=NORTH, members=bands.adults(2), stores={})
+    held.members[1].wound = {'severity': 'heavy', 'left': 20.0}
+
+    lasted = 0
+    while held.members[1].wound is not None:
+        bands.live(params, held, 10 + lasted, 1.0, False, camped, dice())
+        lasted += 1
+
+    assert lasted == days
+    assert bands.census(params, held).injured == 0
+
+
+@pytest.mark.parametrize(('camped', 'shelter', 'lost'), [(0.0, 0.5, 3), (1.0, 0.0, 0), (0.5, 0.0, 3)])
+def test_a_band_in_camp_dies_less_of_frailty(camped: float, shelter: float, lost: int) -> None:
+    frail = {'units.band.people.stages.adult.dies.frailty': 200.0, 'units.band.shelter.frailty': shelter}
+    params = load_params(overrides={**SMALL, **frail})
+    held = bands.Band(id=1, x=WEST, y=NORTH, members=bands.adults(4), stores={})
+
+    class Even(Dice):
+        def random(self, count: int | None = None) -> Any:
+            return np.full(count, 0.999) if count else 0.0
+
+    even: Any = Even()
+    lived = bands.live(params, held, 10, 0.0, False, camped, even)
+
+    assert dict(lived.lost).get('frailty', 0) == lost
+
+
+def test_a_day_in_camp_heals_a_wound_by_two_days_and_a_day_of_work_by_one(params: Params) -> None:
+    game = land(params)
+    band(game).members[1].wound = {'severity': 'heavy', 'left': 20.0}
+    band(game).changed()
+
+    do(game, camp(), DAY)
+    camped = dict(band(game).members[1].wound or {})
+    do(game, camp(), 2)
+    do(game, gathering('forage'), DAY - 2)
+
+    assert camped == {'severity': 'heavy', 'left': 18.0}
+    assert (band(game).members[1].wound, band(game).camped) == ({'severity': 'heavy', 'left': 16.6}, 0)
 
 
 def test_a_fed_band_conceives_and_gives_birth_with_a_pause_after() -> None:
     params = load_params(overrides={**SMALL, 'units.band.people.birth.conceive_per_day': 1.0})
     held = bands.Band(id=1, x=WEST, y=NORTH, members=bands.adults(4), stores={})
 
-    bands.live(params, held, 10, 1.0, True, dice())
+    bands.live(params, held, 10, 1.0, True, 0.0, dice())
     pregnant = [member.pregnant_until for member in held.members]
     held.members[0].pregnant_until = held.members[2].pregnant_until = 11
-    born = bands.live(params, held, 11, 1.0, True, dice())
+    born = bands.live(params, held, 11, 1.0, True, 0.0, dice())
 
     assert pregnant == [40, None, 40, None]
     assert (born.born, born.lost, held.population) == (2, [('birth', 1)], 5)
@@ -507,8 +603,8 @@ def test_nobody_conceives_in_a_hungry_band_or_one_without_a_man() -> None:
     women = bands.Band(id=1, x=WEST, y=NORTH, members=bands.adults(3)[0::2], stores={})
     hungry = bands.Band(id=1, x=WEST, y=NORTH, members=bands.adults(4), stores={})
 
-    bands.live(params, women, 10, 1.0, True, dice())
-    bands.live(params, hungry, 10, 1.0, bands.fed(params, hungry), dice())
+    bands.live(params, women, 10, 1.0, True, 0.0, dice())
+    bands.live(params, hungry, 10, 1.0, bands.fed(params, hungry), 0.0, dice())
 
     assert [member.pregnant_until for member in women.members + hungry.members] == [None] * 6
 
@@ -563,6 +659,8 @@ def test_a_tick_carries_the_row_of_the_band(params: Params) -> None:
 
 def test_a_restored_game_carries_the_band_in_the_middle_of_a_day(params: Params) -> None:
     game = land(params)
+    band(game).members[1].wound = {'severity': 'light', 'left': 3.5}
+    band(game).changed()
     do(game, gathering('forage'), 2)
     do(game, moving('north-east'))
     do(game, camp(), 4)
@@ -578,7 +676,7 @@ def test_a_restored_game_carries_the_band_in_the_middle_of_a_day(params: Params)
 def test_a_snapshot_of_the_format_before_the_band_is_refused(params: Params) -> None:
     snapshot = land(params).snapshot()
 
-    assert snapshot['format'] == 11
+    assert snapshot['format'] == 13
     with pytest.raises(ValueError, match='format 2'):
         Game.restore({**snapshot, 'format': 2})
 

@@ -26,7 +26,6 @@ COUNCIL_ABSTAINED = 'council-abstained'
 PROPOSAL_WORKED = 'proposal-worked'
 PROPOSAL_EVEN = 'proposal-even'
 PROPOSAL_FAILED = 'proposal-failed'
-PROPOSAL_DISASTER = 'proposal-disaster'
 INTENT_ENDED = 'intent-ended'
 INTENT_ARRIVED = 'intent-arrived'
 SEAT_BLAMED = 'seat-blamed'
@@ -62,8 +61,7 @@ EVENTS: dict[str, tuple[str, ...]] = {
     COUNCIL_ABSTAINED: ('status',),
     PROPOSAL_WORKED: ('proposal', 'status'),
     PROPOSAL_EVEN: ('proposal', 'status'),
-    PROPOSAL_FAILED: ('proposal', 'lost', 'status'),
-    PROPOSAL_DISASTER: ('proposal', 'lost', 'status'),
+    PROPOSAL_FAILED: ('proposal', 'status'),
     INTENT_ENDED: ('proposal',),
     INTENT_ARRIVED: (),
     SEAT_BLAMED: ('lost', 'status'),

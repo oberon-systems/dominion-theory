@@ -14,6 +14,7 @@ units:
       stages:
         child:
           until: {years: 4}
+          settles: {months: 7}
           gathers: 0.0
           carries: 0.25
           eats: 0.5
@@ -42,7 +43,14 @@ units:
           votes: true
           dies: {hunger: 1.5, thirst: 1.5, encounter: 2.0, frailty: 0.3, injury: 1.5}
       age: {begins: {years: 17}, per_year: 0.15, doubles: {years: 2}}
-      injury: {per_day: 0.002, lasts: {days: 20}, gathers: 0.2, pace: 0.4}
+      injury:
+        per_day: 0.002
+        heal_in_camp: 2.0
+        severities:
+          light: {days: 10, pace: 0.8, gathers: 0.7}
+          medium: {days: 15, pace: 0.6, gathers: 0.4}
+          heavy: {days: 20, pace: 0.4, gathers: 0.2}
+        drawn: {light: 0.5, medium: 0.3, heavy: 0.2}
       birth:
         pregnancy: {months: 3}
         pause: {min: {months: 1}, max: {months: 2}}
@@ -75,6 +83,7 @@ units:
     dread: {encounter: 0.3, lasts: {days: 20}}
     unease: {gain: 0.1, fade: 0.2}
     route: {margin: 4, threat: 2.0, hunger: 1.0, thirst: 1.0}
+    shelter: {encounter: 0.5, frailty: 0.5}
     decisions:
       levels:
         sated: {days: 2, need: 0.1}

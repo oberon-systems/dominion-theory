@@ -35,10 +35,9 @@ def test_a_real_time_game_is_created_watched_and_left_paused(server: str, api: A
 
     assert result.exit_code == 0
     assert result.stdout.splitlines() == [
-        'midday, day 1, month 1, year 1, spring: 15 people, forage 43.4, water 15, gathers forage.',
-        'afternoon, day 1, month 1, year 1, spring: 15 people, forage 43.4, water 46.6, gathers water.',
-        'evening, day 1, month 1, year 1, spring: '
-        '15 people, forage 43.4, water 46.6, roams south, foraging on the way.',
+        'day 1, month 1, year 1, spring: 15 people, forage 43.4, water 15, gathers forage.',
+        'day 1, month 1, year 1, spring: 15 people, forage 43.4, water 46.6, gathers water.',
+        'day 1, month 1, year 1, spring: ' '15 people, forage 43.4, water 46.6, roams south, foraging on the way.',
     ]
     assert (game['seed'], game['mode'], game['running']) == (42, 'real-time', False)
     assert api.snapshot(game['id'])['seq'] >= 3
@@ -52,9 +51,9 @@ def test_a_game_is_joined_by_its_id_and_stepped(server: str, api: Api) -> None:
     assert result.exit_code == 0
     assert result.stderr == f'game {game}\n'
     assert result.stdout.splitlines() == [
-        'полдень, день 1, месяц 1, год 1, весна: '
+        'день 1, месяц 1, год 1, весна: '
         '15 человек, подножный корм 43,4, вода 15, собирает подножный корм. Команда pass-0 принята.',
-        'вторая половина дня, день 1, месяц 1, год 1, весна: '
+        'день 1, месяц 1, год 1, весна: '
         '15 человек, подножный корм 43,4, вода 46,6, собирает воду. Команда pass-1 принята.',
     ]
     assert api.snapshot(game)['seq'] == 2
@@ -111,6 +110,7 @@ def test_a_band_with_no_food_is_lived_headless_into_a_row_for_its_last_year() ->
     assert len(header) == len(row)
     assert header.split() == [
         *('year', 'people', 'child', 'adult', 'elder', 'pregnant', 'injured', 'growth', 'rate', 'least', 'born'),
+        *('grown', 'child-deaths'),
         *('deaths', 'of-hunger', 'of-thirst', 'of-encounter', 'of-age', 'of-frailty', 'of-birth'),
         *('food', 'water', 'moves', 'roams', 'gathers', 'camps', 'starving', 'thirsty', 'tired', 'encounters'),
         *('status',),
@@ -127,6 +127,8 @@ def test_a_band_with_no_food_is_lived_headless_into_a_row_for_its_last_year() ->
             '0',
             '-15',
             '-100',
+            '0',
+            '0',
             '0',
             '0',
             '11',
@@ -151,4 +153,4 @@ def test_a_band_with_no_food_is_lived_headless_into_a_row_for_its_last_year() ->
         ]
     ]
     assert float(snapshot) > 0
-    assert end == 'died at tick 60: no growth, 150 people never'
+    assert end == 'died at tick 60: no growth, 150 people never, 0 of 0 children grew up'

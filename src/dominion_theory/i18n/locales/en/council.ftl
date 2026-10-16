@@ -49,17 +49,7 @@ council-outvoted = The council would not have it: { $proposal }; it chose { $win
 council-abstained = You said nothing at the council. Your standing is now { NUMBER($status, maximumFractionDigits: 1) }.
 proposal-worked = It went well: { $proposal }. Your standing is now { NUMBER($status, maximumFractionDigits: 1) }.
 proposal-even = It came out even: { $proposal }. Your standing stays { NUMBER($status, maximumFractionDigits: 1) }.
-proposal-failed =
-    { $lost ->
-        [0] It went badly: { $proposal }. Your standing is now { NUMBER($status, maximumFractionDigits: 1) }.
-        [one] It went badly: { $proposal }; { $lost } person was lost. Your standing is now { NUMBER($status, maximumFractionDigits: 1) }.
-       *[other] It went badly: { $proposal }; { $lost } people were lost. Your standing is now { NUMBER($status, maximumFractionDigits: 1) }.
-    }
-proposal-disaster =
-    { $lost ->
-        [one] It ended in disaster: { $proposal }; { $lost } person was lost. Your standing is now { NUMBER($status, maximumFractionDigits: 1) }.
-       *[other] It ended in disaster: { $proposal }; { $lost } people were lost. Your standing is now { NUMBER($status, maximumFractionDigits: 1) }.
-    }
+proposal-failed = It went badly: { $proposal }. Your standing is now { NUMBER($status, maximumFractionDigits: 1) }.
 intent-ended = The way is closed, the band gives up: { $proposal }.
 intent-arrived = The band has reached the land it set out for.
 seat-blamed =

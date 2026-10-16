@@ -51,6 +51,15 @@ def test_band_is_the_one_of_its_document() -> None:
     assert (band.states.tiredness.begins, band.states.tiredness.ends) == (0.8, 0.3)
     assert (band.sight, band.memory.model_dump()) == (2, {'days': 20})
     assert band.camp_parts == ('evening', 'night')
+    assert band.shelter.model_dump() == {'encounter': 0.5, 'frailty': 0.5}
+    injury = band.people.injury
+    assert (injury.per_day, injury.heal_in_camp) == (0.002, 2.0)
+    assert injury.drawn == {'light': 0.5, 'medium': 0.3, 'heavy': 0.2}
+    assert {name: held.model_dump() for name, held in injury.severities.items()} == {
+        'light': {'days': 10, 'pace': 0.8, 'gathers': 0.7},
+        'medium': {'days': 15, 'pace': 0.6, 'gathers': 0.4},
+        'heavy': {'days': 20, 'pace': 0.4, 'gathers': 0.2},
+    }
     weights = band.decisions.weights
     assert (weights.hunger, weights.safety, weights.move) == (1.5, 2.0, 3.0)
     assert {name: held.model_dump() for name, held in band.decisions.levels.items()} == {
@@ -76,18 +85,16 @@ def test_council_is_the_one_of_its_document() -> None:
     council = load_params().council
 
     assert (council.part, council.spread, council.voice.share, council.voice.least) == ('evening', 0.2, 0.5, 2.0)
-    assert (council.judgement.disaster, council.judgement.slack) == (0.2, 0.1)
+    assert council.judgement.slack == 0.1
     assert council.status.model_dump() == {
         'start': 50.0,
         'abstained': -2.0,
         'outvoted': -1.0,
         'go_worked': 4.0,
         'go_failed': -6.0,
-        'go_disaster': -20.0,
         'go_even': 0.0,
         'stay_worked': 3.0,
         'stay_failed': -6.0,
-        'stay_disaster': -20.0,
         'stay_even': 0.0,
         'death': -5.0,
         'birth': 5.0,
@@ -105,6 +112,7 @@ def test_encounters_are_those_of_their_document() -> None:
     assert (drowning.biomes, drowning.rivers, drowning.actions) == (('shallows',), True, ('move', 'roam', 'gather'))
     assert (drowning.loss.min, drowning.loss.max) == (0.05, 0.15)
     assert encounters.kinds['poisoning'].resources == ('water',)
+    assert (encounters.kinds['accident'].wounds, predator.wounds) == ({'light': 0.2, 'medium': 0.4, 'heavy': 0.4}, {})
 
 
 def test_shallows_are_a_shore_and_no_other_biome_is() -> None:
@@ -112,7 +120,7 @@ def test_shallows_are_a_shore_and_no_other_biome_is() -> None:
     shallows = biomes['shallows'].eras['band']
 
     assert [name for name, biome in biomes.items() if biome.eras['band'].shore] == ['shallows']
-    assert (shallows.properties['threat'].base, shallows.properties['passability'].base) == (0.6, 0.3)
+    assert (shallows.properties['threat'].base, shallows.properties['passability'].base) == (0.6, 0.0)
     assert shallows.resources == ('water', 'forage')
 
 
@@ -195,13 +203,29 @@ def test_start_biome_exists_and_can_be_entered() -> None:
     assert refused({f'{BAND}.start.biomes': []})['path'] == f'{BAND}.start.biomes'
 
 
+@pytest.mark.parametrize('path', [f'{BAND}.people.injury.drawn', f'{KINDS}.accident.wounds'])
+def test_wounds_are_drawn_from_severities_that_exist_by_some_weight(path: str) -> None:
+    tree = load_params().tree()
+    *above, last = path.split('.')
+    node = tree
+    for name in above:
+        node = node[name]
+    node[last] = {'grave': 1.0}
+
+    with pytest.raises(DominionError) as raised:
+        Params.model_validate(tree)
+
+    assert raised.value.values == {'path': path, 'found': 'grave', 'expected': 'one of light, medium, heavy'}
+    assert refused({f'{path}.{name}': 0.0 for name in ('light', 'medium', 'heavy')})['path'] == path
+
+
 def test_tiredness_ends_below_where_it_begins() -> None:
     assert refused({f'{BAND}.states.tiredness.ends': 0.8})['path'] == f'{BAND}.states.tiredness'
 
 
 @pytest.mark.parametrize(
     'path',
-    [f'{BAND}.states.short', f'{BAND}.states.thirst.loss_per_day', 'encounters.chance', 'council.judgement.disaster'],
+    [f'{BAND}.states.short', f'{BAND}.states.thirst.loss_per_day', 'encounters.chance', f'{BAND}.shelter.encounter'],
 )
 def test_share_lies_between_nothing_and_one(path: str) -> None:
     assert refused({path: 1.5})['path'] == path
@@ -234,12 +258,15 @@ def test_levels_growth_and_spread_are_checked(overrides: dict[str, object], path
 def test_people_are_those_of_the_band_document() -> None:
     people = load_params().units.band.people
 
-    told = {name: (stage.until, stage.gathers, stage.conceives, stage.votes) for name, stage in people.stages.items()}
+    told = {
+        name: (stage.until, stage.settles, stage.gathers, stage.conceives, stage.votes)
+        for name, stage in people.stages.items()
+    }
 
     assert told == {
-        'child': (Duration(years=4), 0.0, False, False),
-        'adult': (Duration(years=17), 1.0, True, True),
-        'elder': (None, 0.0, False, True),
+        'child': (Duration(years=4), Duration(months=7), 0.0, False, False),
+        'adult': (Duration(years=17), None, 1.0, True, True),
+        'elder': (None, None, 0.0, False, True),
     }
     assert (people.age.per_year, people.injury.per_day, people.birth.child_survives) == (0.15, 0.002, 0.5)
     assert load_params().council.blamed == ('hunger', 'thirst', 'encounter')
@@ -261,6 +288,19 @@ def test_people_are_checked(overrides: dict[str, object], path: str, expected: s
     found = refused(overrides)
 
     assert (found['path'], found['expected']) == (path, expected)
+
+
+@pytest.mark.parametrize(('stage', 'settles'), [('elder', {'months': 7}), ('child', {'parts': 2})])
+def test_a_stage_settles_over_a_day_or_more_and_never_the_last(stage: str, settles: dict[str, int]) -> None:
+    tree = load_params().tree()
+    tree['units']['band']['people']['stages'][stage]['settles'] = settles
+
+    with pytest.raises(DominionError) as raised:
+        Params.model_validate(tree)
+
+    found = raised.value.values
+    assert found['path'] == f'{STAGES}.{stage}.settles'
+    assert found['expected'] == 'a span above 0 on a stage before the last'
 
 
 def test_voice_of_the_player_is_never_an_ordinary_one() -> None:
@@ -324,12 +364,4 @@ def test_recovery_names_a_season_of_the_year() -> None:
         'path': 'eras.band.recovery.food',
         'found': 'monsoon',
         'expected': 'one of spring, summer, autumn, winter',
-    }
-
-
-def test_shore_can_be_entered() -> None:
-    assert refused({'biomes.shallows.eras.band.properties.passability.base': 0.0}) == {
-        'path': 'biomes.shallows.eras.band.properties.passability.base',
-        'found': 0.0,
-        'expected': 'a shore that can be entered',
     }

@@ -22,7 +22,6 @@ THROUGH = 'through-'
 WORKED = 'worked'
 EVEN = 'even'
 FAILED = 'failed'
-DISASTER = 'disaster'
 STATUS = {GO: 'go', STAY: 'stay'}
 STAYING = {'kind': STAY}
 HIGHEST = 100.0
@@ -104,7 +103,7 @@ def score(
     then every extra one it can reach.
     """
     weights = params.units.band.decisions.weights
-    here = decisions.here(params, band, decisions.needs(params, band))
+    here = decisions.here(params, band, decisions.needs(params, band), era)
     found: dict[Place | None, float] = {None: weights.move * here}
     for held in decisions.options(params, band, era, allowed={bands.MOVE}, walking=True):
         to = held.pull
@@ -207,11 +206,11 @@ def voice(params: Params, voting: int, status: float) -> float:
     return max(held.least, held.share * voting * status / HIGHEST)
 
 
-def worth(params: Params, band: Band, wanted: dict[str, float], unease: float) -> float:
+def worth(params: Params, band: Band, era: str, wanted: dict[str, float], unease: float) -> float:
     """
     What the cell the band stands on is worth to it, weighed by the needs and the unease given.
     """
-    cell = decisions.seen(band, band.place)
+    cell = decisions.seen(params, band, band.place, era)
     return decisions.worth(params, cell, wanted, unease)[0] if cell else 0.0
 
 
@@ -223,20 +222,15 @@ def expected(params: Params, band: Band, era: str, inside: Inside, leader: Propo
     return next((held for proposal, held in days if proposal == leader), days[0][1])
 
 
-def reached(params: Params, band: Band, wanted: dict[str, float], unease: float) -> float:
-    return params.units.band.decisions.weights.move * worth(params, band, wanted, unease)
+def reached(params: Params, band: Band, era: str, wanted: dict[str, float], unease: float) -> float:
+    return params.units.band.decisions.weights.move * worth(params, band, era, wanted, unease)
 
 
 def verdict(params: Params, judgement: dict[str, Any], now: float) -> str:
     """
-    How a proposal ended: lives lost first, then the day reached against the day the leader promised, then
-    against the land the band left.
+    How a proposal ended: the day reached against the day the leader promised, then against the land the band
+    left. Deaths are no part of it: each is paid once, by whoever voted for the day.
     """
-    died = sum(judgement['lost'].values())
-    if died / judgement['population'] >= params.council.judgement.disaster:
-        return DISASTER
-    if died:
-        return FAILED
     if now >= judgement['expected']:
         return WORKED
     return EVEN if now >= judgement['before'] - params.council.judgement.slack else FAILED

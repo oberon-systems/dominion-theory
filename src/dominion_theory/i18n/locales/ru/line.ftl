@@ -23,6 +23,7 @@ line-stage-elder =
     }
 line-pregnant = беременных { $count }
 line-injured = раненых { $count }
+line-injured-badly = раненых { $count } (тяжело { $badly })
 line-store = { NAME("resource", $resource) } { NUMBER($amount, maximumFractionDigits: 1) }
 line-status = Ваш вес { NUMBER($status, maximumFractionDigits: 1) }.
 line-council = Голоса: { $table }.

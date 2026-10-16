@@ -52,7 +52,7 @@ from .lines import (
 from .player import coloured, label
 from .session import Session
 
-PACE_S = 0.2
+PACE_S = 0.0
 BAR = 10
 SEEN = 'seen'
 ACCEPTED = 'command-accepted'

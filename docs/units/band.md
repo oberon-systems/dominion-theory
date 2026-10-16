@@ -13,6 +13,7 @@ made of and gives every number it reads. Part of the stage 2 design in
 - [Births](#births)
 - [Deaths](#deaths)
 - [Injuries](#injuries)
+- [Shelter](#shelter)
 - [Stores](#stores)
 - [Gathering](#gathering)
 - [Consumption](#consumption)
@@ -56,7 +57,8 @@ ___
 
 A band is its members, kept one by one. A member has an age in days, a
 sex and three marks: pregnant until a day, resting after a birth until
-a day, injured until a day. The population is the number of members,
+a day, and a wound with its severity and the days of healing it still
+needs. The population is the number of members,
 and a band dies when fewer than 5 are left; the game ends with it.
 
 A band starts with 15 members: the player and 14 others, adults of a
@@ -84,14 +86,14 @@ member does against an adult, whose weights are all 1.
 | `elder` | 17 and over | 0       | 0.5     | 0.7  | 0.8  | 1.3   | no        | yes   |
 
 A band sums its members where an amount grows with the people, and
-takes the mean where it is a pace. An injured member gathers and walks
-at the shares of [Injuries](#injuries).
+takes the mean where it is a pace. A wounded member gathers and walks
+at the shares of its severity, see [Injuries](#injuries).
 
 ```text
-gatherers = sum of gathers, times injury.gathers for the injured
+gatherers = sum of gathers, times severity.gathers for the wounded
 eaters    = sum of eats
 carriers  = sum of carries
-pace      = mean of pace, times injury.pace for the injured
+pace      = mean of pace, times severity.pace for the wounded
 tires     = mean of tires
 ```
 
@@ -149,7 +151,8 @@ ___
 ## Deaths
 
 Every cause weighs the members by the vulnerability of their stage,
-`dies`, and the player's weight is always 0.
+`dies`, and the player's weight is always 0. The child's weights are
+those of a newborn; see [Children grow safer](#children-grow-safer).
 
 | Cause       | How many die                                            | Child | Adult | Elder |
 |-------------|---------------------------------------------------------|-------|-------|-------|
@@ -162,22 +165,50 @@ Every cause weighs the members by the vulnerability of their stage,
 
 A state rounds its count up, so it costs somebody every day it holds;
 an encounter rounds to the nearest, so it may be a scare. Who dies of
-a count is drawn by the weights, nobody twice: a child is twice as
+a count is drawn by the weights, nobody twice: a newborn is twice as
 likely as an adult to die of hunger and three times of a predator.
 
 Frailty is illness, cold and all else a band in poor shape suffers. Its
 chance falls as wellbeing rises:
 
 ```text
-frailty a year = dies.frailty * (1 - wellbeing)
+frailty a year = dies.frailty * (1 - wellbeing) * sheltered
 age a year     = age.per_year * 2 ^ ((age - age.begins) / age.doubles), at most 1
 ```
 
-Both are asked every day as a share of the year. A child at wellbeing
-0.85 dies of frailty at 0.18 a year and about half reach four; at
-wellbeing 0.5, 0.6 a year and one in ten, before hunger and predators
-take their share. Death of age begins at 0.15 a year at 17 and doubles
+Both are asked every day as a share of the year. A newborn at wellbeing
+0.85 dies of frailty at 0.18 a year and a child of three at 0.02, so
+about four in five reach four; at wellbeing 0.5 about half do, before
+hunger and predators take their share. A band in camp dies less of
+frailty, see [Shelter](#shelter). Death of age begins at 0.15 a year at 17 and doubles
 every two years: about half live to 20, and one in five to 22.
+
+### Children grow safer
+
+A stage with `settles` dies by its own weights only at its start. The
+difference to the weights of the next stage halves for every `settles`
+lived in the stage, so a child nears an adult as it grows. Every cause
+follows it, injuries too.
+
+```text
+weight = next + (own - next) * 0.5 ^ (age in the stage / settles)
+```
+
+The child settles in 7 months:
+
+| Age       | 0   | 7 months | 14 months | 21 months | 3 years |
+|-----------|-----|----------|-----------|-----------|---------|
+| encounter | 3   | 2        | 1.5       | 1.25      | 1.1     |
+| hunger    | 2   | 1.5      | 1.25      | 1.13      | 1.05    |
+| frailty   | 1.2 | 0.63     | 0.34      | 0.19      | 0.11    |
+| injury    | 0.5 | 0.75     | 0.88      | 0.94      | 0.97    |
+
+Where adults die at 0.22 a year, as in a hard game, about one child in
+five grows up, against one in twenty-five when the weights held for the
+whole stage. The reference of lives counts the children who grew up and
+those who died each year.
+
+### The order of a day
 
 A day ends in a fixed order: the meal and the states, then age,
 frailty, injuries, births and conceptions. The council answers for
@@ -188,15 +219,54 @@ ___
 
 ## Injuries
 
-A member who is not injured is hurt on a day with the chance
-`injury.per_day` times its weight `dies.injury`: 0.5 for a child, 1 for
-an adult, 1.5 for an elder. An encounter injures as well: a kind may
+A member who is not wounded is hurt on a day with the chance
+`injury.per_day` times its weight `dies.injury`: 0.5 for a newborn,
+nearing 1 as the child grows, 1 for an adult, 1.5 for an elder. An encounter injures as well: a kind may
 carry `injured`, a share drawn with its loss and taken of the same
 weights. Predators injure up to 10% of the band, accidents 5 to 15%.
 
-An injured member gathers at `injury.gathers`, 0.2, walks at
-`injury.pace`, 0.4, and heals after `injury.lasts`, 20 days. An injury
-kills nobody by itself. Every new injury is the event `people-injured`.
+A wound has a severity, drawn when the member is hurt by the weights
+`injury.drawn`. A kind of encounter may carry weights of its own,
+`wounds`: an accident leans heavy. The severity sets how many days of
+healing the wound needs and the share of pace and gathering it leaves.
+
+| Severity | Days | Pace | Gathers | Drawn | Drawn by an accident |
+|----------|------|------|---------|-------|----------------------|
+| `light`  | 10   | 0.8  | 0.7     | 0.5   | 0.2                  |
+| `medium` | 15   | 0.6  | 0.4     | 0.3   | 0.4                  |
+| `heavy`  | 20   | 0.4  | 0.2     | 0.2   | 0.4                  |
+
+A wound heals at the end of every day. A day on the move heals one
+day, a day wholly in camp `injury.heal_in_camp`, 2, and a day partly in
+camp by the share it camped. A wound kills nobody by itself. Every new
+wound is the event `people-injured`.
+
+```text
+healed a day = 1 + (heal_in_camp - 1) * camped
+```
+
+___
+
+## Shelter
+
+A band in camp is sheltered: it keeps its weak by the fire. Shelter is
+the camp action in any part of the day, the evening and the night
+included, not the council's stay. It counts in no decision: the
+decision function and the council do not read it.
+
+- An encounter met in camp takes `shelter.encounter`, 0.5, of the share
+  of the people it would take. It hurts as many.
+- Frailty at the end of a day is multiplied by `sheltered`.
+- Hunger, thirst, age and birth are untouched.
+
+```text
+camped    = active parts of the day the band camped / active parts of the day
+sheltered = 1 - (1 - shelter.frailty) * camped
+```
+
+The active parts are those not named by `camp_parts`: the morning, the
+midday and the afternoon. A band that rests all day halves its frailty;
+a band that walks all day has none of it.
 
 ___
 
@@ -300,8 +370,9 @@ speed = max(slowest, base - slowdown * population / 10) * efficiency * pace
 With a base of 1.2 and a slowdown of 0.03 a band of 15 walks at 1.155
 and a band of 150 at 0.75; no band is slower than 0.3. A step along a
 diagonal costs the same as a straight one. Progress above 1 is not
-carried over, and all of it is lost when the band does anything but move
-towards the same cell.
+carried over. A camp keeps the progress, so a cell the band cannot cross
+in the active parts of one day is entered on the next; a gather, or a
+step towards another cell, loses all of it.
 
 ___
 
@@ -405,6 +476,7 @@ units:
       stages:
         child:
           until: {years: 4}
+          settles: {months: 7}
           gathers: 0.0
           carries: 0.25
           eats: 0.5
@@ -433,7 +505,14 @@ units:
           votes: true
           dies: {hunger: 1.5, thirst: 1.5, encounter: 2.0, frailty: 0.3, injury: 1.5}
       age: {begins: {years: 17}, per_year: 0.15, doubles: {years: 2}}
-      injury: {per_day: 0.002, lasts: {days: 20}, gathers: 0.2, pace: 0.4}
+      injury:
+        per_day: 0.002
+        heal_in_camp: 2.0
+        severities:
+          light: {days: 10, pace: 0.8, gathers: 0.7}
+          medium: {days: 15, pace: 0.6, gathers: 0.4}
+          heavy: {days: 20, pace: 0.4, gathers: 0.2}
+        drawn: {light: 0.5, medium: 0.3, heavy: 0.2}
       birth:
         pregnancy: {months: 3}
         pause: {min: {months: 1}, max: {months: 2}}
@@ -470,6 +549,7 @@ units:
     dread: {encounter: 0.3, lasts: {days: 20}}
     unease: {gain: 0.1, fade: 0.2}
     route: {margin: 4, threat: 2.0, hunger: 1.0, thirst: 1.0}
+    shelter: {encounter: 0.5, frailty: 0.5}
 ```
 
 `dread` and `unease` are told in [Decisions](../game/decisions.md#dread),
@@ -498,8 +578,12 @@ A game does not start from a band that does not add up.
 - The start population is not below `population.least`.
 - Every stage but the last has an age `until`, and the ages rise; the
   last has none.
+- Only a stage before the last settles, over at least a day.
 - At least one stage conceives, and the start stage is one that ends.
 - `birth.pause.min` is not above `birth.pause.max`.
+- `injury.drawn` and the `wounds` of an encounter name only severities
+  of `injury.severities`, and some weight is above 0.
+- `injury.heal_in_camp` is not below 1.
 - The start stores fit what the start population carries.
 - A start biome exists and can be entered.
 - `tiredness.ends` is below `tiredness.begins`, and both lie in 0 to 1.

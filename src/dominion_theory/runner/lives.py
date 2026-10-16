@@ -51,6 +51,8 @@ YEAR = (
     'rate',
     'least',
     'born',
+    'grown',
+    'child-deaths',
     'deaths',
     *(f'of-{cause}' for cause in CAUSES),
     'food',
@@ -111,7 +113,10 @@ class Lived:
         growth, tribe = self.growth, self.tribe
         grew = 'no growth' if growth is None else f'grows {growth:.1%} a year'
         reached = f'{TRIBE} people never' if tribe is None else f'{TRIBE} people in year {math.ceil(tribe)}'
-        return [*table(self.years), f'{self.outcome} at tick {self.tick}: {grew}, {reached}']
+        grown = sum(row['grown'] for row in self.years)
+        left = grown + sum(row['child-deaths'] for row in self.years)
+        raised = f'{int(grown)} of {int(left)} children grew up'
+        return [*table(self.years), f'{self.outcome} at tick {self.tick}: {grew}, {reached}, {raised}']
 
 
 def live(seed: int | None, years: int, preset: str | None = None, overrides: dict[str, Any] | None = None) -> Lived:
@@ -124,9 +129,9 @@ def live(seed: int | None, years: int, preset: str | None = None, overrides: dic
 
 def lived(game: Game, years: int) -> tuple[list[dict[str, float]], tuple[str, ...], float]:
     """
-    A row a year: levels at its last tick, totals over it, the ticks spent in each state,
-    the cells the band remembers and the size of the snapshot the store would keep, in KB;
-    the hash of the state at the end of every year; the mean seconds a snapshot took to pack.
+    A row a year: levels at its last tick, totals over it, the ticks spent in each state, the children who left
+    the first stage grown or dead, the cells the band remembers and the size of the snapshot the store would
+    keep, in KB; the hash of the state at the end of every year; the mean seconds a snapshot took to pack.
     """
     per_year = game.clock.parts_per_year
     names, columns = game.counters.names, game.unit_columns
@@ -135,7 +140,12 @@ def lived(game: Game, years: int) -> tuple[list[dict[str, float]], tuple[str, ..
     packing: list[float] = []
     before = after = dict(zip(names, game.counters.row(), strict=True))
     row: dict[str, float] = {}
+    stages = game.params.units.band.people.stages
+    child = next(iter(stages))
+    until = stages[child].until
+    grows = math.inf if until is None else game.params.days(until)
     while not game.over and game.clock.parts < years * per_year:
+        young = [member for member in game.band.members if member.age_days < grows] if game.band else []
         result = game.step()
         year = (result.parts - 1) // per_year + 1
         if year not in rows:
@@ -151,9 +161,14 @@ def lived(game: Game, years: int) -> tuple[list[dict[str, float]], tuple[str, ..
             for state in dict(zip(columns, unit, strict=True))['state'].split('+'):
                 if state in STATES:
                     row[STATES[state]] += 1
+        present = {id(member) for member in game.band.members} if game.band else set()
+        grown = sum(id(member) in present and member.age_days >= grows for member in young)
+        row['grown'] += grown
+        row['child-deaths'] += len(young) - grown - after[child]
         for event in result.events:
             if event.key == PEOPLE_BORN:
                 row['born'] += event.values['count']
+                row['child-deaths'] += event.values['count']
             elif event.key == PEOPLE_LOST:
                 cause = f'of-{event.values["cause"]}'
                 row[cause] = row.get(cause, 0.0) + event.values['count']

@@ -20,6 +20,7 @@ from .band import (
     THIRST,
     Action,
     Band,
+    around,
     building,
     camp,
     census,
@@ -27,6 +28,7 @@ from .band import (
     held_days,
     moving,
     perceived,
+    ranging,
     roaming,
     room,
     sheltered,
@@ -105,7 +107,7 @@ def seen(params: Params, band: Band, at: Place, era: str) -> dict[str, Any] | No
     """
     A known cell as the band sees it: its threat with the dread of what happened there and lowered by a winter
     camp built on it, and what a known shore beside it gives where that is more, since a band gathers from a
-    shore it stands by.
+    shore it stands by; the cell of a band that ranges gives what its reach does.
     """
     cell = band.known.get(at)
     if cell is None:
@@ -115,10 +117,32 @@ def seen(params: Params, band: Band, at: Place, era: str) -> dict[str, Any] | No
         for prop in _fed(params, shore, era):
             if shore.get(prop, 0.0) > held.get(prop, 0.0):
                 held = {**held, prop: shore[prop]}
+    if at == band.place and ranging(band):
+        held = _ranged(params, band, held, era)
     if at in band.dread:
         held = {**held, THREAT: perceived(band, at, cell.get(THREAT, 0.0))}
     if at == band.place and sheltered(band):
         held = {**held, THREAT: held.get(THREAT, 0.0) * params.units.band.winter_camp.threat}
+    return held
+
+
+def _reach(params: Params, band: Band) -> list[dict[str, Any]]:
+    """
+    The known cells within the reach of a winter camp around the band that it believes it can enter.
+    """
+    reach = params.units.band.winter_camp.reach
+    return [band.known[at] for at in around(band.place, reach) if reachable(band, at)]
+
+
+def _ranged(params: Params, band: Band, held: dict[str, Any], era: str) -> dict[str, Any]:
+    """
+    The band's own cell with the best food and water of its reach, a cell away worth afar of its own.
+    """
+    afar = params.units.band.winter_camp.afar
+    for cell in _reach(params, band):
+        for prop in _fed(params, cell, era):
+            if cell.get(prop, 0.0) * afar > held.get(prop, 0.0):
+                held = {**held, prop: cell[prop] * afar}
     return held
 
 
@@ -141,12 +165,16 @@ def _listed(params: Params, cell: dict[str, Any], era: str) -> tuple[str, ...]:
 
 def gathers(params: Params, band: Band, at: Place, era: str) -> set[str]:
     """
-    The resources a band standing on a known cell can gather: those of the cell and of the shores beside it.
+    The resources a band standing on a known cell can gather: those of the cell and of the shores beside it, and
+    of its reach while it ranges.
     """
     cell = band.known.get(at)
     found = set() if cell is None else set(_listed(params, cell, era))
     for shore in _shores(params, band, at, era):
         found.update(_listed(params, shore, era))
+    if at == band.place and ranging(band):
+        for near in _reach(params, band):
+            found.update(_listed(params, near, era))
     return found
 
 
@@ -160,11 +188,14 @@ def here(params: Params, band: Band, wanted: dict[str, float], era: str) -> floa
 
 def wintering(params: Params, band: Band, era: str) -> float:
     """
-    What a winter camp on the cell the band stands on is worth: staying, under the threat a built camp leaves.
+    What a winter camp on the cell the band stands on is worth: staying with its reach, under the threat a built
+    camp leaves.
     """
     own = seen(params, band, band.place, era)
     if own is None:
         return 0.0
+    if not ranging(band):
+        own = _ranged(params, band, own, era)
     if not sheltered(band):
         own = {**own, THREAT: own.get(THREAT, 0.0) * params.units.band.winter_camp.threat}
     return worth(params, own, needs(params, band), band.unease)[0]

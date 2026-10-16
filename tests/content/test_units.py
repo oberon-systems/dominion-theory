@@ -62,6 +62,8 @@ def test_band_is_the_one_of_its_document() -> None:
     assert band.winter_camp.model_dump() == {
         'offered': {'seasons': ('winter',), 'before': {'days': 10}},
         'build': {'days': 2},
+        'reach': 1,
+        'afar': 1.0,
         'threat': 0.5,
         'spoil': 0.5,
         'consumption': 0.8,

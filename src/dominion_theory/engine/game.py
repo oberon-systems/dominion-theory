@@ -789,8 +789,16 @@ class Game:
             if boundary.key == SEASON_STARTED:
                 self.since[council.SEASON] = True
                 self._reseason(tick, was)
+                self._thaw()
         if self.date.part == self.params.council.part:
             self._open(tick)
+
+    def _thaw(self) -> None:
+        """
+        A winter camp is left with the first season that does not offer it.
+        """
+        if self.band is not None and self.band.camp is not None and not self.wintering:
+            self.band.camp = None
 
     def _reseason(self, tick: _Tick, was: str) -> None:
         band = self.band

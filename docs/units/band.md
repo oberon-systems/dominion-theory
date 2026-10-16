@@ -292,7 +292,23 @@ Once built, while the band stands on that cell, whatever its intent:
 
 Gathering goes on, and the shelter of a camp holds as it does anywhere.
 A band that steps into another cell loses the camp, built or not, and a
-band that builds on another cell starts anew.
+band that builds on another cell starts anew. The camp is left with the
+first season that does not offer it, the spring: its effects and its
+reach end there, so a camp never becomes a home for the whole year.
+
+### The reach of a camp
+
+A band ranges while it is bound to a winter camp or stands on its camp,
+built or not: from the evening the camp is chosen, the days of the build
+included. A ranging band gathers each resource from the best cell within
+`winter_camp.reach`, 1: its own and the 8 around it. A cell around counts
+when the band can enter it and it lists the resource, and it gives
+`winter_camp.afar`, 1.0, of a gathering; the cell gathered from pays its
+stock. The band itself does not move.
+
+Before game 864bd5ae a camp gathered its own cell alone: in winter that
+cell was stripped in days, the band starved on it and never finished the
+build, and the others judged the camp by the bare cell and wanted to go.
 
 ___
 
@@ -581,6 +597,8 @@ units:
     winter_camp:
       offered: {seasons: [winter], before: {days: 10}}
       build: {days: 2}
+      reach: 1
+      afar: 1.0
       threat: 0.5
       spoil: 0.5
       consumption: 0.8

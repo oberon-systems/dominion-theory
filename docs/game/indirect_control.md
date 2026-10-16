@@ -144,21 +144,24 @@ with the needs of [Decisions](decisions.md#needs):
 | Option            | Score                                                       |
 |-------------------|-------------------------------------------------------------|
 | `stay-and-gather` | `weights.move` times the worth of the own cell              |
-| `winter-camp`     | the same, with the threat a built camp leaves               |
+| `winter-camp`     | the same with the reach of the camp, under the threat a built camp leaves |
 | `go` to a place   | `weights.move` times the pull that way                      |
 
 ```text
 stay   = weights.move * worth(own)
-winter = weights.move * worth(own, threat * winter_camp.threat)
+winter = weights.move * worth(own and its reach, threat * winter_camp.threat)
 go     = weights.move * pull
 ```
 
 A winter camp is offered in the seasons of
 `units.band.winter_camp.offered`, the winter, and in its `before` days
-ahead of them, the last 10 days of the autumn. Its other effects - less
-eaten, slower spoiling, a deeper rest - are no part of the worth of a
-cell, so on safe land it ties with the stay and the stay, first in the
-fixed order, leads.
+ahead of them, the last 10 days of the autumn. The camp is worth the best
+food and water within its reach, so the others want to leave only once
+the cells around are stripped too. Its other effects - less eaten,
+slower spoiling, a deeper rest - are no part of the worth of a cell, so
+where the reach gives no more than the own cell, on safe land it ties
+with the stay and the stay, first in the fixed order, leads. Once the
+band ranges, the stay takes the reach as well.
 
 A band on good land stays; a band on stripped land leans to better land
 it knows or hopes for. How the band moves - walking or roaming - is its
@@ -281,8 +284,8 @@ gathers and camps as under a stay, and builds on once it has eaten.
 See [Band](../units/band.md#winter-camp) for what it gives. Like a go it is never `restless`, and the season it was built in
 does not end it: the first season that no longer offers it, the spring,
 calls the council and the camp is judged there, as a stay is. The camp
-stands as long as the band stands on its cell, under any intent; leaving
-the cell loses it.
+stands while the band stands on its cell, under any intent, until that
+season: leaving the cell loses it, and so does the spring.
 
 ___
 

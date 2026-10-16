@@ -762,3 +762,42 @@ def test_a_winter_camp_is_carried_by_the_snapshot(params: Params) -> None:
 
     assert band(copy).camp == band(game).camp
     assert copy.state_hash() == game.state_hash()
+
+
+def gathered(game: Game) -> float:
+    before = band(game).held('forage')
+    do(game, gathering('forage'))
+    return band(game).held('forage') - before
+
+
+def test_a_band_around_its_winter_camp_gathers_the_richest_cell_in_reach(params: Params) -> None:
+    alone, ranging = land(params), land(params)
+    for game in (alone, ranging):
+        game.cells.lower(HOME, 'food', 0.9)
+    band(ranging).camp = {'x': WEST, 'y': NORTH + 1, 'built': 0.0}
+
+    taken = gathered(alone), gathered(ranging)
+    near = [at for at in bands.around(HOME, 1) if alone.inside(*at)]
+
+    assert alone.cells.stock(HOME, 'food') < 0.1
+    assert all(alone.cells.stock(at, 'food') == 1.0 for at in near)
+    assert ranging.cells.stock(HOME, 'food') == pytest.approx(0.1, abs=0.01)
+    assert any(ranging.cells.stock(at, 'food') < 1.0 for at in near)
+    assert taken[1] > taken[0]
+
+
+def test_a_cell_away_from_the_camp_gives_afar_of_a_gathering() -> None:
+    taken = []
+    for afar in (1.0, 0.5):
+        game = land(load_params(overrides={**SMALL, 'units.band.winter_camp.afar': afar}))
+        game.cells.lower(HOME, 'food', 0.9)
+        band(game).camp = {'x': WEST, 'y': NORTH + 1, 'built': 0.0}
+        taken.append(gathered(game))
+
+    assert taken[1] == pytest.approx(taken[0] * 0.5)
+
+
+def test_the_cells_in_reach_are_the_rings_around_a_place() -> None:
+    assert bands.around((5, 5), 0) == []
+    assert bands.around((5, 5), 1) == [(5, 4), (6, 4), (6, 5), (6, 6), (5, 6), (4, 6), (4, 5), (4, 4)]
+    assert len(bands.around((5, 5), 2)) == 24

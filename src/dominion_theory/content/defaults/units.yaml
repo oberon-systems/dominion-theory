@@ -89,6 +89,9 @@ units:
       # Offered through the winter and the last days of the autumn before it.
       offered: {seasons: [winter], before: {days: 10}}
       build: {days: 2}
+      # Gathered from the own cell and the cells around it, a cell away giving afar of a gathering.
+      reach: 1
+      afar: 1.0
       threat: 0.5
       spoil: 0.5
       consumption: 0.8

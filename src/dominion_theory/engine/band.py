@@ -11,6 +11,7 @@ import numpy as np
 from ..content import Band as Rules
 from ..content import Params
 from .cells import Place
+from .commands import WINTER
 
 KIND = 'band'
 MOVE = 'move'
@@ -385,6 +386,55 @@ def source(land: Land, at: Place, name: str) -> Place | None:
     return found
 
 
+def around(at: Place, reach: int) -> list[Place]:
+    """
+    The cells within reach of a place but the place itself: the first ring clockwise from the north, then every
+    further ring by its rows.
+    """
+    found = [(at[0] + dx, at[1] + dy) for dx, dy in DIRECTIONS.values()] if reach >= 1 else []
+    for far in range(2, reach + 1):
+        found += [
+            (at[0] + dx, at[1] + dy)
+            for dy in range(-far, far + 1)
+            for dx in range(-far, far + 1)
+            if max(abs(dx), abs(dy)) == far
+        ]
+    return found
+
+
+def ranging(band: Band) -> bool:
+    """
+    Whether the band gathers within the reach of a winter camp: it is bound to one, or stands on its camp, built
+    or not.
+    """
+    proposal = None if band.intent is None else band.intent['proposal']
+    camp = band.camp
+    return (proposal is not None and proposal['kind'] == WINTER) or (
+        camp is not None and (camp['x'], camp['y']) == band.place
+    )
+
+
+def reached(land: Land, band: Band, name: str) -> tuple[Place, float] | None:
+    """
+    The cell a band gathers a resource from and the share of a gathering it gives: its source, or while it
+    ranges an enterable cell within reach that lists the resource, worth afar of its own; the earlier on a tie.
+    """
+    found = source(land, band.place, name)
+    held = None if found is None else (found, 1.0)
+    if not ranging(band):
+        return held
+    camp = land.params.units.band.winter_camp
+    prop = land.params.resources[name].property
+    best = -math.inf if found is None else land.value(prop, *found)
+    for x, y in around(band.place, camp.reach):
+        if not enterable(land, x, y) or name not in _era(land, x, y).resources:
+            continue
+        value = land.value(prop, x, y) * camp.afar
+        if value > best:
+            held, best = ((x, y), camp.afar), value
+    return held
+
+
 def speed(params: Params, band: Band) -> float:
     rules = params.units.band
     pace = max(rules.speed.slowest, rules.speed.base - rules.speed.slowdown * band.population / 10)
@@ -502,10 +552,10 @@ def _roam(land: Land, band: Band, action: Action, rules: Rules, day: int) -> Act
 
 def _gather(land: Land, band: Band, action: Action, rules: Rules, day: int) -> Action:
     name = action['resource']
-    at = source(land, band.place, name)
-    if at is None:
+    held = reached(land, band, name)
+    if held is None:
         return camp()
-    _take(land, band, name, rules, day, 1.0, at)
+    _take(land, band, name, rules, day, held[1], held[0])
     return gathering(name)
 
 

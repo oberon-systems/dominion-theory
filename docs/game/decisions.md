@@ -90,7 +90,10 @@ included; a new season brings the memory to that season, as
 is worth more than the forest, and to a calm band the open grass is
 worth more than the forest with wolves in it. A cell beside a known
 shore takes the shore's food and water where they are more, since the
-band gathers from it; see [The shore](01_bands.md#the-shore).
+band gathers from it; see [The shore](01_bands.md#the-shore). The cell of
+a band that ranges around a winter camp takes the best food and water of
+its reach, times `winter_camp.afar`; see
+[Band](../units/band.md#the-reach-of-a-camp).
 
 A cell that cannot be entered is worth nothing, and neither is a cell
 the band does not know, but for the unknown of [the pull](#scoring-the-actions).

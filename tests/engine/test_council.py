@@ -773,3 +773,42 @@ def test_a_hungry_band_bound_to_a_winter_camp_gathers_before_it_builds(params: P
 
     assert band(game).action['kind'] in ('gather', 'camp')
     assert band(game).camp is None
+
+
+def test_the_others_judge_a_winter_camp_by_its_reach(params: Params) -> None:
+    game = land(params, stripped=[HOME], parts=WINTER + 2)
+
+    offered = council.score(params, band(game), ERA, game.inside, wintering=True)
+    band(game).intent = {'proposal': WINTERING}
+    ranging = council.score(params, band(game), ERA, game.inside, wintering=True)
+
+    assert offered[1][1] > offered[0][1]
+    assert ranging[0][1] > offered[0][1]
+
+
+def test_a_hungry_band_bound_to_a_winter_camp_gathers_its_reach(params: Params) -> None:
+    game = land(params, stripped=[HOME], parts=WINTER)
+    quiet(game)
+    band(game).intent = {'proposal': WINTERING}
+    band(game).stores = {'water': [[float(game.day), 45.0]]}
+
+    game.step()
+    near = [at for at in bands.around(HOME, 1) if game.inside(*at)]
+
+    assert band(game).action == {'kind': 'gather', 'resource': 'forage'}
+    assert game.cells.stock(HOME, 'food') == pytest.approx(0.1, abs=0.01)
+    assert any(game.cells.stock(at, 'food') < 1.0 for at in near)
+
+
+@pytest.mark.parametrize(('parts', 'kept'), [(SPRING - 1, False), (70 * DAY - 1, True)])
+def test_a_winter_camp_is_left_with_the_first_season_that_does_not_offer_it(
+    params: Params, parts: int, kept: bool
+) -> None:
+    game = land(params, parts=parts)
+    camp = {'x': WEST, 'y': NORTH + 1, 'built': 1.0}
+    band(game).camp = dict(camp)
+
+    game.step()
+
+    assert game.date.part == 'morning'
+    assert band(game).camp == (camp if kept else None)

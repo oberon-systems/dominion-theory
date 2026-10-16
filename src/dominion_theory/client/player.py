@@ -1,6 +1,6 @@
 """
 Playing a game as lines, for an input that is not a terminal: a coloured line per update, and every morning
-the map and a numbered list of the council's options.
+the map and a numbered list of the council's answers, with the places of a go one level below.
 """
 
 from collections.abc import Callable, Iterator, Mapping
@@ -12,23 +12,26 @@ from ..i18n import render
 from .api import Api
 from .drawing import pictured
 from .lines import (
-    ABSTAIN,
     ANSWER,
-    AWAY,
-    LEADER,
+    GO,
+    KIND,
+    KINDS,
+    POINT,
     QUESTION,
+    SILENCE,
     STATUS,
     UNCLEAR,
-    VOTES,
+    WHERE,
     Look,
+    Menu,
     Option,
     Part,
-    options,
+    menu,
     parts,
+    where,
 )
 from .session import Session
 
-SILENCE = {'kind': 'abstain'}
 STYLES: dict[Look, dict[str, Any]] = {
     Look.PLAIN: {},
     Look.DATE: {'dim': True},
@@ -39,15 +42,14 @@ STYLES: dict[Look, dict[str, Any]] = {
     Look.COUNCIL: {'fg': 'magenta'},
     Look.LOSS: {'fg': 'red'},
 }
-NAMES: dict[str, Mapping[str, Any]] = {
-    'stay': {'kind': 'stay-and-gather'},
-    'stay-and-gather': {'kind': 'stay-and-gather'},
-    'abstain': SILENCE,
-}
+NAMES = {'go': GO, 'roam': GO, **{kind: kind for kind in KINDS}, 'stay': 'stay-and-gather'}
+LEADING: dict[str, Any] = {'fg': 'green', 'bold': True}
+# A place answered with nothing: back to the answers.
+RETURN: Mapping[str, Any] = {'kind': 'back'}
 
 type Proposal = Mapping[str, Any]
 type Place = tuple[int, int]
-type Choose = Callable[[list[Option], str, Place | None], Proposal]
+type Choose = Callable[[Menu, str], Proposal]
 
 
 def coloured(said: list[Part]) -> str:
@@ -55,50 +57,74 @@ def coloured(said: list[Part]) -> str:
 
 
 def label(option: Option, lang: str) -> str:
-    key = option.key
-    text = render(VOTES, {'proposal': key, 'votes': option.votes}, lang) if option.votes else render(key, lang=lang)
-    if option.far is not None:
-        text = render(AWAY, {'option': text, 'cells': option.far}, lang)
-    return render(LEADER, {'option': text}, lang) if option.leader else text
+    return render(f'{KIND}{option.kind}', lang=lang) if option.way is None else where(option.way, lang)
 
 
-def understood(answer: str, listed: list[Option], place: Place | None = None) -> Proposal | None:
+def marked(option: Option, lang: str) -> str:
     """
-    A number of the list, a name, or a point as two offsets from the band, x then y: '+3 -2'.
+    The label in the colour of the leader when most of the band leans to it.
+    """
+    return click.style(label(option, lang), **LEADING) if option.leader else label(option, lang)
+
+
+def understood(answer: str, listed: list[Option]) -> Option | None:
+    """
+    A number of the answers or a name; nothing says nothing.
     """
     said = answer.strip().lower()
-    if not said:
-        return SILENCE
     if said.isdigit():
         number = int(said)
-        if 1 <= number <= len(listed):
-            return listed[number - 1].proposal
-        return SILENCE if number == len(listed) + 1 else None
+        return listed[number - 1] if 1 <= number <= len(listed) else None
+    kind = NAMES.get(said) if said else SILENCE['kind']
+    return next((option for option in listed if option.kind == kind), None)
+
+
+def pointed(answer: str, places: list[Option], place: Place | None = None) -> Proposal | None:
+    """
+    A number of the places, a point as two offsets from the band, x then y ('+3 -2'), or nothing to go back.
+    """
+    said = answer.strip()
+    if not said:
+        return RETURN
+    if said.isdigit():
+        number = int(said)
+        return places[number - 1].proposal if 1 <= number <= len(places) else None
     offsets = said.split()
     if place is not None and len(offsets) == 2 and all(_offset(word) for word in offsets):
         dx, dy = (int(word) for word in offsets)
-        return {'kind': 'go', 'to': {'x': place[0] + dx, 'y': place[1] + dy}}
-    return NAMES.get(said)
+        return {'kind': GO, 'to': {'x': place[0] + dx, 'y': place[1] + dy}}
+    return None
 
 
 def _offset(word: str) -> bool:
     return word.lstrip('+-').isdigit() and word.count('+') + word.count('-') <= 1
 
 
-def prompted(listed: list[Option], lang: str, place: Place | None = None) -> Proposal:
-    """
-    The options as numbered lines, read back as a number, a name of the API or nothing at all.
-    """
-    click.echo(render(QUESTION, lang=lang))
-    for number, option in enumerate(listed, 1):
-        click.echo(f'{number}. {label(option, lang)}')
-    click.echo(f'{len(listed) + 1}. {render(ABSTAIN, lang=lang)}')
+def _asked[T](question: str, said: list[str], hint: str, read: Callable[[str], T | None], lang: str) -> T:
+    click.echo(render(question, lang=lang))
+    for number, text in enumerate(said, 1):
+        click.echo(f'{number}. {text}')
     while True:
-        answer = click.prompt(render(ANSWER, lang=lang), default='', show_default=False)
-        chosen = understood(answer, listed, place)
+        answer = click.prompt(render(hint, lang=lang), default='', show_default=False)
+        chosen = read(answer)
         if chosen is not None:
             return chosen
         click.echo(render(UNCLEAR, {'answer': answer}, lang))
+
+
+def prompted(given: Menu, lang: str) -> Proposal:
+    """
+    The answers as numbered lines; a go asks for its place the same way, and coming back asks again.
+    """
+    while True:
+        said = [marked(option, lang) for option in given.answers]
+        chosen = _asked(QUESTION, said, ANSWER, lambda answer: understood(answer, given.answers), lang)
+        if chosen.proposal is not None:
+            return chosen.proposal
+        places = [marked(option, lang) for option in given.places]
+        proposal = _asked(WHERE, places, POINT, lambda answer: pointed(answer, given.places, given.place), lang)
+        if proposal is not RETURN:
+            return proposal
 
 
 class Player:
@@ -143,4 +169,4 @@ class Player:
                 session.stocked()
                 yield click.style(session.watched.said(session.band), dim=True)
         yield coloured([Part(Look.STATUS, render(STATUS, {'status': session.status}, self._lang))])
-        session.answer(seq, self._choose(options(session.council, session.place), self._lang, session.place))
+        session.answer(seq, self._choose(menu(session.council, session.place, session.watched.known.get), self._lang))

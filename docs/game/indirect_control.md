@@ -157,9 +157,10 @@ a hungry band that may only roam, so the council still weighs every way
 and not only the stay.
 
 Every option of the table carries its words, `key`. A go is told by the
-one of the eight directions closest to its place from where the band
-stands, as a nomad says it: `proposal-go-east` is "we go to the land
-where the sun rises".
+land of its target as the band knows it: `proposal-go-forest` is "we go
+into the forest", `proposal-go-through-forest` is "we go on through the
+forest" when the band stands in a forest too, and `proposal-go-unknown`
+is "we go into land we do not know".
 
 ```text
 weight of an option = exp(score / spread)
@@ -405,7 +406,7 @@ Every event is a message key with values, in both catalogues.
 | `seat-banished`     | none                                     | status reached 0              |
 
 `proposal`, `leader` and `winner` are themselves keys, such as
-`proposal-go-east`, told from where the band stood at the council;
+`proposal-go-forest`, told by what the band knew at the council;
 `status` is the status after the change. The table
 itself is not an event: it is part of the seat while the council sits.
 
@@ -460,7 +461,7 @@ the first four other goes in the fixed order 1 each.
 
 ```text
 seq 500          council-opened leader proposal-stay-and-gather, occasion occasion-hunger
-                 table: stay-and-gather 6, go-north 1, go-north-east 1, go-east 4, ...
+                 table: stay-and-gather 6, go-through-grass 1, go-grass 1, go-forest 4, ...
 ```
 
 The player backs the go east: 4 + 3.75 = 7.75 beats 6. The band lays its
@@ -471,16 +472,16 @@ worked.
 
 ```text
 POST /commands   {"id": "c-7", "kind": "vote", "proposal": {"kind": "go", "to": {"x": 123, "y": 40}}}
-seq 500          council-turned proposal-go-east, yes 7.75 of 17.75
+seq 500          council-turned proposal-go-forest, yes 7.75 of 17.75
 seq 508          intent-arrived
-seq 508          proposal-worked proposal-go-east, status 54
+seq 508          proposal-worked proposal-go-forest, status 54
 ```
 
 The player backs the go north, which one of the others wants: 1 + 3.75
 does not beat 6, and staying to gather wins.
 
 ```text
-seq 500          council-outvoted proposal-go-north, winner proposal-stay-and-gather, status 49
+seq 500          council-outvoted proposal-go-through-grass, winner proposal-stay-and-gather, status 49
 ```
 
 The player backs staying to gather: the leader wins, the band stays and

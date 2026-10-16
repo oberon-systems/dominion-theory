@@ -66,7 +66,7 @@ class Land(Protocol):
 
     def river(self, x: int, y: int) -> bool: ...
 
-    def value(self, name: str, x: int, y: int) -> float: ...
+    def value(self, name: str, x: int, y: int, season: str | None = None, stock: float | None = None) -> float: ...
 
     def deplete(self, x: int, y: int, name: str, amount: float) -> None: ...
 
@@ -539,6 +539,27 @@ def look(land: Land, band: Band, day: int) -> list[Place]:
     for at in [at for at, cell in band.known.items() if cell['seen'] < oldest]:
         del band.known[at]
     return news
+
+
+def reseason(land: Land, band: Band, was: str) -> list[Place]:
+    """
+    A new season: every cell the band remembers is expected as the season makes it, from the share it saw there
+    of what the season before could give. Gives the cells whose memory changed.
+    """
+    names = land.params.eras[land.era].properties
+    changed: list[Place] = []
+    for (x, y), cell in band.known.items():
+        if not land.inside(x, y):
+            continue
+        held = dict(cell)
+        for name in names:
+            full, now = land.value(name, x, y, was, 1.0), land.value(name, x, y, None, 1.0)
+            if full != now:
+                held[name] = land.value(name, x, y, None, min(cell[name] / full, 1.0) if full > 0 else 1.0)
+        if held != cell:
+            band.known[x, y] = held
+            changed.append((x, y))
+    return changed
 
 
 def spoil(params: Params, band: Band, day: int) -> None:

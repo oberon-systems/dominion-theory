@@ -28,6 +28,9 @@ GLYPHS = {
 RIVER = '~'
 BAND = '@'
 UNKNOWN = '  '
+UNSEEN = '? '
+LIT = (255, 0, 255)
+CURSOR = (255, 215, 0)
 HIDDEN = ('biome', 'river', 'x', 'y')
 SHAPE = ('biomes', 'cells', 'rivers')
 KNOWN = 'known'
@@ -63,12 +66,25 @@ def glyph(biome: str) -> str:
     return GLYPHS.get(biome, biome[:1])
 
 
-def pictured(known: Mapping[str, Any], colours: Mapping[str, str], band: tuple[int, int]) -> Iterator[str]:
+def pictured(
+    known: Mapping[str, Any],
+    colours: Mapping[str, str],
+    band: tuple[int, int],
+    lit: tuple[int, int] | None = None,
+    cursor: tuple[int, int] | None = None,
+) -> Iterator[str]:
     """
-    The rows of a map of what a band knows, cut to the cells it knows, each on its biome's colour; the band is @.
+    The rows of a map of what a band knows, cut to the cells it knows and those marked, each on its biome's
+    colour; the band is @, the lit target and the cursor stand on colours of their own.
     """
-    width = known['width']
+    width, height = known['width'], known['height']
+    marks = {at: paper for at, paper in ((lit, LIT), (cursor, CURSOR)) if at is not None}
     places = [divmod(index, width) for index, cell in enumerate(known['cells']) if cell is not None]
+    places += [
+        (y - known['y'], x - known['x'])
+        for x, y in marks
+        if 0 <= x - known['x'] < width and 0 <= y - known['y'] < height
+    ]
     if not places:
         return
     rows, columns = [row for row, _ in places], [column for _, column in places]
@@ -77,14 +93,17 @@ def pictured(known: Mapping[str, Any], colours: Mapping[str, str], band: tuple[i
         for column in range(min(columns), max(columns) + 1):
             index = row * width + column
             cell = known['cells'][index]
+            at = (known['x'] + column, known['y'] + row)
+            mark = marks.get(at)
             if cell is None:
-                drawn.append(UNKNOWN)
+                drawn.append(UNKNOWN if mark is None else click.style(UNSEEN, bg=mark, fg=_ink(mark), bold=True))
                 continue
             biome = known['biomes'][cell]
-            here = (known['x'] + column, known['y'] + row) == band
+            here = at == band
             text = (BAND if here else glyph(biome)) + (RIVER if known['rivers'][index] else ' ')
-            paper = rgb(colours[biome]) if biome in colours else None
-            drawn.append(click.style(text, bg=paper, fg=None if paper is None else _ink(paper), bold=here))
+            paper = mark if mark is not None else rgb(colours[biome]) if biome in colours else None
+            ink = None if paper is None else _ink(paper)
+            drawn.append(click.style(text, bg=paper, fg=ink, bold=here or mark is not None))
         yield ''.join(drawn)
 
 

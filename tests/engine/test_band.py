@@ -199,6 +199,21 @@ def test_the_shallows_are_entered_at_the_shore_and_no_further() -> None:
     assert counted(game)['camps'] == 1
 
 
+def test_a_new_season_changes_what_the_band_expects_of_the_land_it_remembers() -> None:
+    game = land(load_params(overrides={**SMALL, 'units.band.sight': 0}), parts=WINTER - 1)
+    autumn = {name: game.value(name, *MEADOW) for name in ('water', 'threat', 'passability')}
+    band(game).known[MEADOW] = {'biome': 'grass', 'river': False, **autumn, 'food': 0.96 / 2, 'seen': game.day}
+
+    result = do(game, camp())
+    remembered = band(game).known[MEADOW]
+
+    assert game.date.season == 'winter'
+    assert remembered['food'] == pytest.approx(0.8 * 0.3 / 2)
+    assert (remembered['water'], remembered['passability']) == (game.value('water', *MEADOW), 0.7)
+    assert remembered['threat'] == autumn['threat']
+    assert {'x': MEADOW[0], 'y': MEADOW[1], **remembered} in result.changes['known']
+
+
 def test_a_move_out_of_the_window_is_a_camp(params: Params) -> None:
     game = land(params)
 

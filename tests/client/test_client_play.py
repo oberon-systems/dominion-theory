@@ -5,9 +5,10 @@ import click
 import pytest
 from click.testing import CliRunner
 
-from dominion_theory.client import Api, Player, cli, options
-from dominion_theory.client.lines import Option
-from dominion_theory.client.player import SILENCE, understood
+from dominion_theory.client import Api, Player, cli, menu
+from dominion_theory.client.lines import SILENCE, Menu, way, where
+from dominion_theory.client.player import RETURN, label, marked, pointed, understood
+from dominion_theory.engine import council
 
 type Body = dict[str, Any]
 
@@ -20,8 +21,8 @@ COUNCIL: dict[str, Any] = {
     'leader': STAY,
     'table': [
         {'proposal': STAY, 'key': 'proposal-stay-and-gather', 'votes': 8},
-        {'proposal': EAST, 'key': 'proposal-go-east', 'votes': 5},
-        {'proposal': NORTH, 'key': 'proposal-go-north', 'votes': 1},
+        {'proposal': EAST, 'key': 'proposal-go-forest', 'votes': 5},
+        {'proposal': NORTH, 'key': 'proposal-go-through-grass', 'votes': 1},
     ],
 }
 BAND = {
@@ -57,6 +58,9 @@ STOCKED = {
     'water': [1.0],
     'food': [0.75],
 }
+FOREST = {'biome': 'forest', 'river': False, 'water': 0.6, 'food': 0.5, 'threat': 0.2}
+# The band stands in a forest that goes on north; east of it lies land it does not know.
+WATCHED = {(1, 0): FOREST, (1, -2): FOREST}
 SMALL = ('planet.circumference_km=4000', 'planet.window.width=32', 'planet.window.height=16')
 # A voice that outweighs the whole band, so that what the player says is what the council does.
 LOUD = tuple(part for given in (*SMALL, 'council.voice.least=20.0') for part in ('--set', given))
@@ -98,27 +102,86 @@ class Scripted(Api):
 
 
 class Chooser:
+    """
+    Picks the place of a go by its number, or the answer by its number when there is no such place.
+    """
+
     def __init__(self, picked: int) -> None:
         self.picked = picked
-        self.asked: list[list[Option]] = []
+        self.asked: list[Menu] = []
 
-    def __call__(self, listed: list[Option], lang: str, place: tuple[int, int] | None) -> Mapping[str, Any]:
-        self.asked.append(listed)
-        return listed[self.picked].proposal
+    def __call__(self, given: Menu, lang: str) -> Mapping[str, Any]:
+        self.asked.append(given)
+        if self.picked < len(given.places):
+            return dict(given.places[self.picked].proposal or {})
+        return dict(given.answers[self.picked].proposal or SILENCE)
 
 
-def test_the_options_are_the_table_with_its_words_and_how_far_each_go_leads() -> None:
-    listed = options(COUNCIL, (1, 0))
-    silent = options({'leader': EAST, 'table': COUNCIL['table'][1:]})
+def test_the_menu_gives_the_answers_and_the_places_of_the_goes_best_first_the_leader_coloured() -> None:
+    given = menu(COUNCIL, (1, 0), WATCHED.get)
 
-    assert [option.proposal for option in listed] == [STAY, EAST, NORTH]
-    assert [(option.votes, option.leader, option.far) for option in listed] == [
-        (8, True, None),
-        (5, False, 2),
-        (1, False, 2),
+    assert [(option.kind, option.proposal, option.leader) for option in given.answers] == [
+        ('go', None, False),
+        ('stay-and-gather', STAY, True),
+        ('abstain', SILENCE, False),
     ]
-    assert [option.key for option in listed] == ['proposal-stay-and-gather', 'proposal-go-east', 'proposal-go-north']
-    assert silent[-1] == Option(STAY, 0, False, 'proposal-stay-and-gather')
+    assert [label(option, 'en') for option in given.answers] == [
+        'Roam',
+        'Stay at the camp and gather',
+        'Say nothing',
+    ]
+    assert marked(given.answers[1], 'en') == click.style('Stay at the camp and gather', fg='green', bold=True)
+    assert marked(given.answers[0], 'en') == 'Roam'
+    assert [label(option, 'ru') for option in given.places] == [
+        'Идём в незнакомые земли, далеко',
+        'Идём по лесу, далеко',
+    ]
+    assert given.place == (1, 0)
+
+
+def test_what_the_voice_of_the_player_cannot_win_is_not_offered() -> None:
+    heard = menu({**COUNCIL, 'voice': 3.75}, (1, 0), WATCHED.get)
+    outweighed = {'leader': EAST, 'table': [{**COUNCIL['table'][0], 'votes': 1}, {**COUNCIL['table'][1], 'votes': 9}]}
+
+    assert [option.proposal for option in heard.places] == [EAST]
+    assert [option.kind for option in heard.answers] == ['go', 'stay-and-gather', 'abstain']
+    assert [option.kind for option in menu({**outweighed, 'voice': 3.75}, (1, 0), WATCHED.get).answers] == [
+        'go',
+        'abstain',
+    ]
+
+
+def test_the_places_are_one_of_each_of_the_three_most_voted_the_leader_first_among_equals() -> None:
+    goes = [council.going((x, 0)) for x in range(2, 8)]
+    votes = (2, 5, 2, 5, 1, 0)
+    table = [{'proposal': go, 'key': 'proposal-go', 'votes': held} for go, held in zip(goes, votes, strict=True)]
+
+    given = menu({'leader': goes[3], 'table': table}, (1, 0), WATCHED.get)
+
+    assert [option.proposal for option in given.places] == [goes[3], goes[0], goes[4]]
+    assert [option.leader for option in given.places] == [True, False, False]
+
+
+@pytest.mark.parametrize(
+    ('cell', 'said'),
+    [
+        ({'biome': 'grass', 'river': False, 'threat': 0.1, 'food': 0.5}, 'We go to the safe meadows, far'),
+        ({'biome': 'grass', 'river': True, 'threat': 0.5, 'food': 0.9}, 'We go to the dangerous meadows, far'),
+        ({'biome': 'grass', 'river': True, 'threat': 0.2, 'food': 0.9}, 'We go to the meadows by the river, far'),
+        ({'biome': 'grass', 'river': False, 'threat': 0.2, 'food': 0.6}, 'We go to the lush meadows, far'),
+        ({'biome': 'grass', 'river': False, 'threat': 0.2, 'food': 0.5}, 'We go to the meadows, far'),
+        (FOREST, 'We go on through the forest, far'),
+        (None, 'We go into land we do not know, far'),
+    ],
+)
+def test_a_place_is_told_by_its_land_and_whether_it_is_near(cell: Body | None, said: str) -> None:
+    known = {(1, 0): FOREST, **({} if cell is None else {(3, 0): cell})}
+
+    assert where(way((3, 0), (1, 0), known.get), 'en') == said
+
+
+def test_a_place_next_to_the_band_is_near() -> None:
+    assert where(way((2, 1), (1, 0), WATCHED.get), 'ru') == 'Идём в незнакомые земли, близко'
 
 
 def test_a_seat_with_no_council_passes_every_wait() -> None:
@@ -134,7 +197,7 @@ def test_a_seat_with_no_council_passes_every_wait() -> None:
 
 def test_a_sitting_council_draws_the_map_and_sends_the_vote() -> None:
     api = Scripted([update(4, SEAT, {'council': None}), update(5)], COUNCIL)
-    chooser = Chooser(1)
+    chooser = Chooser(0)
 
     lines = [click.unstyle(text) for text in Player(api, 'alpha', 'en', chooser).lines()]
 
@@ -164,38 +227,56 @@ def test_the_debug_line_follows_every_update() -> None:
 
 
 @pytest.mark.parametrize(
+    ('answer', 'kind'),
+    [
+        ('1', 'go'),
+        (' 2 ', 'stay-and-gather'),
+        ('3', 'abstain'),
+        ('', 'abstain'),
+        ('abstain', 'abstain'),
+        ('stay', 'stay-and-gather'),
+        ('roam', 'go'),
+        ('4', None),
+        ('0', None),
+        ('+3 -2', None),
+        ('alpha', None),
+    ],
+)
+def test_an_answer_is_a_number_a_name_or_nothing(answer: str, kind: str | None) -> None:
+    chosen = understood(answer, menu(COUNCIL, (1, 0), WATCHED.get).answers)
+
+    assert (None if chosen is None else chosen.kind) == kind
+
+
+@pytest.mark.parametrize(
     ('answer', 'proposal'),
     [
-        ('2', EAST),
-        (' 1 ', STAY),
-        ('4', SILENCE),
-        ('', SILENCE),
-        ('abstain', SILENCE),
+        ('1', EAST),
+        ('2', NORTH),
+        ('3', None),
+        ('', RETURN),
         ('+3 -2', {'kind': 'go', 'to': {'x': 4, 'y': -2}}),
         ('-1 0', {'kind': 'go', 'to': {'x': 0, 'y': 0}}),
         ('3 2', {'kind': 'go', 'to': {'x': 4, 'y': 2}}),
         ('+3', None),
         ('+-3 2', None),
-        ('east', None),
-        ('rest', None),
-        ('stay', STAY),
-        ('5', None),
+        ('4', None),
         ('0', None),
-        ('alpha', None),
+        ('east', None),
     ],
 )
-def test_an_answer_is_a_number_a_name_a_point_or_nothing(answer: str, proposal: Mapping[str, Any] | None) -> None:
-    assert understood(answer, options(COUNCIL, (1, 0)), (1, 0)) == proposal
+def test_a_place_is_a_number_a_point_or_nothing_to_go_back(answer: str, proposal: Mapping[str, Any] | None) -> None:
+    assert pointed(answer, menu(COUNCIL, (1, 0), WATCHED.get).places, (1, 0)) == proposal
 
 
 def test_a_vote_from_the_terminal_turns_the_band_and_its_verdict_moves_the_status(server: str) -> None:
     played = CliRunner().invoke(
         cli,
         ['play', '--server', server, '--seed', '42', '--lang', 'en', '--updates', '8', '--debug', *LOUD],
-        input='alpha\n+0 -1\n',
+        input='alpha\n1\n+0 -1\n',
     )
     lines = played.stdout.splitlines()
-    north = 'we go to the land towards the star that does not move'
+    north = 'we go on through the forest'
 
     assert played.exit_code == 0
     assert 'Not understood: alpha.' in lines

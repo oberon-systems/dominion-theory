@@ -1,6 +1,6 @@
 from .api import PREFIX, SERVER, Api, Refused
 from .cli import cli
-from .lines import band_words, follow, line, options, parts, words
+from .lines import band_words, follow, line, menu, parts, words
 from .player import Player
 from .screen import Screen
 from .session import Session
@@ -18,7 +18,7 @@ __all__ = [
     'cli',
     'follow',
     'line',
-    'options',
+    'menu',
     'parts',
     'watch',
     'words',

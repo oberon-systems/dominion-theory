@@ -22,29 +22,34 @@ from ..i18n import DATE, render
 from .api import ENDED, Body, Refused
 from .drawing import HIDDEN, pictured
 from .lines import (
-    ABSTAIN,
     AGREED,
+    CURSOR,
     EVENING,
     FATIGUE,
     GONE,
     INTENT,
     NEXT,
     OVER,
+    PICK,
     PROPERTY,
     QUESTION,
     RIVER,
+    SILENCE,
     STATUS,
     TITLE,
     UNKNOWN,
+    WHERE,
     Look,
+    Menu,
     Option,
     band_parts,
-    options,
+    intended,
+    menu,
     parts,
-    proposal_key,
+    target,
     words,
 )
-from .player import SILENCE, coloured, label
+from .player import coloured, label
 from .session import Session
 
 PACE_S = 0.2
@@ -52,7 +57,23 @@ BAR = 10
 SEEN = 'seen'
 ACCEPTED = 'command-accepted'
 LOOKS = {Look.BAND: 'cyan', Look.STATE: 'bold red'}
+LEADING = 'bold green'
 FAILURES = (httpx.HTTPError, WebSocketException, OSError)
+ANSWERS = 'answers'
+PLACES = 'places'
+POINTING = 'pointing'
+RESTING = 'resting'
+STEPS = {
+    'up': (0, -1),
+    'k': (0, -1),
+    'down': (0, 1),
+    'j': (0, 1),
+    'left': (-1, 0),
+    'h': (-1, 0),
+    'right': (1, 0),
+    'l': (1, 0),
+}
+POINTED = ('step', 'pick')
 
 
 class Left(Exception):
@@ -100,7 +121,13 @@ class Screen(App[str | None]):
     #council { border: round $accent; padding: 0 1; height: auto; }
     #menu { height: auto; max-height: 13; border: none; }
     """
-    BINDINGS = [Binding('q', 'leave', show=False), Binding('ctrl+c', 'leave', show=False, priority=True)]
+    BINDINGS = [
+        Binding('q', 'leave', show=False),
+        Binding('ctrl+c', 'leave', show=False, priority=True),
+        *(Binding(key, f'step({dx}, {dy})', show=False, priority=True) for key, (dx, dy) in STEPS.items()),
+        Binding('enter', 'pick', show=False, priority=True),
+        Binding('escape', 'retreat', show=False, priority=True),
+    ]
 
     def __init__(
         self,
@@ -117,7 +144,10 @@ class Screen(App[str | None]):
         self._pace = pace
         self._limit = limit
         self._chosen: queue.Queue[Mapping[str, Any] | None] = queue.Queue()
-        self._listed: list[Option] = []
+        self._menu: Menu | None = None
+        self._mode: str | None = None
+        self._lit: tuple[int, int] | None = None
+        self._cursor: tuple[int, int] | None = None
         self._known: Body | None = None
         self._drawn_at: tuple[int, int] | None = None
 
@@ -146,10 +176,57 @@ class Screen(App[str | None]):
         self._chosen.put(None)
         self.exit()
 
+    def on_option_list_option_highlighted(self, event: OptionList.OptionHighlighted) -> None:
+        if self._mode != PLACES or self._menu is None:
+            return
+        places = self._menu.places
+        proposal = places[event.option_index].proposal if event.option_index < len(places) else None
+        self._lit = None if proposal is None else target(proposal)
+        self._draw()
+
     def on_option_list_option_selected(self, event: OptionList.OptionSelected) -> None:
-        index = event.option_index
+        index, given = event.option_index, self._menu
+        if given is None or self._mode not in (ANSWERS, PLACES):
+            self._send(SILENCE)
+        elif self._mode == ANSWERS and given.answers[index].proposal is None:
+            self._places()
+        elif self._mode == ANSWERS:
+            self._send(given.answers[index].proposal)
+        elif index < len(given.places):
+            self._send(given.places[index].proposal)
+        else:
+            self._point()
+
+    def check_action(self, action: str, parameters: tuple[object, ...]) -> bool | None:
+        # The keys of the cursor are the menu's while no cell is being picked; Esc steps back from both.
+        if action == 'retreat':
+            return self._mode in (PLACES, POINTING)
+        return self._mode == POINTING if action in POINTED else True
+
+    def action_step(self, dx: int, dy: int) -> None:
+        known = self._known
+        if self._cursor is None or known is None:
+            return
+        x = min(max(self._cursor[0] + dx, known['x']), known['x'] + known['width'] - 1)
+        y = min(max(self._cursor[1] + dy, known['y']), known['y'] + known['height'] - 1)
+        self._cursor = (x, y)
+        self._draw()
+
+    def action_pick(self) -> None:
+        if self._cursor is not None and self._cursor != self._session.place:
+            self._send({'kind': 'go', 'to': {'x': self._cursor[0], 'y': self._cursor[1]}})
+
+    def action_retreat(self) -> None:
+        if self._mode == POINTING:
+            self._places()
+        else:
+            self._answers()
+
+    def _send(self, proposal: Mapping[str, Any] | None) -> None:
+        self._mode, self._lit, self._cursor = None, None, None
         self.query_one('#council').display = False
-        self._chosen.put(self._listed[index].proposal if index < len(self._listed) else SILENCE)
+        self._draw()
+        self._chosen.put(SILENCE if proposal is None else proposal)
 
     def _play(self) -> None:
         session = self._session
@@ -198,7 +275,7 @@ class Screen(App[str | None]):
         known = session.known()
         if self._debug:
             session.stocked()
-        self.call_from_thread(self._ask, options(session.council, session.place), known)
+        self.call_from_thread(self._ask, menu(session.council, session.place, session.watched.known.get), known)
         proposal = self._chosen.get()
         if proposal is None:
             raise Left
@@ -213,14 +290,8 @@ class Screen(App[str | None]):
             raise Left
 
     def _evening(self) -> None:
-        self._listed = []
-        self.query_one('#question', Static).update(render(EVENING, lang=self._lang))
-        menu = self.query_one('#menu', OptionList)
-        menu.clear_options()
-        menu.add_option(Choice(render(NEXT, lang=self._lang)))
-        menu.highlighted = 0
-        self.query_one('#council').display = True
-        menu.focus()
+        self._mode = RESTING
+        self._listing(Text(render(EVENING, lang=self._lang)), [Text(render(NEXT, lang=self._lang))], 0)
 
     def _shown(self, message: Mapping[str, Any], known: Body | None) -> None:
         told = {**message, 'events': [event for event in message['events'] if event['key'] != ACCEPTED]}
@@ -231,21 +302,51 @@ class Screen(App[str | None]):
             self._known = known
         self._draw()
 
-    def _ask(self, listed: list[Option], known: Body | None) -> None:
-        self._listed = listed
+    def _ask(self, given: Menu, known: Body | None) -> None:
+        self._menu = given
         if known is not None:
             self._known = known
-        self._draw()
+        self._answers()
+
+    def _answers(self) -> None:
+        if self._menu is None:
+            return
+        self._mode, self._lit, self._cursor = ANSWERS, None, None
         question = Text(render(QUESTION, lang=self._lang) + ' ')
         question.append(render(STATUS, {'status': self._session.status}, self._lang), 'bold yellow')
+        answers = self._menu.answers
+        leader = next((index for index, option in enumerate(answers) if option.leader), 0)
+        self._listing(question, [self._label(option) for option in answers], leader)
+
+    def _places(self) -> None:
+        if self._menu is None:
+            return
+        places = self._menu.places
+        self._mode, self._cursor = PLACES, None
+        self._lit = None if not places or places[0].proposal is None else target(places[0].proposal)
+        said = [*(self._label(option) for option in places), Text(render(PICK, lang=self._lang))]
+        self._listing(Text(render(WHERE, lang=self._lang)), said, 0)
+
+    def _label(self, option: Option) -> Text:
+        return Text(label(option, self._lang), LEADING if option.leader else '')
+
+    def _point(self) -> None:
+        self._mode, self._cursor = POINTING, self._session.place
+        self.query_one('#question', Static).update(render(CURSOR, lang=self._lang))
+        self.query_one('#menu').display = False
+        self.set_focus(None)
+        self._draw()
+
+    def _listing(self, question: Text, said: list[Text], highlighted: int) -> None:
         self.query_one('#question', Static).update(question)
-        menu = self.query_one('#menu', OptionList)
-        menu.clear_options()
-        menu.add_options([Choice(label(option, self._lang)) for option in listed])
-        menu.add_option(Choice(render(ABSTAIN, lang=self._lang)))
-        menu.highlighted = next((index for index, option in enumerate(listed) if option.leader), 0)
+        listed = self.query_one('#menu', OptionList)
+        listed.display = True
+        listed.clear_options()
+        listed.add_options([Choice(text) for text in said])
+        listed.highlighted = highlighted
         self.query_one('#council').display = True
-        menu.focus()
+        listed.focus()
+        self._draw()
 
     def _over(self) -> None:
         self.query_one('#question', Static).update(render(ended(self._session), lang=self._lang))
@@ -257,7 +358,7 @@ class Screen(App[str | None]):
         if session.date is not None:
             self.query_one('#date', Static).update(Text(render(DATE, session.date, self._lang), 'bold'))
         if self._known is not None and session.place is not None:
-            drawn = '\n'.join(pictured(self._known, session.colours, session.place))
+            drawn = '\n'.join(pictured(self._known, session.colours, session.place, self._lit, self._cursor))
             self.query_one('#map', Static).update(Text.from_ansi(drawn))
         self.query_one('#band', Static).update(self._band())
         self.query_one('#cell', Static).update(self._cell())
@@ -274,17 +375,20 @@ class Screen(App[str | None]):
                     told.append(part.text + '\n', LOOKS.get(part.look, ''))
             told.append(render(FATIGUE, {'fatigue': band['fatigue']}, self._lang) + '\n')
             if band.get('intent'):
-                proposal = proposal_key(band['intent']['proposal'])
-                told.append(render(INTENT, {'proposal': proposal}, self._lang) + '\n', 'magenta')
+                said = intended(band['intent']['proposal'], session.place, session.watched.known.get, self._lang)
+                told.append(render(INTENT, {'proposal': said}, self._lang) + '\n', 'magenta')
         told.append(render(STATUS, {'status': session.status}, self._lang), 'bold yellow')
         return told
 
     def _cell(self) -> Text:
         session = self._session
         told = Text()
-        if session.place is None:
+        looked = self._cursor or self._lit or session.place
+        pane = 'cell' if looked == session.place else 'target'
+        self.query_one('#cell').border_title = render(f'{TITLE}{pane}', lang=self._lang)
+        if looked is None:
             return told
-        seen = session.watched.cell(session.place)
+        seen = session.watched.cell(looked)
         if seen.known is None:
             return told.append(render(UNKNOWN, lang=self._lang), 'dim')
         name = session.biomes.get(seen.known['biome'], {}).get('name')

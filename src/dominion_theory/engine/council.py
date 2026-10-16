@@ -16,6 +16,9 @@ from .cells import Place
 from .commands import ABSTAIN, GO, PROPOSALS, STAY
 from .events import NO_LEADER, PROPOSAL
 
+UNKNOWN = 'unknown'
+THROUGH = 'through-'
+
 WORKED = 'worked'
 EVEN = 'even'
 FAILED = 'failed'
@@ -73,17 +76,23 @@ def target(proposal: Proposal) -> Place:
     return proposal['to']['x'], proposal['to']['y']
 
 
-def key(proposal: Proposal | None, at: Place | None = None) -> str:
+def key(proposal: Proposal | None, band: Band | None = None) -> str:
     """
-    The words of a proposal: a go is told by the way to its target from where the band stands, when given.
+    The words of a proposal: a go is told by the land of its target as the band knows it, when a band is given,
+    and as going on through it when the band stands on the same land.
     """
     if proposal is None:
         return NO_LEADER
     if proposal['kind'] != GO:
         return f'{PROPOSAL}{proposal["kind"]}'
-    if at is None or at == target(proposal):
+    to = target(proposal)
+    if band is None or to == band.place:
         return f'{PROPOSAL}{GO}'
-    return f'{PROPOSAL}{GO}-{routes.towards(at, target(proposal))}'
+    cell, own = band.known.get(to), band.known.get(band.place)
+    if cell is None:
+        return f'{PROPOSAL}{GO}-{UNKNOWN}'
+    through = own is not None and own['biome'] == cell['biome']
+    return f'{PROPOSAL}{GO}-{THROUGH if through else ""}{cell["biome"]}'
 
 
 def score(
@@ -153,7 +162,7 @@ def table(params: Params, band: Band, era: str, inside: Inside, extra: Sequence[
     days = score(params, band, era, inside, extra)
     given = votes([held for _, held in days], voters(params, band) - 1, params.council.spread)
     laid = [
-        {'proposal': proposal, 'key': key(proposal, band.place), 'votes': held}
+        {'proposal': proposal, 'key': key(proposal, band), 'votes': held}
         for (proposal, _), held in zip(days, given, strict=True)
     ]
     return [entry for entry in laid if entry['votes']]

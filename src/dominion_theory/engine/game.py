@@ -296,16 +296,17 @@ class Game:
         row, column = self._at(x, y)
         return bool(self.rivers[row, column])
 
-    def value(self, name: str, x: int, y: int) -> float:
+    def value(self, name: str, x: int, y: int, season: str | None = None, stock: float | None = None) -> float:
         """
-        A property of the era at a planet cell of the window: (base + every plus) * every times * stock.
+        A property of the era at a planet cell of the window: (base + every plus) * every times * stock, in the
+        season and with the stock given, the present ones by default.
         """
         row, column = self._at(x, y)
         held = self._property(name, row, column)
-        modifiers = [held.seasons.get(self.date.season)]
+        modifiers = [held.seasons.get(self.date.season if season is None else season)]
         if self.rivers[row, column]:
             modifiers.append(self.params.planet.rivers.effects.get(self.era, {}).get(name))
-        plus, times = held.base, self.cells.stock((x, y), name)
+        plus, times = held.base, self.cells.stock((x, y), name) if stock is None else stock
         for modifier in modifiers:
             if modifier is not None and modifier.kind == 'plus':
                 plus += modifier.amount
@@ -509,13 +510,14 @@ class Game:
             if self.over:
                 return
         leader = council.leader(laid)
-        values = {'leader': council.key(leader, band.place), 'occasion': f'{council.OCCASION}{occasion}'}
-        if council.settled(laid, council.voice(self.params, bands.voters(self.params, band), self.status)):
+        values = {'leader': council.key(leader, band), 'occasion': f'{council.OCCASION}{occasion}'}
+        spoken = council.voice(self.params, bands.voters(self.params, band), self.status)
+        if council.settled(laid, spoken):
             self.answered['tomorrow'] = VOTED
             self._bind(band, leader)
             tick.events.append(Event(COUNCIL_AGREED, values))
             return
-        self.council = tick.seat['council'] = {'leader': leader, 'table': laid}
+        self.council = tick.seat['council'] = {'leader': leader, 'table': laid, 'voice': spoken}
         self._totals['councils'] += 1
         tick.events.append(Event(COUNCIL_OPENED, values))
 
@@ -566,10 +568,10 @@ class Game:
         winner, yes = council.decide(laid, answer, spoken)
         self.answered['tomorrow'] = VOTED if winner == answer else None
         self._bind(band, winner)
-        said = council.key(answer, band.place)
+        said = council.key(answer, band)
         if winner != answer:
             self._status(tick, self.params.council.status.outvoted)
-            values = {'proposal': said, 'winner': council.key(winner, band.place), 'status': self.status}
+            values = {'proposal': said, 'winner': council.key(winner, band), 'status': self.status}
             tick.events.append(Event(COUNCIL_OUTVOTED, values))
             self._banish(tick)
         elif answer == sitting['leader']:
@@ -617,7 +619,7 @@ class Game:
                 return
             band.intent = band.route = None
             self.since[council.CLOSED] = True
-            tick.events.append(Event(INTENT_ENDED, {'proposal': council.key(proposal, band.place)}))
+            tick.events.append(Event(INTENT_ENDED, {'proposal': council.key(proposal, band)}))
         tick.action = self.choose(self, band)
 
     def _next(self, band: Band, to: Place) -> str | None:
@@ -757,14 +759,25 @@ class Game:
 
     def _calendar(self, tick: _Tick) -> None:
         self.tick += 1
+        was = self.date.season
         for boundary in self.clock.advance(self.params.eras[self.era].parts_per_tick):
             tick.events.append(Event(boundary.key, boundary.values))
             if boundary.key == DAY_STARTED:
                 self.answered['today'] = self.answered['tomorrow']
             if boundary.key == SEASON_STARTED:
                 self.since[council.SEASON] = True
+                self._reseason(tick, was)
         if self.date.part == self.params.council.part:
             self._open(tick)
+
+    def _reseason(self, tick: _Tick, was: str) -> None:
+        band = self.band
+        if band is None:
+            return
+        known = {(cell['x'], cell['y']): cell for cell in tick.known}
+        for x, y in bands.reseason(self, band, was):
+            known[x, y] = {'x': x, 'y': y, **band.known[x, y]}
+        tick.known = list(known.values())
 
     def _report(self, tick: _Tick) -> None:
         stocked = self.stocked

@@ -17,7 +17,7 @@ COUNCIL = {
     'leader': STAY,
     'table': [
         {'proposal': STAY, 'key': 'proposal-stay-and-gather', 'votes': 8},
-        {'proposal': EAST, 'key': 'proposal-go-east', 'votes': 5},
+        {'proposal': EAST, 'key': 'proposal-go-forest', 'votes': 5},
     ],
 }
 BAND = {
@@ -44,7 +44,7 @@ KNOWN = {
     'water': [0.6, 0.6],
     'food': [0.9, 0.5],
 }
-TURNED = {'key': 'council-turned', 'values': {'proposal': 'proposal-go-east', 'yes': 9.0, 'all': 14.0}}
+TURNED = {'key': 'council-turned', 'values': {'proposal': 'proposal-go-forest', 'yes': 9.0, 'all': 14.0}}
 ACCEPTED = {'key': 'command-accepted', 'values': {'id': 'vote-3'}}
 UPDATES = [
     {
@@ -57,8 +57,7 @@ UPDATES = [
     {'seq': 5, 'date': DATE, 'events': [], 'changes': {}, 'waiting': []},
 ]
 SAID = (
-    'midday, day 1, month 1, year 1, spring: '
-    'You turned the band: we go to the land where the sun rises. 9 voices of 14 were for it.'
+    'midday, day 1, month 1, year 1, spring: ' 'You turned the band: we go into the forest. 9 voices of 14 were for it.'
 )
 WITHIN = 200
 PAUSE_S = 0.02
@@ -113,7 +112,11 @@ def test_the_screen_draws_the_band_and_its_place_and_sends_the_vote_picked_in_th
         async with screen.run_test(size=(140, 40)) as pilot:
             await until(pilot, lambda: bool(screen.query_one('#council').display))
             seen['map'], seen['band'], seen['cell'] = text(screen, 'map'), text(screen, 'band'), text(screen, 'cell')
-            await pilot.press('down', 'enter')
+            seen['answers'] = text(screen, 'question')
+            await pilot.press('up', 'enter')
+            await until(pilot, lambda: 'Where' in text(screen, 'question'))
+            seen['places'] = str(screen.query_one('#cell').border_title)
+            await pilot.press('enter')
             await until(pilot, lambda: len(api.sent) == 2)
             await until(pilot, lambda: 'over' in text(screen, 'question'))
             seen['log'] = [line.text for line in screen.query_one('#log', RichLog).lines]
@@ -132,12 +135,38 @@ def test_the_screen_draws_the_band_and_its_place_and_sends_the_vote_picked_in_th
         'Your standing is 50.',
     ]
     assert seen['cell'].splitlines()[:2] == ['forest, a river', 'water        ██████░░░░ 0.6']
+    assert seen['answers'].startswith('What do you say at the council?')
+    assert seen['places'] == 'The target'
     assert api.sent == [
         {'id': 'vote-3', 'kind': 'vote', 'proposal': EAST},
         {'id': 'pass-4', 'kind': 'pass'},
     ]
     assert ''.join(seen['log']).replace(' ', '') == SAID.replace(' ', '')
     assert screen.return_value is None
+
+
+def test_a_cell_picked_with_the_cursor_on_the_map_is_where_the_band_is_sent() -> None:
+    api = Scripted()
+    screen = Screen(Session(api, 'alpha'), 'en', pace=0)
+    seen: dict[str, Any] = {}
+
+    async def played() -> None:
+        async with screen.run_test(size=(140, 40)) as pilot:
+            await until(pilot, lambda: bool(screen.query_one('#council').display))
+            await pilot.press('up', 'enter')
+            await until(pilot, lambda: 'Where' in text(screen, 'question'))
+            await pilot.press('down', 'enter')
+            await until(pilot, lambda: 'Arrows' in text(screen, 'question'))
+            await pilot.press('enter', 'left', 'h')
+            seen['title'], seen['cell'] = str(screen.query_one('#cell').border_title), text(screen, 'cell')
+            await pilot.press('enter')
+            await until(pilot, lambda: len(api.sent) == 2)
+            await pilot.press('q')
+
+    asyncio.run(played())
+
+    assert (seen['title'], seen['cell'].splitlines()[0]) == ('The target', 'forest')
+    assert api.sent[0] == {'id': 'vote-3', 'kind': 'vote', 'proposal': {'kind': 'go', 'to': {'x': 0, 'y': 0}}}
 
 
 class Agreed(Scripted):

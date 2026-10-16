@@ -360,7 +360,14 @@ knows the biome, the river mark and the current value of every property.
 
 It remembers what it saw for 20 days, as it was when last seen: a cell
 that was stripped bare stays bare in its memory until it is seen again.
-Older memories are dropped. The decision function reads nothing but what
+Older memories are dropped.
+
+A band knows what the seasons do to its land. When a season starts, every
+remembered cell is expected as the new season makes it: the share of its
+stock that the band saw is kept, and the seasonal modifiers of the new
+season replace those of the old. A meadow seen full in summer is
+remembered as a winter meadow once winter comes, not as a summer one. The
+cells whose memory changed go out in `known` of that update. The decision function reads nothing but what
 is known, and so does the observation of the seat.
 
 In the reference runs a band remembers 25 to 50 cells, up to 7 KB of the

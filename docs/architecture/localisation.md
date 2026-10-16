@@ -72,7 +72,7 @@ belongs to.
 | `biome-`    | `biome-forest`               | name of a biome                  |
 | `unit-`     | `unit-band-state-thirst`     | name of a state of a band        |
 | `council-`  | `council-turned`             | an event                         |
-| `proposal-` | `proposal-go-east`           | "we go to the land where the sun rises" |
+| `proposal-` | `proposal-go-forest`         | "we go into the forest"          |
 | `refused-`  | `refused-no-council`         | why a command was refused        |
 | `error-`    | `error-game-not-found`       | an error of the API              |
 | `ui-`       | `ui-pause`                   | a word of the client             |
@@ -108,7 +108,7 @@ i18n/locales/
 An entry names its key and gives the words, with the values in braces.
 
 ```fluent
-proposal-go-east = we go to the land where the sun rises
+proposal-go-forest = we go into the forest
 proposal-stay-and-gather = we stay and gather
 season-started = Year { $year }: { NAME("time-season", $season) } has come.
 

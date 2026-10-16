@@ -201,11 +201,12 @@ class Votes(BaseModel):
 
 class Council(BaseModel):
     """
-    The council of the day while it sits: the others' votes and the option they lead with.
+    The council of the day while it sits: the others' votes, the option they lead with and the player's voice.
     """
 
     leader: Proposal | None
     table: list[Votes]
+    voice: float | None = None
 
 
 class Seat(BaseModel):

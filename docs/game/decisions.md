@@ -85,7 +85,8 @@ worth = hunger * food + thirst * water - weights.safety * calm * (1 + unease) * 
 ```
 
 The properties are the values the band remembers, stock and season
-included. The worth changes with the needs: to a thirsty band the river
+included; a new season brings the memory to that season, as
+[What a band knows](../units/band.md#what-a-band-knows) tells. The worth changes with the needs: to a thirsty band the river
 is worth more than the forest, and to a calm band the open grass is
 worth more than the forest with wolves in it.
 

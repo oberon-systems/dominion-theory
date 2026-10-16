@@ -10,7 +10,7 @@ from dominion_theory.content.model import PARAMS_INVALID
 from dominion_theory.core.errors import DominionError
 from dominion_theory.db.profiles import LOCALE_UNKNOWN, LOCALES, PROFILE_NOT_FOUND
 from dominion_theory.engine import EVENTS, REASONS, council
-from dominion_theory.engine.band import DIRECTIONS, STATES
+from dominion_theory.engine.band import STATES
 from dominion_theory.engine.commands import GO, PROPOSALS
 from dominion_theory.engine.events import STATE
 from dominion_theory.i18n import DATE, LANGUAGES, catalogue
@@ -56,7 +56,8 @@ def in_use() -> set[str]:
     names |= {f'encounter-{kind}' for kind in params.encounters.kinds}
     names |= {council.key({'kind': kind}) for kind in PROPOSALS if kind != GO}
     names.add(council.key(council.going((0, 0))))
-    names |= {council.key(council.going(DIRECTIONS[towards]), (0, 0)) for towards in DIRECTIONS}
+    goes = (*params.biomes, *(f'{council.THROUGH}{biome}' for biome in params.biomes), council.UNKNOWN)
+    names |= {f'proposal-go-{land}' for land in goes}
     names.add(council.key(None))
     names |= {f'{council.OCCASION}{occasion}' for occasion in council.OCCASIONS}
     errors = {*ERRORS, PRESET_NOT_FOUND, PARAMS_INVALID, LOCALE_UNKNOWN, PROFILE_NOT_FOUND, UNIT_NOT_FOUND}

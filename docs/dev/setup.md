@@ -229,15 +229,17 @@ The terminal becomes a screen of two panes, drawn with
 
 - **the map** - the land the band knows around it, a cell as two
   characters on the colour of its biome, a glyph for the biome, `~` for a
-  river and `@` for the band;
+  river and `@` for the band; the place under the pointer of the council
+  is lit in magenta, the cursor in gold;
 - **the band** - its people, stores, states, action, fatigue and intent,
   and your standing;
 - **its place** - the biome of the band's cell and its properties as the
-  band knows them, as bars;
-- **the council** - while a council sits, its question and a
-  menu of every option: the ones the others voted for first, with their
-  votes, the leader marked and under the pointer, then the rest, and
-  saying nothing last. A council meets only when an occasion calls it;
+  band knows them, as bars; while a place is lit or under the cursor, that
+  place instead, titled "The target";
+- **the council** - while a council sits, its question and a menu of
+  three answers: roam, stay at the camp and say nothing. The answer most
+  of the band leans to is green and under the pointer. An answer your
+  voice cannot win is left out. A council meets only when an occasion calls it;
   on other evenings the screen runs on. When an occasion calls a council
   that is settled, the screen stops on "go on" so that what happened can
   be read before the night.
@@ -245,14 +247,23 @@ The terminal becomes a screen of two panes, drawn with
 The right pane is the log: a line per update with something to tell, the
 date, the standing and what happened.
 
-| Key        | Does                                             |
-|------------|--------------------------------------------------|
-| arrows     | move the pointer in the council's menu           |
-| Enter      | picks the option under the pointer               |
-| q, Ctrl-C  | leaves the game                                  |
+Roam opens "Where to go?": at most three places the others named, one of
+each of the three most voted, told by their land and near (one cell) or
+far, as "We go to the safe meadows, far" or "We go on through the forest,
+near". The last item, "Point the way", shows a cursor on the band's cell:
+any cell of the view may be named, known or not, and the band weighs it
+like its own. Esc steps back from the cursor to the places and from the
+places to the answers.
 
-Backing an option with votes and proposing one without are the same
-pick; saying nothing costs standing.
+| Key        | Does                                                    |
+|------------|---------------------------------------------------------|
+| arrows     | move the pointer in the menu, or the cursor on the map  |
+| h j k l    | move the cursor on the map                              |
+| Enter      | picks the option under the pointer, or the cell         |
+| Esc        | steps back to the places or to the answers              |
+| q, Ctrl-C  | leaves the game                                         |
+
+Saying nothing costs standing.
 [Indirect control](../game/indirect_control.md) tells what each answer
 does to the band and to your standing. Every other tick is answered with
 `pass`, one each `--pace` seconds, so the band is seen to move between two
@@ -285,10 +296,11 @@ Those words are the names of the parameter tree and are not translated.
 
 When the input or the output is not a terminal, as in a pipe, the game
 is played as lines instead: a coloured line per update, and at every
-council the map and a numbered list. The answer is then read as a line: a
-number, `stay` or `abstain`, a place as two steps from the band, east
-then south (`+3 -2`), or an empty line, which says nothing. Colour is
-dropped when the output is not a terminal.
+council the map and a numbered list of the answers. The answer is then read
+as a line: a number, `roam`, `stay` or `abstain`, or an empty line, which says
+nothing. Roam asks for the place the same way: a number, a point as two
+steps from the band, east then south (`+3 -2`), or an empty line to go back.
+Colour is dropped when the output is not a terminal.
 
 ```bash
 printf 'stay\n\n' | make play PLAY='--updates 10'

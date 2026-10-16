@@ -3,11 +3,12 @@ An update as a line of text: the date of the game, the band as it stands, the st
 The same line in parts, each with how it looks, and the options a player may name at a council.
 """
 
-from collections.abc import Mapping
+from collections.abc import Callable, Mapping
 from enum import StrEnum
 from typing import Any, NamedTuple
 
 from ..i18n import DATE, render
+from .drawing import GLYPHS
 
 # The vocabulary of the API, as docs/api/commands.md and docs/api/protocol.md state it.
 DIRECTIONS = ('north', 'north-east', 'east', 'south-east', 'south', 'south-west', 'west', 'north-west')
@@ -26,10 +27,21 @@ PROPOSAL = 'proposal-'
 ACTION = 'line-action-'
 DIRECTION = 'line-direction-'
 QUESTION = 'play-question'
-LEADER = 'play-leader'
-ABSTAIN = 'play-abstain'
 ANSWER = 'play-answer'
-AWAY = 'play-away'
+POINT = 'play-point'
+KIND = 'play-kind-'
+WHERE = 'play-where'
+PICK = 'play-pick'
+CURSOR = 'play-cursor'
+PLACE = 'play-place'
+LAND = 'place-'
+THROUGH = 'place-through-'
+STRANGE = 'place-unknown'
+LEVELS = 3
+QUALITIES = ('danger', 'river', 'rich', 'safe', 'plain')
+DANGER = 0.4
+RICH = 0.6
+SAFE = 0.15
 UNCLEAR = 'play-unclear'
 FATIGUE = 'play-fatigue'
 INTENT = 'play-intent'
@@ -44,7 +56,7 @@ UNKNOWN = 'play-unknown'
 PROPERTY = 'play-property-'
 PROPERTIES = ('water', 'food', 'threat', 'passability')
 TITLE = 'play-title-'
-PANES = ('band', 'cell', 'log', 'council')
+PANES = ('band', 'cell', 'target', 'log', 'council')
 MESSAGES: tuple[str, ...] = (
     PEOPLE,
     STORE,
@@ -52,10 +64,13 @@ MESSAGES: tuple[str, ...] = (
     COUNCIL,
     VOTES,
     QUESTION,
-    LEADER,
-    ABSTAIN,
     ANSWER,
-    AWAY,
+    POINT,
+    WHERE,
+    PICK,
+    CURSOR,
+    PLACE,
+    STRANGE,
     UNCLEAR,
     FATIGUE,
     INTENT,
@@ -72,11 +87,17 @@ MESSAGES: tuple[str, ...] = (
     *(f'{STAGE}{name}' for name in STAGES),
     *(f'{CONDITION}{name}' for name in CONDITIONS),
     *(f'{DIRECTION}{towards}' for towards in DIRECTIONS),
+    *(f'{KIND}{kind}' for kind in ('go', 'stay-and-gather', 'abstain')),
+    *(f'{LAND}{biome}' for biome in GLYPHS),
+    *(f'{THROUGH}{biome}' for biome in GLYPHS),
 )
 
 GO = 'go'
-# Every proposal the menu lists after the voted ones.
-PROPOSALS: tuple[dict[str, Any], ...] = ({'kind': 'stay-and-gather'},)
+STAY = 'stay-and-gather'
+ABSTAIN = 'abstain'
+SILENCE = {'kind': ABSTAIN}
+# The answers of the menu in its order; a go opens the places it may lead to.
+KINDS = (GO, STAY, ABSTAIN)
 LOSSES = frozenset(
     {
         'command-refused',
@@ -95,6 +116,8 @@ LOSSES = frozenset(
 COUNCILS = ('council-', 'proposal-', 'intent-')
 
 type Unit = Mapping[str, Any]
+type Place = tuple[int, int]
+type Known = Callable[[Place], Mapping[str, Any] | None]
 
 
 class Look(StrEnum):
@@ -113,12 +136,33 @@ class Part(NamedTuple):
     text: str
 
 
+class Way(NamedTuple):
+    """
+    Where a go leads as the band knows it: the biome of the target or None when unknown, whether it goes on
+    through the land it stands on, how the target looks, and how far it lies.
+    """
+
+    land: str | None
+    through: bool
+    quality: str
+    cells: int
+
+
 class Option(NamedTuple):
-    proposal: Mapping[str, Any]
-    votes: int
+    """
+    An answer of the menu or a place of a go; the proposal is None for the go that opens the places.
+    """
+
+    kind: str
+    proposal: Mapping[str, Any] | None
     leader: bool
-    key: str
-    far: int | None = None
+    way: Way | None = None
+
+
+class Menu(NamedTuple):
+    answers: list[Option]
+    places: list[Option]
+    place: Place | None
 
 
 def words(message: Mapping[str, Any], lang: str) -> str:
@@ -160,13 +204,6 @@ def band_words(band: Unit, lang: str) -> str:
     return ''.join(part.text for part in band_parts(band, lang))
 
 
-def proposal_key(proposal: Mapping[str, Any]) -> str:
-    """
-    The words of a proposal with no place to tell its way from.
-    """
-    return f'{PROPOSAL}{proposal["kind"]}'
-
-
 def council_words(council: Mapping[str, Any], lang: str) -> str:
     """
     The table of the council of the day: every option the others voted for, with its votes.
@@ -175,26 +212,88 @@ def council_words(council: Mapping[str, Any], lang: str) -> str:
     return render(COUNCIL, {'table': '; '.join(told)}, lang)
 
 
-def options(council: Mapping[str, Any], place: tuple[int, int] | None = None) -> list[Option]:
+def target(proposal: Mapping[str, Any]) -> Place:
+    return proposal['to']['x'], proposal['to']['y']
+
+
+def quality(cell: Mapping[str, Any]) -> str:
     """
-    Every proposal the player may name: the table's in its order, a go with the cells to its target from the
-    place given, then those with no votes in the fixed order.
+    How a known cell looks to the band, the first that holds of QUALITIES.
     """
-    leader = council.get('leader')
-    listed = [
-        Option(entry['proposal'], entry['votes'], entry['proposal'] == leader, entry['key'], _far(entry, place))
-        for entry in council['table']
+    if cell.get('threat', 0.0) >= DANGER:
+        return 'danger'
+    if cell.get('river'):
+        return 'river'
+    if cell.get('food', 0.0) >= RICH:
+        return 'rich'
+    return 'safe' if cell.get('threat', 1.0) <= SAFE else 'plain'
+
+
+def way(to: Place, place: Place, known: Known) -> Way:
+    cells = max(abs(to[0] - place[0]), abs(to[1] - place[1]))
+    cell, here = known(to), known(place)
+    if cell is None:
+        return Way(None, False, 'plain', cells)
+    through = here is not None and here['biome'] == cell['biome']
+    return Way(cell['biome'], through, quality(cell), cells)
+
+
+def where(told: Way, lang: str) -> str:
+    """
+    The words of a place a go leads to: its land and whether it is near.
+    """
+    if told.land is None:
+        land = render(STRANGE, lang=lang)
+    elif told.through:
+        land = render(f'{THROUGH}{told.land}', lang=lang)
+    else:
+        land = render(f'{LAND}{told.land}', {'quality': told.quality}, lang)
+    return render(PLACE, {'land': land, 'cells': told.cells}, lang)
+
+
+def intended(proposal: Mapping[str, Any], place: Place | None, known: Known, lang: str) -> str:
+    if proposal['kind'] == GO and place is not None:
+        return where(way(target(proposal), place, known), lang)
+    return render(f'{KIND}{proposal["kind"]}', lang=lang)
+
+
+def menu(council: Mapping[str, Any], place: Place | None, known: Known) -> Menu:
+    """
+    The answers a player may give and the places of the goes, best voted first, leaving out what the player's
+    voice cannot win; a go stays, for a cell picked on the map is weighed anew.
+    """
+    leader = council.get('leader') or {}
+    table = council['table']
+    voice = council.get('voice')
+
+    def won(votes: int, others: list[int]) -> bool:
+        return voice is None or votes + voice >= max(others, default=0)
+
+    def winnable(entry: Mapping[str, Any]) -> bool:
+        return won(entry['votes'], [other['votes'] for other in table if other is not entry])
+
+    stay = sum(entry['votes'] for entry in table if entry['proposal']['kind'] == STAY)
+    answers = [Option(GO, None, leader.get('kind') == GO)]
+    if won(stay, [entry['votes'] for entry in table if entry['proposal']['kind'] != STAY]):
+        answers.append(Option(STAY, {'kind': STAY}, leader.get('kind') == STAY))
+    answers.append(Option(ABSTAIN, SILENCE, False))
+    goes = [entry for entry in table if entry['proposal']['kind'] == GO and winnable(entry)]
+    levels = sorted({entry['votes'] for entry in goes}, reverse=True)[:LEVELS]
+    # One place for each of the most voted levels, the leader first among its equals.
+    chosen = [
+        min((entry for entry in goes if entry['votes'] == votes), key=lambda entry: entry['proposal'] != leader)
+        for votes in levels
     ]
-    voted = [option.proposal for option in listed]
-    listed += [Option(proposal, 0, False, proposal_key(proposal)) for proposal in PROPOSALS if proposal not in voted]
-    return listed
-
-
-def _far(entry: Mapping[str, Any], place: tuple[int, int] | None) -> int | None:
-    proposal = entry['proposal']
-    if place is None or proposal['kind'] != GO:
-        return None
-    return int(max(abs(proposal['to']['x'] - place[0]), abs(proposal['to']['y'] - place[1])))
+    places = [
+        Option(
+            GO,
+            entry['proposal'],
+            entry['proposal'] == leader,
+            None if place is None else way(target(entry['proposal']), place, known),
+        )
+        for entry in chosen
+    ]
+    return Menu(answers, places, place)
 
 
 def look(key: str) -> Look:

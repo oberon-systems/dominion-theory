@@ -152,19 +152,20 @@ not start at the origin; see
 - **`seated`** - whether a player sits in the seat; a game with an empty
   seat has no council.
 - **`council`** - the council of the day while it sits, `null` otherwise:
-  the `leader`, the option the others lean to or `null`, and the `table`,
+  the `leader`, the option the others lean to or `null`, the `table`,
   every option with its words, `key`, and its votes, as
   [Indirect control](../game/indirect_control.md#the-table-of-votes)
-  lays them out.
+  lays them out, and the `voice`, the votes the player's word adds.
 
 ```json
 {
   "leader": {"kind": "stay-and-gather"},
   "table": [
     {"proposal": {"kind": "stay-and-gather"}, "key": "proposal-stay-and-gather", "votes": 8},
-    {"proposal": {"kind": "go", "to": {"x": 2301, "y": 740}}, "key": "proposal-go-north", "votes": 1},
-    {"proposal": {"kind": "go", "to": {"x": 2304, "y": 744}}, "key": "proposal-go-east", "votes": 5}
-  ]
+    {"proposal": {"kind": "go", "to": {"x": 2301, "y": 740}}, "key": "proposal-go-through-grass", "votes": 1},
+    {"proposal": {"kind": "go", "to": {"x": 2304, "y": 744}}, "key": "proposal-go-forest", "votes": 5}
+  ],
+  "voice": 3.75
 }
 ```
 

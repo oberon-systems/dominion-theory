@@ -91,13 +91,13 @@ def test_a_game_year_is_played_printed_and_replayed(server: str, lang: str) -> N
 
 COUNCIL = {
     'en': (
-        'You turned the band: we go to the land towards the star that does not move.',
-        'It came out even: we go to the land towards the star that does not move. Your standing stays 50.',
+        'You turned the band: we go on through the forest.',
+        'It came out even: we go on through the forest. Your standing stays 50.',
         'The votes: ',
     ),
     'ru': (
-        'Вы повернули общину: идём к земле у неподвижной звезды.',
-        'Ни хорошо, ни плохо: идём к земле у неподвижной звезды. Ваш вес остаётся 50.',
+        'Вы повернули общину: идём по лесу.',
+        'Ни хорошо, ни плохо: идём по лесу. Ваш вес остаётся 50.',
         'Голоса: ',
     ),
 }

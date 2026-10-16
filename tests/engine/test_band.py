@@ -93,6 +93,8 @@ def dice() -> Any:
 def do(game: Game, action: Action, times: int = 1) -> StepResult:
     game.choose = lambda _game, _band: action
     for _ in range(times):
+        if game.band is not None:
+            game.band.intent = None
         result = game.step()
     return result
 
@@ -561,7 +563,7 @@ def test_a_restored_game_carries_the_band_in_the_middle_of_a_day(params: Params)
 def test_a_snapshot_of_the_format_before_the_band_is_refused(params: Params) -> None:
     snapshot = land(params).snapshot()
 
-    assert snapshot['format'] == 10
+    assert snapshot['format'] == 11
     with pytest.raises(ValueError, match='format 2'):
         Game.restore({**snapshot, 'format': 2})
 

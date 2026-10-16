@@ -216,21 +216,24 @@ What stage 2 puts into the phases of
 [one tick](../architecture/overview.md#one-tick).
 
 1. **Commands** - a `vote` is checked: the seat, the council, a second
-   vote, the direction.
+   vote, the place and its route.
 2. **Councils** - a council that sits is decided with the player's
    answer, and rises. The winner becomes the band's intent; an option the
    player carried against the leader is also judged at the next council.
 3. **Decisions** - the band picks its action, among all three or among
-   those its intent allows; in the tick of a council it camps.
+   those its intent allows, along its route under a go; in the tick of a
+   council, and while it is tired under an intent, it camps.
 4. **Actions** - the band moves, gathers or camps; fatigue and what it
-   knows are brought up to date.
+   knows are brought up to date; a band that stands on the place of its
+   go has arrived.
 5. **World** - cells recover; on the first tick of a day stores spoil;
    an encounter is drawn; on the last tick of a day people eat, states
    begin and end, and the members age, die, are hurt, give birth and
    conceive, in the order of [Deaths](../units/band.md#deaths).
 6. **Calendar** - as before; when the new part of the day is
-   `council.part`, yesterday's intent ends and is judged, and the
-   council of the day sits down with its table.
+   `council.part` and an occasion calls it, the intent ends and is
+   judged, and the council sits down with its table. With an empty seat
+   the leader of the table binds the band and nothing sits.
 7. **Report** - as before. The report gains the band in `changes` and
    one counter per thing the lab will ask about.
 
@@ -275,7 +278,8 @@ of them. Both views of the API show the same for now.
       "fatigue": 0.3,
       "states": [],
       "action": {"kind": "gather", "resource": "forage"},
-      "intent": null
+      "intent": {"proposal": {"kind": "go", "to": {"x": 2304, "y": 742}}},
+      "route": [{"x": 2302, "y": 743}, {"x": 2303, "y": 742}, {"x": 2304, "y": 742}]
     }
   ],
   "seat": {"name": "player", "unit": 1, "status": 50.0, "seated": true, "council": null}
@@ -284,6 +288,8 @@ of them. Both views of the API show the same for now.
 
 `ages` counts the members by stage, `pregnant` and `injured` the
 members who are; the members themselves stay in the state of the game.
+`route` is the cells still ahead to the place of a go, empty when the
+band is not on its way.
 `council` is the table of the council of the day while it sits; see
 [The snapshot](../api/protocol.md#the-seat). What the band knows is read as a map: the rectangle of the map address
 takes `known=1` and answers only with the cells that band knows, as

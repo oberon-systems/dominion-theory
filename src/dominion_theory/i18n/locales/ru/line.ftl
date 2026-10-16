@@ -45,7 +45,13 @@ line-direction-north-west = на северо-запад
 play-question = Что вы скажете на совете?
 play-leader = { $option } (за это большинство)
 play-abstain = промолчать
-play-answer = Ваш ответ: номер, направление или stay; пусто - промолчать
+play-answer = Ваш ответ: номер, stay или точка - два шага от общины, на восток и на юг (+3 -2); пусто - промолчать
+play-away =
+    { $cells ->
+        [one] { $option }, { $cells } клетка пути
+        [few] { $option }, { $cells } клетки пути
+       *[many] { $option }, { $cells } клеток пути
+    }
 play-unclear = Непонятно: { $answer }.
 play-fatigue = усталость { NUMBER($fatigue, maximumFractionDigits: 2) }
 play-intent = намерение: { $proposal }

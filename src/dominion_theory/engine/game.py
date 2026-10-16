@@ -13,11 +13,11 @@ from numpy.typing import NDArray
 from ..content import Params, Property
 from ..planet import Planet, biome_names, place
 from . import band as bands
-from . import council, decisions, encounters
+from . import council, decisions, encounters, routes
 from .band import Action, Band
 from .cells import Cells, Place
 from .clock import DAY_STARTED, SEASON_STARTED, Clock, Date
-from .commands import ABSTAIN, BUILT, MOVE, VOTE, Command
+from .commands import ABSTAIN, BUILT, GO, VOTE, Command
 from .counters import Counters
 from .events import (
     BAND_DIED,
@@ -32,6 +32,7 @@ from .events import (
     COUNCIL_OUTVOTED,
     COUNCIL_TURNED,
     ENCOUNTER,
+    INTENT_ARRIVED,
     INTENT_ENDED,
     KIND,
     PEOPLE_BORN,
@@ -43,7 +44,7 @@ from .events import (
     PROPOSAL_WORKED,
     REFUSED_ALREADY_VOTED,
     REFUSED_NO_COUNCIL,
-    REFUSED_NO_SUCH_DIRECTION,
+    REFUSED_NO_SUCH_PLACE,
     REFUSED_SEAT_BANISHED,
     REFUSED_UNKNOWN_COMMAND,
     REFUSED_UNKNOWN_SEAT,
@@ -56,7 +57,7 @@ from .events import (
 from .hashing import digest
 from .streams import Streams
 
-SNAPSHOT_FORMAT = 10
+SNAPSHOT_FORMAT = 11
 DIED = 'died'
 BANISHED = 'banished'
 VOTED = 'voted'
@@ -125,7 +126,14 @@ def _decides(game: Game, band: Band) -> Action:
 
 
 def _nothing_since(first: bool) -> dict[str, Any]:
-    return {council.FIRST: first, council.DEATH: 0, council.CLOSED: False, council.SEASON: False, council.RIVER: False}
+    return {
+        council.FIRST: first,
+        council.DEATH: 0,
+        council.ARRIVED: False,
+        council.CLOSED: False,
+        council.SEASON: False,
+        council.RIVER: False,
+    }
 
 
 class Game:
@@ -450,9 +458,19 @@ class Game:
             return REFUSED_NO_COUNCIL
         if voted:
             return REFUSED_ALREADY_VOTED
-        if answer['kind'] == MOVE and decisions.way(self.params, self.band, answer['towards'], self.era) is None:
-            return REFUSED_NO_SUCH_DIRECTION
+        if answer['kind'] == GO and self._way(self.band, council.target(answer)) is None:
+            return REFUSED_NO_SUCH_PLACE
         return None
+
+    def _way(self, band: Band, to: Place) -> list[list[int]] | None:
+        """
+        The route of the band to a cell of the window it can enter, other than its own; None when there is none.
+        """
+        if to == band.place or not self.inside(*to) or not bands.enterable(self, *to):
+            return None
+        looks = partial(decisions.looks, self.params, band, self.era)
+        laid = routes.lay(self.params, band, to, self.inside, looks, decisions.needs(self.params, band))
+        return None if laid is None else [list(at) for at in laid]
 
     def _commands(self, tick: _Tick) -> None:
         for _, command in sorted(self._pending, key=lambda held: (held[1].seat, held[0])):
@@ -474,20 +492,24 @@ class Game:
         others' votes are laid out. Without an occasion the last decision stands.
         """
         band = self.band
-        if band is None or self.over or not self.seated:
+        if band is None or self.over:
             return
-        laid = council.table(self.params, band, self.era)
+        standing = None if band.intent is None else band.intent['proposal']
+        laid = council.table(self.params, band, self.era, self.inside, () if standing is None else (standing,))
         occasion = self._occasion(band, laid)
         if occasion is None:
             return
         self.since = _nothing_since(first=False)
         band.intent = None
+        if not self.seated:
+            self._bind(band, council.leader(laid))
+            return
         if self.judgement is not None:
             self._verdict(tick, band, self.judgement)
             if self.over:
                 return
         leader = council.leader(laid)
-        values = {'leader': council.key(leader), 'occasion': f'{council.OCCASION}{occasion}'}
+        values = {'leader': council.key(leader, band.place), 'occasion': f'{council.OCCASION}{occasion}'}
         if council.settled(laid, council.voice(self.params, bands.voters(self.params, band), self.status)):
             self.answered['tomorrow'] = VOTED
             self._bind(band, leader)
@@ -503,12 +525,16 @@ class Game:
         """
         since = self.since
         hungry = max(decisions.needs(self.params, band).values()) >= self.params.units.band.roaming.hunger
+        standing = None if band.intent is None else band.intent['proposal']
+        # A band on its way to a place does not turn for another wish before it gets there.
+        restless = (standing is None or standing['kind'] != GO) and council.restless(laid, standing)
         held = {
             council.FIRST: since[council.FIRST],
             council.DEATH: since[council.DEATH] > 0,
+            council.ARRIVED: since[council.ARRIVED],
             council.HUNGER: hungry,
             council.CLOSED: since[council.CLOSED],
-            council.RESTLESS: council.restless(laid, None if band.intent is None else band.intent['proposal']),
+            council.RESTLESS: restless,
             council.SEASON: since[council.SEASON],
             council.RIVER: since[council.RIVER],
         }
@@ -533,24 +559,30 @@ class Game:
             self._banish(tick)
             return
         spoken = council.voice(self.params, bands.voters(self.params, band), self.status)
-        winner, yes = council.decide(sitting['table'], answer, spoken)
+        laid = sitting['table']
+        if all(entry['proposal'] != answer for entry in laid):
+            # A point the others did not name is weighed by them like their own, and the votes are laid again.
+            laid = council.table(self.params, band, self.era, self.inside, (answer,))
+        winner, yes = council.decide(laid, answer, spoken)
         self.answered['tomorrow'] = VOTED if winner == answer else None
         self._bind(band, winner)
+        said = council.key(answer, band.place)
         if winner != answer:
             self._status(tick, self.params.council.status.outvoted)
-            values = {'proposal': council.key(answer), 'winner': council.key(winner), 'status': self.status}
+            values = {'proposal': said, 'winner': council.key(winner, band.place), 'status': self.status}
             tick.events.append(Event(COUNCIL_OUTVOTED, values))
             self._banish(tick)
         elif answer == sitting['leader']:
-            tick.events.append(Event(COUNCIL_FOLLOWED, {'proposal': council.key(answer)}))
+            tick.events.append(Event(COUNCIL_FOLLOWED, {'proposal': said}))
         else:
             every = bands.voters(self.params, band) - 1 + spoken
-            tick.events.append(Event(COUNCIL_TURNED, {'proposal': council.key(answer), 'yes': yes, 'all': every}))
+            tick.events.append(Event(COUNCIL_TURNED, {'proposal': said, 'yes': yes, 'all': every}))
             self.judgement = {
                 'proposal': answer,
+                'key': said,
                 'population': band.population,
                 'needs': decisions.needs(self.params, band),
-                'expected': council.expected(self.params, band, self.era, sitting['leader']),
+                'expected': council.expected(self.params, band, self.era, self.inside, sitting['leader']),
                 'before': council.reached(self.params, band, decisions.needs(self.params, band), band.unease),
                 'unease': band.unease,
                 'lost': {},
@@ -559,6 +591,7 @@ class Game:
     @staticmethod
     def _bind(band: Band, decided: council.Proposal | None) -> None:
         band.intent = None if decided is None else {'proposal': dict(decided)}
+        band.route = None
 
     def _decisions(self, tick: _Tick) -> None:
         band = self.band
@@ -569,17 +602,40 @@ class Game:
             band.wander, band.reason = None, decisions.reason(camped)
             tick.action = camped.action
             return
-        if band.intent is not None:
-            proposal = band.intent['proposal']
-            held = decisions.intended(self.params, band, proposal, self.era)
-            if held is not None:
+        proposal = None if band.intent is None else band.intent['proposal']
+        if proposal is not None and bands.TIREDNESS in band.states:
+            rested = decisions.Scored(bands.camp(), 0.0, decisions.REST)
+            band.wander, band.reason = None, decisions.reason(rested)
+            tick.action = rested.action
+            return
+        if proposal is not None:
+            towards = None if proposal['kind'] != GO else self._next(band, council.target(proposal))
+            if proposal['kind'] != GO or towards is not None:
+                held = decisions.intended(self.params, band, proposal, self.era, towards)
                 band.wander, band.reason = None, decisions.reason(held)
                 tick.action = held.action
                 return
-            band.intent = None
+            band.intent = band.route = None
             self.since[council.CLOSED] = True
-            tick.events.append(Event(INTENT_ENDED, {'proposal': council.key(proposal)}))
+            tick.events.append(Event(INTENT_ENDED, {'proposal': council.key(proposal, band.place)}))
         tick.action = self.choose(self, band)
+
+    def _next(self, band: Band, to: Place) -> str | None:
+        """
+        The direction of the next cell of the route, laid anew every day and when that cell is closed to the band.
+        """
+        route = band.route
+        cells = [] if route is None or route['day'] != self.day else list(route['cells'])
+        if [band.x, band.y] in cells:
+            cells = cells[cells.index([band.x, band.y]) + 1 :]
+        ahead = None if not cells else (cells[0][0], cells[0][1])
+        if ahead is None or not decisions.reachable(self.params, band, ahead, self.era):
+            laid = self._way(band, to)
+            if laid is None:
+                return None
+            cells, ahead = laid, (laid[0][0], laid[0][1])
+        band.route = {'day': self.day, 'cells': cells}
+        return routes.towards(band.place, ahead)
 
     def _actions(self, tick: _Tick) -> None:
         band = self.band
@@ -587,6 +643,11 @@ class Game:
             return
         done = bands.act(self, band, tick.action, self.day)
         self._totals[f'{done["kind"]}s'] += 1
+        proposal = None if band.intent is None else band.intent['proposal']
+        if proposal is not None and proposal['kind'] == GO and band.place == council.target(proposal):
+            band.intent = band.route = None
+            self.since[council.ARRIVED] = True
+            tick.events.append(Event(INTENT_ARRIVED, {}))
         self._states(tick, *bands.tire(self.params.units.band, band))
         before = set(band.known)
         tick.known = [{'x': x, 'y': y, **band.known[x, y]} for x, y in bands.look(self, band, self.day)]
@@ -635,7 +696,7 @@ class Game:
         now = council.reached(self.params, band, judgement['needs'], judgement['unease'])
         found = council.verdict(self.params, judgement, now)
         self._status(tick, council.amount(self.params, proposal, found))
-        values: dict[str, Any] = {'proposal': council.key(proposal), 'status': self.status}
+        values: dict[str, Any] = {'proposal': judgement['key'], 'status': self.status}
         if found in (council.FAILED, council.DISASTER):
             values['lost'] = sum(judgement['lost'].values())
         tick.events.append(Event(VERDICTS[found], values))

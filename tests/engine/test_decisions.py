@@ -80,13 +80,14 @@ def test_dread_raises_the_threat_seen_and_unease_sharpens_the_fear_of_it(params:
     )
 
 
-def test_a_sated_band_leans_out_of_a_forest_to_the_unknown_but_not_out_of_grass() -> None:
+def test_a_band_leans_out_of_stripped_land_to_the_unknown_but_not_out_of_a_forest_or_grass() -> None:
     blind = load_params(overrides=SMALL)
-    hoping = load_params(overrides={**SMALL, 'units.band.decisions.horizon': 1})
+    hoping = load_params(overrides={**SMALL, 'units.band.decisions.horizon': 2})
 
-    forest, grass = held(around(FOREST), 30.0, 30.0), held(around(GRASS), 30.0, 30.0)
+    stripped, forest, grass = (held(around(cell), 30.0, 30.0) for cell in (STRIPPED, FOREST, GRASS))
 
-    assert best_move(blind, forest) < 0 < best_move(hoping, forest)
+    assert best_move(blind, stripped) < 0 < best_move(hoping, stripped)
+    assert best_move(hoping, forest) < 0
     assert best_move(hoping, grass) < 0
 
 
@@ -180,15 +181,15 @@ def test_a_roam_is_the_slower_move_with_the_foraging_of_what_the_band_is_short_o
     assert roams[1] == pytest.approx(walk(0.4) + 0.5 * (1.5 * 0.4 * 0.8 + 1.2 * 0.4 * 0.28))
 
 
-def test_an_intent_to_move_gives_the_roam_the_whole_gain(params: Params) -> None:
+def test_an_intent_to_go_gives_the_roam_the_whole_gain(params: Params) -> None:
     band = held({HOME: FOREST, EAST: GRASS}, forage=22.5, water=30.0)
+    going = {'kind': 'go', 'to': {'x': EAST[0], 'y': EAST[1]}}
 
-    held_to = decisions.intended(params, band, {'kind': 'move', 'towards': 'east'}, ERA)
-    found = decisions.options(params, band, ERA, decisions.NARROWED['move'], {'east'})
+    held_to = decisions.intended(params, band, going, ERA, 'east')
+    found = decisions.options(params, band, ERA, decisions.NARROWED['go'], {'east'})
 
     by_kind = {scored.action['kind']: scored.score for scored in found}
     assert by_kind['roam'] == pytest.approx(by_kind['move'] + 0.5 * 1.5 * 0.4 * 0.8)
-    assert held_to is not None
     assert held_to.action == {'kind': 'roam', 'towards': 'east'}
 
 
@@ -316,18 +317,6 @@ def test_a_year_alone_gives_the_same_hashes_twice(params: Params) -> None:
 
     assert [first.step().hash for _ in range(500)] == [second.step().hash for _ in range(500)]
     assert first.tick == 500
-
-
-@pytest.mark.parametrize(
-    ('towards', 'beside'),
-    [
-        ('north', ('north-east', 'north-west')),
-        ('east', ('south-east', 'north-east')),
-        ('north-west', ('north', 'west')),
-    ],
-)
-def test_the_directions_beside_one_go_clockwise_first(towards: str, beside: tuple[str, str]) -> None:
-    assert decisions.beside(towards) == beside
 
 
 def test_stores_last_for_days_and_for_ever_when_nobody_eats() -> None:

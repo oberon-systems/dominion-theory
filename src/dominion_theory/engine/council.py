@@ -4,42 +4,41 @@ states them.
 """
 
 import math
-from collections.abc import Mapping
+from collections.abc import Callable, Mapping, Sequence
+from functools import partial
 from typing import Any
 
 from ..content import Params
 from . import band as bands
-from . import decisions
-from .band import DIRECTIONS, Band, voters
-from .commands import ABSTAIN, MOVE, PROPOSALS, STAY
+from . import decisions, routes
+from .band import Band, voters
+from .cells import Place
+from .commands import ABSTAIN, GO, PROPOSALS, STAY
 from .events import NO_LEADER, PROPOSAL
 
 WORKED = 'worked'
 EVEN = 'even'
 FAILED = 'failed'
 DISASTER = 'disaster'
-STATUS = {MOVE: 'move', STAY: 'stay'}
+STATUS = {GO: 'go', STAY: 'stay'}
 STAYING = {'kind': STAY}
 HIGHEST = 100.0
 OCCASION = 'occasion-'
 # What calls a council, in the order the first that holds is named: docs/game/indirect_control.md, Occasions.
 FIRST = 'first'
 DEATH = 'death'
+ARRIVED = 'arrived'
 HUNGER = 'hunger'
 CLOSED = 'closed'
 RESTLESS = 'restless'
 SEASON = 'season'
 RIVER = 'river'
-OCCASIONS = (FIRST, DEATH, HUNGER, CLOSED, RESTLESS, SEASON, RIVER)
-# The fixed order of the options, the one of the decision function: the gatherings, the moves.
-OPTIONS: tuple[dict[str, Any], ...] = (
-    {'kind': STAY},
-    *({'kind': MOVE, 'towards': name} for name in DIRECTIONS),
-)
+OCCASIONS = (FIRST, DEATH, ARRIVED, HUNGER, CLOSED, RESTLESS, SEASON, RIVER)
 
 
 type Proposal = dict[str, Any]
 type Table = list[dict[str, Any]]
+type Inside = Callable[[int, int], bool]
 
 
 def answer(fields: Mapping[str, Any]) -> Proposal | None:
@@ -54,28 +53,79 @@ def answer(fields: Mapping[str, Any]) -> Proposal | None:
         return {'kind': ABSTAIN}
     if not isinstance(kind, str) or kind not in PROPOSALS or set(held) != {'kind', *PROPOSALS[kind]}:
         return None
-    if kind == MOVE and held['towards'] not in DIRECTIONS:
-        return None
+    if kind == GO:
+        to = held['to']
+        if not isinstance(to, Mapping) or set(to) != {'x', 'y'} or not all(_whole(to[name]) for name in to):
+            return None
+        return going((to['x'], to['y']))
     return dict(held)
 
 
-def key(proposal: Proposal | None) -> str:
+def _whole(value: Any) -> bool:
+    return isinstance(value, int) and not isinstance(value, bool)
+
+
+def going(to: Place) -> Proposal:
+    return {'kind': GO, 'to': {'x': to[0], 'y': to[1]}}
+
+
+def target(proposal: Proposal) -> Place:
+    return proposal['to']['x'], proposal['to']['y']
+
+
+def key(proposal: Proposal | None, at: Place | None = None) -> str:
+    """
+    The words of a proposal: a go is told by the way to its target from where the band stands, when given.
+    """
     if proposal is None:
         return NO_LEADER
-    return f'{PROPOSAL}{proposal["kind"]}' + (f'-{proposal["towards"]}' if proposal['kind'] == MOVE else '')
+    if proposal['kind'] != GO:
+        return f'{PROPOSAL}{proposal["kind"]}'
+    if at is None or at == target(proposal):
+        return f'{PROPOSAL}{GO}'
+    return f'{PROPOSAL}{GO}-{routes.towards(at, target(proposal))}'
 
 
-def score(params: Params, band: Band, era: str) -> dict[str, float]:
+def score(
+    params: Params, band: Band, era: str, inside: Inside, extra: Sequence[Proposal] = ()
+) -> list[tuple[Proposal, float]]:
     """
-    What a day of every proposal is worth to the band, by key: staying on the land it stands on or walking to
-    the best land that way.
+    What a day of every proposal is worth to the band, in the fixed order: staying on the land it stands on,
+    a go to the best land it knows each way clockwise from the north, a target named in the same way once,
+    then every extra one it can reach.
     """
     weights = params.units.band.decisions.weights
     here = decisions.here(params, band, decisions.needs(params, band))
-    found = {key(STAYING): weights.move * here}
+    found: dict[Place | None, float] = {None: weights.move * here}
     for held in decisions.options(params, band, era, allowed={bands.MOVE}, walking=True):
-        found[key({'kind': MOVE, 'towards': held.action['towards']})] = held.score + weights.move * here
-    return found
+        to = held.pull
+        if to is not None and inside(*to):
+            found[to] = max(found.get(to, -math.inf), held.score + weights.move * here)
+    for proposal in extra:
+        if proposal['kind'] == GO and target(proposal) not in found:
+            aimed = _aimed(params, band, era, inside, target(proposal))
+            if aimed is not None:
+                found[target(proposal)] = aimed
+    return [(STAYING if to is None else going(to), held) for to, held in found.items()]
+
+
+def _aimed(params: Params, band: Band, era: str, inside: Inside, to: Place) -> float | None:
+    """
+    A day towards a target the band did not name itself, as it would weigh its own: the worth of the target
+    by the length of the route; None when there is no route.
+    """
+    rules = params.units.band.decisions
+    wanted = decisions.needs(params, band)
+    cell = decisions.looks(params, band, era, to)
+    way = routes.lay(params, band, to, inside, partial(decisions.looks, params, band, era), wanted)
+    if cell is None or way is None:
+        return None
+    value = decisions.worth(params, cell, wanted, band.unease)[0]
+    if value > 0:
+        value = value / (1.0 + len(way) * rules.distance)
+    elif to in band.known:
+        value = value * (1.0 + len(way) * rules.distance)
+    return rules.weights.move * value
 
 
 def votes(scores: list[float], members: int, spread: float) -> list[int]:
@@ -95,15 +145,17 @@ def votes(scores: list[float], members: int, spread: float) -> list[int]:
     return whole
 
 
-def table(params: Params, band: Band, era: str) -> Table:
+def table(params: Params, band: Band, era: str, inside: Inside, extra: Sequence[Proposal] = ()) -> Table:
     """
-    How the others' votes lie over the options the band can take; options without a vote are left out.
+    How the others' votes lie over the options the band can take, each with its words; options without a vote
+    are left out.
     """
-    days = score(params, band, era)
-    offered = [proposal for proposal in OPTIONS if key(proposal) in days]
-    scores = [days[key(proposal)] for proposal in offered]
-    given = votes(scores, voters(params, band) - 1, params.council.spread)
-    laid = [{'proposal': proposal, 'votes': held} for proposal, held in zip(offered, given, strict=True)]
+    days = score(params, band, era, inside, extra)
+    given = votes([held for _, held in days], voters(params, band) - 1, params.council.spread)
+    laid = [
+        {'proposal': proposal, 'key': key(proposal, band.place), 'votes': held}
+        for (proposal, _), held in zip(days, given, strict=True)
+    ]
     return [entry for entry in laid if entry['votes']]
 
 
@@ -122,13 +174,12 @@ def decide(laid: Table, proposal: Proposal, spoken: float) -> tuple[Proposal, fl
     The winner once the player's voice is added to the proposal, and the votes of the proposal; a tie goes to
     the player, and among the others to the fixed order.
     """
-    votes = {key(entry['proposal']): float(entry['votes']) for entry in laid}
-    named = key(proposal)
-    votes[named] = votes.get(named, 0.0) + spoken
-    order = [key(option) for option in OPTIONS]
-    best = max(votes, key=lambda name: (votes[name], name == named, -order.index(name)))
-    winner = proposal if best == named else next(entry['proposal'] for entry in laid if key(entry['proposal']) == best)
-    return dict(winner), votes[named]
+    options = [(dict(entry['proposal']), float(entry['votes'])) for entry in laid]
+    if all(option != proposal for option, _ in options):
+        options.append((dict(proposal), 0.0))
+    counted = [(option, held + spoken if option == proposal else held) for option, held in options]
+    best = max(range(len(counted)), key=lambda at: (counted[at][1], counted[at][0] == proposal, -at))
+    return counted[best][0], next(held for option, held in counted if option == proposal)
 
 
 def settled(laid: Table, spoken: float) -> bool:
@@ -155,12 +206,12 @@ def worth(params: Params, band: Band, wanted: dict[str, float], unease: float) -
     return decisions.worth(params, cell, wanted, unease)[0] if cell else 0.0
 
 
-def expected(params: Params, band: Band, era: str, leader: Proposal | None) -> float:
+def expected(params: Params, band: Band, era: str, inside: Inside, leader: Proposal | None) -> float:
     """
     The day the leader promised, or staying when nobody voted.
     """
-    days = score(params, band, era)
-    return days.get(key(leader), days[key(STAYING)])
+    days = score(params, band, era, inside, () if leader is None else (leader,))
+    return next((held for proposal, held in days if proposal == leader), days[0][1])
 
 
 def reached(params: Params, band: Band, wanted: dict[str, float], unease: float) -> float:
@@ -197,8 +248,8 @@ def restless(laid: Table, standing: Proposal | None) -> bool:
     """
     if standing is None:
         return True
-    votes = {key(entry['proposal']): entry['votes'] for entry in laid}
-    return bool(laid) and 2 * votes.get(key(standing), 0) < max(votes.values())
+    held = sum(entry['votes'] for entry in laid if entry['proposal'] == standing)
+    return bool(laid) and 2 * held < max(entry['votes'] for entry in laid)
 
 
 def scaled(amount: float, status: float) -> float:

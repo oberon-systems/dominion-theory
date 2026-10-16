@@ -134,16 +134,16 @@ class Roam(BaseModel):
 Action = Annotated[Camp | Gather | Walk | Roam, Field(discriminator='kind')]
 
 
-class MoveProposal(BaseModel):
-    kind: Literal['move']
-    towards: str
+class GoProposal(BaseModel):
+    kind: Literal['go']
+    to: Spot
 
 
 class StayProposal(BaseModel):
     kind: Literal['stay-and-gather']
 
 
-Proposal = Annotated[MoveProposal | StayProposal, Field(discriminator='kind')]
+Proposal = Annotated[GoProposal | StayProposal, Field(discriminator='kind')]
 
 
 class Intent(BaseModel):
@@ -185,11 +185,17 @@ class Unit(BaseModel):
     states: list[str]
     action: Action
     intent: Intent | None
+    route: list[Spot]
     reason: Reason | None
 
 
 class Votes(BaseModel):
+    """
+    One option of the table: the proposal, its words as the band says them where it stands, its votes.
+    """
+
     proposal: Proposal
+    key: str
     votes: int
 
 

@@ -286,9 +286,9 @@ Those words are the names of the parameter tree and are not translated.
 When the input or the output is not a terminal, as in a pipe, the game
 is played as lines instead: a coloured line per update, and at every
 council the map and a numbered list. The answer is then read as a line: a
-number, a name of the API (`east`, `ne`, `stay`, `abstain`) or an
-empty line, which says nothing. Colour is dropped when the output is not
-a terminal.
+number, `stay` or `abstain`, a place as two steps from the band, east
+then south (`+3 -2`), or an empty line, which says nothing. Colour is
+dropped when the output is not a terminal.
 
 ```bash
 printf 'stay\n\n' | make play PLAY='--updates 10'

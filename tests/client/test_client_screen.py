@@ -12,8 +12,14 @@ type Body = dict[str, Any]
 
 DATE = {'year': 1, 'month': 1, 'day': 1, 'part': 'midday', 'season': 'spring'}
 STAY = {'kind': 'stay-and-gather'}
-EAST = {'kind': 'move', 'towards': 'east'}
-COUNCIL = {'leader': STAY, 'table': [{'proposal': STAY, 'votes': 8}, {'proposal': EAST, 'votes': 5}]}
+EAST = {'kind': 'go', 'to': {'x': 3, 'y': 0}}
+COUNCIL = {
+    'leader': STAY,
+    'table': [
+        {'proposal': STAY, 'key': 'proposal-stay-and-gather', 'votes': 8},
+        {'proposal': EAST, 'key': 'proposal-go-east', 'votes': 5},
+    ],
+}
 BAND = {
     'id': 1,
     'kind': 'band',
@@ -38,7 +44,7 @@ KNOWN = {
     'water': [0.6, 0.6],
     'food': [0.9, 0.5],
 }
-TURNED = {'key': 'council-turned', 'values': {'proposal': 'proposal-move-east', 'yes': 9.0, 'all': 14.0}}
+TURNED = {'key': 'council-turned', 'values': {'proposal': 'proposal-go-east', 'yes': 9.0, 'all': 14.0}}
 ACCEPTED = {'key': 'command-accepted', 'values': {'id': 'vote-3'}}
 UPDATES = [
     {
@@ -52,7 +58,7 @@ UPDATES = [
 ]
 SAID = (
     'midday, day 1, month 1, year 1, spring: '
-    'You turned the band: we go where the sun rises. 9 voices of 14 were for it.'
+    'You turned the band: we go to the land where the sun rises. 9 voices of 14 were for it.'
 )
 WITHIN = 200
 PAUSE_S = 0.02

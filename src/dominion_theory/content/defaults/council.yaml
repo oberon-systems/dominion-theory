@@ -11,10 +11,10 @@ council:
     start: 50
     abstained: -2
     outvoted: -1
-    move_worked: 4
-    move_failed: -6
-    move_disaster: -20
-    move_even: 0
+    go_worked: 4
+    go_failed: -6
+    go_disaster: -20
+    go_even: 0
     stay_worked: 3
     stay_failed: -6
     stay_disaster: -20

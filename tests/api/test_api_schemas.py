@@ -42,7 +42,7 @@ def test_the_band_and_its_council_fit_the_snapshot_and_the_stream_and_lose_nothi
     for tick in range(EVENING):
         runner.submit(Pass(seat='player', id=f'p-{tick}'))
     assert runner.game.council is not None
-    runner.submit(Vote(seat='player', proposal={'kind': 'move', 'towards': 'north'}, id='c-1'))
+    runner.submit(Vote(seat='player', proposal={'kind': 'go', 'to': {'x': 107, 'y': 46}}, id='c-1'))
     for tick in range(EVENING + 1, EVENING + 2 * DAY + 1):
         runner.submit(Pass(seat='player', id=f'p-{tick}'))
 
@@ -57,8 +57,8 @@ def test_the_band_and_its_council_fit_the_snapshot_and_the_stream_and_lose_nothi
     assert risen.changes.seat == SeatChange(council=None) and 'council' in risen.changes.seat.model_fields_set
     assert opened.changes.seat.council is not None
     assert sum(entry.votes for entry in opened.changes.seat.council.table) == 14
-    assert silent.changes.seat == SeatChange(council=None, status=51.84)
-    assert (snapshot.seat.status, snapshot.seat.seated) == (51.84, True)
+    assert silent.changes.seat == SeatChange(council=None, status=48.0)
+    assert (snapshot.seat.status, snapshot.seat.seated) == (48.0, True)
 
 
 def test_an_intent_is_a_proposal_alone() -> None:

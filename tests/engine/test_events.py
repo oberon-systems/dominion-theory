@@ -15,7 +15,7 @@ def test_every_key_is_declared_once_with_its_values() -> None:
         'refused-unknown-seat',
         'refused-no-council',
         'refused-already-voted',
-        'refused-no-such-direction',
+        'refused-no-such-place',
         'refused-seat-banished',
     )
 

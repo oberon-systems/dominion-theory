@@ -148,10 +148,10 @@ roam = roaming.speed * weights.move * (pull - staying)
   cells past the sight that way, when the band does not know it. It is
   worth what the band expects of land it has not seen,
   `decisions.unknown`, and a worth of it below zero is not made worse by
-  distance. A sated band on dangerous land leans out towards it; on safe
-  land, or hungry on good land, it stays. A horizon of 0 turns it off,
-  and it is off by default: fatigue counts in no decision, so a band
-  in a forest wider than its sight walks on until it is worn out.
+  distance. The band expects land as dangerous as a forest, so it is
+  hope of food and water that sends it there, not fear: a band on
+  stripped land leans out towards it, a band in a forest or on grass
+  stays. A horizon of 0 turns it off.
 
 A move scores above zero only when something known, or the unknown, is
 better than staying. A band on good land stays; a band on stripped
@@ -188,20 +188,40 @@ ___
 
 A proposal the council passed is the band's intent. An intent does not
 replace the function: it narrows the options and the function chooses
-among what is left.
+among what is left. A tired band camps whatever its intent, until its
+tiredness ends.
 
-| Intent            | Options left                              |
-|-------------------|-------------------------------------------|
-| `move` a direction| a move or a roam that way, or a camp      |
-| `stay-and-gather` | gathering of any resource, or a camp      |
+| Intent            | Options left                                              |
+|-------------------|-----------------------------------------------------------|
+| `go` to a place   | a move or a roam to the next cell of the route, a gathering, or a camp |
+| `stay-and-gather` | gathering of any resource, or a camp                      |
 
-"That way" is the named direction first. When that cell cannot be
-entered, the two directions beside it are taken, the clockwise one
-first; when neither can, the intent ends early. Under a `move` intent
-the moves and the roams are scored with the pull replaced by a fixed
-`weights.intent`, and a roam gets the whole of that gain, not
-`roaming.speed` of it: the intent names the way, not the pace. The band
-roams wherever the cell ahead feeds it and walks only over bare land.
+Under a `go` intent the moves and the roams are scored with the pull
+replaced by a fixed `weights.intent`, and a roam gets the whole of that
+gain, not `roaming.speed` of it: the intent names the way, not the pace.
+The band roams wherever the cell ahead feeds it, walks over bare land
+and stops to gather only where that is worth more than going on.
+
+### The route
+
+A go is walked by a route: the cheapest chain of cells from the band to
+the place, by the eight neighbours, searched in a box around both with
+`route.margin` cells to spare. A step into a cell costs the time its
+passability takes, its threat as the band sees it, and the food and
+water it lacks as much as the band wants them.
+
+```text
+cost = 1 / passability + route.threat * threat
+     + route.hunger * hunger * (1 - food) + route.thirst * thirst * (1 - water)
+```
+
+A cell the band does not know costs what it expects of unseen land,
+`decisions.unknown`; a cell it knows it cannot enter is no step. So a
+route bends round a forest or a lake when the way round costs less, and
+of two ways that cost the same it keeps nearer the straight line. The
+route is laid anew every morning, with what the band has seen since, and
+whenever its next cell turns out closed. When no route is left, the
+intent ends early.
 
 The band holds an intent to its end, starving or not. That is what makes
 a bad proposal bad; see
@@ -235,8 +255,8 @@ units:
         fed: {days: 1, need: 0.4}
         hungry: {days: 0, need: 0.8}
       distance: 0.25
-      horizon: 0
-      unknown: {food: 0.5, water: 0.5, threat: 0.2}
+      horizon: 2
+      unknown: {food: 0.5, water: 0.5, threat: 0.4, passability: 0.7}
       idle: 0.05
       wander: {days: 1}
       weights:
@@ -248,6 +268,7 @@ units:
         intent: 0.6
     dread: {encounter: 0.3, lasts: {days: 20}}
     unease: {gain: 0.1, fade: 0.2}
+    route: {margin: 4, threat: 2.0, hunger: 1.0, thirst: 1.0}
 ```
 
 `levels` are read from
@@ -326,8 +347,7 @@ ___
   A band fears a cell where it was struck and fears every threat more
   once it has stayed in danger; it does not yet tell one kind of danger
   from another.
-- **Rest** - fatigue counts in no decision, so nothing stops a band
-  that always sees better land ahead. The unknown stays off until a
-  band rests when it is worn out.
+- **Rest** - a band rests only once it is tired. Fatigue does not weigh
+  in the scores, so a band does not slow down before it is worn out.
 - **Weights per band** - one set of weights serves every band until
   stage 3 names temperaments.

@@ -40,7 +40,7 @@ Every command has the same outside and its own inside.
 {
   "id": "c-0192",
   "kind": "vote",
-  "proposal": {"kind": "move", "towards": "east"}
+  "proposal": {"kind": "go", "to": {"x": 2305, "y": 744}}
 }
 ```
 
@@ -114,18 +114,19 @@ council in stage 2.
 
 The API checks the form of a command; the rules are the engine's, and it
 judges a `vote` when the game next steps. A vote backs an option of the
-table, proposes one that has no votes, or abstains with
+table, proposes a place of the player's own, or abstains with
 `{"kind": "abstain"}`.
 
 A proposal is one of two.
 
-| Proposal          | Fields                 | In the game                           |
-|-------------------|------------------------|---------------------------------------|
-| `move`            | `towards`: a direction | "we go where the sun rises"           |
-| `stay-and-gather` | none                   | "we stay and gather"                  |
+| Proposal          | Fields                         | In the game                           |
+|-------------------|--------------------------------|---------------------------------------|
+| `go`              | `to`: a cell, `{"x", "y"}`     | "we go to the land where the sun rises" |
+| `stay-and-gather` | none                           | "we stay and gather"                  |
 
-A direction is one of eight: `north`, `north-east`, `east`, `south-east`,
-`south`, `south-west`, `west`, `north-west`.
+The cell of a `go` is in planet coordinates at the scale of the window,
+two whole numbers. A go is said by the direction of its place from the
+band, so the words of the same place change as the band walks.
 
 Reasons a vote may be refused, checked in this order:
 
@@ -134,7 +135,7 @@ Reasons a vote may be refused, checked in this order:
 | `refused-seat-banished`      | the player is no longer in the band          |
 | `refused-no-council`         | no council sits now, or the seat is empty    |
 | `refused-already-voted`      | the seat has answered this council           |
-| `refused-no-such-direction`  | the band cannot go that way at all           |
+| `refused-no-such-place`      | the place is the band's own, outside the window, cannot be entered, or has no route |
 
 The rules behind them are in
 [Indirect control](../game/indirect_control.md#the-players-answer).
@@ -169,7 +170,7 @@ until the next one, in step mode. The addresses are shortened.
 
 ```text
 GET  /games/7f3a9c1e/snapshot       -> seq 310, waiting ["player"], seat.council with its table
-POST /games/7f3a9c1e/commands       {"id": "c-1", "kind": "vote", "proposal": {"kind": "move", "towards": "east"}}
+POST /games/7f3a9c1e/commands       {"id": "c-1", "kind": "vote", "proposal": {"kind": "go", "to": {"x": 2305, "y": 744}}}
 WS   /games/7f3a9c1e/updates        <- seq 311: command-accepted c-1, council-turned
 POST /games/7f3a9c1e/commands       {"id": "c-2", "kind": "pass"}
 WS   /games/7f3a9c1e/updates        <- seq 312: command-accepted c-2

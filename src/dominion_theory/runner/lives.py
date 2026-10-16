@@ -187,11 +187,12 @@ def _shown(value: float) -> str:
 
 def following(params: Params) -> str:
     """
-    What of a tree the life of a band with no player follows from: all of it but the council,
-    of which only the status the player starts with is kept in the state.
+    What of a tree the life of a band with no player follows from: all of it but the council, of which
+    only the spread of the votes, whose leader binds the band, and the status the player starts with count.
     """
     tree = params.tree()
-    tree['council'] = {'status': {'start': tree['council']['status']['start']}}
+    held = tree['council']
+    tree['council'] = {'spread': held['spread'], 'status': {'start': held['status']['start']}}
     return json.dumps(tree, sort_keys=True)
 
 

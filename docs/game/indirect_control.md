@@ -65,7 +65,7 @@ loss = amount * max(status / 50, 1)
 ```
 
 At 50 and below every amount is paid as the tables give it, so a
-player can still fall to banishment. At 90 a move that worked gives 0.8
+player can still fall to banishment. At 90 a trip that worked gives 0.8
 and one that failed costs 10.8, so the top is held only by a player who
 keeps being right.
 
@@ -84,9 +84,10 @@ council left them.
 |------------|--------------------------------------------------------------|
 | `first`    | it is the first evening of the game                          |
 | `death`    | somebody died of a cause in `council.blamed` since the last council |
+| `arrived`  | the band reached the place its go was bound to               |
 | `hunger`   | hunger or thirst reaches `roaming.hunger`                    |
 | `closed`   | the way of the decision in force was closed                  |
-| `restless` | the decision in force has fewer than half the votes of the leader: the band wants another thing |
+| `restless` | the decision in force is a stay with fewer than half the votes of the leader: the band wants another thing |
 | `season`   | a season began since the last council                        |
 | `river`    | the band saw a river it did not know since the last council  |
 
@@ -128,29 +129,37 @@ each: the adults and the elders; children have no say. They are not
 people with names: how their votes lie follows from how good each option
 looks to the band.
 
-The options are the proposals the player could make: a move in each of
-the eight directions whose cell can be entered and a stay to gather;
-nine at most. There is no rest to propose: every night rests the band.
-The council decides where the band spends the day,
-so each option is scored by the day it leads to, with the needs of
-[Decisions](decisions.md#needs):
+The options are a stay to gather and a go to a place. The band names
+one place each way, the land its [pull](decisions.md#scoring-the-actions)
+finds there: the best cell it knows nearer that way, or the land it does
+not know `decisions.horizon` cells past its sight. Two ways that lead to
+the same cell are one option, and a go already in force is one more, so
+the table says whether the band wants to go on.
+
+There is no rest to propose: every night rests the band, and a tired
+band rests on its way. Each option is scored by the day it leads to,
+with the needs of [Decisions](decisions.md#needs):
 
 | Option            | Score                                                       |
 |-------------------|-------------------------------------------------------------|
 | `stay-and-gather` | `weights.move` times the worth of the own cell              |
-| `move` that way   | `weights.move` times the pull that way                      |
+| `go` to a place   | `weights.move` times the pull that way                      |
 
 ```text
 stay = weights.move * worth(own)
-move = weights.move * pull
+go   = weights.move * pull
 ```
 
-A band on good land stays; a calm band in a dangerous forest leans to
-the open land beside it.
-How the band moves - walking or roaming - is its own choice once the
-day is decided. A move is scored as a walk even for a hungry band that
-may only roam, so the council still weighs every way and not only the
-stay.
+A band on good land stays; a band on stripped land leans to better land
+it knows or hopes for. How the band moves - walking or roaming - is its
+own choice once the decision is made. A go is scored as a walk even for
+a hungry band that may only roam, so the council still weighs every way
+and not only the stay.
+
+Every option of the table carries its words, `key`. A go is told by the
+one of the eight directions closest to its place from where the band
+stands, as a nomad says it: `proposal-go-east` is "we go to the land
+where the sun rises".
 
 ```text
 weight of an option = exp(score / spread)
@@ -185,11 +194,17 @@ The player answers with the command `vote`, once per council.
 | Answer      | The command names              | The player's voice goes to |
 |-------------|--------------------------------|----------------------------|
 | **back**    | an option that has votes       | that option                |
-| **propose** | an option that has no votes    | that option alone          |
+| **propose** | a place of the player's own    | that place                 |
 | **abstain** | `abstain`, or nothing in time  | nowhere                    |
 
 Backing and proposing are the same command; which one it is follows from
-the table. The weight of the voice is the status as a share of
+the table. A place the others did not name is weighed by them like their
+own: the worth of the place, or what the band expects of land it does
+not know, made smaller by the length of its route as a pull is. Then
+the others' votes are laid again over the table and the place, so a good
+place wins some of them and a bad one has the player's voice alone.
+
+The weight of the voice is the status as a share of
 `council.voice.share` of the voters, and never less than
 `council.voice.least`: the player presses with authority.
 
@@ -203,7 +218,7 @@ A refused `vote` costs nothing. It is refused for one of four reasons.
 |-----------------------------|----------------------------------------------------|
 | `refused-no-council`        | no council sits now                                |
 | `refused-already-voted`     | the seat has answered this council                 |
-| `refused-no-such-direction` | the cell that way and both cells beside it cannot be entered |
+| `refused-no-such-place`     | the place is the band's own, lies outside the window, cannot be entered, or no route leads there |
 | `refused-seat-banished`     | the player is no longer in the band                |
 
 ___
@@ -236,19 +251,23 @@ whatever the intent.
 
 | Proposal          | The band                                    |
 |-------------------|---------------------------------------------|
-| `move`            | roams or walks that way, as it sees fit     |
+| `go`              | follows its route to the place, walking, roaming or gathering as it sees fit |
 | `stay-and-gather` | stays on its cell, gathers and camps        |
 
-A `move` ends early when the way is closed, as
-[Decisions](decisions.md#under-an-intent) tells. No other thing ends an
-intent early: a band that agreed to stay goes on gathering a stripped
-cell.
+A tired band camps whatever its intent, until its tiredness ends. A go
+holds until the band stands on its place, which ends it and calls the
+council that evening (`arrived`), or until no route is left (`closed`),
+as [Decisions](decisions.md#under-an-intent) tells. A band on its way
+does not turn for another wish: `restless` never holds for a go. A band
+that agreed to stay goes on gathering a stripped cell until hunger calls
+the council.
 
 ___
 
 ## The judgement
 
-An intent is judged at the next council, before the new table. The game
+An intent is judged at the next council, before the new table: for a go,
+mostly the council its arrival calls. The game
 compares the band at the decision with the band at the judgement.
 
 The player turned the band away from what its people wanted, so the
@@ -271,9 +290,9 @@ Every proposal gets one of four verdicts, the first that fits.
 | `even`     | `reached` is at least `before` less `council.judgement.slack`, 0.1 |
 | `failed`   | otherwise                                                |
 
-A move and a stay are judged by the land and not by the stores: a band
-that walks for a day gathers nothing and eats a day of food, so its
-stores always fall, and a measure of stores would fail every move. Fresh
+A go and a stay are judged by the land and not by the stores: a band
+that walks gathers little and eats all the same, so its stores fall,
+and a measure of stores would fail every go. Fresh
 land beats stripped land, so the measure is not the land the band left
 but the day the band would have had: a player who turns a band that did
 not care where it went gains about as often as they lose, and one who
@@ -299,10 +318,10 @@ ___
 | abstained                                               | -2      |
 | outvoted                                                | -1      |
 | backed the leader                                       | 0       |
-| a move the player carried worked                        | +4      |
-| a move failed                                           | -6      |
-| a move ended in disaster                                | -20     |
-| a move came out even                                    | 0       |
+| a go the player carried worked                          | +4      |
+| a go failed                                             | -6      |
+| a go ended in disaster                                  | -20     |
+| a go came out even                                      | 0       |
 | staying to gather worked                                | +3      |
 | staying to gather failed                                | -6      |
 | staying ended in disaster                               | -20     |
@@ -335,11 +354,15 @@ ___
 
 A game created with no player - a headless run, a run of the lab, a game
 watched by the console client - has an empty seat, and no council sits
-in it: no table, no wait, no cost, and the band decides freely in every
-tick. A band with an empty seat lives exactly as it did before the
-council was daily, and the reference of lives does not move for it. A
-game is created with the seat taken unless it asks for `seated: false`;
-a vote in a game with an empty seat is refused with `refused-no-council`.
+in it: no table is shown, nobody waits, nothing is paid. The band still
+lives by the same decisions: on an occasion the leader of the table
+binds it, with no event, as a settled council would.
+
+The life of such a band follows `council.spread`, which lays the votes,
+and nothing else of the council but the status the player starts with.
+A game is created with the seat taken unless it asks for
+`seated: false`; a vote in a game with an empty seat is refused with
+`refused-no-council`.
 
 ___
 
@@ -376,12 +399,14 @@ Every event is a message key with values, in both catalogues.
 | `proposal-failed`   | `proposal`, `lost`, `status`             | the judgement                 |
 | `proposal-disaster` | `proposal`, `lost`, `status`             | the judgement                 |
 | `intent-ended`      | `proposal`                               | the way was closed            |
+| `intent-arrived`    | none                                     | the band reached its place    |
 | `seat-blamed`       | `lost`, `status`                         | people died on a voted or silent day |
 | `seat-praised`      | `born`, `status`                         | children were born on a voted day |
 | `seat-banished`     | none                                     | status reached 0              |
 
 `proposal`, `leader` and `winner` are themselves keys, such as
-`proposal-move-east`; `status` is the status after the change. The table
+`proposal-go-east`, told from where the band stood at the council;
+`status` is the status after the change. The table
 itself is not an event: it is part of the seat while the council sits.
 
 ___
@@ -402,10 +427,10 @@ council:
     start: 50
     abstained: -2
     outvoted: -1
-    move_worked: 4
-    move_failed: -6
-    move_disaster: -20
-    move_even: 0
+    go_worked: 4
+    go_failed: -6
+    go_disaster: -20
+    go_even: 0
     stay_worked: 3
     stay_failed: -6
     stay_disaster: -20
@@ -426,34 +451,36 @@ ___
 
 ## Examples
 
-A band of 15 adults in the evening, status 50, so the player speaks with 3.75
-voices. The others score staying to gather 0.5, a move east 0.4 and the
-seven other moves 0. With a spread of 0.2 the fourteen votes lie 6.42,
-3.89 and 0.53 for each other move; by the largest remainder staying
-gets 6, the move east 4, and the first four other moves in the fixed
-order 1 each.
+A band of 15 adults stands at 120, 40 in the evening, status 50, so the
+player speaks with 3.75 voices. The others score staying to gather 0.5,
+a go to 123, 40, the best land east, 0.4, and the seven other goes 0.
+With a spread of 0.2 the fourteen votes lie 6.42, 3.89 and 0.53 for each
+other go; by the largest remainder staying gets 6, the go east 4, and
+the first four other goes in the fixed order 1 each.
 
 ```text
-seq 500          council-opened leader proposal-stay-and-gather, occasion occasion-restless
-                 table: stay-and-gather 6, move-north 1, move-north-east 1, move-east 4, ...
+seq 500          council-opened leader proposal-stay-and-gather, occasion occasion-hunger
+                 table: stay-and-gather 6, go-north 1, go-north-east 1, go-east 4, ...
 ```
 
-The player backs the move east: 4 + 3.75 = 7.75 beats 6. The band roams
-east from the next morning and the move is judged at the next council
-against the 0.5 staying promised: the land reached scores 0.55 by the
-same measure, and the move worked.
+The player backs the go east: 4 + 3.75 = 7.75 beats 6. The band lays its
+route from the next morning, walks it and arrives on the second day; its
+arrival calls the council, which judges the go against the 0.5 staying
+promised: the land reached scores 0.55 by the same measure, and the go
+worked.
 
 ```text
-POST /commands   {"id": "c-7", "kind": "vote", "proposal": {"kind": "move", "towards": "east"}}
-seq 500          council-turned proposal-move-east, yes 7.75 of 17.75
-seq 505          proposal-worked proposal-move-east, status 54
+POST /commands   {"id": "c-7", "kind": "vote", "proposal": {"kind": "go", "to": {"x": 123, "y": 40}}}
+seq 500          council-turned proposal-go-east, yes 7.75 of 17.75
+seq 508          intent-arrived
+seq 508          proposal-worked proposal-go-east, status 54
 ```
 
-The player backs a move north, which one of the others wants: 1 + 3.75
+The player backs the go north, which one of the others wants: 1 + 3.75
 does not beat 6, and staying to gather wins.
 
 ```text
-seq 500          council-outvoted proposal-move-north, winner proposal-stay-and-gather, status 49
+seq 500          council-outvoted proposal-go-north, winner proposal-stay-and-gather, status 49
 ```
 
 The player backs staying to gather: the leader wins, the band stays and
@@ -473,13 +500,10 @@ ___
 - **A vote without chance** - the table is a formula. A draw around the
   shares would make the council less of a calculation and the game less
   easy to play by a program.
-- **The band's own luck** - an encounter within the day of a move counts
+- **The band's own luck** - an encounter on the way of a go counts
   against the player, though no proposal causes a bear.
-- **Directions by landmark** - a proposal names a compass point only. "To
-  the river" needs the band's map in the command and waits for the
-  browser client.
-- **A day is short** - a move is judged after one day, where the council
-  of the old design gave it three. Whether one day shows a move's worth
-  is seen in the lab.
+- **The way and the end** - a go is judged by the land it reaches, not
+  by the days on the way: a long trip through a forest is paid in steps
+  and encounters only.
 - **The emergency council** - a meeting with another band calls a
   council at once, outside the evening; it is designed with stage 3.

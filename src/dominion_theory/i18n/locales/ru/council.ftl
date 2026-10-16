@@ -1,11 +1,12 @@
-proposal-move-north = идём на неподвижную звезду
-proposal-move-north-east = идём между неподвижной звездой и восходом
-proposal-move-east = идём туда, где встаёт солнце
-proposal-move-south-east = идём между восходом и полуденным солнцем
-proposal-move-south = идём туда, где солнце стоит в полдень
-proposal-move-south-west = идём между полуденным солнцем и закатом
-proposal-move-west = идём туда, где садится солнце
-proposal-move-north-west = идём между закатом и неподвижной звездой
+proposal-go-north = идём к земле у неподвижной звезды
+proposal-go-north-east = идём к земле между неподвижной звездой и восходом
+proposal-go-east = идём к земле, где встаёт солнце
+proposal-go-south-east = идём к земле между восходом и полуденным солнцем
+proposal-go-south = идём к земле, где солнце стоит в полдень
+proposal-go-south-west = идём к земле между полуденным солнцем и закатом
+proposal-go-west = идём к земле, где садится солнце
+proposal-go-north-west = идём к земле между закатом и неподвижной звездой
+proposal-go = идём дальше к намеченной земле
 proposal-stay-and-gather = остаёмся собирать
 proposal-none = ничего особенного
 
@@ -13,6 +14,7 @@ council-opened = Собрался совет: { $occasion }. Большинст�
 council-agreed = Собрался совет: { $occasion }, но все единодушны: { $leader }.
 occasion-first = первый вечер
 occasion-death = погибли люди
+occasion-arrived = община пришла туда, куда шла
 occasion-hunger = подступает голод
 occasion-closed = путь закрыт
 occasion-restless = община хочет иного
@@ -38,6 +40,7 @@ proposal-disaster =
        *[many] Беда: { $proposal }; погибло { $lost } человек. Ваш вес теперь { NUMBER($status, maximumFractionDigits: 1) }.
     }
 intent-ended = Пути нет, община отступилась: { $proposal }.
+intent-arrived = Община пришла туда, куда шла.
 seat-blamed =
     { $lost ->
         [one] В день, за который вы голосовали, погиб { $lost } человек. Ваш вес теперь { NUMBER($status, maximumFractionDigits: 1) }.

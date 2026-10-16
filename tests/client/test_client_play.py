@@ -14,13 +14,14 @@ type Body = dict[str, Any]
 DATE = {'year': 1, 'month': 1, 'day': 1, 'part': 'morning', 'season': 'spring'}
 SEAT = ['player']
 STAY = {'kind': 'stay-and-gather'}
-EAST = {'kind': 'move', 'towards': 'east'}
-COUNCIL = {
+EAST = {'kind': 'go', 'to': {'x': 3, 'y': 0}}
+NORTH = {'kind': 'go', 'to': {'x': 1, 'y': -2}}
+COUNCIL: dict[str, Any] = {
     'leader': STAY,
     'table': [
-        {'proposal': STAY, 'votes': 8},
-        {'proposal': EAST, 'votes': 5},
-        {'proposal': {'kind': 'move', 'towards': 'north'}, 'votes': 1},
+        {'proposal': STAY, 'key': 'proposal-stay-and-gather', 'votes': 8},
+        {'proposal': EAST, 'key': 'proposal-go-east', 'votes': 5},
+        {'proposal': NORTH, 'key': 'proposal-go-north', 'votes': 1},
     ],
 }
 BAND = {
@@ -101,25 +102,23 @@ class Chooser:
         self.picked = picked
         self.asked: list[list[Option]] = []
 
-    def __call__(self, listed: list[Option], lang: str) -> Mapping[str, str]:
+    def __call__(self, listed: list[Option], lang: str, place: tuple[int, int] | None) -> Mapping[str, Any]:
         self.asked.append(listed)
         return listed[self.picked].proposal
 
 
-def test_the_options_are_the_table_first_then_the_rest_in_the_fixed_order() -> None:
-    listed = options(COUNCIL)
+def test_the_options_are_the_table_with_its_words_and_how_far_each_go_leads() -> None:
+    listed = options(COUNCIL, (1, 0))
+    silent = options({'leader': EAST, 'table': COUNCIL['table'][1:]})
 
-    assert [option.proposal for option in listed[:3]] == [STAY, EAST, {'kind': 'move', 'towards': 'north'}]
-    assert [option.votes for option in listed[:4]] == [8, 5, 1, 0]
-    assert [option.leader for option in listed] == [True] + [False] * 8
-    assert [option.proposal.get('towards') for option in listed[3:]] == [
-        'north-east',
-        'south-east',
-        'south',
-        'south-west',
-        'west',
-        'north-west',
+    assert [option.proposal for option in listed] == [STAY, EAST, NORTH]
+    assert [(option.votes, option.leader, option.far) for option in listed] == [
+        (8, True, None),
+        (5, False, 2),
+        (1, False, 2),
     ]
+    assert [option.key for option in listed] == ['proposal-stay-and-gather', 'proposal-go-east', 'proposal-go-north']
+    assert silent[-1] == Option(STAY, 0, False, 'proposal-stay-and-gather')
 
 
 def test_a_seat_with_no_council_passes_every_wait() -> None:
@@ -169,37 +168,40 @@ def test_the_debug_line_follows_every_update() -> None:
     [
         ('2', EAST),
         (' 1 ', STAY),
-        ('10', SILENCE),
+        ('4', SILENCE),
         ('', SILENCE),
         ('abstain', SILENCE),
-        ('east', EAST),
-        ('E', EAST),
-        ('nw', {'kind': 'move', 'towards': 'north-west'}),
+        ('+3 -2', {'kind': 'go', 'to': {'x': 4, 'y': -2}}),
+        ('-1 0', {'kind': 'go', 'to': {'x': 0, 'y': 0}}),
+        ('3 2', {'kind': 'go', 'to': {'x': 4, 'y': 2}}),
+        ('+3', None),
+        ('+-3 2', None),
+        ('east', None),
         ('rest', None),
         ('stay', STAY),
-        ('11', None),
+        ('5', None),
         ('0', None),
         ('alpha', None),
     ],
 )
-def test_an_answer_is_a_number_a_name_or_nothing(answer: str, proposal: Mapping[str, str] | None) -> None:
-    assert understood(answer, options(COUNCIL)) == proposal
+def test_an_answer_is_a_number_a_name_a_point_or_nothing(answer: str, proposal: Mapping[str, Any] | None) -> None:
+    assert understood(answer, options(COUNCIL, (1, 0)), (1, 0)) == proposal
 
 
 def test_a_vote_from_the_terminal_turns_the_band_and_its_verdict_moves_the_status(server: str) -> None:
     played = CliRunner().invoke(
         cli,
         ['play', '--server', server, '--seed', '42', '--lang', 'en', '--updates', '8', '--debug', *LOUD],
-        input='alpha\nnorth\n',
+        input='alpha\n+0 -1\n',
     )
     lines = played.stdout.splitlines()
-    north = 'we go towards the star that does not move'
+    north = 'we go to the land towards the star that does not move'
 
     assert played.exit_code == 0
     assert 'Not understood: alpha.' in lines
     assert 'Your standing is 50.' in lines
     assert any(f'You turned the band: {north}.' in text for text in lines)
-    assert any(f'It went well: {north}. Your standing is now 54.' in text for text in lines)
+    assert any(f'It came out even: {north}. Your standing stays 50.' in text for text in lines)
     assert any('@ ' in text and not text.startswith('@ ') for text in lines)
     assert any(text.startswith('@ ') and '| reason ' in text for text in lines)
 

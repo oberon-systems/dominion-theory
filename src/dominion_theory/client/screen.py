@@ -116,7 +116,7 @@ class Screen(App[str | None]):
         self._debug = debug
         self._pace = pace
         self._limit = limit
-        self._chosen: queue.Queue[Mapping[str, str] | None] = queue.Queue()
+        self._chosen: queue.Queue[Mapping[str, Any] | None] = queue.Queue()
         self._listed: list[Option] = []
         self._known: Body | None = None
         self._drawn_at: tuple[int, int] | None = None
@@ -198,7 +198,7 @@ class Screen(App[str | None]):
         known = session.known()
         if self._debug:
             session.stocked()
-        self.call_from_thread(self._ask, options(session.council), known)
+        self.call_from_thread(self._ask, options(session.council, session.place), known)
         proposal = self._chosen.get()
         if proposal is None:
             raise Left

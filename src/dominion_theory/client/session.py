@@ -66,7 +66,7 @@ class Session:
     def place(self) -> tuple[int, int] | None:
         return None if self.band is None else (self.band['place']['x'], self.band['place']['y'])
 
-    def answer(self, seq: int, proposal: Mapping[str, str] | None = None) -> None:
+    def answer(self, seq: int, proposal: Mapping[str, Any] | None = None) -> None:
         """
         Pass, or vote for the proposal while the council sits.
         """

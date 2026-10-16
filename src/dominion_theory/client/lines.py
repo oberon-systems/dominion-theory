@@ -29,6 +29,7 @@ QUESTION = 'play-question'
 LEADER = 'play-leader'
 ABSTAIN = 'play-abstain'
 ANSWER = 'play-answer'
+AWAY = 'play-away'
 UNCLEAR = 'play-unclear'
 FATIGUE = 'play-fatigue'
 INTENT = 'play-intent'
@@ -54,6 +55,7 @@ MESSAGES: tuple[str, ...] = (
     LEADER,
     ABSTAIN,
     ANSWER,
+    AWAY,
     UNCLEAR,
     FATIGUE,
     INTENT,
@@ -72,11 +74,9 @@ MESSAGES: tuple[str, ...] = (
     *(f'{DIRECTION}{towards}' for towards in DIRECTIONS),
 )
 
-# Every proposal the menu lists after the voted ones: staying first, then the moves clockwise from the north.
-PROPOSALS: tuple[dict[str, str], ...] = (
-    {'kind': 'stay-and-gather'},
-    *({'kind': 'move', 'towards': towards} for towards in DIRECTIONS),
-)
+GO = 'go'
+# Every proposal the menu lists after the voted ones.
+PROPOSALS: tuple[dict[str, Any], ...] = ({'kind': 'stay-and-gather'},)
 LOSSES = frozenset(
     {
         'command-refused',
@@ -114,9 +114,11 @@ class Part(NamedTuple):
 
 
 class Option(NamedTuple):
-    proposal: Mapping[str, str]
+    proposal: Mapping[str, Any]
     votes: int
     leader: bool
+    key: str
+    far: int | None = None
 
 
 def words(message: Mapping[str, Any], lang: str) -> str:
@@ -158,30 +160,41 @@ def band_words(band: Unit, lang: str) -> str:
     return ''.join(part.text for part in band_parts(band, lang))
 
 
-def proposal_key(proposal: Mapping[str, str]) -> str:
-    return f'{PROPOSAL}{proposal["kind"]}' + (f'-{proposal["towards"]}' if 'towards' in proposal else '')
+def proposal_key(proposal: Mapping[str, Any]) -> str:
+    """
+    The words of a proposal with no place to tell its way from.
+    """
+    return f'{PROPOSAL}{proposal["kind"]}'
 
 
 def council_words(council: Mapping[str, Any], lang: str) -> str:
     """
     The table of the council of the day: every option the others voted for, with its votes.
     """
-    told = [
-        render(VOTES, {'proposal': proposal_key(entry['proposal']), 'votes': entry['votes']}, lang)
-        for entry in council['table']
-    ]
+    told = [render(VOTES, {'proposal': entry['key'], 'votes': entry['votes']}, lang) for entry in council['table']]
     return render(COUNCIL, {'table': '; '.join(told)}, lang)
 
 
-def options(council: Mapping[str, Any]) -> list[Option]:
+def options(council: Mapping[str, Any], place: tuple[int, int] | None = None) -> list[Option]:
     """
-    Every proposal the player may name: the table's in its order, then those with no votes in the fixed order.
+    Every proposal the player may name: the table's in its order, a go with the cells to its target from the
+    place given, then those with no votes in the fixed order.
     """
     leader = council.get('leader')
-    listed = [Option(entry['proposal'], entry['votes'], entry['proposal'] == leader) for entry in council['table']]
+    listed = [
+        Option(entry['proposal'], entry['votes'], entry['proposal'] == leader, entry['key'], _far(entry, place))
+        for entry in council['table']
+    ]
     voted = [option.proposal for option in listed]
-    listed += [Option(proposal, 0, False) for proposal in PROPOSALS if proposal not in voted]
+    listed += [Option(proposal, 0, False, proposal_key(proposal)) for proposal in PROPOSALS if proposal not in voted]
     return listed
+
+
+def _far(entry: Mapping[str, Any], place: tuple[int, int] | None) -> int | None:
+    proposal = entry['proposal']
+    if place is None or proposal['kind'] != GO:
+        return None
+    return int(max(abs(proposal['to']['x'] - place[0]), abs(proposal['to']['y'] - place[1])))
 
 
 def look(key: str) -> Look:

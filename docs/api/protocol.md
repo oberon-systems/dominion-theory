@@ -153,7 +153,7 @@ not start at the origin; see
   seat has no council.
 - **`council`** - the council of the day while it sits, `null` otherwise:
   the `leader`, the option the others lean to or `null`, and the `table`,
-  every option with its votes, as
+  every option with its words, `key`, and its votes, as
   [Indirect control](../game/indirect_control.md#the-table-of-votes)
   lays them out.
 
@@ -161,9 +161,9 @@ not start at the origin; see
 {
   "leader": {"kind": "stay-and-gather"},
   "table": [
-    {"proposal": {"kind": "stay-and-gather"}, "votes": 8},
-    {"proposal": {"kind": "move", "towards": "north"}, "votes": 1},
-    {"proposal": {"kind": "move", "towards": "east"}, "votes": 5}
+    {"proposal": {"kind": "stay-and-gather"}, "key": "proposal-stay-and-gather", "votes": 8},
+    {"proposal": {"kind": "go", "to": {"x": 2301, "y": 740}}, "key": "proposal-go-north", "votes": 1},
+    {"proposal": {"kind": "go", "to": {"x": 2304, "y": 744}}, "key": "proposal-go-east", "votes": 5}
   ]
 }
 ```
@@ -184,7 +184,8 @@ A unit is a band in stage 2, as
 | `fatigue`    | 0 for rested, growing with work                             |
 | `states`     | `starvation`, `thirst`, `tiredness`, in that order          |
 | `action`     | what it did in the last tick: `camp`, `gather`, `move` or `roam` |
-| `intent`     | the proposal it holds and the tick it holds it `until`      |
+| `intent`     | the proposal the council bound it to, or `null`             |
+| `route`      | the cells still ahead to the place of a go, each `{"x", "y"}` |
 | `reason`     | why it took that action; see [Decisions](../game/decisions.md#the-reason) |
 
 An action of `gather` names its `resource` and one of `move` its
@@ -192,7 +193,7 @@ An action of `gather` names its `resource` and one of `move` its
 [Commands](commands.md#the-commands) gives it.
 
 ```json
-{"proposal": {"kind": "move", "towards": "east"}, "until": 417}
+{"proposal": {"kind": "go", "to": {"x": 2304, "y": 744}}}
 ```
 
 ___

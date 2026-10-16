@@ -40,7 +40,7 @@ THREAT = 'threat'
 NEEDS: dict[str, tuple[str, str]] = {'food': (HUNGER, STARVATION), 'water': (THIRST, THIRST)}
 # What a band may still do under the intent of each proposal: docs/game/decisions.md, Under an intent.
 NARROWED: dict[str, frozenset[str]] = {
-    commands.MOVE: frozenset({MOVE, ROAM, CAMP}),
+    commands.GO: frozenset({MOVE, ROAM, GATHER, CAMP}),
     commands.STAY: frozenset({GATHER, CAMP}),
 }
 
@@ -251,35 +251,20 @@ def _pull(
     return best or (0.0, REST, target)
 
 
-def beside(towards: str) -> tuple[str, str]:
+def looks(params: Params, band: Band, era: str, at: Place) -> dict[str, Any] | None:
     """
-    The two directions next to one, the clockwise one first.
+    A cell as a route sees it: a known one the band believes it can enter, with its dread, or what it expects
+    of land it does not know; None where it cannot step.
     """
-    names = list(DIRECTIONS)
-    at = names.index(towards)
-    return names[(at + 1) % len(names)], names[(at - 1) % len(names)]
+    if at not in band.known:
+        return dict(params.units.band.decisions.unknown)
+    return seen(band, at) if reachable(params, band, at, era) else None
 
 
-def way(params: Params, band: Band, towards: str, era: str) -> str | None:
+def intended(params: Params, band: Band, proposal: dict[str, Any], era: str, towards: str | None) -> Scored:
     """
-    The direction a band sent somewhere takes: that one, else one beside it, as far as the band knows.
+    The best of what an intent leaves the band, a go narrowed to the direction of the next cell of its route.
     """
-    for name in (towards, *beside(towards)):
-        dx, dy = DIRECTIONS[name]
-        if reachable(params, band, (band.x + dx, band.y + dy), era):
-            return name
-    return None
-
-
-def intended(params: Params, band: Band, proposal: dict[str, Any], era: str) -> Scored | None:
-    """
-    The best of what an intent leaves the band; None when the way of a move is closed.
-    """
-    towards = None
-    if proposal['kind'] == commands.MOVE:
-        towards = way(params, band, proposal['towards'], era)
-        if towards is None:
-            return None
     found = options(params, band, era, NARROWED[proposal['kind']], None if towards is None else {towards})
     return max(found, key=lambda held: held.score)
 

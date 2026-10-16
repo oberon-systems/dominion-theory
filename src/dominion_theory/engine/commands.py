@@ -9,13 +9,13 @@ from typing import Any
 PASS = 'pass'  # noqa: S105
 VOTE = 'vote'
 ABSTAIN = 'abstain'
-MOVE = 'move'
+GO = 'go'
 STAY = 'stay-and-gather'
 
 BUILT = frozenset({PASS, VOTE})
 ENVELOPE = ('id', 'kind')
 # The fields of a proposal besides its kind.
-PROPOSALS: dict[str, tuple[str, ...]] = {MOVE: ('towards',), STAY: ()}
+PROPOSALS: dict[str, tuple[str, ...]] = {GO: ('to',), STAY: ()}
 
 
 @dataclass(frozen=True, kw_only=True)

@@ -30,7 +30,8 @@ SMALL = {**PLANET, **QUIET}
 # A voice that outweighs the band, so that the council always sits and is never settled.
 LOUD = {'council.voice.least': 20.0}
 DYING = {**PLANET, 'units.band.consumption_per_day.water': 100.0, 'units.band.states.thirst.loss_per_day': 0.9}
-VOTED = ({'kind': 'move', 'towards': 'north'}, {'kind': 'stay-and-gather'}, {'kind': 'move', 'towards': 'east'})
+# Where the player sends the band from where it stands, silence for None.
+VOTED = ((0, -1), None, (1, 0))
 COUNTERS = (
     'commands_accepted',
     'commands_refused',
@@ -197,8 +198,12 @@ def test_a_record_with_councils_replays_with_every_hash_and_counts_them(service:
     runner = service.create(seed=42, overrides={**PLANET, **LOUD}, mode=STEP, seated=True)
     hashes, sat = [], 0
     for tick in range(6 * DAY):
-        if runner.game.council is not None:
-            runner.submit(Vote(seat='player', proposal=VOTED[sat % len(VOTED)], id=f'c-{tick}'))
+        band = runner.game.band
+        if runner.game.council is not None and band is not None:
+            way = VOTED[sat % len(VOTED)]
+            to = None if way is None else {'x': band.x + way[0], 'y': band.y + way[1]}
+            proposal = {'kind': 'abstain'} if to is None else {'kind': 'go', 'to': to}
+            runner.submit(Vote(seat='player', proposal=proposal, id=f'c-{tick}'))
             sat += 1
         else:
             runner.step()

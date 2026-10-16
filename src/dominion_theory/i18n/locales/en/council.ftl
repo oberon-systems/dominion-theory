@@ -1,11 +1,12 @@
-proposal-move-north = we go towards the star that does not move
-proposal-move-north-east = we go between the unmoving star and the sunrise
-proposal-move-east = we go where the sun rises
-proposal-move-south-east = we go between the sunrise and the midday sun
-proposal-move-south = we go where the sun stands at midday
-proposal-move-south-west = we go between the midday sun and the sunset
-proposal-move-west = we go where the sun sets
-proposal-move-north-west = we go between the sunset and the unmoving star
+proposal-go-north = we go to the land towards the star that does not move
+proposal-go-north-east = we go to the land between the unmoving star and the sunrise
+proposal-go-east = we go to the land where the sun rises
+proposal-go-south-east = we go to the land between the sunrise and the midday sun
+proposal-go-south = we go to the land where the sun stands at midday
+proposal-go-south-west = we go to the land between the midday sun and the sunset
+proposal-go-west = we go to the land where the sun sets
+proposal-go-north-west = we go to the land between the sunset and the unmoving star
+proposal-go = we go on to the land we set out for
 proposal-stay-and-gather = we stay and gather
 proposal-none = nothing in particular
 
@@ -13,6 +14,7 @@ council-opened = The council sits: { $occasion }. Most lean to: { $leader }.
 council-agreed = The council meets: { $occasion }; all are of one mind: { $leader }.
 occasion-first = it is the first evening
 occasion-death = people have died
+occasion-arrived = the band has reached the land it went to
 occasion-hunger = hunger presses
 occasion-closed = the way is closed
 occasion-restless = the band wants another way
@@ -36,6 +38,7 @@ proposal-disaster =
        *[other] It ended in disaster: { $proposal }; { $lost } people were lost. Your standing is now { NUMBER($status, maximumFractionDigits: 1) }.
     }
 intent-ended = The way is closed, the band gives up: { $proposal }.
+intent-arrived = The band has reached the land it set out for.
 seat-blamed =
     { $lost ->
         [one] { $lost } person died on a day you voted for. Your standing is now { NUMBER($status, maximumFractionDigits: 1) }.

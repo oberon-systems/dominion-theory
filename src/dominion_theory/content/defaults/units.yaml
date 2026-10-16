@@ -72,14 +72,15 @@ units:
     memory: {days: 20}
     dread: {encounter: 0.3, lasts: {days: 20}}
     unease: {gain: 0.1, fade: 0.2}
+    route: {margin: 4, threat: 2.0, hunger: 1.0, thirst: 1.0}
     decisions:
       levels:
         sated: {days: 2, need: 0.1}
         fed: {days: 1, need: 0.4}
         hungry: {days: 0, need: 0.8}
       distance: 0.25
-      horizon: 0
-      unknown: {food: 0.5, water: 0.5, threat: 0.2}
+      horizon: 2
+      unknown: {food: 0.5, water: 0.5, threat: 0.4, passability: 0.7}
       idle: 0.05
       wander: {days: 1}
       weights:

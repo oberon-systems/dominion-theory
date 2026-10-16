@@ -125,6 +125,8 @@ class Band:
     wander: dict[str, Any] | None = None
     dread: dict[Place, float] = field(default_factory=dict)
     unease: float = 0.0
+    # The cells still ahead to the target of a go, and the day they were laid.
+    route: dict[str, Any] | None = None
     counted: tuple[int, Census] | None = field(default=None, init=False, repr=False, compare=False)
 
     @classmethod
@@ -152,6 +154,7 @@ class Band:
             wander=plain['wander'],
             dread={(held['x'], held['y']): held['amount'] for held in plain['dread']},
             unease=plain['unease'],
+            route=plain['route'],
         )
 
     @property
@@ -195,6 +198,7 @@ class Band:
             'wander': self.wander,
             'dread': [{'x': x, 'y': y, 'amount': self.dread[x, y]} for x, y in sorted(self.dread)],
             'unease': self.unease,
+            'route': self.route,
         }
 
     def shown(self, params: Params, scale: int) -> dict[str, Any]:
@@ -215,6 +219,7 @@ class Band:
             'states': list(self.states),
             'action': dict(self.action),
             'intent': self.intent,
+            'route': [] if self.route is None else [{'x': x, 'y': y} for x, y in self.route['cells']],
             'reason': self.reason,
         }
 

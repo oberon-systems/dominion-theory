@@ -7,7 +7,6 @@ from fastapi.testclient import TestClient
 from dominion_theory.api import PREFIX
 from dominion_theory.api.commands import read_command
 from dominion_theory.core.errors import DominionError
-from dominion_theory.engine.band import DIRECTIONS
 
 from .conftest import SMALL
 
@@ -30,7 +29,13 @@ MALFORMED: list[dict[str, Any]] = [
     {'id': 'c-1', 'kind': 'vote', 'proposal': {'kind': 'alpha'}},
     {'id': 'c-1', 'kind': 'vote', 'proposal': {'kind': 'move'}},
     {'id': 'c-1', 'kind': 'vote', 'proposal': {'kind': 'move', 'towards': 'up'}},
-    {'id': 'c-1', 'kind': 'vote', 'proposal': {'kind': 'move', 'towards': ['east']}},
+    {'id': 'c-1', 'kind': 'vote', 'proposal': {'kind': 'move', 'towards': 'east'}},
+    {'id': 'c-1', 'kind': 'vote', 'proposal': {'kind': 'go'}},
+    {'id': 'c-1', 'kind': 'vote', 'proposal': {'kind': 'go', 'to': [3, 4]}},
+    {'id': 'c-1', 'kind': 'vote', 'proposal': {'kind': 'go', 'to': {'x': 3}}},
+    {'id': 'c-1', 'kind': 'vote', 'proposal': {'kind': 'go', 'to': {'x': 'alpha', 'y': 4}}},
+    {'id': 'c-1', 'kind': 'vote', 'proposal': {'kind': 'go', 'to': {'x': 3.5, 'y': 4}}},
+    {'id': 'c-1', 'kind': 'vote', 'proposal': {'kind': 'go', 'to': {'x': 3, 'y': 4, 'z': 5}}},
     {'id': 'c-1', 'kind': 'vote', 'proposal': {'kind': 'stay-and-gather', 'towards': 'east'}},
     {'id': 'c-1', 'kind': 'vote', 'proposal': {'kind': 'abstain', 'towards': 'east'}},
     {**STAY, 'unit': 1},
@@ -51,7 +56,8 @@ def test_a_malformed_command_is_refused(envelope: dict[str, Any]) -> None:
         {'id': 'c-1', 'kind': 'pass'},
         STAY,
         {'id': 'c-1', 'kind': 'vote', 'proposal': {'kind': 'abstain'}},
-        *({'id': 'c-1', 'kind': 'vote', 'proposal': {'kind': 'move', 'towards': way}} for way in DIRECTIONS),
+        {'id': 'c-1', 'kind': 'vote', 'proposal': {'kind': 'go', 'to': {'x': 3, 'y': 4}}},
+        {'id': 'c-1', 'kind': 'vote', 'proposal': {'kind': 'go', 'to': {'x': -2, 'y': 0}}},
     ],
 )
 def test_a_well_formed_command_is_read(envelope: dict[str, Any]) -> None:
@@ -91,7 +97,7 @@ def test_a_repeated_command_id_is_taken_once(client: TestClient, new_game: NewGa
 def test_a_command_the_rules_refuse_is_not_an_error_of_the_api(client: TestClient, new_game: NewGame) -> None:
     game = new_game(seated=True, overrides={**SMALL, 'council.voice.least': 20.0})['id']
 
-    nowhere = {'id': 'c-1', 'kind': 'vote', 'proposal': {'kind': 'move', 'towards': 'east'}}
+    nowhere = {'id': 'c-1', 'kind': 'vote', 'proposal': {'kind': 'go', 'to': {'x': -1, 'y': -1}}}
 
     with client.websocket_connect(f'{PREFIX}/games/{game}/updates?after=0') as stream:
         for tick in range(EVENING):
@@ -102,7 +108,7 @@ def test_a_command_the_rules_refuse_is_not_an_error_of_the_api(client: TestClien
     assert answer.json() == {'id': 'c-1', 'taken': True}
     assert update['events'][0] == {
         'key': 'command-refused',
-        'values': {'id': 'c-1', 'reason': 'refused-no-such-direction'},
+        'values': {'id': 'c-1', 'reason': 'refused-no-such-place'},
     }
 
 

@@ -42,7 +42,12 @@ line-direction-north-west = north-west
 play-question = What do you say at the council?
 play-leader = { $option } (most lean to it)
 play-abstain = say nothing
-play-answer = Your answer: a number, a direction or stay; an empty line to say nothing
+play-answer = Your answer: a number, stay, or a point as two steps from the band, east then south (+3 -2); an empty line to say nothing
+play-away =
+    { $cells ->
+        [one] { $option }, { $cells } cell away
+       *[other] { $option }, { $cells } cells away
+    }
 play-unclear = Not understood: { $answer }.
 play-fatigue = fatigue { NUMBER($fatigue, maximumFractionDigits: 2) }
 play-intent = intent: { $proposal }

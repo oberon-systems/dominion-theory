@@ -490,6 +490,18 @@ class Unease(Node):
     fade: Share
 
 
+class Route(Node):
+    """
+    What a step into a cell costs a band on its way: the box searched around the band and its target, and
+    the weights of the threat and of the food and water a cell lacks.
+    """
+
+    margin: Span
+    threat: Factor
+    hunger: Factor
+    thirst: Factor
+
+
 class People(Node):
     stages: dict[Name, LifeStage] = Field(min_length=1)
     age: Ageing
@@ -601,6 +613,7 @@ class Band(Node):
     decisions: Decisions
     dread: Dread
     unease: Unease
+    route: Route
 
 
 class Units(Node):
@@ -631,10 +644,10 @@ class Status(Node):
     start: Points
     abstained: Amount
     outvoted: Amount
-    move_worked: Amount
-    move_failed: Amount
-    move_disaster: Amount
-    move_even: Amount
+    go_worked: Amount
+    go_failed: Amount
+    go_disaster: Amount
+    go_even: Amount
     stay_worked: Amount
     stay_failed: Amount
     stay_disaster: Amount

@@ -46,6 +46,7 @@ is no number of a band in the code.
 | `known`      | the cells it has seen and when                          |
 | `dread`      | the extra threat it sees on cells where it was struck   |
 | `unease`     | how much more staying in danger makes it fear threat    |
+| `route`      | the cells still ahead to the place of a go, and the day they were laid |
 
 Stage 2 puts one band on the map, the player's. Other bands are stage 3.
 
@@ -458,9 +459,11 @@ units:
     memory: {days: 20}
     dread: {encounter: 0.3, lasts: {days: 20}}
     unease: {gain: 0.1, fade: 0.2}
+    route: {margin: 4, threat: 2.0, hunger: 1.0, thirst: 1.0}
 ```
 
-`dread` and `unease` are told in [Decisions](../game/decisions.md#dread).
+`dread` and `unease` are told in [Decisions](../game/decisions.md#dread),
+`route` in [The route](../game/decisions.md#the-route).
 
 ```yaml
 eras:

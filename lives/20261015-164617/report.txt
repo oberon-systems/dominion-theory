@@ -1,0 +1,139 @@
+seed 1
+year  people  growth  rate  least  born  deaths  of-hunger  of-thirst  of-encounter  food  water  moves  roams  gathers  camps  starving  thirsty  tired  encounters  status  known  snapshot
+   1      16       1   6.7     14     4       3          0          0             3  16.6   47.4      1    239       60    200         0        0      0           3      50     48      28.8
+   2      19       3  18.8     15     5       2          0          0             2  27.3   27.8      4    236       60    200         0        0      0           2      50     53      29.5
+   3      21       2  10.5     19     6       4          0          0             4  26.7     45      9    238       53    200         0        0      0           3      50     39      27.8
+   4      17      -4   -19     16     5       9          0          0             9  24.6   35.3     24    225       51    200         0        0      2           7      50     58      30.1
+   5      19       2  11.8     16     5       3          0          0             3  11.1   31.2     10    226       64    200         0        0      0           3      50     41      27.6
+   6      26       7  36.8     19     7       0          0          0             0  27.4   52.8     13    243       44    200         0        0      7           0      50     36      27.6
+   7      30       4  15.4     26     7       3          0          0             3  34.4   47.3     20    240       40    200         0        0      2           2      50     51        30
+   8      40      10  33.3     30    10       0          0          0             0  40.4   86.1     11    250       39    200         0        0      7           1      50     50        30
+   9      47       7  17.5     40    12       5          0          0             5  56.4     48     28    230       42    200         0        0      8           2      50     67      32.4
+  10      52       5  10.6     44    12       7          0          0             7  66.4   96.7     33    231       36    200         0        0     45           3      50     55      31.2
+alive at tick 5000: grows 13.2% a year, 150 people in year 19
+took 13.2 s, 2.65 ms a tick, 2.9 ms a pack
+
+seed 2
+year  people  growth  rate  least  born  deaths  of-hunger  of-thirst  of-encounter  food  water  moves  roams  gathers  camps  starving  thirsty  tired  encounters  status  known  snapshot
+   1      21       6    40     15     6       0          0          0             0  20.4   31.4     27    173      100    200         0        0      0           0      50     82      35.4
+   2      27       6  28.6     21     8       2          0          0             2  27.8   61.3     42    173       85    200         0        0     14           1      50     83        36
+   3      25      -2  -7.4     24     8      10         10          0             0   0.5   99.5     67    166       67    200        25        0     75           1      50     62      33.4
+   4      26       1     4     23     3       2          0          0             2  17.7     54    131    123       46    200         0        0    302           1      50    107      39.3
+   5      31       5  19.2     26     7       2          0          0             2   2.4   37.2     82    145       73    200         0        0     89           1      50     75      35.1
+   6      37       6  19.4     31     7       1          0          0             1  35.4   64.5     94    133       73    200         0        0    167           1      50     93      37.8
+   7      42       5  13.5     37     9       4          0          0             4     7   75.2     98    129       73    200         0        0    160           2      50    123        42
+   8      50       8    19     42     8       0          0          0             0     0     83     96    152       52    200         0        0    176           0      50     66      34.6
+   9      53       3     6     48    10       7          0          0             7  11.6  107.5     97    150       53    200         0        0    143           4      50     89      37.8
+  10      52      -1  -1.9     51    16      17          0          0            17   6.7   69.5     58    189       53    200         0        0     35           5      50     93      38.6
+alive at tick 5000: grows 13.2% a year, 150 people in year 19
+took 15.1 s, 3.02 ms a tick, 3.3 ms a pack
+
+seed 3
+year  people  growth   rate  least  born  deaths  of-hunger  of-thirst  of-encounter  food  water  moves  roams  gathers  camps  starving  thirsty  tired  encounters  status  known  snapshot
+   1      20       5   33.3     15     5       0          0          0             0   2.4   32.6     85    135       80    200         0        0     21           1      50     58      31.1
+   2      20       0      0     17     5       5          0          0             5     0   27.4    103    126       71    200         0        0    144           5      50     82      34.1
+   3      23       3     15     20     5       2          2          0             0     0   36.1     98    134       68    200         5        0    155           0      50     50      30.1
+   4      29       6   26.1     23     6       0          0          0             0     0    107     93    136       71    200         0        0    150           0      50     81      34.4
+   5      31       2    6.9     29     7       5          2          0             3   1.7   80.9     96    142       62    200         5        0    174           1      50    120      40.3
+   6      32       1    3.2     30     7       6          4          0             2     0  107.1    100    135       65    200        10        0    201           1      50    106      38.3
+   7      31      -1   -3.1     30     8       9          8          0             1   2.2   35.6     89    140       71    200        20        0    121           1      50     90      36.2
+   8      27      -4  -12.9     25     9      13          6          0             7   1.3     93     88    133       79    200        15        0     97           3      50    107      38.4
+   9      37      10     37     27    10       0          0          0             0  25.1   67.6     86    140       74    200         0        0     59           0      50     64      32.7
+  10      32      -5  -13.5     30     5      10         10          0             0     0   57.6    112    147       41    200        25        0    261           1      50    104      37.9
+alive at tick 5000: grows 7.9% a year, 150 people in year 31
+took 14.9 s, 2.99 ms a tick, 3.1 ms a pack
+
+seed 4
+year  people  growth   rate  least  born  deaths  of-hunger  of-thirst  of-encounter  food  water  moves  roams  gathers  camps  starving  thirsty  tired  encounters  status  known  snapshot
+   1      17       2   13.3     15     4       2          0          0             2  20.7   39.1      8    231       61    200         0        0      2           1      50     44      28.6
+   2      19       2   11.8     17     5       3          0          0             3  19.4   37.4      8    241       51    200         0        0      2           2      50     35      27.7
+   3      23       4   21.1     19     6       2          0          0             2   8.6   39.1     34    227       39    200         0        0     11           2      50     79      33.7
+   4      30       7   30.4     23     7       0          0          0             0   6.5   57.7     74    141       85    200         0        0     59           2      50    102      36.6
+   5      34       4   13.3     27     9       5          0          0             5  36.9   73.9     53    172       75    200         0        0     21           2      50    109      37.8
+   6      40       6   17.6     34     6       0          0          0             0     0    160     96    147       57    200         0        0    233           0      50     94      35.9
+   7      45       5   12.5     40     9       4          0          0             4  12.7  131.4     90    174       36    200         0        0    162           1      50    101        37
+   8      37      -8  -17.8     34     6      14          2          0            12     0   86.4    106    159       35    200         5        0    275           3      50     89      35.2
+   9      50      13   35.1     37    13       0          0          0             0  10.8   66.2     49    157       94    200         0        0      0           0      50    172      46.8
+  10      49      -1     -2     46    13      14          0          0            14   3.1   78.8     79    149       72    200         0        0     78           5      50    113      38.9
+alive at tick 5000: grows 12.6% a year, 150 people in year 20
+took 15.1 s, 3.02 ms a tick, 3.0 ms a pack
+
+seed 5
+year  people  growth  rate  least  born  deaths  of-hunger  of-thirst  of-encounter  food  water  moves  roams  gathers  camps  starving  thirsty  tired  encounters  status  known  snapshot
+   1       0     -15  -100      0     3      14         12          0             2     0      0      9    184       74    178        55        0      0           3      50      0      21.4
+died at tick 445: no growth, 150 people never
+took 2.8 s, 6.24 ms a tick, 2.8 ms a pack
+
+first year: 3 of 50 bands died, took 138.9 s
+
+tests/runner/lives.json is rewritten: 70 values moved
+  1.hashes.1: cbd041611fe2e676fc27931efea7f459e4d6e0e3d16c68a41c35e0adea7a83cc -> 97088ce5ba1de8208b8d009aef4c7c249c6589f4b43a7467d9ca63ef29b71a8c
+  1.hashes.10: 5af30f0278b75c04a12a7dbe9530901a39e5d78f7004c5b8fac7d80e9496f1e6 -> 1560a030b6368c605fabeb8eb337bb2a7b47459e8000fd86eab5527b136828b9
+  1.hashes.2: 05323e1696905536251274eee6ce222abd839b908780ca14e872101fc3dee821 -> 7d2bbb2256a8aaed58c54e2fc95cc75edea86d2aa73a3f5cb6eef4d879acbba7
+  1.hashes.3: ce57e8377822137e9b00807a4b08018ad56a58ca61f5b5b0d4c891ed5ac7755f -> 2d7ed483e89f10efe74697cddbcd6eb83d3e2cd2ad40e9b087fbb5f10e06b2ba
+  1.hashes.4: 3a36e61e7e12b13711151ea231fbee2598eb98b9fff121d92553b28771772d9d -> 0371f5f109b1ab5c6123f3b77837e9257831fa3c652a31d1d6e5721069269e49
+  1.hashes.5: 95194a85fa3b7a7a7164d1484a6c9bea833583d25536502af8efa7df3ced0966 -> 81f6703bbfb8582d0e349d9bff31a1c06119926add13693f12092758cee06efe
+  1.hashes.6: a91276b6851b25873760089772abd58415b4fa8c3812ad9205d36a6bf8ef2008 -> 4f7892cad693f9336fe4f93e133cb092a0da3a9247f4cb16e2805f00615b7714
+  1.hashes.7: a6e26fa948aec0e4d8cac24264defacc1a294cbbfbd44f638f2e2e680e821353 -> 07f0ba636a7848a3c42ec42b7cff243f44316640448048d389ff601df1ef0ca1
+  1.hashes.8: 65e8853b64d9ebaec12b72b7a8e5eb298b67023f9b1496f1e085f9c69a6180aa -> 102914144cb2ca888c88f68034b0caff702bebd4b51f5e4a1d4a16ec36e68cfd
+  1.hashes.9: ed6f25772b0248dd8adafbac6d1519cc10dde1a5bf42f3b29b618d8b32b2cbd7 -> d65179bdec1a62649f3edc4347b4fee6b7822dc1d24fe8c16f38569792e23612
+  1.years.2.snapshot: 29.4 -> 29.5
+  1.years.3.snapshot: 27.7 -> 27.8
+  1.years.4.snapshot: 30.0 -> 30.1
+  1.years.5.snapshot: 27.5 -> 27.6
+  1.years.6.snapshot: 27.5 -> 27.6
+  1.years.7.snapshot: 29.9 -> 30.0
+  1.years.8.snapshot: 29.9 -> 30.0
+  1.years.9.snapshot: 32.3 -> 32.4
+  2.hashes.1: 60cd431b9826ee297a6dc75800265458a3ecbd7fdaa7ca4ea0554d1111099998 -> dcaf3df97abe50b24b52237d4e96cf7f13ec4adb8b7f85885d2b82fd50afae39
+  2.hashes.10: 63ff38f9ed936c764c703826250e3d74245907ff28c06681a15a47d188a1b2ac -> 8fe351fb5351fadd148eaa855f6becec3a5b47a05eca7efaede17d8e6b8b71bf
+  2.hashes.2: a9750bcede5d1a333331f840efdc2321272c34397fed2ac544da348e49108b8c -> 917f610c1a600bbcfdb39abb70be39bd728239a12981065d383a55396f185f4e
+  2.hashes.3: 6c6fd7bbdcc047a7115a05a5f37370575a7cb11498ade62668eb9de666fb316c -> 56679a302dc4b06aea3e7d4b502d410e23b4258cfecd175f571abd94467683f6
+  2.hashes.4: b034537d03a8e0ec41ef29b8a27b22f10aa019b85e62822c97f19c1d77c9e6de -> 553326059e646842e1cd1ed48558bdc589c5e9b53c980c7f8f4139e0b42814cf
+  2.hashes.5: 1ced5bdc91be676f8a20e34729d989b546d471df71c96a96a9b512ad81571f98 -> 0c4d648e8349c976ac5570ad36a57d1ed0da60978f1fe5961f58505ce84c4df1
+  2.hashes.6: d68f0409ec671102a5f773e2a5434d362e411e4511739c3a801aef8175e76211 -> d3b477f2c94072216c4efd933ba2180b8b1f0008d4c7a6c02ee946504f7edb85
+  2.hashes.7: d44ff6b1075f1b862e7d07a57362976324fd20650c0d83a606380f149b43824e -> 60ac11f043b84c37c14830ee0a5b1642f8186c8cfbbacf4517572828c46c7bde
+  2.hashes.8: 520de2243c7a94923b2860c8c1dbfca71a8cd2a784625f41cece1eb1c0e82d75 -> 655a9486f9d79552a7f2ff1d1d9a58db9348dc058b65f2eb413f132f29eeba93
+  2.hashes.9: 521522e6a0a064358b82cfd2f29f12e1a141f8d4bd4f4a242978f0b9ab5f9186 -> f63ae35414ba683d09a8cb9be0159948b7d5559b6c6b3a57ab6d2f943ab34437
+  2.years.1.snapshot: 35.3 -> 35.4
+  2.years.10.snapshot: 38.5 -> 38.6
+  2.years.2.snapshot: 35.9 -> 36.0
+  2.years.3.snapshot: 33.3 -> 33.4
+  2.years.4.snapshot: 39.2 -> 39.3
+  2.years.5.snapshot: 35.0 -> 35.1
+  2.years.9.snapshot: 37.7 -> 37.8
+  3.hashes.1: 1d7cb6ef2f9b416e01382ff24dd1d2f22fd6da644bebd490e77d6bfccf316709 -> 5f300c9fa99786c74de75f55c8b8efb7827aa96a5db7ec0910314e8b9f49f03c
+  3.hashes.10: be6e2a27ebeb92655479180758dcf9f5a32fe108b7d3d49e8dede31408c25d42 -> a332ca013cc88764dc38070bd50964dd30c7596c172b93df7dd61a8a0ef2c1e2
+  3.hashes.2: 3e1aaa3ed965a292bcf4364955a3e71f81a924266165d87e1dea6e2c91fb0175 -> 4e27b5e99765eb0448ba3f1e6834974a06337442e338c804461886d29fc32663
+  3.hashes.3: 6265090b1c9e7db011a0b13ef4a9783d3e9d0b8d58bd7ba555d57e0e2aee0ea7 -> d0e07d62c2128be85e001b25449f13df52c64a14b24f490fd13009c3f01f59b3
+  3.hashes.4: 1250fb859878833757814ff929c8485c33440db3f197a565332dda1d97f4e433 -> 4089670171f13e07ab2c657645e63e5d99613127a164b6af042698de52a94913
+  3.hashes.5: 35f9bbd5ba6497fbc7c49adea7c7141d099365292a407b5ff5d5f8532330a56c -> 9479975a524ad4c8cc5f492c80bb6c73e6ba1cfc601b5b60a0d902d0a3d8f991
+  3.hashes.6: 3270e9cb88e5a14c5eab2d8fee26d8ac237a8dce70bd4619a0ddbd2620d24a2c -> 8e0c3bacbcd526be8e07bffe6b9f80968b7d1c041b8a5f57bbcaadb854cee616
+  3.hashes.7: 87e800eab88b20b1cec270d3babd877e2b88438221ac3013b1ee396a0f278311 -> e4ff22c3c6994a1c69b6a1958739bd64b27c3060957a26b22a9bdb416e3c4643
+  3.hashes.8: b181b3d2240356c1767f1b5d30eb55aa3a68ee6c5a412f456669384e3890cd8a -> eda91cf0ea09a4c9ac25d8ab0b44a7ca601a30eb2f619ffc99b898c031d29e55
+  3.hashes.9: 6bdde7990e2cbd5494e62d9453c357b99b444b281bfb71e60155c8eca7b7c01c -> 64c21b67309bf651109b21c87075a5c74aba49b51aff3109805987074c0a29ea
+  3.years.3.snapshot: 30.0 -> 30.1
+  3.years.4.snapshot: 34.3 -> 34.4
+  3.years.5.snapshot: 40.2 -> 40.3
+  3.years.6.snapshot: 38.2 -> 38.3
+  3.years.7.snapshot: 36.1 -> 36.2
+  3.years.8.snapshot: 38.3 -> 38.4
+  4.hashes.1: a9445bb4b795dd6be019b8e0314568b294d0f80c7fec19c473a52425b1e511ba -> 8368a5984b08039fb2a6807c556b17dad880b29181f55762023ec093020c6498
+  4.hashes.10: 2148639da8fcb75f548e3b56e7b0e1248bd6cee98671f54ffc4744283779fcab -> ac5c4ac77427d4a8e2cde943dc0a9bfbf07da29a32d6212445b82ff28a06e47b
+  4.hashes.2: 51f6835c1d103940c9bf2c36122b3e1ff6a68bc3b365758255a73b103879594d -> 912f3322f0cfecc17ff08714eb0dca560e6c296817e60f009f96de1e5c75818e
+  4.hashes.3: ef0c93150a94cbfa3527dd470667c16b68956d2bee0263094573f383c911d994 -> 0726f009afe80091927cfcf0aca7e645ff3ca320b4049f521432cd0dd38b62e5
+  4.hashes.4: 8c1ccee74dd6847b7f1759b402cbcab3104049b3f3c59c20855c6e8aeae6618b -> 34c4b65f7a38a25f5d894e026a48fd452efce0c4e348b275360ecf2107d27953
+  4.hashes.5: 402f9df831fb858036690b549eaf2a58c6ff19d43da8656cc89309ef46cc20ed -> 65842a026efb2f9f48fa49646a9fa26edb12e5279e7c3d12d9f944dd1daeefde
+  4.hashes.6: d5ca1e78c2595cfbef35a8a50454edfce42bbb2b3d5173ed87715744342c4dbe -> a2e9443546fd5bede28d331fb72691e8e04b4297c4a38ba973c5ae67a8e5da08
+  4.hashes.7: 9181fa8732e371ac51ab92c86429a50f2a5c0a082b487d8ebd004af98b0d9373 -> bc60f9ee711b90ab8e3b936a263ebab5d5fdfe1e0b64319ad8ad2ed980ab3be1
+  4.hashes.8: 6227097331ddb6032e1a3aca8895a2465ca67ff57bd2e05841351b2789f1d3b2 -> 685c377254e22fee689f3d5cefdc09a080b6b741583f135739bad89c19aead45
+  4.hashes.9: d068e426e90b0c57d9cbed88b38e33dbb999d531fa62fe112758c3f61a317057 -> 49d219a65a039f84294ab0219353b57b667005aa86a1f06283db2954627a1f61
+  4.years.1.snapshot: 28.5 -> 28.6
+  4.years.2.snapshot: 27.6 -> 27.7
+  4.years.4.snapshot: 36.5 -> 36.6
+  4.years.5.snapshot: 37.7 -> 37.8
+  4.years.6.snapshot: 35.8 -> 35.9
+  4.years.8.snapshot: 35.1 -> 35.2
+  4.years.9.snapshot: 46.7 -> 46.8
+  5.hashes.1: 086bbb3964dd5f01c82f45e408627474827d49abd1678f4996022b7bb06a5ba4 -> 168377c606068a244c487a8c9609ac94841764ab92f24ddffb58b2a7d1ceaf55
+  5.years.1.snapshot: 21.3 -> 21.4

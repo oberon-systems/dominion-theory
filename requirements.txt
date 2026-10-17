@@ -1,5 +1,5 @@
 # Development tooling. The game's own dependencies live in pyproject.toml.
-commitizen==4.19.1
-pre-commit==4.6.2
+commitizen==4.19.2
+pre-commit==4.7.0
 pytest==9.1.1
 wyld-cz==0.4.1

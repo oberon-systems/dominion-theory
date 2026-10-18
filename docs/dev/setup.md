@@ -232,8 +232,11 @@ The terminal becomes a screen of two panes, drawn with
   characters on the colour of its biome, a glyph for the biome, `~` for a
   river and `@` for the band; the place under the pointer of the council
   is lit in magenta, the cursor in gold;
-- **the band** - its people, stores, states, action, fatigue and intent,
-  and your standing;
+- **the band** - how many people, its states, action, fatigue and intent,
+  and your standing; the keys below it open one more pane under it: `R`
+  the skills of the game, those learned marked, `S` the stores and the
+  goods, `I` the people by stage, condition and role. The same key closes
+  it, another key swaps it;
 - **its place** - the biome of the band's cell and its properties as the
   band knows them, as bars; while a place is lit or under the cursor, that
   place instead, titled "The target";
@@ -244,6 +247,10 @@ The terminal becomes a screen of two panes, drawn with
   on other evenings the screen runs on. When an occasion calls a council
   that is settled, the screen stops on "go on" so that what happened can
   be read before the night.
+
+The council keeps its room at the foot of the pane whatever the panes
+above it hold: the band, its place and an opened pane scroll instead of
+pushing it off the screen.
 
 The right pane is the log: a line per update with something to tell, the
 date, the standing and what happened.
@@ -262,6 +269,7 @@ places to the answers.
 | h j k l    | move the cursor on the map                              |
 | Enter      | picks the option under the pointer, or the cell         |
 | Esc        | steps back to the places or to the answers              |
+| r, s, i    | open or close the skills, the stores, the people        |
 | q, Ctrl-C  | leaves the game                                         |
 
 Saying nothing costs standing.

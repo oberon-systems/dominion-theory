@@ -82,11 +82,19 @@ play-property-water = water
 play-property-food = food
 play-property-threat = threat
 play-property-passability = passability
+play-property-stone = stone
+play-property-wood = wood
 play-title-band = The band
 play-title-cell = Its place
 play-title-target = The target
 play-title-log = What happened
 play-title-council = The council
+play-title-research = Skills
+play-title-stores = Stores
+play-title-people = People
+play-keys = R skills · S stores · I people
+play-research-none = Nothing learned yet.
+play-stores-none = The stores are empty.
 
 place-grass =
     { $quality ->

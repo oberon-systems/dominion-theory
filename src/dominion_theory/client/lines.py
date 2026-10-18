@@ -66,9 +66,12 @@ NEXT = 'play-next'
 AGREED = 'council-agreed'
 UNKNOWN = 'play-unknown'
 PROPERTY = 'play-property-'
-PROPERTIES = ('water', 'food', 'threat', 'passability')
+PROPERTIES = ('water', 'food', 'threat', 'passability', 'stone', 'wood')
 TITLE = 'play-title-'
-PANES = ('band', 'cell', 'target', 'log', 'council')
+PANES = ('band', 'cell', 'target', 'log', 'council', 'research', 'stores', 'people')
+KEYS = 'play-keys'
+NO_SKILLS = 'play-research-none'
+NO_STORES = 'play-stores-none'
 MESSAGES: tuple[str, ...] = (
     PEOPLE,
     BADLY,
@@ -100,6 +103,9 @@ MESSAGES: tuple[str, ...] = (
     EVENING,
     NEXT,
     UNKNOWN,
+    KEYS,
+    NO_SKILLS,
+    NO_STORES,
     *(f'{PROPERTY}{name}' for name in PROPERTIES),
     *(f'{TITLE}{pane}' for pane in PANES),
     *(f'{ACTION}{kind}' for kind in ACTIONS),
@@ -218,32 +224,44 @@ def doing(action: Mapping[str, Any], lang: str) -> str:
 
 
 def band_parts(band: Unit, lang: str) -> list[Part]:
-    pieces = [Part(Look.BAND, render(PEOPLE, {'count': band['population']}, lang))]
-    ages = {name: count for name, count in band.get('ages', {}).items() if count}
-    # A band of one stage says no more than its people.
-    if len(ages) > 1:
-        pieces += [Part(Look.BAND, render(f'{STAGE}{name}', {'count': count}, lang)) for name, count in ages.items()]
-    pieces += [Part(Look.STATE, _condition(band, name, lang)) for name in CONDITIONS if band.get(name)]
-    roles = band.get('roles', {})
-    pieces += [
-        Part(Look.BAND, render(f'{ROLE}{name}', {'count': roles[name]}, lang)) for name in ROLES if roles.get(name)
-    ]
-    if _sheltered(band):
+    pieces = [Part(Look.BAND, render(PEOPLE, {'count': band['population']}, lang)), *people_parts(band, lang)]
+    if sheltered(band):
         pieces.append(Part(Look.BAND, render(CAMP, lang=lang)))
     if band.get('lore'):
         skills = ', '.join(render(f'{SKILL}{name}', lang=lang) for name in band['lore'])
         pieces.append(Part(Look.BAND, render(SKILLS, {'skills': skills}, lang)))
-    goods = band.get('goods', {})
-    held = {**{name: amount for name, amount in band['stores'].items() if name not in goods}, **goods}
-    pieces += [
-        Part(Look.BAND, render(STORE, {'resource': name, 'amount': amount}, lang)) for name, amount in held.items()
-    ]
+    pieces += held_parts(band, lang)
     pieces += [Part(Look.STATE, render(f'{STATE}{state}', lang=lang)) for state in band['states']]
     pieces.append(Part(Look.BAND, doing(band['action'], lang)))
     return [*_joined(pieces, ', '), Part(Look.PLAIN, '.')]
 
 
-def _sheltered(band: Unit) -> bool:
+def people_parts(band: Unit, lang: str, every: bool = False) -> list[Part]:
+    """
+    The people of a band by stage, the pregnant and the injured, and the roles told by their count. A band of one
+    stage says no more than its people, unless every stage is asked for.
+    """
+    ages = {name: count for name, count in band.get('ages', {}).items() if count}
+    pieces = []
+    if every or len(ages) > 1:
+        pieces += [Part(Look.BAND, render(f'{STAGE}{name}', {'count': count}, lang)) for name, count in ages.items()]
+    pieces += [Part(Look.STATE, _condition(band, name, lang)) for name in CONDITIONS if band.get(name)]
+    roles = band.get('roles', {})
+    return pieces + [
+        Part(Look.BAND, render(f'{ROLE}{name}', {'count': roles[name]}, lang)) for name in ROLES if roles.get(name)
+    ]
+
+
+def held_parts(band: Unit, lang: str) -> list[Part]:
+    """
+    What the band holds: the food and water of its stores, then its goods, in the stores and the kits together.
+    """
+    goods = band.get('goods', {})
+    held = {**{name: amount for name, amount in band['stores'].items() if name not in goods}, **goods}
+    return [Part(Look.BAND, render(STORE, {'resource': name, 'amount': amount}, lang)) for name, amount in held.items()]
+
+
+def sheltered(band: Unit) -> bool:
     camp, place = band.get('camp'), band.get('place')
     if camp is None or place is None:
         return False

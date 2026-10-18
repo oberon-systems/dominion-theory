@@ -58,6 +58,8 @@ UPDATES = [
 ]
 SAID = 'day 1, month 1, year 1, spring: ' 'You turned the band: we go into the forest. 9 voices of 14 were for it.'
 WITHIN = 200
+# A terminal low enough that an opened pane would push the council off it.
+SMALL = (120, 24)
 PAUSE_S = 0.02
 
 
@@ -77,6 +79,9 @@ class Scripted(Api):
     def biomes(self, game_id: str) -> Body:
         name = {'key': 'biome-forest', 'values': {}}
         return {'era': 'band', 'biomes': [{'id': 'forest', 'name': name, 'colour': '#006400'}]}
+
+    def params(self, game_id: str) -> Body:
+        return {'skills': {'orientation': {}, 'wintering': {}, 'sticks': {}}}
 
     def map(self, game_id: str, x: int, y: int, width: int, height: int, known: int | None = None) -> Body:
         return KNOWN
@@ -123,15 +128,7 @@ def test_the_screen_draws_the_band_and_its_place_and_sends_the_vote_picked_in_th
     asyncio.run(played())
 
     assert seen['map'] == '♣ @~'
-    assert seen['band'].splitlines() == [
-        '15 people',
-        'forage 15',
-        'water 15',
-        'thirst',
-        'camps',
-        'fatigue 0',
-        'Your standing is 50.',
-    ]
+    assert seen['band'].splitlines() == ['15 people', 'thirst', 'camps', 'fatigue 0', 'Your standing is 50.']
     assert seen['cell'].splitlines()[:2] == ['forest, a river', 'water        ██████░░░░ 0.6']
     assert seen['answers'].startswith('What do you say at the council?')
     assert seen['places'] == 'The target'
@@ -167,6 +164,23 @@ def test_a_cell_picked_with_the_cursor_on_the_map_is_where_the_band_is_sent() ->
     assert api.sent[0] == {'id': 'vote-3', 'kind': 'vote', 'proposal': {'kind': 'go', 'to': {'x': 0, 'y': 0}}}
 
 
+class Learned(Scripted):
+    """
+    The same council, of a band that has learned two skills, holds goods and has children.
+    """
+
+    def snapshot(self, game_id: str) -> Body:
+        held = super().snapshot(game_id)
+        band = {
+            **BAND,
+            'lore': ['orientation', 'sticks'],
+            'goods': {'sticks': 4.5},
+            'ages': {'child': 3, 'adult': 12, 'elder': 0},
+            'pregnant': 2,
+        }
+        return {**held, 'units': [band]}
+
+
 class Agreed(Scripted):
     """
     A game whose evening council is settled and does not sit.
@@ -181,6 +195,32 @@ class Agreed(Scripted):
         agreed = {'key': 'council-agreed', 'values': values}
         yield {'seq': 4, 'date': DATE, 'events': [agreed], 'changes': {}, 'waiting': ['player']}
         yield {'seq': 5, 'date': DATE, 'events': [], 'changes': {}, 'waiting': []}
+
+
+def test_the_skills_the_stores_and_the_people_open_by_their_keys_and_close_again() -> None:
+    api = Learned()
+    screen = Screen(Session(api, 'alpha'), 'en', pace=0)
+    seen: dict[str, Any] = {}
+
+    async def played() -> None:
+        async with screen.run_test(size=SMALL) as pilot:
+            await until(pilot, lambda: bool(screen.query_one('#council').display))
+            for key in ('r', 's', 'i'):
+                await pilot.press(key)
+                seen[key] = (str(screen.query_one('#detail').border_title), text(screen, 'detail'))
+                seen[f'{key}-foot'] = screen.query_one('#council').region.bottom
+            await pilot.press('i')
+            seen['closed'] = screen.query_one('#detail').display
+            seen['council'] = screen.query_one('#council').display
+            await pilot.press('q')
+
+    asyncio.run(played())
+
+    assert seen['r'] == ('Skills', '✓ to find its way\n· to winter\n✓ to cut sticks')
+    assert seen['s'] == ('Stores', 'forage 15\nwater 15\nsticks 4.5')
+    assert seen['i'] == ('People', '15 people\n3 children\n12 adults\n2 with child')
+    assert (seen['closed'], seen['council']) == (False, True)
+    assert max(seen[f'{key}-foot'] for key in 'rsi') <= SMALL[1]
 
 
 def test_an_evening_with_no_council_waits_until_the_day_is_read() -> None:

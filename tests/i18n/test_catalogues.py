@@ -52,6 +52,7 @@ def in_use() -> set[str]:
     names = {f'time-part-{part}' for part in time.day_parts} | {f'time-season-{season.name}' for season in time.seasons}
     names |= {f'biome-{biome}' for biome in params.biomes}
     names |= {f'resource-{resource}' for resource in params.resources}
+    names |= {f'play-property-{name}' for era, held in params.eras for name in held.properties}
     names |= {f'{STATE}{state}' for state in STATES}
     names |= {f'encounter-{kind}' for kind in params.encounters.kinds}
     names |= {f'{SKILL}{skill}' for skill in params.skills}

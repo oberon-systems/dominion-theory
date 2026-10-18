@@ -69,6 +69,9 @@ class Api:
     def biomes(self, game_id: str) -> Body:
         return self._read('GET', f'/games/{game_id}/biomes')
 
+    def params(self, game_id: str) -> Body:
+        return self._read('GET', f'/games/{game_id}/params')
+
     def map(self, game_id: str, x: int, y: int, width: int, height: int, known: int | None = None) -> Body:
         asked = {'x': x, 'y': y, 'width': width, 'height': height, 'known': known}
         query = '&'.join(f'{name}={value}' for name, value in asked.items() if value is not None)

@@ -113,8 +113,7 @@ def test_an_ended_game_is_409(
 
 
 def test_the_snapshot_is_what_the_caller_may_see(client: TestClient, new_game: NewGame) -> None:
-    # A seed drawn may put the window where no band can start.
-    game = new_game(seed=42)['id']
+    game = new_game()['id']
 
     seat = client.get(f'{PREFIX}/games/{game}/snapshot')
     spectator = client.get(f'{PREFIX}/games/{game}/snapshot', params={'view': 'spectator'})

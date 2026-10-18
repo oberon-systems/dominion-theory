@@ -1,6 +1,7 @@
 """
 Playing a game in a terminal as a screen of two panes: on the left the land the band knows, the band, its
-place and the council's menu; on the right the log of what happened.
+place and the council's menu, with the skills, the stores or the people of the band opened by a key; on the
+right the log of what happened.
 """
 
 import queue
@@ -13,7 +14,7 @@ import httpx
 from rich.text import Text
 from textual.app import App, ComposeResult
 from textual.binding import Binding
-from textual.containers import Horizontal, Vertical
+from textual.containers import Horizontal, Vertical, VerticalScroll
 from textual.widgets import OptionList, RichLog, Static
 from textual.widgets.option_list import Option as Choice
 from websockets.exceptions import WebSocketException
@@ -23,18 +24,25 @@ from .api import ENDED, Body, Refused
 from .drawing import HIDDEN, pictured
 from .lines import (
     AGREED,
+    CAMP,
     CURSOR,
     EVENING,
     FATIGUE,
     GONE,
     INTENT,
+    KEYS,
     NEXT,
+    NO_SKILLS,
+    NO_STORES,
     OVER,
+    PEOPLE,
     PICK,
     PROPERTY,
     QUESTION,
     RIVER,
     SILENCE,
+    SKILL,
+    STATE,
     STATUS,
     TITLE,
     UNKNOWN,
@@ -42,10 +50,14 @@ from .lines import (
     Look,
     Menu,
     Option,
-    band_parts,
+    Part,
+    doing,
+    held_parts,
     intended,
     menu,
     parts,
+    people_parts,
+    sheltered,
     target,
     words,
 )
@@ -74,6 +86,13 @@ STEPS = {
     'l': (1, 0),
 }
 POINTED = ('step', 'pick')
+RESEARCH = 'research'
+STORES = 'stores'
+KIN = 'people'
+# The panes a key opens under the band, and closes again.
+DETAILS = {'r': RESEARCH, 's': STORES, 'i': KIN}
+LEARNED = '✓ '
+UNLEARNED = '· '
 
 
 class Left(Exception):
@@ -114,10 +133,12 @@ class Screen(App[str | None]):
     CSS = """
     #control { width: 3fr; }
     #log { width: 2fr; border: round $secondary; }
-    #land { height: auto; }
+    #date { height: 1; }
+    #land { height: 1fr; }
     #map { width: auto; min-width: 20; border: round $primary; }
-    #panels { width: 1fr; height: auto; }
+    #panels { width: 1fr; height: 1fr; }
     #band, #cell { border: round $primary; padding: 0 1; height: auto; }
+    #detail { border: round $secondary; padding: 0 1; height: auto; }
     #council { border: round $accent; padding: 0 1; height: auto; }
     #menu { height: auto; max-height: 13; border: none; }
     """
@@ -127,6 +148,7 @@ class Screen(App[str | None]):
         *(Binding(key, f'step({dx}, {dy})', show=False, priority=True) for key, (dx, dy) in STEPS.items()),
         Binding('enter', 'pick', show=False, priority=True),
         Binding('escape', 'retreat', show=False, priority=True),
+        *(Binding(key, f"detail('{pane}')", show=False) for key, pane in DETAILS.items()),
     ]
 
     def __init__(
@@ -150,6 +172,7 @@ class Screen(App[str | None]):
         self._cursor: tuple[int, int] | None = None
         self._known: Body | None = None
         self._drawn_at: tuple[int, int] | None = None
+        self._detail: str | None = None
 
     def compose(self) -> ComposeResult:
         with Horizontal():
@@ -157,8 +180,9 @@ class Screen(App[str | None]):
                 yield Static(id='date')
                 with Horizontal(id='land'):
                     yield Static(id='map')
-                    with Vertical(id='panels'):
+                    with VerticalScroll(id='panels'):
                         yield Static(id='band')
+                        yield Static(id='detail')
                         yield Static(id='cell')
                 with Vertical(id='council'):
                     yield Static(id='question')
@@ -168,7 +192,9 @@ class Screen(App[str | None]):
     def on_mount(self) -> None:
         for pane in ('band', 'cell', 'log', 'council'):
             self.query_one(f'#{pane}').border_title = render(f'{TITLE}{pane}', lang=self._lang)
+        self.query_one('#band').border_subtitle = render(KEYS, lang=self._lang)
         self.query_one('#council').display = False
+        self.query_one('#detail').display = False
         self._draw()
         threading.Thread(target=self._play, daemon=True).start()
 
@@ -215,6 +241,10 @@ class Screen(App[str | None]):
     def action_pick(self) -> None:
         if self._cursor is not None and self._cursor != self._session.place:
             self._send({'kind': 'go', 'to': {'x': self._cursor[0], 'y': self._cursor[1]}})
+
+    def action_detail(self, pane: str) -> None:
+        self._detail = None if self._detail == pane else pane
+        self._draw()
 
     def action_retreat(self) -> None:
         if self._mode == POINTING:
@@ -363,6 +393,11 @@ class Screen(App[str | None]):
             drawn = '\n'.join(pictured(self._known, session.colours, session.place, self._lit, self._cursor))
             self.query_one('#map', Static).update(Text.from_ansi(drawn))
         self.query_one('#band', Static).update(self._band())
+        detail = self.query_one('#detail', Static)
+        detail.display = self._detail is not None
+        if self._detail is not None:
+            detail.border_title = render(f'{TITLE}{self._detail}', lang=self._lang)
+            detail.update(self._details(self._detail))
         self.query_one('#cell', Static).update(self._cell())
 
     def _band(self) -> Text:
@@ -372,14 +407,41 @@ class Screen(App[str | None]):
         if band is None:
             told.append(render(GONE, lang=self._lang) + '\n', 'bold red')
         else:
-            for part in band_parts(band, self._lang):
-                if part.look != Look.PLAIN:
-                    told.append(part.text + '\n', LOOKS.get(part.look, ''))
+            told.append(render(PEOPLE, {'count': band['population']}, self._lang) + '\n', LOOKS[Look.BAND])
+            if sheltered(band):
+                told.append(render(CAMP, lang=self._lang) + '\n', LOOKS[Look.BAND])
+            for state in band['states']:
+                told.append(render(f'{STATE}{state}', lang=self._lang) + '\n', LOOKS[Look.STATE])
+            told.append(doing(band['action'], self._lang) + '\n', LOOKS[Look.BAND])
             told.append(render(FATIGUE, {'fatigue': band['fatigue']}, self._lang) + '\n')
             if band.get('intent'):
                 said = intended(band['intent']['proposal'], session.place, session.watched.known.get, self._lang)
                 told.append(render(INTENT, {'proposal': said}, self._lang) + '\n', 'magenta')
         told.append(render(STATUS, {'status': session.status}, self._lang), 'bold yellow')
+        return told
+
+    def _details(self, pane: str) -> Text:
+        """
+        A pane opened by its key: every skill of the game, those learned first marked; the stores and the goods;
+        the people by stage, condition and role.
+        """
+        band, lang = self._session.band, self._lang
+        if band is None:
+            return Text()
+        if pane == RESEARCH:
+            known = band.get('lore', [])
+            lines = [] if known else [Part(Look.PLAIN, render(NO_SKILLS, lang=lang))]
+            for name in self._session.skills or known:
+                mark, look = (LEARNED, Look.BAND) if name in known else (UNLEARNED, Look.PLAIN)
+                lines.append(Part(look, mark + render(f'{SKILL}{name}', lang=lang)))
+        elif pane == STORES:
+            lines = held_parts(band, lang) or [Part(Look.PLAIN, render(NO_STORES, lang=lang))]
+        else:
+            lines = [Part(Look.BAND, render(PEOPLE, {'count': band['population']}, lang))]
+            lines += people_parts(band, lang, every=True)
+        told = Text()
+        for at, part in enumerate(lines):
+            told.append(('\n' if at else '') + part.text, LOOKS.get(part.look, 'dim'))
         return told
 
     def _cell(self) -> Text:

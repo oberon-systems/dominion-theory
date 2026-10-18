@@ -4,6 +4,7 @@ One seat of a game in step mode as a client keeps it: the band, the council, the
 
 from collections.abc import Iterator, Mapping
 from contextlib import closing
+from functools import cached_property
 from typing import Any
 
 from .api import Api, Body
@@ -57,6 +58,13 @@ class Session:
                 else:
                     self.apply(message)
                 yield message
+
+    @cached_property
+    def skills(self) -> list[str]:
+        """
+        Every skill of the game in the order of its tree, asked of the server the first time it is wanted.
+        """
+        return list(self.api.params(self.game).get('skills', {}))
 
     @property
     def asked(self) -> bool:

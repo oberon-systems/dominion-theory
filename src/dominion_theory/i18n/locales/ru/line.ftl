@@ -86,11 +86,19 @@ play-property-water = вода
 play-property-food = еда
 play-property-threat = угроза
 play-property-passability = проходимость
+play-property-stone = камень
+play-property-wood = дерево
 play-title-band = Община
 play-title-cell = Её место
 play-title-target = Цель
 play-title-log = Что было
 play-title-council = Совет
+play-title-research = Навыки
+play-title-stores = Запасы
+play-title-people = Люди
+play-keys = R навыки · S запасы · I люди
+play-research-none = Община пока ничему не научилась.
+play-stores-none = Запасы пусты.
 
 place-grass =
     { $quality ->

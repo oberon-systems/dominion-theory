@@ -713,7 +713,7 @@ def test_a_restored_game_carries_the_band_in_the_middle_of_a_day(params: Params)
 def test_a_snapshot_of_the_format_before_the_band_is_refused(params: Params) -> None:
     snapshot = land(params).snapshot()
 
-    assert snapshot['format'] == 16
+    assert snapshot['format'] == 17
     with pytest.raises(ValueError, match='format 2'):
         Game.restore({**snapshot, 'format': 2})
 
@@ -863,3 +863,32 @@ def test_a_nanny_cares_for_every_five_children_and_gathers_half(params: Params) 
     assert [member.role for member in held.members[:4]] == ['gatherer', 'gatherer', 'nanny', 'nanny']
     assert bands.roles(params, held) == {'gatherer': 8, 'nanny': 2}
     assert bands.census(params, held).gatherers == pytest.approx(3.0)
+
+
+def test_nannies_leave_the_children_one_a_day_while_someone_goes_short(params: Params) -> None:
+    women = [bands.Member(1000, 'female'), bands.Member(1200, 'female'), bands.Member(900, 'female')]
+    women[2].pregnant_until = 50
+    children = [bands.Member(100, 'male') for _ in range(6)]
+    children[0].hungry = 0.5
+    held = bands.Band(id=1, x=WEST, y=NORTH, members=[*bands.adults(1), *women, *children], stores={})
+    freed = []
+
+    for _ in range(3):
+        bands.free(params, held)
+        bands.assign(params, held)
+        freed.append((held.freed, [member.role for member in held.members[1:4]]))
+    children[0].hungry = 0.0
+    bands.free(params, held)
+    stayed = held.freed
+    held.stores = {'forage': [[0.0, 1000.0]], 'water': [[0.0, 1000.0]]}
+    bands.free(params, held)
+    bands.assign(params, held)
+
+    assert freed == [
+        (1, ['gatherer', 'gatherer', 'nanny']),
+        (2, ['gatherer', 'gatherer', 'gatherer']),
+        (2, ['gatherer', 'gatherer', 'gatherer']),
+    ]
+    assert stayed == 2
+    assert held.freed == 1
+    assert [member.role for member in held.members[1:4]] == ['gatherer', 'gatherer', 'nanny']

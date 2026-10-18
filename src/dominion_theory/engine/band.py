@@ -144,6 +144,8 @@ class Band:
     camped: int = 0
     # The cell of a winter camp and the share of its building done.
     camp: dict[str, Any] | None = None
+    # The members of roles that care sent to gather while the band goes short.
+    freed: int = 0
     counted: tuple[int, Census] | None = field(default=None, init=False, repr=False, compare=False)
 
     @classmethod
@@ -173,6 +175,7 @@ class Band:
             route=plain['route'],
             camped=plain['camped'],
             camp=plain['camp'],
+            freed=plain['freed'],
         )
 
     @property
@@ -218,6 +221,7 @@ class Band:
             'route': self.route,
             'camped': self.camped,
             'camp': self.camp,
+            'freed': self.freed,
         }
 
     def shown(self, params: Params, scale: int) -> dict[str, Any]:
@@ -372,11 +376,22 @@ def common(params: Params) -> str:
     return next(name for name, role in params.units.band.people.roles.items() if role.cares is None)
 
 
-def assign(params: Params, band: Band) -> None:
+def free(params: Params, band: Band) -> None:
     """
-    Lays the roles anew: for every `cares` children, rounded up, one woman of a stage that conceives, never the
-    player, takes a role that cares - the pregnant and the resting first, then the oldest; everyone else takes
-    the role that cares for nobody.
+    Sends one more member of a role that cares to gather while a member went short today, and calls one back
+    while the stores feed the band `leaves.back` days: docs/units/band.md, Roles.
+    """
+    back = params.days(params.units.band.people.leaves.back)
+    if any(getattr(member, deficit) > NOTHING for member in band.members for deficit in DEFICITS.values()):
+        band.freed = min(band.freed + 1, len(cared(params, band)))
+    elif min(held_days(params, band, prop) for prop in DEFICITS) >= back:
+        band.freed = max(band.freed - 1, 0)
+
+
+def cared(params: Params, band: Band) -> list[tuple[int, str]]:
+    """
+    The members the children call for, with the role that cares each takes: for every `cares` children, rounded
+    up, one woman of a stage that conceives, never the player - the pregnant and the resting first, then the oldest.
     """
     people = params.units.band.people
     named = census(params, band).stages
@@ -393,14 +408,25 @@ def assign(params: Params, band: Band) -> None:
             at,
         ),
     )
+    wanted = [
+        name
+        for name, role in people.roles.items()
+        if role.cares is not None
+        for _ in range(math.ceil(children / role.cares))
+    ]
+    return list(zip(women, wanted, strict=False))
+
+
+def assign(params: Params, band: Band) -> None:
+    """
+    Lays the roles anew: the members the children call for take their roles that care, but for the freed, the
+    last of them; everyone else takes the role that cares for nobody.
+    """
+    taken = cared(params, band)
     for member in band.members:
         member.role = common(params)
-    for name, role in people.roles.items():
-        if role.cares is not None:
-            taken = min(math.ceil(children / role.cares), len(women))
-            for at in women[:taken]:
-                band.members[at].role = name
-            women = women[taken:]
+    for at, name in taken[: max(len(taken) - band.freed, 0)]:
+        band.members[at].role = name
     band.changed()
 
 
@@ -1026,6 +1052,7 @@ def live(
     lived.lost.append((BIRTH, bury(band, mothers)))
     if feeds:
         _conceive(params, band, day, rng)
+    free(params, band)
     assign(params, band)
     lived.lost = [(cause, count) for cause, count in lived.lost if count]
     return lived

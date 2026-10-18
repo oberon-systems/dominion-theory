@@ -125,6 +125,18 @@ A nanny that gathered nothing took a third of the hands of a band with
 more children than adults: the headless band of seed 7 had 16 children,
 11 adults and 4 nannies in its third winter and starved.
 
+A band that runs short sends its nannies to gather, one a day. At the
+end of a day, after eating, while a member went short of food or water,
+one more nanny leaves the children, until none is left. While the
+stores of both still feed the band `people.leaves.back` days (1), one
+comes back a day. The last nanny of the order leaves first, so the
+pregnant and the resting stay. In a band whose gatherers died, the
+nannies kept the children while everyone starved; now they go out.
+
+A band rarely holds more than 2 days at the end of a day, so a nanny
+sent out while the stores fed less than a day came back only once they
+fed 3 days, which meant she almost never came back.
+
 Children and elders are gatherers who gather nothing for their stage. A
 role is meant to grow with the doing - a member who fetches water for
 long fetches it better - once a tribe shares its work more finely.

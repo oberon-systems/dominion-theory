@@ -60,6 +60,8 @@ units:
       roles:
         gatherer: {gathers: 1.0}
         nanny: {gathers: 0.5, cares: 5}
+      # One nanny a day goes to gather while someone goes short, and one comes back while the stores feed tomorrow.
+      leaves: {back: {days: 1}}
       birth:
         pregnancy: {months: 3}
         pause: {min: {months: 1}, max: {months: 2}}

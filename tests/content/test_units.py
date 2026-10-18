@@ -55,6 +55,7 @@ def test_band_is_the_one_of_its_document() -> None:
         'gatherer': {'gathers': 1.0, 'cares': None},
         'nanny': {'gathers': 0.5, 'cares': 5},
     }
+    assert band.people.leaves.model_dump(exclude_none=True) == {'back': {'days': 1}}
     assert {name: stage.reserve.model_dump() for name, stage in band.people.stages.items()} == {
         'child': {'food': 1.0, 'water': 1.0, 'grows': True},
         'adult': {'food': 2.0, 'water': 2.0, 'grows': False},

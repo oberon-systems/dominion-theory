@@ -588,6 +588,15 @@ class Role(Node):
     cares: Count | None = None
 
 
+class Leaves(Node):
+    """
+    A member of a role that cares leaves the children to gather, one a day, while a member went short of food or
+    water that day; one comes back a day while the stores of both still feed the band `back` days.
+    """
+
+    back: Duration
+
+
 class Weakened(Node):
     """
     The share of pace and gathering a hungry or thirsty member keeps.
@@ -604,6 +613,7 @@ class People(Node):
     birth: Birth
     weakened: Weakened
     roles: dict[Name, Role] = Field(min_length=1)
+    leaves: Leaves
 
 
 class Speed(Node):

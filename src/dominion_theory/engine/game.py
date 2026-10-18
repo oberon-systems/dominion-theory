@@ -57,7 +57,7 @@ from .events import (
 from .hashing import digest
 from .streams import Streams
 
-SNAPSHOT_FORMAT = 16
+SNAPSHOT_FORMAT = 17
 DIED = 'died'
 BANISHED = 'banished'
 VOTED = 'voted'

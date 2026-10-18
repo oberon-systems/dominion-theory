@@ -158,7 +158,8 @@ go     = weights.move * pull
 
 A winter camp is offered in the seasons of
 `units.band.winter_camp.offered`, the winter, and in its `before` days
-ahead of them, the last 5 days of the autumn. The camp is worth the best
+ahead of them, the last 5 days of the autumn, to a band that knows the
+skill `wintering`: from its second winter on. The camp is worth the best
 food and water within its reach, so the others want to leave only once
 the cells around are stripped too. Its other effects - less eaten,
 slower spoiling, a deeper rest - are no part of the worth of a cell, so
@@ -229,7 +230,7 @@ The weight of the voice is the status as a share of
 voice = max(least, share * voters * status / 100)
 ```
 
-A refused `vote` costs nothing. It is refused for one of five reasons.
+A refused `vote` costs nothing. It is refused for one of six reasons.
 
 | Reason                      | When                                               |
 |-----------------------------|----------------------------------------------------|
@@ -238,6 +239,12 @@ A refused `vote` costs nothing. It is refused for one of five reasons.
 | `refused-no-such-place`     | the place is the band's own, lies outside the window, cannot be entered, or no route leads there |
 | `refused-seat-banished`     | the player is no longer in the band                |
 | `refused-out-of-season`     | a winter camp is named while none is offered       |
+| `refused-not-learned`       | the band has not learned what the answer asks: a place no option names without `orientation`, a winter camp without `wintering` |
+
+Two skills gate the answer, as [Skills](skills.md#the-council) tells: a
+band that has not learned `orientation` is sent only where the others
+point, and one that has not lived through a winter is offered no winter
+camp, by the council or by its own decision.
 
 ___
 

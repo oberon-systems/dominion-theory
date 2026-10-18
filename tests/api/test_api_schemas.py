@@ -20,8 +20,8 @@ from dominion_theory.runner import Service
 from dominion_theory.runner import Update as Handed
 
 PLANET = {'planet.circumference_km': 4000, 'planet.window.width': 32, 'planet.window.height': 16}
-# A voice that outweighs the band, so that the council always sits and is never settled.
-LOUD = {**PLANET, 'council.voice.least': 20.0}
+# A voice that outweighs the band, so that the council always sits and is never settled; no skill gates it.
+LOUD = {**PLANET, 'council.voice.least': 20.0, 'skills': {}}
 DAY = 5
 EVENING = 3
 

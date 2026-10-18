@@ -30,6 +30,8 @@ AND = 'line-and'
 ROLE = 'line-role-'
 # The roles told by their count: everyone else gathers.
 ROLES = ('nanny',)
+SKILLS = 'line-skills'
+SKILL = 'skill-'
 STATUS = 'line-status'
 COUNCIL = 'line-council'
 VOTES = 'line-votes'
@@ -76,6 +78,7 @@ MESSAGES: tuple[str, ...] = (
     SHARED,
     AND,
     *(f'{ROLE}{name}' for name in ROLES),
+    SKILLS,
     STATUS,
     COUNCIL,
     VOTES,
@@ -176,9 +179,14 @@ class Option(NamedTuple):
 
 
 class Menu(NamedTuple):
+    """
+    The answers, the places of the goes, the cell of the band and whether a place of the player's own may be named.
+    """
+
     answers: list[Option]
     places: list[Option]
     place: Place | None
+    pointing: bool = True
 
 
 def words(message: Mapping[str, Any], lang: str) -> str:
@@ -222,6 +230,9 @@ def band_parts(band: Unit, lang: str) -> list[Part]:
     ]
     if _sheltered(band):
         pieces.append(Part(Look.BAND, render(CAMP, lang=lang)))
+    if band.get('lore'):
+        skills = ', '.join(render(f'{SKILL}{name}', lang=lang) for name in band['lore'])
+        pieces.append(Part(Look.BAND, render(SKILLS, {'skills': skills}, lang)))
     pieces += [
         Part(Look.BAND, render(STORE, {'resource': name, 'amount': amount}, lang))
         for name, amount in band['stores'].items()
@@ -340,7 +351,7 @@ def menu(council: Mapping[str, Any], place: Place | None, known: Known) -> Menu:
         )
         for entry in chosen
     ]
-    return Menu(answers, places, place)
+    return Menu(answers, places, place, council.get('place', True))
 
 
 def look(key: str) -> Look:

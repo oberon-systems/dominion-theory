@@ -12,7 +12,7 @@ from dominion_theory.db.profiles import LOCALE_UNKNOWN, LOCALES, PROFILE_NOT_FOU
 from dominion_theory.engine import EVENTS, REASONS, council
 from dominion_theory.engine.band import STATES
 from dominion_theory.engine.commands import GO, PROPOSALS
-from dominion_theory.engine.events import STATE
+from dominion_theory.engine.events import SKILL, STATE
 from dominion_theory.i18n import DATE, LANGUAGES, catalogue
 from dominion_theory.runner import ERRORS
 
@@ -54,6 +54,7 @@ def in_use() -> set[str]:
     names |= {f'resource-{resource}' for resource in params.resources}
     names |= {f'{STATE}{state}' for state in STATES}
     names |= {f'encounter-{kind}' for kind in params.encounters.kinds}
+    names |= {f'{SKILL}{skill}' for skill in params.skills}
     names |= {council.key({'kind': kind}) for kind in PROPOSALS if kind != GO}
     names.add(council.key(council.going((0, 0))))
     goes = (*params.biomes, *(f'{council.THROUGH}{biome}' for biome in params.biomes), council.UNKNOWN)

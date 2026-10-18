@@ -21,6 +21,13 @@ CAUSES = ('hunger', 'thirst', 'encounter', 'age', 'frailty', 'birth')
 BAND = 'band'
 PASSABILITY = 'passability'
 ZOOM = 5
+# The counters a band learns by, docs/game/skills.md: those of a set or a sum, then those kept by biome.
+TALLIES = ('seen', 'first', 'winters')
+BY_BIOME = ('walked', 'walked_by', 'camped_by', 'days_in')
+COUNTERS = TALLIES + BY_BIOME
+NEW = 'new'
+OPENED = ('proposals', 'gathers', 'makes', 'roles')
+GATES = ('go_place', 'winter_camp')
 
 Name = Annotated[str, Field(strict=True, pattern=r'^[a-z][a-z0-9_]*$')]
 Count = Annotated[int, Field(strict=True, ge=1)]
@@ -805,6 +812,59 @@ class Encounters(Node):
     kinds: dict[Name, Encounter]
 
 
+class Condition(Node):
+    """
+    What teaches a skill, one of four: a counter of the band at least so high, of one biome, the sum of several
+    or, with biome new, the most of those not seen on the first day; the resources held at once; any or all of
+    other conditions.
+    """
+
+    counter: Name | None = None
+    biome: Name | None = None
+    biomes: tuple[Name, ...] = ()
+    at_least: Positive | None = None
+    holds: dict[Name, Positive] = Field(default_factory=dict)
+    any: tuple[Condition, ...] = ()
+    all: tuple[Condition, ...] = ()
+
+    @model_validator(mode='after')
+    def _one_kind(self) -> Self:
+        kinds = [self.counter is not None, bool(self.holds), bool(self.any), bool(self.all)]
+        if sum(kinds) != 1:
+            raise ValueError('exactly one of counter, holds, any, all')
+        if (self.counter is None) != (self.at_least is None):
+            raise ValueError('at_least with a counter and only with one')
+        if self.biome is not None and self.biomes:
+            raise ValueError('biome or biomes, not both')
+        if self.counter is None and (self.biome is not None or self.biomes):
+            raise ValueError('biomes only with a counter')
+        return self
+
+    def walk(self) -> list[Condition]:
+        """
+        This condition and every one below it.
+        """
+        return [self, *(held for below in (*self.any, *self.all) for held in below.walk())]
+
+
+class Opens(Node):
+    proposals: tuple[Name, ...] = ()
+    gathers: tuple[Name, ...] = ()
+    makes: tuple[Name, ...] = ()
+    roles: tuple[Name, ...] = ()
+
+
+class Skill(Node):
+    """
+    What a band learns by living: learned when its condition holds and the skills it needs are known, counted
+    from the day they were; it opens proposals, gatherings, recipes and roles.
+    """
+
+    learned: Condition
+    needs: tuple[Name, ...] = ()
+    opens: Opens = Opens()
+
+
 class Params(Node):
     """
     The resolved tree. A new section is a field here and a file in defaults.
@@ -818,6 +878,7 @@ class Params(Node):
     units: Units
     council: Council
     encounters: Encounters
+    skills: dict[Name, Skill]
 
     @model_validator(mode='after')
     def _agree(self) -> Self:
@@ -832,6 +893,7 @@ class Params(Node):
         self._check_band()
         self._check_council()
         self._check_encounters()
+        self._check_skills()
         return self
 
     def _check_names(self) -> None:
@@ -1050,6 +1112,50 @@ class Params(Node):
                         raise _invalid(f'encounters.kinds.{kind}.{section}', name, f'one of {", ".join(names)}')
             if held.wounds:
                 self._check_wounds(f'encounters.kinds.{kind}.wounds', held.wounds)
+
+    def _check_skills(self) -> None:
+        skills = self.skills
+        for name, skill in skills.items():
+            path = f'skills.{name}'
+            for needed in skill.needs:
+                if needed not in skills:
+                    raise _invalid(f'{path}.needs', needed, f'one of {", ".join(skills)}')
+            for condition in skill.learned.walk():
+                self._check_condition(f'{path}.learned', condition)
+            known = {
+                'proposals': GATES,
+                'gathers': tuple(self.resources),
+                'makes': tuple(self.resources),
+                'roles': tuple(self.units.band.people.roles),
+            }
+            for section, names in known.items():
+                for opened in getattr(skill.opens, section):
+                    if opened not in names:
+                        raise _invalid(f'{path}.opens.{section}', opened, f'one of {", ".join(names)}')
+        for name in skills:
+            self._check_needs(name, ())
+
+    def _check_condition(self, path: str, condition: Condition) -> None:
+        counter = condition.counter
+        if counter is not None and counter not in COUNTERS:
+            raise _invalid(f'{path}.counter', counter, f'one of {", ".join(COUNTERS)}')
+        biomes = (*condition.biomes, *(() if condition.biome is None else (condition.biome,)))
+        if counter in TALLIES and biomes:
+            raise _invalid(f'{path}.biome', list(biomes), f'no biome for the counter {counter}')
+        if counter in BY_BIOME and not biomes:
+            raise _invalid(f'{path}.biome', None, f'a biome for the counter {counter}')
+        for biome in biomes:
+            if biome not in self.biomes and (biome != NEW or condition.biomes):
+                raise _invalid(f'{path}.biome', biome, f'one of {", ".join(sorted(self.biomes))}, or {NEW} alone')
+        for resource in condition.holds:
+            if resource not in self.resources:
+                raise _invalid(f'{path}.holds', resource, f'one of {", ".join(self.resources)}')
+
+    def _check_needs(self, name: str, above: tuple[str, ...]) -> None:
+        if name in above:
+            raise _invalid(f'skills.{above[0]}.needs', name, 'skills that do not need themselves through others')
+        for needed in self.skills[name].needs:
+            self._check_needs(needed, (*above, name))
 
     def parts(self, duration: Duration) -> int:
         """

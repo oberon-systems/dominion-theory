@@ -115,7 +115,7 @@ def test_a_band_with_no_food_is_lived_headless_into_a_row_for_its_last_year() ->
         *('deaths', 'of-hunger', 'of-thirst', 'of-encounter', 'of-age', 'of-frailty', 'of-birth'),
         *('food', 'water', 'moves', 'roams', 'gathers', 'camps', 'builds', 'starving', 'thirsty', 'tired'),
         *('encounters',),
-        *('status',),
+        *('status', 'skills'),
         *('known', 'snapshot'),
     ]
     assert counted == [
@@ -151,6 +151,7 @@ def test_a_band_with_no_food_is_lived_headless_into_a_row_for_its_last_year() ->
         '0',
         '0',
         '50',
+        '0',
         '0',
     ]
     assert float(snapshot) > 0

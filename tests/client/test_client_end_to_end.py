@@ -31,8 +31,8 @@ QUIET = (
 PLANET = ('planet.circumference_km=4000', 'planet.window.width=32', 'planet.window.height=16')
 SMALL = tuple(part for given in (*PLANET, *QUIET) for part in ('--set', given))
 SIZE = {'planet.circumference_km': 4000, 'planet.window.width': 32, 'planet.window.height': 16}
-# A voice that outweighs the whole band, so that what the player says is what the council does.
-LOUD = {**SIZE, 'council.voice.least': 20.0}
+# A voice that outweighs the whole band, so that what the player says is what the council does; no skill gates it.
+LOUD = {**SIZE, 'council.voice.least': 20.0, 'skills': {}}
 SPOKEN = {
     'en': {
         4: (

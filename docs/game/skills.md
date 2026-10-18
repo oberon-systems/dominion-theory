@@ -60,8 +60,8 @@ met, not from the start.
 
 | Skill         | Learned when                                              | Needs                    | Opens |
 |---------------|-----------------------------------------------------------|--------------------------|-------|
-| `orientation` | 4 biomes seen, or 20 cells walked of a biome not seen on the first day | -          | a go to a place of the player's own |
-| `wintering`   | a winter lived through                                    | -                        | the winter camp |
+| `orientation` | 4 biomes seen, or 20 cells walked of a biome not seen on the first day | -          | a go to a place of the player's own, `go_place` |
+| `wintering`   | a winter lived through                                    | -                        | the winter camp, `winter_camp` |
 | `stone_tools` | a night on or beside hills, mountain or outcrops          | -                        | gathering `stones` |
 | `sticks`      | a night in or beside a forest                             | -                        | gathering `sticks` |
 | `litters`     | 8 cells walked in or beside a forest                      | `sticks`                 | making `litters` |
@@ -75,8 +75,9 @@ asked for 3 to 4 biomes; the band sees two or three on its first day,
 so 4 is the first guess.
 
 `wintering` - the first winter is lived without a winter camp; it is
-offered from the second winter on. A winter is lived through when the
-band is alive on the first day of the spring.
+offered from the second winter on. A winter is lived through when a
+season that offers no camp begins after one that does, the spring after
+the winter, and the band learns it at the end of that day.
 
 `litters` - the skill needs sticks alone, but a litter is lashed with
 cords, so none is made before `herbs` gives them.
@@ -91,8 +92,9 @@ ___
 
 ## Counters
 
-The band keeps what it learns by in `lore.counts`, brought up to date
-at the end of every day, before the skills are checked. A biome is "on
+The band keeps what it learns by in `lore.counts`. A cell entered is
+counted as the band walks into it; the rest is brought up to date at
+the end of every day, before the skills are checked. A biome is "on
 or beside" when the cell of the band or one of the 8 around it is of
 that biome.
 
@@ -365,7 +367,8 @@ Two skills gate what the council offers and what the player may say.
 
 - **Without `orientation`** - a `vote` that proposes a place no option of
   the table names is refused with `refused-not-learned`. Backing a go
-  the others named is allowed.
+  the others named is allowed. The council says it in `place`, so a
+  client offers no cell of the player's own.
 - **Without `wintering`** - the winter camp is not offered, to the
   player or to the band's own decision; a `vote` that names it is
   refused with `refused-not-learned`.
@@ -442,10 +445,10 @@ skills:
       any:
         - {counter: seen, at_least: 4}
         - {counter: walked, biome: new, at_least: 20}
-    opens: {proposals: [go-place]}
+    opens: {proposals: [go_place]}
   wintering:
     learned: {counter: winters, at_least: 1}
-    opens: {proposals: [winter-camp]}
+    opens: {proposals: [winter_camp]}
   stone_tools:
     learned: {counter: camped_by, biomes: [hills, mountain, outcrops], at_least: 1}
     opens: {gathers: [stones]}

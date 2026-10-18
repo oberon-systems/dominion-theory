@@ -62,8 +62,8 @@ FOREST = {'biome': 'forest', 'river': False, 'water': 0.6, 'food': 0.5, 'threat'
 # The band stands in a forest that goes on north; east of it lies land it does not know.
 WATCHED = {(1, 0): FOREST, (1, -2): FOREST}
 SMALL = ('planet.circumference_km=4000', 'planet.window.width=32', 'planet.window.height=16')
-# A voice that outweighs the whole band, so that what the player says is what the council does.
-LOUD = tuple(part for given in (*SMALL, 'council.voice.least=20.0') for part in ('--set', given))
+# A voice that outweighs the whole band, so that what the player says is what the council does; no skill gates it.
+LOUD = tuple(part for given in (*SMALL, 'council.voice.least=20.0', 'skills={}') for part in ('--set', given))
 
 
 def update(seq: int, waiting: list[str] | None = None, seat: Body | None = None) -> Body:
@@ -332,3 +332,12 @@ def test_a_winter_camp_is_answered_only_while_the_council_offers_it() -> None:
         'stay-and-gather',
         'abstain',
     ]
+
+
+def test_a_place_of_the_players_own_is_named_only_while_the_council_allows_it() -> None:
+    allowed, closed = menu(COUNCIL, (1, 0), WATCHED.get), menu({**COUNCIL, 'place': False}, (1, 0), WATCHED.get)
+    place = closed.place if closed.pointing else None
+
+    assert (allowed.pointing, closed.pointing) == (True, False)
+    assert pointed('+1 +0', closed.places, place) is None
+    assert pointed('+1 +0', allowed.places, allowed.place) == {'kind': 'go', 'to': {'x': 2, 'y': 0}}

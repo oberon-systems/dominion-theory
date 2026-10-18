@@ -690,6 +690,7 @@ def test_a_tick_carries_the_row_of_the_band(params: Params) -> None:
             'elder': 0,
             'pregnant': 0,
             'injured': 0,
+            'skills': 0,
         }
     )
 
@@ -713,7 +714,7 @@ def test_a_restored_game_carries_the_band_in_the_middle_of_a_day(params: Params)
 def test_a_snapshot_of_the_format_before_the_band_is_refused(params: Params) -> None:
     snapshot = land(params).snapshot()
 
-    assert snapshot['format'] == 17
+    assert snapshot['format'] == 18
     with pytest.raises(ValueError, match='format 2'):
         Game.restore({**snapshot, 'format': 2})
 

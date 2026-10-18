@@ -23,6 +23,7 @@ line-injured = { $count } injured
 line-injured-badly = { $count } injured ({ $badly } badly)
 line-store = { NAME("resource", $resource) } { NUMBER($amount, maximumFractionDigits: 1) }
 line-camp = in a winter camp
+line-skills = knows how { $skills }
 line-status = Your standing is { NUMBER($status, maximumFractionDigits: 1) }.
 line-council = The votes: { $table }.
 line-votes = { $proposal } - { $votes }

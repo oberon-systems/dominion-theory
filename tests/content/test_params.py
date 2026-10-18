@@ -115,7 +115,11 @@ def test_override_reaches_a_list_and_a_section() -> None:
 @pytest.mark.parametrize(
     ('path', 'found', 'expected'),
     [
-        ('peoples.band.count', 'peoples', 'one of biomes, council, encounters, eras, planet, resources, time, units'),
+        (
+            'peoples.band.count',
+            'peoples',
+            'one of biomes, council, encounters, eras, planet, resources, skills, time, units',
+        ),
         ('time.seasons.monsoon.months', 'monsoon', 'one of spring, summer, autumn, winter'),
         ('time.day_parts.9', '9', 'one of 0, 1, 2, 3, 4'),
         ('time.days_per_month.alpha', 'alpha', 'no name below a value'),

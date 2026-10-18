@@ -5,3 +5,7 @@ band-died = Община погибла.
 state-starvation = голод
 state-thirst = жажда
 state-tiredness = усталость
+
+skill-learned = Община научилась: { $skill }.
+skill-orientation = находить дорогу
+skill-wintering = зимовать

@@ -13,7 +13,7 @@ from numpy.typing import NDArray
 from ..content import Params, Property
 from ..planet import Planet, biome_names, place
 from . import band as bands
-from . import council, decisions, encounters, routes
+from . import council, decisions, encounters, lore, routes
 from .band import Action, Band
 from .cells import Cells, Place
 from .clock import DAY_STARTED, SEASON_STARTED, Clock, Date
@@ -44,6 +44,7 @@ from .events import (
     REFUSED_ALREADY_VOTED,
     REFUSED_NO_COUNCIL,
     REFUSED_NO_SUCH_PLACE,
+    REFUSED_NOT_LEARNED,
     REFUSED_OUT_OF_SEASON,
     REFUSED_SEAT_BANISHED,
     REFUSED_UNKNOWN_COMMAND,
@@ -51,13 +52,15 @@ from .events import (
     SEAT_BANISHED,
     SEAT_BLAMED,
     SEAT_PRAISED,
+    SKILL,
+    SKILL_LEARNED,
     STATE,
     Event,
 )
 from .hashing import digest
 from .streams import Streams
 
-SNAPSHOT_FORMAT = 17
+SNAPSHOT_FORMAT = 18
 DIED = 'died'
 BANISHED = 'banished'
 VOTED = 'voted'
@@ -192,6 +195,7 @@ class Game:
             self.counters.declare(name, partial(self._counted, name))
         for name in (bands.PREGNANT, bands.INJURED):
             self.counters.declare(name, partial(self._counted, name))
+        self.counters.declare('skills', lambda: 0 if self.band is None else len(self.band.lore[lore.KNOWN]))
 
     @classmethod
     def create(cls, seed: int, params: Params, seated: bool = False) -> Self:
@@ -285,7 +289,13 @@ class Game:
 
     @property
     def wintering(self) -> bool:
-        return council.offered(self.params, self.day)
+        """
+        Whether a winter camp is offered today: in its season, to a band that knows how to winter.
+        """
+        return council.offered(self.params, self.day) and self._opened(lore.WINTER_CAMP)
+
+    def _opened(self, gate: str) -> bool:
+        return self.band is not None and lore.opened(self.params, self.band, lore.PROPOSALS, gate)
 
     def inside(self, x: int, y: int) -> bool:
         window = self.window
@@ -464,8 +474,13 @@ class Game:
             return REFUSED_ALREADY_VOTED
         if answer['kind'] == GO and self._way(self.band, council.target(answer)) is None:
             return REFUSED_NO_SUCH_PLACE
-        if answer['kind'] == WINTER and not self.wintering:
+        named = any(entry['proposal'] == answer for entry in self.council['table'])
+        if answer['kind'] == GO and not named and not self._opened(lore.GO_PLACE):
+            return REFUSED_NOT_LEARNED
+        if answer['kind'] == WINTER and not council.offered(self.params, self.day):
             return REFUSED_OUT_OF_SEASON
+        if answer['kind'] == WINTER and not self.wintering:
+            return REFUSED_NOT_LEARNED
         return None
 
     def _way(self, band: Band, to: Place) -> list[list[int]] | None:
@@ -528,6 +543,7 @@ class Game:
             'table': laid,
             'voice': spoken,
             'winter': self.wintering,
+            'place': self._opened(lore.GO_PLACE),
         }
         self._totals['councils'] += 1
         tick.events.append(Event(COUNCIL_OPENED, values))
@@ -657,7 +673,10 @@ class Game:
         band = self.band
         if band is None or tick.action is None:
             return
+        was = band.place
         done = bands.act(self, band, tick.action, self.day)
+        if band.place != was:
+            lore.entered(self, band)
         self._totals[f'{done["kind"]}s'] += 1
         if done['kind'] == bands.CAMP and self.date.part not in self.params.units.band.camp_parts:
             band.camped += 1
@@ -775,6 +794,9 @@ class Game:
             if self.answered['today'] == VOTED and not self.banished:
                 self._status(tick, self.params.council.status.birth * born)
                 tick.events.append(Event(SEAT_PRAISED, {'born': born, 'status': self.status}))
+        lore.day_ends(self, band)
+        for skill in lore.learn(self.params, band):
+            tick.events.append(Event(SKILL_LEARNED, {'skill': f'{SKILL}{skill}'}))
 
     def _states(self, tick: _Tick, began: list[str], ended: list[str]) -> None:
         tick.events.extend(Event(BAND_STATE_ENDED, {'state': f'{STATE}{state}'}) for state in ended)
@@ -789,10 +811,19 @@ class Game:
                 self.answered['today'] = self.answered['tomorrow']
             if boundary.key == SEASON_STARTED:
                 self.since[council.SEASON] = True
+                self._wintered(was)
                 self._reseason(tick, was)
                 self._thaw()
         if self.date.part == self.params.council.part:
             self._open(tick)
+
+    def _wintered(self, was: str) -> None:
+        """
+        A winter is lived through when a season that offers no camp follows one that does.
+        """
+        seasons = self.params.units.band.winter_camp.offered.seasons
+        if self.band is not None and was in seasons and self.date.season not in seasons:
+            lore.wintered(self.band)
 
     def _thaw(self) -> None:
         """

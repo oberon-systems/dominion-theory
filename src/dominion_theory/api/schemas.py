@@ -212,6 +212,7 @@ class Unit(BaseModel):
     roles: dict[str, int]
     camp: Site | None
     reason: Reason | None
+    lore: list[str]
 
 
 class Votes(BaseModel):
@@ -226,14 +227,15 @@ class Votes(BaseModel):
 
 class Council(BaseModel):
     """
-    The council of the day while it sits: the others' votes, the option they lead with, the player's voice and
-    whether a winter camp is offered.
+    The council of the day while it sits: the others' votes, the option they lead with, the player's voice,
+    whether a winter camp is offered and whether the player may name a place of their own.
     """
 
     leader: Proposal | None
     table: list[Votes]
     voice: float | None = None
     winter: bool = False
+    place: bool = True
 
 
 class Seat(BaseModel):

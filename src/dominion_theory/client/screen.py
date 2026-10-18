@@ -194,7 +194,7 @@ class Screen(App[str | None]):
             self._send(given.answers[index].proposal)
         elif index < len(given.places):
             self._send(given.places[index].proposal)
-        else:
+        elif given.pointing:
             self._point()
 
     def check_action(self, action: str, parameters: tuple[object, ...]) -> bool | None:
@@ -324,7 +324,9 @@ class Screen(App[str | None]):
         places = self._menu.places
         self._mode, self._cursor = PLACES, None
         self._lit = None if not places or places[0].proposal is None else target(places[0].proposal)
-        said = [*(self._label(option) for option in places), Text(render(PICK, lang=self._lang))]
+        said = [self._label(option) for option in places]
+        if self._menu.pointing:
+            said.append(Text(render(PICK, lang=self._lang)))
         self._listing(Text(render(WHERE, lang=self._lang)), said, 0)
 
     def _label(self, option: Option) -> Text:

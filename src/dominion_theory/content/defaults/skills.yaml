@@ -1,0 +1,10 @@
+skills:
+  orientation:
+    learned:
+      any:
+        - {counter: seen, at_least: 4}
+        - {counter: walked, biome: new, at_least: 20}
+    opens: {proposals: [go_place]}
+  wintering:
+    learned: {counter: winters, at_least: 1}
+    opens: {proposals: [winter_camp]}

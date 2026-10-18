@@ -50,6 +50,7 @@ SAMPLES: dict[str, dict[str, Any]] = {
     'seat-blamed': {'lost': 3, 'status': 35.0},
     'seat-praised': {'born': 1, 'status': 55.0},
     'seat-banished': {},
+    'skill-learned': {'skill': 'skill-orientation'},
 }
 
 
@@ -148,6 +149,16 @@ def test_a_line_without_events_is_the_date_alone() -> None:
             {**BAND, 'camp': {'x': 2301, 'y': 744, 'built': 1.0}},
             'ru',
             '15 человек, в зимнем лагере, подножный корм 22,5, вода 30, стоит лагерем.',
+        ),
+        (
+            {**BAND, 'lore': ['orientation', 'wintering']},
+            'en',
+            '15 people, knows how to find its way, to winter, forage 22.5, water 30, camps.',
+        ),
+        (
+            {**BAND, 'lore': ['wintering']},
+            'ru',
+            '15 человек, умеет зимовать, подножный корм 22,5, вода 30, стоит лагерем.',
         ),
     ],
 )

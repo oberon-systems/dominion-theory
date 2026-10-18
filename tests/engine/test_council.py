@@ -60,7 +60,7 @@ def land(
 ) -> Game:
     """
     A game with a player in the seat on a hand-made window on a summer evening, the cells of the band stripped
-    where asked.
+    where asked; the band knows every skill.
     """
     names = biome_names(params)
     biomes = np.array([[names.index(name) for name in row] for row in rows], dtype=np.uint8)
@@ -73,6 +73,7 @@ def land(
             game.cells.lower(cell, prop, 0.9)
     game.band = bands.start(game, *at, game.day, game.streams['people'])
     game.band.members = bands.adults(game.band.population)
+    game.band.lore['known'] = list(params.skills)
     game.band.changed()
     return game
 
@@ -837,3 +838,42 @@ def test_staying_in_a_built_camp_is_worth_kept_more_to_the_others() -> None:
     assert [proposal for proposal, _ in built] == [proposal for proposal, _ in building]
     assert [held for _, held in built[:2]] == pytest.approx([held + 3.0 * 0.2 for _, held in building[:2]])
     assert [held for _, held in built[2:]] == pytest.approx([held for _, held in building[2:]])
+
+
+def test_a_place_no_option_names_is_refused_to_a_band_without_orientation(params: Params) -> None:
+    lost, oriented, named = land(params), land(params), land(params)
+    band(lost).lore['known'] = band(named).lore['known'] = []
+    for game in (lost, oriented):
+        sit(game, (STAY, 14))
+    sit(named, (STAY, 10), (EAST, 4))
+
+    refused, taken, backed = vote(lost, EAST), vote(oriented, EAST), vote(named, EAST)
+
+    assert told(refused)[0] == ('command-refused', {'id': 'c-1', 'reason': 'refused-not-learned'})
+    assert told(taken)[0] == ('command-accepted', {'id': 'c-1'})
+    assert told(backed)[0] == ('command-accepted', {'id': 'c-1'})
+
+
+def test_a_winter_camp_is_neither_offered_nor_taken_from_a_band_that_never_wintered(params: Params) -> None:
+    game = land(params, parts=WINTER + 3)
+    band(game).lore['known'] = []
+    sit(game, (STAY, 14))
+
+    offered = game.wintering
+    refused = vote(game, WINTERING)
+    laid = council.table(params, band(game), ERA, game.inside, (), game.wintering)
+
+    assert not offered
+    assert told(refused)[0] == ('command-refused', {'id': 'c-1', 'reason': 'refused-not-learned'})
+    assert WINTERING not in [entry['proposal'] for entry in laid]
+
+
+def test_the_council_says_whether_the_player_may_name_a_place_of_their_own(params: Params) -> None:
+    lost, oriented = land(params, stripped=STRIPPED, parts=AFTERNOON), land(params, stripped=STRIPPED, parts=AFTERNOON)
+    band(lost).lore['known'] = []
+
+    for game in (lost, oriented):
+        game.step()
+
+    assert lost.council is not None and oriented.council is not None
+    assert (lost.council['place'], oriented.council['place']) == (False, True)

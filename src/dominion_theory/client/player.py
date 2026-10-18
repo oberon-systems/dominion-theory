@@ -129,7 +129,13 @@ def prompted(given: Menu, lang: str) -> Proposal:
         if chosen.proposal is not None:
             return chosen.proposal
         places = [marked(option, lang) for option in given.places]
-        proposal = _asked(WHERE, places, POINT, lambda answer: pointed(answer, given.places, given.place), lang)
+        proposal = _asked(
+            WHERE,
+            places,
+            POINT,
+            lambda answer: pointed(answer, given.places, given.place if given.pointing else None),
+            lang,
+        )
         if proposal is not RETURN:
             return proposal
 

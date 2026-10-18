@@ -256,7 +256,9 @@ What stage 2 puts into the phases of
    begin and end, and the members age, die, heal, are hurt, give birth
    and conceive, in the order of [Deaths](../units/band.md#deaths). The
    share of the active parts the band camped heals faster and shelters
-   from frailty.
+   from frailty. Last, the counters the band learns by are brought up to
+   date and the skills they teach are learned; see
+   [Skills](skills.md#counters).
 6. **Calendar** - as before; when the new part of the day is
    `council.part` and an occasion calls it, the intent ends and is
    judged, and the council sits down with its table. With an empty seat
@@ -266,7 +268,8 @@ What stage 2 puts into the phases of
 
 The counters added: `population`, `food`, `water`, `status`, `moves`,
 `gathers`, `camps`, `builds`, `encounters`, `deaths`, `councils`, then one per
-stage (`child`, `adult`, `elder`), `pregnant` and `injured`.
+stage (`child`, `adult`, `elder`), `pregnant` and `injured`, and `skills`,
+the skills the band knows.
 
 ___
 
@@ -309,7 +312,8 @@ of them. Both views of the API show the same for now.
       "intent": {"proposal": {"kind": "go", "to": {"x": 2304, "y": 742}}},
       "route": [{"x": 2302, "y": 743}, {"x": 2303, "y": 742}, {"x": 2304, "y": 742}],
       "roles": {"gatherer": 14, "nanny": 1},
-      "camp": null
+      "camp": null,
+      "lore": ["orientation"]
     }
   ],
   "seat": {"name": "player", "unit": 1, "status": 50.0, "seated": true, "council": null}
@@ -320,6 +324,7 @@ of them. Both views of the API show the same for now.
 members who are, `wounds` the injured by severity; the members themselves stay in the state of the game.
 `route` is the cells still ahead to the place of a go, empty when the
 band is not on its way. `roles` counts the members by role.
+`lore` is the skills the band knows; see [Skills](skills.md).
 `camp` is the winter camp, `{x, y, built}` with `built` the share done,
 or null.
 `council` is the table of the council of the day while it sits; see

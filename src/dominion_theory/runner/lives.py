@@ -7,7 +7,7 @@ import json
 import math
 import secrets
 import time
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from hashlib import sha256
 from pathlib import Path
 from typing import Any
@@ -16,7 +16,7 @@ import click
 
 from ..content import CAUSES, Params, load_params
 from ..engine import Game
-from ..engine.events import PEOPLE_BORN, PEOPLE_LOST
+from ..engine.events import PEOPLE_BORN, PEOPLE_LOST, SKILL, SKILL_LEARNED
 from ..store.codec import pack
 from .service import SEED_BITS
 
@@ -40,6 +40,7 @@ LEVELS = {
     'food': 'food',
     'water': 'water',
     'status': 'status',
+    'skills': 'skills',
 }
 TOTALS = ('deaths', 'moves', 'roams', 'gathers', 'camps', 'builds', 'encounters')
 STATES = {'starvation': 'starving', 'thirst': 'thirsty', 'tiredness': 'tired'}
@@ -65,6 +66,7 @@ YEAR = (
     *STATES.values(),
     'encounters',
     'status',
+    'skills',
     'known',
     'snapshot',
 )
@@ -79,6 +81,8 @@ class Lived:
     tick: int
     hashes: tuple[str, ...] = ()
     packing: float = 0.0
+    # The day of the game every skill was learned on.
+    learned: dict[str, int] = field(default_factory=dict)
 
     @property
     def growth(self) -> float | None:
@@ -107,6 +111,7 @@ class Lived:
             'growth': None if growth is None else round(growth, 4),
             'tribe': None if tribe is None else round(tribe, 1),
             'years': self.years,
+            'learned': dict(self.learned),
             'hashes': list(self.hashes),
         }
 
@@ -124,21 +129,23 @@ def live(seed: int | None, years: int, preset: str | None = None, overrides: dic
     params = load_params(preset, overrides)
     game = Game.create(seed=secrets.randbits(SEED_BITS) if seed is None else seed, params=params)
     start = 0 if game.band is None else game.band.population
-    rows, hashes, packing = lived(game, years)
-    return Lived(game.seed, start, rows, game.outcome or ALIVE, game.tick, hashes, packing)
+    rows, hashes, packing, learned = lived(game, years)
+    return Lived(game.seed, start, rows, game.outcome or ALIVE, game.tick, hashes, packing, learned)
 
 
-def lived(game: Game, years: int) -> tuple[list[dict[str, float]], tuple[str, ...], float]:
+def lived(game: Game, years: int) -> tuple[list[dict[str, float]], tuple[str, ...], float, dict[str, int]]:
     """
     A row a year: levels at its last tick, totals over it, the ticks spent in each state, the children who left
     the first stage grown or dead, the cells the band remembers and the size of the snapshot the store would
-    keep, in KB; the hash of the state at the end of every year; the mean seconds a snapshot took to pack.
+    keep, in KB; the hash of the state at the end of every year; the mean seconds a snapshot took to pack; the
+    day every skill was learned on.
     """
-    per_year = game.clock.parts_per_year
+    per_year, per_day = game.clock.parts_per_year, game.params.time.parts_per_day
     names, columns = game.counters.names, game.unit_columns
     rows: dict[int, dict[str, float]] = {}
     hashes: list[str] = []
     packing: list[float] = []
+    learned: dict[str, int] = {}
     before = after = dict(zip(names, game.counters.row(), strict=True))
     row: dict[str, float] = {}
     stages = game.params.units.band.people.stages
@@ -173,6 +180,8 @@ def lived(game: Game, years: int) -> tuple[list[dict[str, float]], tuple[str, ..
             elif event.key == PEOPLE_LOST:
                 cause = f'of-{event.values["cause"]}'
                 row[cause] = row.get(cause, 0.0) + event.values['count']
+            elif event.key == SKILL_LEARNED:
+                learned[event.values['skill'].removeprefix(SKILL)] = (result.parts - 1) // per_day
         if result.parts % per_year == 0 or game.over:
             snapshot = game.snapshot()
             began = time.perf_counter()
@@ -181,7 +190,8 @@ def lived(game: Game, years: int) -> tuple[list[dict[str, float]], tuple[str, ..
             row['known'] = 0 if game.band is None else len(game.band.known)
             row['snapshot'] = round(len(packed) / KB, 1)
             hashes.append(hashed(snapshot))
-    return list(rows.values()), tuple(hashes), sum(packing) / len(packing) if packing else 0.0
+    mean = sum(packing) / len(packing) if packing else 0.0
+    return list(rows.values()), tuple(hashes), mean, learned
 
 
 def hashed(snapshot: dict[str, Any]) -> str:

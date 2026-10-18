@@ -2,6 +2,7 @@
 The band: what it holds and the rules of its day, as docs/units/band.md and docs/game/01_bands.md state them.
 """
 
+import copy
 import math
 from dataclasses import asdict, dataclass, field
 from typing import Any, Protocol
@@ -10,6 +11,7 @@ import numpy as np
 
 from ..content import Band as Rules
 from ..content import Params
+from . import lore as lores
 from .cells import Place
 from .commands import WINTER
 
@@ -146,6 +148,8 @@ class Band:
     camp: dict[str, Any] | None = None
     # The members of roles that care sent to gather while the band goes short.
     freed: int = 0
+    # The skills known and the counters they are learned by.
+    lore: dict[str, Any] = field(default_factory=lores.fresh)
     counted: tuple[int, Census] | None = field(default=None, init=False, repr=False, compare=False)
 
     @classmethod
@@ -176,6 +180,7 @@ class Band:
             camped=plain['camped'],
             camp=plain['camp'],
             freed=plain['freed'],
+            lore=copy.deepcopy(plain['lore']),
         )
 
     @property
@@ -222,6 +227,7 @@ class Band:
             'camped': self.camped,
             'camp': self.camp,
             'freed': self.freed,
+            'lore': copy.deepcopy(self.lore),
         }
 
     def shown(self, params: Params, scale: int) -> dict[str, Any]:
@@ -247,6 +253,7 @@ class Band:
             'roles': roles(params, self),
             'camp': self.camp,
             'reason': self.reason,
+            'lore': list(self.lore[lores.KNOWN]),
         }
 
     def row(self, params: Params) -> list[Any]:
@@ -302,6 +309,7 @@ def start(land: Land, x: int, y: int, day: int, rng: np.random.Generator) -> Ban
     band = Band(id=1, x=x, y=y, members=members, stores=stores)
     assign(params, band)
     look(land, band, day)
+    lores.begin(band)
     return band
 
 

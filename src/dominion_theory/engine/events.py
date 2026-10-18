@@ -31,6 +31,7 @@ INTENT_ARRIVED = 'intent-arrived'
 SEAT_BLAMED = 'seat-blamed'
 SEAT_PRAISED = 'seat-praised'
 SEAT_BANISHED = 'seat-banished'
+SKILL_LEARNED = 'skill-learned'
 
 REFUSED_UNKNOWN_COMMAND = 'refused-unknown-command'
 REFUSED_UNKNOWN_SEAT = 'refused-unknown-seat'
@@ -39,6 +40,7 @@ REFUSED_ALREADY_VOTED = 'refused-already-voted'
 REFUSED_NO_SUCH_PLACE = 'refused-no-such-place'
 REFUSED_SEAT_BANISHED = 'refused-seat-banished'
 REFUSED_OUT_OF_SEASON = 'refused-out-of-season'
+REFUSED_NOT_LEARNED = 'refused-not-learned'
 
 EVENTS: dict[str, tuple[str, ...]] = {
     COMMAND_ACCEPTED: ('id',),
@@ -68,6 +70,7 @@ EVENTS: dict[str, tuple[str, ...]] = {
     SEAT_BLAMED: ('lost', 'status'),
     SEAT_PRAISED: ('born', 'status'),
     SEAT_BANISHED: (),
+    SKILL_LEARNED: ('skill',),
 }
 
 REASONS: tuple[str, ...] = (
@@ -78,9 +81,11 @@ REASONS: tuple[str, ...] = (
     REFUSED_NO_SUCH_PLACE,
     REFUSED_SEAT_BANISHED,
     REFUSED_OUT_OF_SEASON,
+    REFUSED_NOT_LEARNED,
 )
 STATE = 'state-'
 KIND = 'encounter-'
+SKILL = 'skill-'
 PROPOSAL = 'proposal-'
 NO_LEADER = 'proposal-none'
 

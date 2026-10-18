@@ -8,3 +8,4 @@ refused-already-voted = you have already spoken at this council
 refused-no-such-place = the band can find no way there
 refused-seat-banished = the player is no longer in the band
 refused-out-of-season = a winter camp is not made in this season
+refused-not-learned = the band has not learned that yet

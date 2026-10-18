@@ -146,6 +146,7 @@ def test_the_snapshot_is_what_the_caller_may_see(client: TestClient, new_game: N
         'roles': {'gatherer': 15, 'nanny': 0},
         'camp': None,
         'reason': None,
+        'lore': [],
     }
     assert place['scale'] == 0
     assert window['x'] <= place['x'] < window['x'] + 32

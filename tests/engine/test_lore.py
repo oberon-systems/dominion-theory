@@ -6,6 +6,7 @@ import pytest
 from dominion_theory.content import Condition, Params, load_params
 from dominion_theory.engine import Game, Window, lore
 from dominion_theory.engine import band as bands
+from dominion_theory.engine.stock import Stock
 from dominion_theory.engine.streams import Streams
 from dominion_theory.planet import biome_names
 
@@ -46,7 +47,7 @@ def land(params: Params, rows: tuple[tuple[str, ...], ...] = ROWS, at: int = 1, 
     game.clock.parts = parts
     game.band = bands.start(game, WEST + at, NORTH + 1, game.day, game.streams['people'])
     game.band.members = bands.adults(game.band.population)
-    game.band.stores = {'forage': [[float(game.day), 45.0]], 'water': [[float(game.day), 45.0]]}
+    game.band.stores = Stock({'forage': [[float(game.day), 45.0]], 'water': [[float(game.day), 45.0]]})
     game.band.changed()
     return game
 

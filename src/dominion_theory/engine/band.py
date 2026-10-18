@@ -14,6 +14,7 @@ from ..content import Params
 from . import lore as lores
 from .cells import Place
 from .commands import WINTER
+from .stock import Stock
 
 KIND = 'band'
 MOVE = 'move'
@@ -128,7 +129,7 @@ class Band:
     x: int
     y: int
     members: list[Member]
-    stores: dict[str, list[list[float]]]
+    stores: Stock = field(default_factory=Stock)
     fatigue: float = 0.0
     states: list[str] = field(default_factory=list)
     action: Action = field(default_factory=lambda: {'kind': CAMP})
@@ -164,7 +165,7 @@ class Band:
             x=plain['x'],
             y=plain['y'],
             members=[Member.read(member) for member in plain['members']],
-            stores={name: [list(lot) for lot in lots] for name, lots in plain['stores'].items()},
+            stores=Stock.read(plain['stores']),
             fatigue=plain['fatigue'],
             states=list(plain['states']),
             action=dict(plain['action']),
@@ -198,7 +199,7 @@ class Band:
         self.counted = None
 
     def held(self, resource: str) -> float:
-        return sum(amount for _, amount in self.stores.get(resource, ()))
+        return self.stores.held(resource)
 
     def plain(self) -> dict[str, Any]:
         """
@@ -211,7 +212,7 @@ class Band:
             'y': self.y,
             'population': self.population,
             'members': [member.plain() for member in self.members],
-            'stores': {name: [list(lot) for lot in lots] for name, lots in sorted(self.stores.items())},
+            'stores': self.stores.plain(),
             'fatigue': self.fatigue,
             'states': list(self.states),
             'action': dict(self.action),
@@ -244,7 +245,7 @@ class Band:
             PREGNANT: counted.pregnant,
             INJURED: counted.injured,
             WOUNDS: dict(counted.wounds),
-            'stores': {name: self.held(name) for name in sorted(self.stores)},
+            'stores': self.stores.amounts(),
             'fatigue': self.fatigue,
             'states': list(self.states),
             'action': dict(self.action),
@@ -305,7 +306,7 @@ def start(land: Land, x: int, y: int, day: int, rng: np.random.Generator) -> Ban
     members = [
         Member(int(age), SEXES[int(sex)], player=at == 0) for at, (age, sex) in enumerate(zip(ages, sexes, strict=True))
     ]
-    stores = {name: [[float(day), float(amount)]] for name, amount in rules.start.stores.items() if amount > 0}
+    stores = Stock({name: [[float(day), float(amount)]] for name, amount in rules.start.stores.items() if amount > 0})
     band = Band(id=1, x=x, y=y, members=members, stores=stores)
     assign(params, band)
     look(land, band, day)
@@ -581,7 +582,7 @@ def efficiency(rules: Rules, band: Band) -> float:
 
 
 def weight(params: Params, band: Band) -> float:
-    return sum(band.held(name) * params.resources[name].weight_kg for name in band.stores)
+    return band.stores.weight(params.resources)
 
 
 def sheltered(band: Band) -> bool:
@@ -722,18 +723,10 @@ def _take(
     space = room(params, band) if free is None else free
     taken = min(wanted * share * efficiency(rules, band), space / resource.weight_kg)
     if taken > 0:
-        _stored(band, name, day, taken)
+        band.stores.add(name, day, taken)
         capacity = params.eras[land.era].capacity.get(resource.property)
         if capacity and _era(land, *at).properties[resource.property].recovery is not None:
             land.deplete(*at, resource.property, taken / capacity)
-
-
-def _stored(band: Band, name: str, day: int, amount: float) -> None:
-    lots = band.stores.setdefault(name, [])
-    if lots and lots[-1][0] == day:
-        lots[-1][1] += amount
-    else:
-        lots.append([float(day), amount])
 
 
 def tire(rules: Rules, band: Band) -> tuple[list[str], list[str]]:
@@ -830,9 +823,8 @@ def spoil(params: Params, band: Band, day: int) -> None:
     """
     per_day = params.time.parts_per_day
     ages = params.units.band.winter_camp.spoil if sheltered(band) else 1.0
-    for name in list(band.stores):
-        keeps = params.parts(params.resources[name].spoils) // per_day
-        band.stores[name] = [lot for lot in band.stores[name] if (day - lot[0]) * ages < keeps]
+    keeps = {name: params.parts(params.resources[name].spoils) // per_day for name in band.stores}
+    band.stores.spoil(day, keeps, ages)
 
 
 def eat(params: Params, band: Band) -> dict[str, float]:
@@ -851,13 +843,8 @@ def eat(params: Params, band: Band) -> dict[str, float]:
     for name, rate in rules.consumption_per_day.items():
         prop = params.resources[name].property
         rations = [stages[stage].eats * rate * eating for stage in named]
-        need = missing = sum(rations)
-        lots = band.stores.get(name, [])
-        for lot in lots:
-            eaten = min(lot[1], missing)
-            lot[1] -= eaten
-            missing -= eaten
-        band.stores[name] = [lot for lot in lots if lot[1] > 0]
+        need = sum(rations)
+        missing = band.stores.take(name, need)
         met[name] = 1.0 if need <= 0 else (need - missing) / need
         if prop not in DEFICITS:
             continue

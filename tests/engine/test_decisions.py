@@ -5,6 +5,7 @@ import pytest
 from dominion_theory.content import Params, load_params
 from dominion_theory.engine import Game, decisions
 from dominion_theory.engine.band import Band, adults, held_days
+from dominion_theory.engine.stock import Stock
 
 SMALL = {
     'planet.circumference_km': 4000,
@@ -23,7 +24,7 @@ EAST = (HOME[0] + 1, HOME[1])
 
 
 def held(known: dict[tuple[int, int], dict[str, Any]], forage: float, water: float, **given: Any) -> Band:
-    stores = {'forage': [[0.0, forage]], 'water': [[0.0, water]]}
+    stores = Stock({'forage': [[0.0, forage]], 'water': [[0.0, water]]})
     return Band(id=1, x=HOME[0], y=HOME[1], members=adults(15), stores=stores, known=dict(known), **given)
 
 

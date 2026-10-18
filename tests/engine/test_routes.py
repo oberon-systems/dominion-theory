@@ -16,7 +16,7 @@ SATED = {'hunger': 0.1, 'thirst': 0.1}
 
 
 def held(known: dict[tuple[int, int], dict[str, Any]]) -> Band:
-    return Band(id=1, x=HOME[0], y=HOME[1], members=adults(15), stores={}, known=dict(known))
+    return Band(id=1, x=HOME[0], y=HOME[1], members=adults(15), known=dict(known))
 
 
 def field(cell: dict[str, Any], width: int = 7, height: int = 5) -> dict[tuple[int, int], dict[str, Any]]:

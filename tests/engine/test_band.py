@@ -8,6 +8,7 @@ from dominion_theory.content import Params, load_params
 from dominion_theory.engine import Game, StepResult, Window
 from dominion_theory.engine import band as bands
 from dominion_theory.engine.band import Action, camp, gathering, moving, roaming
+from dominion_theory.engine.stock import Stock
 from dominion_theory.engine.streams import Streams
 from dominion_theory.planet import biome_names
 
@@ -392,7 +393,7 @@ def test_news_of_the_land_come_with_the_tick_and_old_memories_go(params: Params)
 
 
 def test_a_lot_is_thrown_away_when_its_time_is_over(params: Params) -> None:
-    stores = {'forage': [[0.0, 5.0], [2.0, 7.0]], 'water': [[0.0, 9.0]]}
+    stores = Stock({'forage': [[0.0, 5.0], [2.0, 7.0]], 'water': [[0.0, 9.0]]})
     held = bands.Band(id=1, x=WEST, y=NORTH, members=bands.adults(15), stores=stores)
 
     bands.spoil(params, held, 3)
@@ -404,7 +405,7 @@ def test_a_lot_is_thrown_away_when_its_time_is_over(params: Params) -> None:
 
 
 def test_people_eat_the_oldest_lot_first(params: Params) -> None:
-    stores = {'forage': [[0.0, 4.0], [1.0, 9.0]], 'water': [[1.0, 5.0]]}
+    stores = Stock({'forage': [[0.0, 4.0], [1.0, 9.0]], 'water': [[1.0, 5.0]]})
     held = bands.Band(id=1, x=WEST, y=NORTH, members=bands.adults(10), stores=stores)
 
     met = bands.eat(params, held)
@@ -451,7 +452,7 @@ def test_what_little_there_is_goes_to_those_nearest_death_and_the_rest_die() -> 
 
 
 def test_a_newborn_dies_after_a_day_without_and_an_adult_is_only_hungry(params: Params) -> None:
-    held = bands.Band(id=1, x=WEST, y=NORTH, members=[*bands.adults(2), bands.Member(0, 'female')], stores={})
+    held = bands.Band(id=1, x=WEST, y=NORTH, members=[*bands.adults(2), bands.Member(0, 'female')])
 
     bands.eat(params, held)
     began, ended, lost = bands.suffer(params, held)
@@ -472,7 +473,7 @@ def test_a_reserve_grows_with_a_child_and_is_smaller_for_an_elder(
 
 def test_a_hungry_member_gathers_and_walks_as_a_weakened_one_and_does_not_conceive() -> None:
     params = load_params(overrides={**SMALL, 'units.band.people.birth.conceive_per_day': 1.0})
-    held = bands.Band(id=1, x=WEST, y=NORTH, members=bands.adults(4), stores={})
+    held = bands.Band(id=1, x=WEST, y=NORTH, members=bands.adults(4))
     held.members[2].hungry = 1.0
     held.changed()
 
@@ -493,7 +494,7 @@ def test_a_created_band_is_of_adults_of_random_age_and_sex_the_first_the_player(
 
 def test_children_and_elders_gather_nothing_eat_less_and_walk_slower(params: Params) -> None:
     members = [*bands.adults(2), bands.Member(0, 'male'), bands.Member(1800, 'female')]
-    held = bands.Band(id=1, x=WEST, y=NORTH, members=members, stores={})
+    held = bands.Band(id=1, x=WEST, y=NORTH, members=members)
     held.members[1].wound = {'severity': 'heavy', 'left': 9.0}
 
     counted = bands.census(params, held)
@@ -511,7 +512,7 @@ def test_children_and_elders_gather_nothing_eat_less_and_walk_slower(params: Par
 def test_a_wound_slows_and_keeps_from_gathering_by_its_severity(
     params: Params, severity: str, pace: float, gathers: float
 ) -> None:
-    held = bands.Band(id=1, x=WEST, y=NORTH, members=bands.adults(2), stores={})
+    held = bands.Band(id=1, x=WEST, y=NORTH, members=bands.adults(2))
     held.members[1].wound = {'severity': severity, 'left': 1.0}
 
     counted = bands.census(params, held)
@@ -520,7 +521,7 @@ def test_a_wound_slows_and_keeps_from_gathering_by_its_severity(
 
 
 def test_the_dead_are_drawn_from_the_exposed_and_never_the_player(params: Params) -> None:
-    held = bands.Band(id=1, x=WEST, y=NORTH, members=[*bands.adults(1), bands.Member(0, 'female')], stores={})
+    held = bands.Band(id=1, x=WEST, y=NORTH, members=[*bands.adults(1), bands.Member(0, 'female')])
 
     lost, injured = bands.struck(params, held, 1.0, 0.0, {}, np.random.default_rng(7))
 
@@ -531,7 +532,7 @@ def test_the_dead_are_drawn_from_the_exposed_and_never_the_player(params: Params
 def test_a_child_is_most_exposed_at_birth_and_nears_an_adult_as_it_grows(params: Params) -> None:
     children = [bands.Member(age, 'female') for age in (0, 70, 140, 210)]
     members = [*bands.adults(2), *children, bands.Member(1800, 'male')]
-    held = bands.Band(id=1, x=WEST, y=NORTH, members=members, stores={})
+    held = bands.Band(id=1, x=WEST, y=NORTH, members=members)
 
     assert bands.vulnerable(params, held, 'encounter') == pytest.approx([0.0, 1.0, 3.0, 2.0, 1.5, 1.25, 2.0])
     assert bands.vulnerable(params, held, 'frailty')[2:6] == pytest.approx([1.2, 0.6, 0.3, 0.15])
@@ -541,7 +542,7 @@ def test_a_child_is_most_exposed_at_birth_and_nears_an_adult_as_it_grows(params:
 def test_the_old_and_the_frail_die_and_the_hurt_are_injured_while_the_player_lives() -> None:
     ageing = {'units.band.people.age.per_year': 0.5, 'units.band.people.injury.per_day': 0.5}
     params = load_params(overrides={**SMALL, **ageing})
-    held = bands.Band(id=1, x=WEST, y=NORTH, members=[*bands.adults(2, 2000), bands.Member(0, 'female')], stores={})
+    held = bands.Band(id=1, x=WEST, y=NORTH, members=[*bands.adults(2, 2000), bands.Member(0, 'female')])
 
     lived = bands.live(params, held, 10, 0.5, False, 0.0, dice())
 
@@ -554,7 +555,7 @@ def test_the_old_and_the_frail_die_and_the_hurt_are_injured_while_the_player_liv
 def test_the_severity_of_a_wound_is_drawn_by_the_weights_of_its_cause(weights: dict[str, float], severity: str) -> None:
     usual = {'units.band.people.injury.drawn.light': 0.0, 'units.band.people.injury.drawn.heavy': 0.0}
     params = load_params(overrides={**SMALL, **usual})
-    held = bands.Band(id=1, x=WEST, y=NORTH, members=bands.adults(4), stores={})
+    held = bands.Band(id=1, x=WEST, y=NORTH, members=bands.adults(4))
 
     _, injured = bands.struck(params, held, 0.0, 1.0, weights, np.random.default_rng(7))
 
@@ -564,7 +565,7 @@ def test_the_severity_of_a_wound_is_drawn_by_the_weights_of_its_cause(weights: d
 
 @pytest.mark.parametrize(('camped', 'days'), [(0.0, 20), (0.5, 14), (1.0, 10)])
 def test_a_wound_heals_a_day_a_day_and_twice_as_fast_in_camp(params: Params, camped: float, days: int) -> None:
-    held = bands.Band(id=1, x=WEST, y=NORTH, members=bands.adults(2), stores={})
+    held = bands.Band(id=1, x=WEST, y=NORTH, members=bands.adults(2))
     held.members[1].wound = {'severity': 'heavy', 'left': 20.0}
 
     lasted = 0
@@ -580,7 +581,7 @@ def test_a_wound_heals_a_day_a_day_and_twice_as_fast_in_camp(params: Params, cam
 def test_a_band_in_camp_dies_less_of_frailty(camped: float, shelter: float, lost: int) -> None:
     frail = {'units.band.people.stages.adult.dies.frailty': 200.0, 'units.band.shelter.frailty': shelter}
     params = load_params(overrides={**SMALL, **frail})
-    held = bands.Band(id=1, x=WEST, y=NORTH, members=bands.adults(4), stores={})
+    held = bands.Band(id=1, x=WEST, y=NORTH, members=bands.adults(4))
 
     class Even(Dice):
         def random(self, count: int | None = None) -> Any:
@@ -608,7 +609,7 @@ def test_a_day_in_camp_heals_a_wound_by_two_days_and_a_day_of_work_by_one(params
 
 def test_a_fed_band_conceives_and_gives_birth_with_a_pause_after() -> None:
     params = load_params(overrides={**SMALL, 'units.band.people.birth.conceive_per_day': 1.0})
-    held = bands.Band(id=1, x=WEST, y=NORTH, members=bands.adults(4), stores={})
+    held = bands.Band(id=1, x=WEST, y=NORTH, members=bands.adults(4))
 
     bands.live(params, held, 10, 1.0, True, 0.0, dice())
     pregnant = [member.pregnant_until for member in held.members]
@@ -622,7 +623,7 @@ def test_a_fed_band_conceives_and_gives_birth_with_a_pause_after() -> None:
 
 def test_an_encounter_leaves_dread_and_a_dangerous_day_unease_and_both_fade() -> None:
     params = load_params()
-    held = bands.Band(id=1, x=WEST, y=NORTH, members=bands.adults(4), stores={})
+    held = bands.Band(id=1, x=WEST, y=NORTH, members=bands.adults(4))
 
     bands.frighten(params, held)
     bands.unsettle(params, held, 0.4)
@@ -636,8 +637,8 @@ def test_an_encounter_leaves_dread_and_a_dangerous_day_unease_and_both_fade() ->
 
 def test_nobody_conceives_in_a_hungry_band_or_one_without_a_man() -> None:
     params = load_params(overrides={**SMALL, 'units.band.people.birth.conceive_per_day': 1.0})
-    women = bands.Band(id=1, x=WEST, y=NORTH, members=bands.adults(3)[0::2], stores={})
-    hungry = bands.Band(id=1, x=WEST, y=NORTH, members=bands.adults(4), stores={})
+    women = bands.Band(id=1, x=WEST, y=NORTH, members=bands.adults(3)[0::2])
+    hungry = bands.Band(id=1, x=WEST, y=NORTH, members=bands.adults(4))
 
     bands.live(params, women, 10, 1.0, True, 0.0, dice())
     bands.live(params, hungry, 10, 1.0, bands.fed(params, hungry), 0.0, dice())
@@ -751,7 +752,7 @@ def test_a_winter_camp_is_built_in_two_days_of_work_without_gathering(params: Pa
 
 
 def test_a_band_in_its_winter_camp_eats_less_and_its_stores_spoil_slower(params: Params) -> None:
-    stores = {'forage': [[0.0, 20.0]], 'water': [[0.0, 20.0]]}
+    stores = Stock({'forage': [[0.0, 20.0]], 'water': [[0.0, 20.0]]})
     held = bands.Band(id=1, x=WEST, y=NORTH, members=bands.adults(10), stores=stores)
     held.camp = {'x': WEST, 'y': NORTH, 'built': 1.0}
 
@@ -857,7 +858,7 @@ def test_a_nanny_cares_for_every_five_children_and_gathers_half(params: Params) 
     women = [bands.Member(1000, 'female'), bands.Member(1200, 'female'), bands.Member(900, 'female')]
     women[2].pregnant_until = 50
     children = [bands.Member(100, 'male') for _ in range(6)]
-    held = bands.Band(id=1, x=WEST, y=NORTH, members=[*bands.adults(1), *women, *children], stores={})
+    held = bands.Band(id=1, x=WEST, y=NORTH, members=[*bands.adults(1), *women, *children])
 
     bands.assign(params, held)
 
@@ -871,7 +872,7 @@ def test_nannies_leave_the_children_one_a_day_while_someone_goes_short(params: P
     women[2].pregnant_until = 50
     children = [bands.Member(100, 'male') for _ in range(6)]
     children[0].hungry = 0.5
-    held = bands.Band(id=1, x=WEST, y=NORTH, members=[*bands.adults(1), *women, *children], stores={})
+    held = bands.Band(id=1, x=WEST, y=NORTH, members=[*bands.adults(1), *women, *children])
     freed = []
 
     for _ in range(3):
@@ -881,7 +882,7 @@ def test_nannies_leave_the_children_one_a_day_while_someone_goes_short(params: P
     children[0].hungry = 0.0
     bands.free(params, held)
     stayed = held.freed
-    held.stores = {'forage': [[0.0, 1000.0]], 'water': [[0.0, 1000.0]]}
+    held.stores = Stock({'forage': [[0.0, 1000.0]], 'water': [[0.0, 1000.0]]})
     bands.free(params, held)
     bands.assign(params, held)
 

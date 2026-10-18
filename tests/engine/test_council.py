@@ -8,6 +8,7 @@ from dominion_theory.content import Params, load_params
 from dominion_theory.engine import Game, Pass, StepResult, Vote, Window, council, decisions
 from dominion_theory.engine import band as bands
 from dominion_theory.engine.game import _Tick
+from dominion_theory.engine.stock import Stock
 from dominion_theory.engine.streams import Streams
 from dominion_theory.planet import biome_names
 
@@ -250,7 +251,7 @@ def test_what_happened_since_the_last_council_calls_it(params: Params, since: di
 def test_hunger_and_a_band_that_wants_another_thing_call_the_council(params: Params) -> None:
     hungry, restless = (land(params, stripped=STRIPPED, parts=AFTERNOON) for _ in range(2))
     quiet(hungry)
-    band(hungry).stores = {}
+    band(hungry).stores = Stock()
     quiet(restless)
     band(restless).intent = {'proposal': STAY}
 
@@ -444,7 +445,7 @@ def test_the_deaths_of_a_day_the_player_voted_or_kept_silent_on_cost_five_each(
     params: Params, answered: str | None, status: float
 ) -> None:
     game = land(params)
-    band(game).stores = {}
+    band(game).stores = Stock()
     for member in band(game).members[1:4]:
         member.thirsty = 1.5
     game.answered = {'today': answered, 'tomorrow': None}
@@ -742,7 +743,7 @@ def test_a_band_bound_to_a_winter_camp_builds_it_for_two_days_and_then_stays(par
     game = land(params, parts=WINTER)
     quiet(game)
     band(game).intent = {'proposal': WINTERING}
-    band(game).stores = {'forage': [[float(game.day), 45.0]], 'water': [[float(game.day), 45.0]]}
+    band(game).stores = Stock({'forage': [[float(game.day), 45.0]], 'water': [[float(game.day), 45.0]]})
 
     kinds = [result.units[0][4] for result in steps(game, 3 * DAY)]
 
@@ -773,7 +774,7 @@ def test_a_starving_band_bound_to_a_winter_camp_gathers_before_it_builds_and_a_h
     for game in (starving, hungry):
         quiet(game)
         band(game).intent = {'proposal': WINTERING}
-        band(game).stores = {}
+        band(game).stores = Stock()
     band(starving).states = ['starvation']
 
     starving.step()
@@ -799,7 +800,7 @@ def test_a_hungry_band_bound_to_a_winter_camp_gathers_its_reach(params: Params) 
     game = land(params, stripped=[HOME], parts=WINTER)
     quiet(game)
     band(game).intent = {'proposal': WINTERING}
-    band(game).stores = {'water': [[float(game.day), 45.0]]}
+    band(game).stores = Stock({'water': [[float(game.day), 45.0]]})
     band(game).states = ['starvation']
 
     game.step()

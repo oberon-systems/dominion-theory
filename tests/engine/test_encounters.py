@@ -83,7 +83,7 @@ def test_a_band_in_camp_loses_half_the_share_and_is_hurt_the_same(params: Params
 
 def test_a_drowning_always_takes_somebody(params: Params) -> None:
     met = encounters.strike(params, 'shallows', False, 1.0, gathering({'water': 1.0}), dice(0.0, 0.0, 0.0))
-    band = Band(id=1, x=0, y=0, members=adults(15), stores={})
+    band = Band(id=1, x=0, y=0, members=adults(15))
 
     assert met == ('drowning', 0.05, 0.0)
     assert bands.struck(params, band, met[1], met[2], {}, np.random.default_rng(7)) == (1, 0)

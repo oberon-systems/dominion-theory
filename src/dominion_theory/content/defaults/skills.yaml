@@ -3,7 +3,7 @@ skills:
     learned:
       any:
         - {counter: seen, at_least: 4}
-        - {counter: walked, biome: new, at_least: 20}
+        - {counter: marched, at_least: 30}
     opens: {proposals: [go_place]}
   wintering:
     learned: {counter: winters, at_least: 1}

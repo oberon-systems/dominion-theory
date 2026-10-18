@@ -60,7 +60,7 @@ from .events import (
 from .hashing import digest
 from .streams import Streams
 
-SNAPSHOT_FORMAT = 18
+SNAPSHOT_FORMAT = 19
 DIED = 'died'
 BANISHED = 'banished'
 VOTED = 'voted'
@@ -677,6 +677,8 @@ class Game:
         done = bands.act(self, band, tick.action, self.day)
         if band.place != was:
             lore.entered(self, band)
+        if done['kind'] in (bands.MOVE, bands.ROAM):
+            lore.march(band)
         self._totals[f'{done["kind"]}s'] += 1
         if done['kind'] == bands.CAMP and self.date.part not in self.params.units.band.camp_parts:
             band.camped += 1

@@ -78,12 +78,14 @@ def test_a_band_starts_knowing_nothing_and_the_land_it_sees_is_its_first() -> No
             'seen': ['forest', 'grass'],
             'first': ['forest', 'grass'],
             'winters': 0,
+            'marched': 0,
             'walked': {},
             'walked_by': {},
             'camped_by': {},
             'days_in': {},
         },
         'since': {},
+        'marching': False,
     }
 
 
@@ -164,12 +166,22 @@ def test_a_band_that_sees_four_biomes_learns_orientation_at_the_end_of_the_day(p
     assert game.counters.row()[game.counters.names.index('skills')] == 1
 
 
-def test_a_band_that_walks_twenty_cells_of_new_land_learns_orientation(params: Params) -> None:
+def test_a_day_counts_on_the_march_only_when_the_band_walked(params: Params) -> None:
     game = land(params, NARROW)
-    counts(game)['walked'] = {'forest': 30, 'grass': 40, 'hills': 19}
+    lore.day_ends(game, band(game))
+    stood = counts(game)['marched']
+    lore.march(band(game))
+    lore.day_ends(game, band(game))
+
+    assert (stood, counts(game)['marched'], band(game).lore['marching']) == (0, 1, False)
+
+
+def test_a_band_thirty_days_on_the_march_learns_orientation(params: Params) -> None:
+    game = land(params, NARROW)
+    counts(game)['marched'] = 29
 
     short = lore.learn(params, band(game))
-    counts(game)['walked']['hills'] += 1
+    counts(game)['marched'] += 1
 
     assert short == []
     assert lore.learn(params, band(game)) == ['orientation']

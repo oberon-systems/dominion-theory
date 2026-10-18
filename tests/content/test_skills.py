@@ -21,7 +21,7 @@ def test_the_skills_of_the_band_era_are_orientation_and_wintering() -> None:
 
     assert list(skills) == ['orientation', 'wintering']
     assert skills['orientation'].opens.proposals == ('go_place',)
-    assert [held.counter for held in skills['orientation'].learned.any] == ['seen', 'walked']
+    assert [held.counter for held in skills['orientation'].learned.any] == ['seen', 'marched']
     assert skills['wintering'].learned.at_least == 1
 
 

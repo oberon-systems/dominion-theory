@@ -60,7 +60,7 @@ met, not from the start.
 
 | Skill         | Learned when                                              | Needs                    | Opens |
 |---------------|-----------------------------------------------------------|--------------------------|-------|
-| `orientation` | 4 biomes seen, or 20 cells walked of a biome not seen on the first day | -          | a go to a place of the player's own, `go_place` |
+| `orientation` | 4 biomes seen, or 30 days on the march                    | -                        | a go to a place of the player's own, `go_place` |
 | `wintering`   | a winter lived through                                    | -                        | the winter camp, `winter_camp` |
 | `stone_tools` | a night on or beside hills, mountain or outcrops          | -                        | gathering `stones` |
 | `sticks`      | a night in or beside a forest                             | -                        | gathering `sticks` |
@@ -70,9 +70,10 @@ met, not from the start.
 | `waterskins`  | hides and cords held on the same day                      | `spears`, `herbs`        | making `waterskins` |
 
 `orientation` - a band without it backs the ways the others name, but
-the player cannot point the band at a place of their own. The user
-asked for 3 to 4 biomes; the band sees two or three on its first day,
-so 4 is the first guess.
+the player cannot point the band at a place of their own. It is learned
+by seeing 4 biomes, or by 30 days on the march: a day the band walked
+or roamed, not one it only stood, gathered or built. The user asked for
+3 to 4 biomes and 30 to 60 days; the lower days are the first guess.
 
 `wintering` - the first winter is lived without a winter camp; it is
 offered from the second winter on. A winter is lived through when a
@@ -107,6 +108,7 @@ that biome.
 | `camped_by`     | per biome, the nights spent on or beside that biome     |
 | `days_in`       | per biome, the days ended on a cell of that biome       |
 | `winters`       | the winters lived through                               |
+| `marched`       | the days the band walked or roamed at least once        |
 
 A condition reads one counter with `at_least`, or `holds`, the stores
 of the band; `any` and `all` join them. When a skill has needs, the
@@ -118,7 +120,7 @@ orientation:
   learned:
     any:
       - {counter: seen, at_least: 4}
-      - {counter: walked, biome: new, at_least: 20}
+      - {counter: marched, at_least: 30}
 litters:
   needs: [sticks]
   learned: {counter: walked_by, biome: forest, at_least: 8}
@@ -444,7 +446,7 @@ skills:
     learned:
       any:
         - {counter: seen, at_least: 4}
-        - {counter: walked, biome: new, at_least: 20}
+        - {counter: marched, at_least: 30}
     opens: {proposals: [go_place]}
   wintering:
     learned: {counter: winters, at_least: 1}

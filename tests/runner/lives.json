@@ -1,5 +1,5 @@
 {
-  "inputs": "92801f3357e9fc58f0c89ddd41c7b45db0094201da9a8ad7dca5cbff30c9a4b5",
+  "inputs": "7edb19bb0cf6029ca9cd5c850919a4b1a446b45a3baa6ce0eb6c40484f2c7165",
   "seeds": {
     "1": {
       "outcome": "died",
@@ -42,7 +42,7 @@
           "status": 50.0,
           "skills": 0,
           "known": 30,
-          "snapshot": 31.0
+          "snapshot": 31.1
         },
         {
           "year": 2,
@@ -77,9 +77,9 @@
           "tired": 6.0,
           "encounters": 1,
           "status": 50.0,
-          "skills": 1,
+          "skills": 2,
           "known": 25,
-          "snapshot": 30.6
+          "snapshot": 30.7
         },
         {
           "year": 3,
@@ -114,7 +114,7 @@
           "tired": 0.0,
           "encounters": 3,
           "status": 50.0,
-          "skills": 1,
+          "skills": 2,
           "known": 25,
           "snapshot": 30.4
         },
@@ -151,9 +151,9 @@
           "tired": 0.0,
           "encounters": 6,
           "status": 50.0,
-          "skills": 1,
+          "skills": 2,
           "known": 25,
-          "snapshot": 30.0
+          "snapshot": 30.1
         },
         {
           "year": 5,
@@ -188,7 +188,7 @@
           "tired": 0.0,
           "encounters": 1,
           "status": 50.0,
-          "skills": 1,
+          "skills": 2,
           "known": 25,
           "snapshot": 29.8
         },
@@ -225,9 +225,9 @@
           "tired": 0.0,
           "encounters": 0,
           "status": 50.0,
-          "skills": 1,
+          "skills": 2,
           "known": 25,
-          "snapshot": 29.6
+          "snapshot": 29.7
         },
         {
           "year": 7,
@@ -262,9 +262,9 @@
           "tired": 0.0,
           "encounters": 0,
           "status": 50.0,
-          "skills": 1,
+          "skills": 2,
           "known": 25,
-          "snapshot": 29.4
+          "snapshot": 29.5
         },
         {
           "year": 8,
@@ -299,7 +299,7 @@
           "tired": 0.0,
           "encounters": 0,
           "status": 50.0,
-          "skills": 1,
+          "skills": 2,
           "known": 25,
           "snapshot": 29.3
         },
@@ -336,9 +336,9 @@
           "tired": 0.0,
           "encounters": 2,
           "status": 50.0,
-          "skills": 1,
+          "skills": 2,
           "known": 25,
-          "snapshot": 29.3
+          "snapshot": 29.4
         },
         {
           "year": 10,
@@ -373,9 +373,9 @@
           "tired": 0.0,
           "encounters": 3,
           "status": 50.0,
-          "skills": 1,
+          "skills": 2,
           "known": 25,
-          "snapshot": 29.1
+          "snapshot": 29.2
         },
         {
           "year": 11,
@@ -410,7 +410,7 @@
           "tired": 0.0,
           "encounters": 2,
           "status": 50.0,
-          "skills": 1,
+          "skills": 2,
           "known": 25,
           "snapshot": 29.1
         },
@@ -447,7 +447,7 @@
           "tired": 0.0,
           "encounters": 1,
           "status": 50.0,
-          "skills": 1,
+          "skills": 2,
           "known": 25,
           "snapshot": 29.0
         },
@@ -484,7 +484,7 @@
           "tired": 0.0,
           "encounters": 4,
           "status": 50.0,
-          "skills": 1,
+          "skills": 2,
           "known": 25,
           "snapshot": 28.9
         },
@@ -527,23 +527,24 @@
         }
       ],
       "learned": {
-        "wintering": 100
+        "wintering": 100,
+        "orientation": 130
       },
       "hashes": [
-        "c301c73af1da2d0e464b19d8a652035b4f1d8c80a7f400012a3a0239334bbafb",
-        "49d69875db5ae9acb795c54c62b2b7ef60ccb0bc7a8a41ab7ef4f83372664278",
-        "c1f7563145b94ecd8d10cbd899137b61c4bd76a99f05a4d7c636be3bc92409dc",
-        "106ab0c86bd3a28f9667b4dc32349978abeb4320f4ecd91938c7853a7541cee5",
-        "9d4b882e3d547a72323eadbb72d0af60726b80ddc3888dd4d0504ffb05f78d16",
-        "d3feeefd0c3a9612575a0217ca4115950a2f2cbd3b7dba0ba51d12c9d8059ea8",
-        "e3b53e084288c279461afdfad206f7755c8ca801b863c9a3f2cbc11fb0557ff2",
-        "7bc595d74ca243291a96197fa4e25ff98a4e5351f68d47bcac5eabed38e8b459",
-        "591381b9b2811232bda3d0f017356d5ac1549a05383e06da631778ea8a35680f",
-        "c2249de477af1eb1eda236863f0be41570e3e9c5592e6150ad47b92030a463ed",
-        "d63e23216bc315329b8814342ff6506ed52d568e340288a0a423313c67cae720",
-        "a228d5c4dde91fa91fd8d725e931706849c5eadf386a13d0d480cffcb6cafe76",
-        "d3e760ccb40ddf4f0682a8f6f7e116bb73175da126d4abd9f0666ab92f2c9864",
-        "e14f4a813581a29a1ed1442e7fb7df0f0518f248fab4ad8f2d71711cb3c22d65"
+        "2e92ea754ee0a98f5883205bbb15b13e87ddea09bde7e440c9f772d001ab7746",
+        "b26cebde66ffe1f60dd8740d523a810063e7e3410930d197291ac066376b8763",
+        "7fec1ca594e65d5214813e0b50b12bf47ded732c253b092f55ecd93bf5ddcbb7",
+        "dd1ed370140d7ffd4fec4d2d171f06934db781f17eeca4bfb9da0f65fbf3b3f6",
+        "1b0d7cf333f144c45243da4a4525f4c9d39834fbd9c49a61fa10e27f8ed28ec6",
+        "eb3b41bf86b662cd8e77539afc5fba8a2d7761d928272282b3879ed50857917f",
+        "e5e0cd19b11a0df6098c8a5d164afdc94eb28debea6bf7ec77129a314e0c4637",
+        "1f98ad90d5d17d7163fcda34d822af270cba250252cacf940ad745dbe1b58d7b",
+        "26ef279e5bed01d20f2753d3e344fbda4489c1c5f84b591efac50c7ad0cc9f1b",
+        "52ed945e10a636c7e3fda51d93751a57204a73537b96c570ac889b827b7f0158",
+        "312de18a108327850bb2b6e0fe51933e97addb5b086514523965aca2e39813fc",
+        "24c5d995dfc766d2088684144e507b223443b2f86fe3778ff619a4d9bae3815e",
+        "bf7c79bec50ccc20107731a861f175248020ccdcee510f459b4b1e954ab04897",
+        "31318ef9f384cf096f798fdf2d1900c8ad4927fe0ecff61cd84e3a5abc2bd6c7"
       ]
     },
     "2": {
@@ -587,7 +588,7 @@
           "status": 50.0,
           "skills": 1,
           "known": 53,
-          "snapshot": 36.8
+          "snapshot": 36.9
         },
         {
           "year": 2,
@@ -661,7 +662,7 @@
           "status": 50.0,
           "skills": 2,
           "known": 25,
-          "snapshot": 33.9
+          "snapshot": 34.0
         },
         {
           "year": 4,
@@ -920,7 +921,7 @@
           "status": 50.0,
           "skills": 2,
           "known": 25,
-          "snapshot": 33.1
+          "snapshot": 33.2
         },
         {
           "year": 11,
@@ -1031,7 +1032,7 @@
           "status": 50.0,
           "skills": 2,
           "known": 25,
-          "snapshot": 34.3
+          "snapshot": 34.4
         },
         {
           "year": 14,
@@ -1068,7 +1069,7 @@
           "status": 50.0,
           "skills": 2,
           "known": 25,
-          "snapshot": 34.7
+          "snapshot": 34.8
         },
         {
           "year": 15,
@@ -1179,7 +1180,7 @@
           "status": 50.0,
           "skills": 2,
           "known": 25,
-          "snapshot": 35.9
+          "snapshot": 36.0
         },
         {
           "year": 18,
@@ -1216,7 +1217,7 @@
           "status": 50.0,
           "skills": 2,
           "known": 25,
-          "snapshot": 36.2
+          "snapshot": 36.3
         }
       ],
       "learned": {
@@ -1224,24 +1225,24 @@
         "wintering": 100
       },
       "hashes": [
-        "38109baa6157a06315e78bb98c82e12b5fabfd7fad4539026d4ba3634edff4d3",
-        "3a93a44e48e577d57afbe2bf81438a866af226afe47603d7f1b704675c12337b",
-        "6b502d461cc185fa4f57a6f405019368b1dbaeeece047be7a8b49aa810a4a991",
-        "9581440252d5a6c99e5cd9751fd48492e93dacbe5361c5ad6d6ed1de2f8a86a5",
-        "2cabe9c226992c41ae8f80a952dfd03d8161f667cf60c6d32677ddc03c3ed687",
-        "c127ca8d044be3ca714c2f6f8d33bbef6ec46f38e300dd1a7f6b015c36a55714",
-        "904631764f453d15f8496532ef81c16cf955cc76a440a18aa2d603ab0d5bd1fb",
-        "476be2dae9f9c3c6352bd7f8750d98583bbba90da166466dfccaa77f2bd1b2e9",
-        "5ed3562a82a55f12c3604f6070635f967961c12e8deff4a9b0761676e23db9b9",
-        "c1360f8c06667293866fcf073c7a22e420f1c1efc9d87c7fa400dac1bda76931",
-        "7f26dc832a0c73ddc41ade4f3fb3e5574713190c218a1ab328022e3d2713b9e8",
-        "ce45cbb67ef123cf8c5e5dadf7f1b68573e00a493e59255fc4ab9ce6942f5f13",
-        "380e895ceb930781fbce27c8b3a051cdf2842d857012a8a1aaddcd16af9d48a1",
-        "f7cc6281f919db1c819bafd9b6d15ff2558eda8fd5a5dd59f6e7947ecb68adc4",
-        "7aab5de3c1b50934816a59c9a4a8b7665341f235dc6673125f454f30605027c0",
-        "8e3914639841f7bb55d9168a94a66c4d28679589e89362237b75a3f905228684",
-        "2c22ccfb94428cd1785893766ff7812ab669ba2f93ffa4a140baf9ef46049716",
-        "3b6c8d2687374e850c8506017d64411126b90ea0589e47ad89fa9ccab0a147b6"
+        "3a15eb25355d4fe7782b7ebeb2ca0a57ecfb3e6ebf211c8b9380427a5aba0b80",
+        "ecf37c24973e23d0b8f228644569834ab42fa5721974468b60d822dadd1d5c30",
+        "6909e784e4f61602d4627c49b2acee946866468497e6208a78c54a429269ae6a",
+        "f923c1b44f58903fc92f0576e8eab66bb60f5c0d83fff4e25cc8ce3e57be4595",
+        "0c0bb214a5494184fd674133b8e26162e4b90fd99b746f504a94bc77a7d7c6a5",
+        "5d9568519926f7ac8fa9a4a05038e79da0c95de3b7b30bc2eb0aafa05edd8268",
+        "1593d89e6aea63fc35e7eb136315c252c531440ed626cb23b7c0c10b55915e42",
+        "21f95cd2f043e8c87692bf4ff1f47e67d02910a5d24929a9196759f377c190a9",
+        "23bef4309c7077d7217b62c66742dd98f43cd4194b93a714564d237451f06bc6",
+        "9f6b4c6986ca4a155304a3c3243e687a58488e917271b5c66a11ce3b42bafc7d",
+        "2933b78bfb750c551ac763af9943ca43cc6fed565702791162a8dfde4c323c28",
+        "41aef5706407428f99d616734c938265c7f889a3eac66a91147c427e17ac5ca3",
+        "8f48de1e160a0d797315c48ba0dedbd6a67aeddde2e11dd5d7cc0292304f7a5b",
+        "dacae1d59bfed1f377f87fabaf9951221e1c456fabc1c3202f175fef78bec54a",
+        "e0ae4ae15e2528001981faa7ff21029d0fd475188b39f4632b53e993f99862fc",
+        "b8e432411041229556178a74ef361f96b93beb25a4579ece93d3a2544fdad8bd",
+        "aee7cd749c29ffd20670f3181e6b828e3dd07e99de4fbe5a5254576314766538",
+        "041339c23c90658c91c269ef4c2b1d6bf1074619a7145effa4645cab4738ea03"
       ]
     },
     "3": {
@@ -1283,7 +1284,7 @@
           "tired": 3.0,
           "encounters": 1,
           "status": 50.0,
-          "skills": 0,
+          "skills": 1,
           "known": 52,
           "snapshot": 35.1
         },
@@ -1320,9 +1321,9 @@
           "tired": 7.0,
           "encounters": 4,
           "status": 50.0,
-          "skills": 1,
+          "skills": 2,
           "known": 25,
-          "snapshot": 31.8
+          "snapshot": 31.9
         },
         {
           "year": 3,
@@ -1357,9 +1358,9 @@
           "tired": 11.0,
           "encounters": 0,
           "status": 50.0,
-          "skills": 1,
+          "skills": 2,
           "known": 25,
-          "snapshot": 32.1
+          "snapshot": 32.2
         },
         {
           "year": 4,
@@ -1394,7 +1395,7 @@
           "tired": 19.0,
           "encounters": 0,
           "status": 50.0,
-          "skills": 1,
+          "skills": 2,
           "known": 25,
           "snapshot": 32.4
         },
@@ -1431,9 +1432,9 @@
           "tired": 11.0,
           "encounters": 0,
           "status": 50.0,
-          "skills": 1,
+          "skills": 2,
           "known": 25,
-          "snapshot": 32.6
+          "snapshot": 32.7
         },
         {
           "year": 6,
@@ -1468,9 +1469,9 @@
           "tired": 9.0,
           "encounters": 0,
           "status": 50.0,
-          "skills": 1,
+          "skills": 2,
           "known": 25,
-          "snapshot": 32.6
+          "snapshot": 32.7
         },
         {
           "year": 7,
@@ -1505,9 +1506,9 @@
           "tired": 10.0,
           "encounters": 1,
           "status": 50.0,
-          "skills": 1,
+          "skills": 2,
           "known": 25,
-          "snapshot": 32.0
+          "snapshot": 32.1
         },
         {
           "year": 8,
@@ -1542,9 +1543,9 @@
           "tired": 12.0,
           "encounters": 3,
           "status": 50.0,
-          "skills": 1,
+          "skills": 2,
           "known": 25,
-          "snapshot": 31.3
+          "snapshot": 31.4
         },
         {
           "year": 9,
@@ -1579,9 +1580,9 @@
           "tired": 4.0,
           "encounters": 0,
           "status": 50.0,
-          "skills": 1,
+          "skills": 2,
           "known": 25,
-          "snapshot": 31.4
+          "snapshot": 31.5
         },
         {
           "year": 10,
@@ -1616,7 +1617,7 @@
           "tired": 6.0,
           "encounters": 1,
           "status": 50.0,
-          "skills": 1,
+          "skills": 2,
           "known": 25,
           "snapshot": 31.3
         },
@@ -1653,7 +1654,7 @@
           "tired": 4.0,
           "encounters": 1,
           "status": 50.0,
-          "skills": 1,
+          "skills": 2,
           "known": 25,
           "snapshot": 31.0
         },
@@ -1690,7 +1691,7 @@
           "tired": 6.0,
           "encounters": 2,
           "status": 50.0,
-          "skills": 1,
+          "skills": 2,
           "known": 25,
           "snapshot": 30.7
         },
@@ -1727,7 +1728,7 @@
           "tired": 0.0,
           "encounters": 0,
           "status": 50.0,
-          "skills": 1,
+          "skills": 2,
           "known": 25,
           "snapshot": 30.9
         },
@@ -1764,7 +1765,7 @@
           "tired": 0.0,
           "encounters": 1,
           "status": 50.0,
-          "skills": 1,
+          "skills": 2,
           "known": 25,
           "snapshot": 31.2
         },
@@ -1801,9 +1802,9 @@
           "tired": 0.0,
           "encounters": 1,
           "status": 50.0,
-          "skills": 1,
+          "skills": 2,
           "known": 25,
-          "snapshot": 30.9
+          "snapshot": 31.0
         },
         {
           "year": 16,
@@ -1838,9 +1839,9 @@
           "tired": 0.0,
           "encounters": 0,
           "status": 50.0,
-          "skills": 1,
+          "skills": 2,
           "known": 25,
-          "snapshot": 31.0
+          "snapshot": 31.1
         },
         {
           "year": 17,
@@ -1875,9 +1876,9 @@
           "tired": 6.0,
           "encounters": 1,
           "status": 50.0,
-          "skills": 1,
+          "skills": 2,
           "known": 25,
-          "snapshot": 31.3
+          "snapshot": 31.4
         },
         {
           "year": 18,
@@ -1912,33 +1913,34 @@
           "tired": 12.0,
           "encounters": 0,
           "status": 50.0,
-          "skills": 1,
+          "skills": 2,
           "known": 25,
           "snapshot": 31.7
         }
       ],
       "learned": {
+        "orientation": 82,
         "wintering": 100
       },
       "hashes": [
-        "fe8f58f9e8f909a08517c28ff16890c011486719b75501b9140e1376a07316f4",
-        "536cb5b9854a0fd71ba450fd18da76652a1873c5ec5c9986df2862db42278dee",
-        "19a4e29403e1814174c039fb8eb244099543c4af996c6fcd01b04c3f4d3a57c3",
-        "641e05bfa7363d7b40e2be6d6920dde9c48416a10c85cc59048046a598641b27",
-        "949fdca6026543d06409472566f8324ebe6151c9f6b22ea2689e2b482a7da8f1",
-        "220561ff61ca208cc5f694d5515cf2a44d8506eee9af35b383ce16e3b5a8c60d",
-        "ff7d391b203b079ecc2f66444e97f6ae8924efce10867521a1bca2f49fbe8dfe",
-        "add32488e9850a4fa351140c3e47343df77e1c50be2effdbeb00439bd3102e1c",
-        "7671b35bdaf1dea7ce94f84ac713cd44235b3e91e7deecf09c7cb7c52c0e1e91",
-        "bc72dba13eb730cbf593599f859f6d70dfc7b5887eba878a854aee05b1808076",
-        "7db8a893f2abf6b04a7d5d2867f4e77cbbd8dfd721358e48314cc3a70ab93cf7",
-        "109de030ea3dd69b219a552cf0b0cdfb9eafab79338aaa8ba8bc6bc32b3a920e",
-        "7f07376b53fb2282ee4a7aa9d118764cea7ae48d87fd3bbff168841be9db97be",
-        "8252d5c6df5579c81fed8dc63140b1dd7153e93d4786b922868dd2d0c56048ed",
-        "46aaefe5ec8ab10940f26c51f77d925900ba3f290d63e46bc40f4dab70e4de17",
-        "5eb8d9b39dc8dd712c840de5aa58f1b21f20b65baf6961048e3272ffdfa69326",
-        "4675f986e869d3596a07dd9062b87c39638cfc897935a0b988924de36bda4fee",
-        "38e6e3492f12f1f835a413b7c922766c10e3da10f696d6fc3068a5c3fb367e4c"
+        "3b80b094d655367abe3561867f4db1e3064461383e36bb2cd02931a584dacbbb",
+        "28f185be517ef889b2a074ec8cc56ad25a08938c71f06c9c05c436c3522dfa1d",
+        "ab1dba302bb6fa0d44705d90969b20b31bd15cfdd7df0dd9f7b4a0c160d1ae4b",
+        "4def21684948f307b46ecbb4991147275669d4ac39f64e469023a890715a40e6",
+        "2ece7a17b8a2fb238b32c8745c64cd7adbe8ad2df1fd1462e45c2450d8eca5e7",
+        "d2dc179808f5918f014ea83e5c05f30d93eb1ba2ca71ef5a69610c79585654e9",
+        "5c3cb2df75cf453a6babdaf1acb77721f719a8ccb0438ddc2247fcb89296dcd9",
+        "e01d06c824bca66be390b3ff1b6f6361f4ced4cf8f3627ea83d0bd082dca83b7",
+        "ac9ca0da0a8be22ab4f5b1b64f0aef1a9b903c66de7c019e27986e33005c2f16",
+        "31e31d68e244af09d5b1ea2471587fad8eddd7fd9e40750e947410bfea7ab64d",
+        "be5dad78ecce2bee2fefb3fb8b9751322911c9c6d495520de7ade98c04246017",
+        "f7fbf29ed833a39823e1541818f96b10598213b684d1d107b60445fcd2e0d58a",
+        "5156ee1f494612b6d08f60e1672e4d84b8c0b005cd23210590a7450513b88e09",
+        "7ef77e713dfecb11e23b76639e4fa969a095e8cb0c2e26b6c66894a604383518",
+        "5e87799a0f10cd6ad495a6eb9e0e94ee3a98e04fb2390ae82bedd142758252e3",
+        "6ab60c9c1b55c5e7f18a67eb64acf3bbf791220818ff8c5e9159945053f1e28d",
+        "558ad2748451ab822bbd8ee577cfa98f46e34ef1d80c57d67904aa059516497d",
+        "6083e45559ef7bb7de390722097b2439596ed12ad95ef4a4db45305d15a31d3d"
       ]
     },
     "4": {
@@ -2056,7 +2058,7 @@
           "status": 50.0,
           "skills": 1,
           "known": 25,
-          "snapshot": 31.5
+          "snapshot": 31.6
         },
         {
           "year": 4,
@@ -2241,7 +2243,7 @@
           "status": 50.0,
           "skills": 1,
           "known": 25,
-          "snapshot": 31.6
+          "snapshot": 31.7
         },
         {
           "year": 9,
@@ -2313,7 +2315,7 @@
           "tired": 7.0,
           "encounters": 3,
           "status": 50.0,
-          "skills": 1,
+          "skills": 2,
           "known": 25,
           "snapshot": 31.4
         },
@@ -2350,7 +2352,7 @@
           "tired": 5.0,
           "encounters": 1,
           "status": 50.0,
-          "skills": 1,
+          "skills": 2,
           "known": 25,
           "snapshot": 31.6
         },
@@ -2387,9 +2389,9 @@
           "tired": 0.0,
           "encounters": 2,
           "status": 50.0,
-          "skills": 1,
+          "skills": 2,
           "known": 25,
-          "snapshot": 31.4
+          "snapshot": 31.5
         },
         {
           "year": 13,
@@ -2424,7 +2426,7 @@
           "tired": 5.0,
           "encounters": 5,
           "status": 50.0,
-          "skills": 1,
+          "skills": 2,
           "known": 25,
           "snapshot": 31.5
         },
@@ -2461,9 +2463,9 @@
           "tired": 2.0,
           "encounters": 2,
           "status": 50.0,
-          "skills": 1,
+          "skills": 2,
           "known": 25,
-          "snapshot": 31.6
+          "snapshot": 31.7
         },
         {
           "year": 15,
@@ -2498,9 +2500,9 @@
           "tired": 2.0,
           "encounters": 3,
           "status": 50.0,
-          "skills": 1,
+          "skills": 2,
           "known": 25,
-          "snapshot": 31.5
+          "snapshot": 31.6
         },
         {
           "year": 16,
@@ -2535,9 +2537,9 @@
           "tired": 7.0,
           "encounters": 1,
           "status": 50.0,
-          "skills": 1,
+          "skills": 2,
           "known": 25,
-          "snapshot": 31.8
+          "snapshot": 31.9
         },
         {
           "year": 17,
@@ -2572,9 +2574,9 @@
           "tired": 2.0,
           "encounters": 2,
           "status": 50.0,
-          "skills": 1,
+          "skills": 2,
           "known": 25,
-          "snapshot": 31.3
+          "snapshot": 31.4
         },
         {
           "year": 18,
@@ -2609,33 +2611,34 @@
           "tired": 0.0,
           "encounters": 2,
           "status": 50.0,
-          "skills": 1,
+          "skills": 2,
           "known": 25,
           "snapshot": 31.2
         }
       ],
       "learned": {
-        "wintering": 100
+        "wintering": 100,
+        "orientation": 919
       },
       "hashes": [
-        "1a3816286e9ccc9aa7c1cb557052399f9d6c03431c97bddd1bdda6ec4a6e409b",
-        "3aaf245facf48086e2be416f0123b8bd45a953f9f247d0eb4f3e52a3b5ec4ea8",
-        "8c3a060d0fad3c4e633267228d0ea05b95a39aa053b212ce3dc8d93afa1fb7bc",
-        "73d17fe4de7b9aba524e517f1e7938def79531829e1ad3fd8209799b0a621f6e",
-        "e3e64977e2d1cc7595f2827fd3f685ebe31d79e6e338a901364b2a229c5cfdea",
-        "f75e9e1ffc90c2f97b285ff9ee9b30856e27fca757a68a2bd03409fcc73328fb",
-        "6039ab13acfbcc2ba5120301b94323e11a1f875f94401fb077b0643d4de62a82",
-        "5677b83646bfab98f14d7e6fc9f19227b45b496a91f0dc5971ee324794df4a02",
-        "2107f338d90344498ac7c89a5a915a7898dd439e0133e8bb213fed2750c70574",
-        "6132b569c8b3907f4db3205a7eeb6f45217fcc32babee030fb5a7dddeaf6045f",
-        "b926300128d878cecebc18e2a2fd2b1f944f47704086a19d39dfce1dd26a7426",
-        "de3c69b0cdfbbe5eaf0727e2da5846c7ab5bccc991013285df23fc9808d526f0",
-        "5557c0a0e5bacb032ce8aa02539b52209f94ae44006dfd5b083e43b2a6bd7bac",
-        "7794cbbbb43b9f421d22baa5c92542cbcbc67fea556457691f95961268ca1563",
-        "3c70d86bb3f810abe1b225988fed383644a4a4740c531ecc41002545f88d683e",
-        "609d933afe75daa5023a2d5d621e4bb07e68c0cc64433010610a9ff909e268b3",
-        "c2bdd137da21aefe5c4dac0e3a4a04f4e255421d937e3bf8911ffe85941f3f0b",
-        "1dcdd5e75917d8c6a2095656c565bfd69da39cb7f838af6bde5590e6d555b121"
+        "a62c9e6ced42ab07a1a58738ee9d5844b113c50f53292c3874efeb5369e50991",
+        "c6eef2727fe3e0f3c4b9fff0920771879cb0234027a502c03aaae3d653008b4f",
+        "e8676f3a2bf71fefebb885e5496f8fcc42da77581847244bff3d3fef144f30f5",
+        "1e86a2f3a81d2e9e85032a62f6d02f011334ff39dbb4ef9506c2af220185e969",
+        "6306f23a4c801478469824fb3e9c4d036e27b345fa5edff2dd960d27282d662e",
+        "531cf68fc81ee87727ad3eec41c63908a0f3104cd6d27a76e969f5913436ef7d",
+        "fd60d840250bb78c54b1b906faf5129dc8a92414ad7def73e241f2bc47487070",
+        "35beed39ef8412a3e75e74c6fc16e9a3466397df908ea3384421e8b66247f1be",
+        "7890a9eef82f83d378affa0c919aa3e51fd10e7503d4cc8b04a4d71269cfc43a",
+        "8f35675fc3a6965d34f9bd04c262c6f3fb70276437d73ca5b8b150ccb7d11858",
+        "8a8246fd5076f52ff1ca2e6cba7bbaf149a828118829e54f39226ba40e413e7b",
+        "d4a571954926a0fbfd289c644200484358566f65a2ff392f6d0b5fe514757cc2",
+        "4ad6899966a052818fa3777f14e2d327340e6b958681d5d1ef4a672d85a21ea6",
+        "ab79abd3be447993ac6cdbfd00578f3d6beaeb3a5fc9de86b97c6b293545db1b",
+        "4109291a5987dc9bd2a10e1e155132256fe4aff4a9d4851a9ad2dcc86d95ee0f",
+        "e7f5f5ef2250abe1f78dbb60e33559bf1d215d71fa495e1dd59488605db59b11",
+        "2e3d346d6e6a10ad0a6b34c48dbd9a27374aae2129d27ebaef86ec5c613f9620",
+        "92e34d841a990904d78c60cf57627df58ce356a59750944bf8bc7d6c6b486dd7"
       ]
     },
     "5": {
@@ -2677,7 +2680,7 @@
           "tired": 0.0,
           "encounters": 3,
           "status": 50.0,
-          "skills": 0,
+          "skills": 1,
           "known": 146,
           "snapshot": 44.6
         },
@@ -2714,9 +2717,9 @@
           "tired": 3.0,
           "encounters": 5,
           "status": 50.0,
-          "skills": 1,
+          "skills": 2,
           "known": 25,
-          "snapshot": 29.4
+          "snapshot": 29.5
         },
         {
           "year": 3,
@@ -2751,9 +2754,9 @@
           "tired": 0.0,
           "encounters": 3,
           "status": 50.0,
-          "skills": 1,
+          "skills": 2,
           "known": 25,
-          "snapshot": 30.0
+          "snapshot": 30.1
         },
         {
           "year": 4,
@@ -2788,7 +2791,7 @@
           "tired": 0.0,
           "encounters": 0,
           "status": 50.0,
-          "skills": 1,
+          "skills": 2,
           "known": 25,
           "snapshot": 30.1
         },
@@ -2825,9 +2828,9 @@
           "tired": 0.0,
           "encounters": 0,
           "status": 50.0,
-          "skills": 1,
+          "skills": 2,
           "known": 25,
-          "snapshot": 29.9
+          "snapshot": 30.0
         },
         {
           "year": 6,
@@ -2862,7 +2865,7 @@
           "tired": 0.0,
           "encounters": 0,
           "status": 50.0,
-          "skills": 1,
+          "skills": 2,
           "known": 25,
           "snapshot": 29.7
         },
@@ -2899,7 +2902,7 @@
           "tired": 0.0,
           "encounters": 2,
           "status": 50.0,
-          "skills": 1,
+          "skills": 2,
           "known": 25,
           "snapshot": 29.8
         },
@@ -2975,7 +2978,7 @@
           "status": 50.0,
           "skills": 2,
           "known": 25,
-          "snapshot": 29.4
+          "snapshot": 29.5
         },
         {
           "year": 10,
@@ -3160,7 +3163,7 @@
           "status": 50.0,
           "skills": 2,
           "known": 25,
-          "snapshot": 29.0
+          "snapshot": 29.1
         },
         {
           "year": 15,
@@ -3197,7 +3200,7 @@
           "status": 50.0,
           "skills": 2,
           "known": 25,
-          "snapshot": 29.0
+          "snapshot": 29.1
         },
         {
           "year": 16,
@@ -3312,28 +3315,28 @@
         }
       ],
       "learned": {
-        "wintering": 100,
-        "orientation": 721
+        "orientation": 87,
+        "wintering": 100
       },
       "hashes": [
-        "1cac00fbd66d582e57196e46f17916626e3df86b652daebf1108e863c7875b29",
-        "6119e63d77386bd180d36f44e5f3dd3b721317dd47679a0c98db6070f30406bd",
-        "120a311653bf1a41eaadf5c6ab8f737bdd858a9093d11cf6f9475b9ba9a44d5f",
-        "5b06c930dcf1a8773dc4035ee64280616e0f4d103aab7a6571ddc4a5cd061f0c",
-        "b269536dd6346dd5d3651e610be45c48407eeee08d9a69fda4136a488175bff9",
-        "1285d6d0dfbdecfd1b3e21f4b97f96740484dedc03326167c1d370f406062f02",
-        "92f26e15c44aaeab15e0c3133a653ba56bfc350d294faf5b43f9b443f1ec1058",
-        "7f023185d938c1c89f18d9700cfd02402fca7cd46a534a4c1684a7160c9aac24",
-        "cbe30704c1251e88847e48ef7c647ea951d4d479d36bd8074beef60782d077a1",
-        "0810fce62d82bb916b3c874f21fc53eec69ae2b29afff9f4cf5111280522bd62",
-        "d4afd7bda57fdaf367fbd884e3f8139725ab5ece3a075b6edf5905e732f434c9",
-        "43c6fe56f3d6540e81eb77f66e3f2b51c9b9ece61c3d12b23e130cff2a782a7c",
-        "fb2a943f2bc8b784bfd14beeed044a2e103f694c62ca922ea12dbc026ead5ece",
-        "4fbba098921489bab59b797e0f6e4b3f49ce0e303fb7ae555c8cc6fea97a3113",
-        "6db1ebbaf328953c2f1dc51d61b3bb1378c0de010a93dd1571abf5dc1f9161ec",
-        "d434330e893812849b97da151c29b5f999ce18e0d462ecf302cc686aaa99027a",
-        "d0f7e1d64b37992784500c0fe3b5df4d9a48b669b9e7e26515542d369408af11",
-        "d0b1f0596aae1f166b3b0a108fee6cffcca22ffc7bf45d6b7dfc356bd10b6f3c"
+        "33ec85f6c75a247232aad7a54234128201ed635e72492081a09e1affebccbfcf",
+        "f703b608c58a0a4b8cff2293a47759c8a3a2e121758be37f923eb6a7475a1114",
+        "7a63f92bc1d4c7cd9cfc941d95a5867bc9ef4d1555646c384067a605a99553f8",
+        "b881bbbf2068ff15f5530b8f648c5e1e14bc6f3f8b901f3a3669b7ff570d4c52",
+        "a946c4179bc8ad949f18ce50126b2a14d001be0ca93a5358862b4fb1d7e77396",
+        "d3c8eb83ff049547a50cdff7ce675ba2a56a0ec8531c8ad46962c17808c95177",
+        "81fa7c689d209e1b7a9cae5576a8eff54ab4df4e5379b30369ddc99986232e01",
+        "12d7fa3e64f7cf1349072599ebbc21090a1aea9fd09526656c9e08f7a3860c59",
+        "9b50f437929be52c7781e31b65fcb8ca9b26ac935db4682230f3015fdfad69ed",
+        "0bd2848c33ce240eb9b07c5aa1fe09b08e795e4d44b23566e3d20f31fd32b10b",
+        "f085d3565a1dc54a8decb2e8a5d9d3c35b366ae66d2bbf9b551386c2b305a842",
+        "6278871864e99233efc779ba97acd7fc9efcf3cc47e0a8edecd1edbd24b97037",
+        "e328bde9894bac4769429fd0169e96a7de30fc65ec1a05aec21f02969900fabc",
+        "1ce525903701ebf6dac0834bfb1e3913b4c2ff783278f12e6fa8f4959a6c3ff5",
+        "dee1bf89026d78dc44c26a91e0bf7937c13aaa041a83e56d6d0a5be867cd14e7",
+        "0f07268b8a0466d95b857043c2557a2c9ac03476fe9b102111843e18f5729e97",
+        "ef1d6c30ca58e4a56f8dd7c073017731ddeabb4a41f5c63f62d1bf0ecf245f62",
+        "284225cbab5e943963f563f15baed990a58ad2051cc5bfbe1483df6fa64d36a2"
       ]
     }
   },

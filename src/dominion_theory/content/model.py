@@ -22,7 +22,7 @@ BAND = 'band'
 PASSABILITY = 'passability'
 ZOOM = 5
 # The counters a band learns by, docs/game/skills.md: those of a set or a sum, then those kept by biome.
-TALLIES = ('seen', 'first', 'winters')
+TALLIES = ('seen', 'first', 'winters', 'marched')
 BY_BIOME = ('walked', 'walked_by', 'camped_by', 'days_in')
 COUNTERS = TALLIES + BY_BIOME
 NEW = 'new'

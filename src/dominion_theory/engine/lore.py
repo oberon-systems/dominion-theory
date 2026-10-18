@@ -18,6 +18,8 @@ WALKED_BY = 'walked_by'
 CAMPED_BY = 'camped_by'
 DAYS_IN = 'days_in'
 WINTERS = 'winters'
+MARCHED = 'marched'
+MARCHING = 'marching'
 KNOWN = 'known'
 COUNTS = 'counts'
 SINCE = 'since'
@@ -36,8 +38,8 @@ def fresh() -> dict[str, Any]:
     """
     The lore of a band that has learned nothing and counted nothing.
     """
-    counts: dict[str, Any] = {SEEN: [], FIRST: [], WINTERS: 0, **{name: {} for name in BY_BIOME}}
-    return {KNOWN: [], COUNTS: counts, SINCE: {}}
+    counts: dict[str, Any] = {SEEN: [], FIRST: [], WINTERS: 0, MARCHED: 0, **{name: {} for name in BY_BIOME}}
+    return {KNOWN: [], COUNTS: counts, SINCE: {}, MARCHING: False}
 
 
 def beside(land: Land, at: Place) -> list[str]:
@@ -79,12 +81,23 @@ def entered(land: Land, band: Band) -> None:
 
 def day_ends(land: Land, band: Band) -> None:
     """
-    The counters of a day: the land seen, the day in the biome of the cell and the night beside it.
+    The counters of a day: the land seen, a day on the march, the day in the biome of the cell and the night
+    beside it.
     """
     counts = band.lore[COUNTS]
     _seen(counts, band, SEEN)
+    if band.lore[MARCHING]:
+        counts[MARCHED] += 1
+    band.lore[MARCHING] = False
     _add(counts, DAYS_IN, [land.biome(*band.place)])
     _add(counts, CAMPED_BY, beside(land, band.place))
+
+
+def march(band: Band) -> None:
+    """
+    The band walked today, plainly or roaming; standing, gathering and building are no march.
+    """
+    band.lore[MARCHING] = True
 
 
 def wintered(band: Band) -> None:

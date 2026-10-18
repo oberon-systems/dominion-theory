@@ -9,7 +9,7 @@ from typing import Any, Protocol
 
 import numpy as np
 
-from ..content import GOODS, PERSONAL, TO, Bonus, Duration, Params, Resource
+from ..content import GOODS, KINDS, PERSONAL, TO, USES, Bonus, Duration, Params, Resource
 from ..content import Band as Rules
 from . import lore as lores
 from .cells import Place
@@ -43,6 +43,8 @@ WOUNDS = 'wounds'
 HUNTER = 'hunter'
 ADULT = 'adult'
 PULLER = 'puller'
+FOOD = KINDS[0]
+EATEN, NIGHTS, ATTACKS = USES
 TO_BAND, TO_MEMBER = TO
 
 # Clockwise from the north; y grows to the south.
@@ -159,6 +161,9 @@ class Band:
     freed: int = 0
     # The skills known and the counters they are learned by.
     lore: dict[str, Any] = field(default_factory=lores.fresh)
+    # The goods spoiled and worn out not yet told, short of a whole unit.
+    spoiled: dict[str, float] = field(default_factory=dict)
+    worn: dict[str, float] = field(default_factory=dict)
     counted: tuple[int, Census] | None = field(default=None, init=False, repr=False, compare=False)
     laid: dict[Any, Params] = field(default_factory=dict, init=False, repr=False, compare=False)
 
@@ -191,6 +196,8 @@ class Band:
             camp=plain['camp'],
             freed=plain['freed'],
             lore=copy.deepcopy(plain['lore']),
+            spoiled=dict(plain['spoiled']),
+            worn=dict(plain['worn']),
         )
 
     @property
@@ -245,6 +252,8 @@ class Band:
             'camp': self.camp,
             'freed': self.freed,
             'lore': copy.deepcopy(self.lore),
+            'spoiled': dict(sorted(self.spoiled.items())),
+            'worn': dict(sorted(self.worn.items())),
         }
 
     def shown(self, params: Params, scale: int) -> dict[str, Any]:
@@ -862,21 +871,51 @@ def reseason(land: Land, band: Band, was: str) -> list[Place]:
     return changed
 
 
-def spoil(params: Params, band: Band, day: int) -> dict[str, float]:
+def spoil(params: Params, band: Band, day: int) -> None:
     """
-    Drops the lots older than their resource keeps and the goods worn out, of the stores and the kits; in a winter
-    camp they age slower. Gives the goods worn out.
+    Drops the lots older than their resource keeps, of the stores and the kits; in a winter camp they age slower.
+    The goods spoiled wait in the band's spoiled to be told.
     """
     per_day = params.time.parts_per_day
     ages = params.units.band.winter_camp.spoil if sheltered(band) else 1.0
-    worn: dict[str, float] = {}
     for stock in (band.stores, *(member.kit for member in band.members)):
-        keeps = {name: params.parts(params.resources[name].lasts) // per_day for name in stock}
+        keeps = {
+            name: params.parts(spoils) // per_day
+            for name in stock
+            if (spoils := params.resources[name].spoils) is not None
+        }
         for name, amount in stock.spoil(day, keeps, ages).items():
             if params.resources[name].kind == GOODS:
-                worn[name] = worn.get(name, 0.0) + amount
+                band.spoiled[name] = band.spoiled.get(name, 0.0) + amount
     band.restocked()
-    return {name: worn[name] for name in params.resources if name in worn}
+
+
+def wear(params: Params, band: Band, use: str, uses: float) -> None:
+    """
+    Wears the goods held that serve a use, of the stores and then the kits; what wore out waits in the band's worn
+    to be told.
+    """
+    for name, resource in params.resources.items():
+        serves = resource.wears.get(use)
+        if serves is None:
+            continue
+        left = uses
+        for stock in (band.stores, *(member.kit for member in band.members)):
+            worn, left = stock.wear(name, left, serves)
+            if worn > 0:
+                band.worn[name] = band.worn.get(name, 0.0) + worn
+                band.restocked()
+
+
+def told(lost: dict[str, float]) -> dict[str, int]:
+    """
+    The whole units of goods lost, taken out of the tally; the rest waits for the next.
+    """
+    whole = {name: math.floor(amount + 1e-9) for name, amount in lost.items()}
+    whole = {name: count for name, count in whole.items() if count > 0}
+    for name, count in whole.items():
+        lost[name] = max(lost[name] - count, 0.0)
+    return whole
 
 
 def eat(params: Params, band: Band) -> dict[str, float]:
@@ -892,12 +931,15 @@ def eat(params: Params, band: Band) -> dict[str, float]:
     eating = appetite(params, band)
     shares: dict[str, list[float]] = {}
     met: dict[str, float] = {}
+    eaten = 0.0
     for name, rate in applied(params, band).units.band.consumption_per_day.items():
         prop = params.resources[name].property or ''
         rations = [stages[stage].eats * rate * eating for stage in named]
         need = sum(rations)
         missing = band.stores.take(name, need)
         met[name] = 1.0 if need <= 0 else (need - missing) / need
+        if params.resources[name].kind == FOOD:
+            eaten += need - missing
         if prop not in DEFICITS:
             continue
         given = need - missing
@@ -916,6 +958,7 @@ def eat(params: Params, band: Band) -> dict[str, float]:
         for member, share in zip(band.members, got, strict=True):
             gone = 0.0 if share >= 1.0 - NOTHING else getattr(member, DEFICITS[prop]) + 1.0 - share
             setattr(member, DEFICITS[prop], round(gone, 9))
+    wear(params, band, EATEN, eaten)
     band.changed()
     return met
 

@@ -36,6 +36,7 @@ COMMON = 'common'
 PERSONAL = 'personal'
 HOLDERS = (COMMON, PERSONAL)
 PER = ('head', 'member', 'adult', 'puller', 'hunter')
+USES = ('eaten', 'nights', 'attacks')
 # A bonus goes `to`, not `on`: YAML reads a key on as true.
 TO = ('band', 'member')
 SEXES = ('female', 'male')
@@ -429,15 +430,15 @@ class Bonus(Node):
 class Resource(Node):
     """
     Something a band gathers, makes or carries: its kind, the property of a cell it is taken by, its weight, how
-    long food and water keep and goods last; for goods, who holds them, their quality by biome, the keep, the
-    recipe and the bonuses they give.
+    long it keeps and, for goods, how many uses a unit serves; who holds goods, their quality by biome, the keep,
+    the recipe and the bonuses they give.
     """
 
     kind: Name
     property: Name | None = None
     weight_kg: Positive
     spoils: Duration | None = None
-    wears: Duration | None = None
+    wears: dict[Name, Positive] = Field(default_factory=dict)
     held: Name = COMMON
     quality: dict[Name, Quality] = Field(default_factory=dict)
     keep: Keep | None = None
@@ -446,13 +447,18 @@ class Resource(Node):
     gives: tuple[Bonus, ...] = ()
 
     @model_validator(mode='after')
-    def _keeps_for_a_time(self) -> Self:
+    def _keeps_or_wears(self) -> Self:
         if self.kind not in KINDS:
             raise ValueError(f'a kind of {", ".join(KINDS)}')
-        lasts, other = ('wears', 'spoils') if self.kind == GOODS else ('spoils', 'wears')
-        held: Duration | None = getattr(self, lasts)
-        if held is None or held.amount == 0 or getattr(self, other) is not None:
-            raise ValueError(f'a time to {lasts.removesuffix("s")} that is not zero, and none to {other}')
+        if self.spoils is not None and self.spoils.amount == 0:
+            raise ValueError('a time to spoil that is not zero')
+        if self.kind != GOODS and (self.spoils is None or self.wears):
+            raise ValueError('a time to spoil, and no uses to wear by, for food and water')
+        if self.kind == GOODS and self.spoils is None and not self.wears:
+            raise ValueError('a time to spoil or the uses to wear by')
+        for use in self.wears:
+            if use not in USES:
+                raise ValueError(f'uses to wear by of {", ".join(USES)}')
         if self.held not in HOLDERS:
             raise ValueError(f'held as one of {", ".join(HOLDERS)}')
         if self.kind != GOODS and (self.quality or self.keep or self.made or self.gives or self.held != COMMON):
@@ -467,16 +473,6 @@ class Resource(Node):
         if self.property is None:
             raise ValueError('a resource that is not gathered')
         return self.property
-
-    @builtins.property
-    def lasts(self) -> Duration:
-        """
-        How long a lot of food or water keeps, or a good of quality 1 lasts.
-        """
-        held = self.wears if self.kind == GOODS else self.spoils
-        if held is None:
-            raise ValueError('a resource with no time to keep')
-        return held
 
 
 class Start(Node):

@@ -29,7 +29,7 @@ def test_what_is_left_out_of_a_new_game_is_not_sent(api: Api) -> None:
 
 
 def test_the_stream_gives_what_followed_the_snapshot(api: Api) -> None:
-    game = api.create('step', overrides=SMALL)['id']
+    game = api.create('step', seed=42, overrides=SMALL)['id']
     seq = api.snapshot(game)['seq']
     assert api.command(game, {'id': 'c-1', 'kind': 'pass'}) == {'id': 'c-1', 'taken': True}
     api.clock(game, 'step')
@@ -44,7 +44,7 @@ def test_the_stream_gives_what_followed_the_snapshot(api: Api) -> None:
 
 
 def test_the_stream_stops_when_the_game_ends(api: Api, server: str) -> None:
-    game = api.create('step', overrides=SMALL)['id']
+    game = api.create('step', seed=42, overrides=SMALL)['id']
     stream = api.updates(game, 0)
     api.clock(game, 'step')
     assert next(stream)['seq'] == 1

@@ -1,3 +1,5 @@
+import pytest
+
 from dominion_theory.content import load_params
 from dominion_theory.engine.stock import Stock
 
@@ -54,12 +56,21 @@ def test_a_lot_of_goods_keeps_its_quality_and_joins_only_its_like() -> None:
     assert stock.held('stones') == 4.5
 
 
-def test_goods_wear_out_by_their_quality_and_the_stock_says_what_went() -> None:
-    stock = Stock({'stones': [[0.0, 1.0, 0.5], [0.0, 2.0, 1.0]], 'forage': [[0.0, 3.0]]})
+def test_goods_spoil_by_their_quality_and_the_stock_says_what_went() -> None:
+    stock = Stock({'cords': [[0.0, 1.0, 0.5], [0.0, 2.0, 1.0]], 'forage': [[0.0, 3.0]], 'stones': [[0.0, 1.0, 0.5]]})
 
-    assert stock.spoil(30, {'stones': 60, 'forage': 3}) == {'stones': 1.0, 'forage': 3.0}
-    assert stock.plain() == {'forage': [], 'stones': [[0.0, 2.0, 1.0]]}
-    assert stock.spoil(31, {'stones': 60, 'forage': 3}) == {}
+    assert stock.spoil(30, {'cords': 60, 'forage': 3}) == {'cords': 1.0, 'forage': 3.0}
+    assert stock.plain() == {'cords': [[0.0, 2.0, 1.0]], 'forage': [], 'stones': [[0.0, 1.0, 0.5]]}
+    assert stock.spoil(31, {'cords': 60, 'forage': 3}) == {}
+
+
+def test_goods_wear_by_their_uses_the_oldest_first_and_a_poor_one_serves_less() -> None:
+    stock = Stock({'stones': [[0.0, 1.0, 0.5], [2.0, 2.0, 1.0]]})
+
+    assert stock.wear('stones', 100, 150) == pytest.approx((1.0 + 25 / 150, 0.0))
+    assert stock.held('stones') == pytest.approx(2.0 - 25 / 150)
+    assert stock.wear('stones', 400, 150) == pytest.approx((2.0 - 25 / 150, 125.0))
+    assert stock.plain() == {'stones': []}
 
 
 def test_a_part_leaves_with_its_days_and_qualities_and_joins_another_stock_in_order() -> None:

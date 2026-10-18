@@ -51,7 +51,8 @@ SAMPLES: dict[str, dict[str, Any]] = {
     'seat-praised': {'born': 1, 'status': 55.0},
     'seat-banished': {},
     'skill-learned': {'skill': 'skill-orientation'},
-    'goods-worn': {'resource': 'stones', 'count': 3.0},
+    'goods-spoiled': {'resource': 'sticks', 'count': 2},
+    'goods-worn': {'resource': 'stones', 'count': 3},
 }
 
 
@@ -60,11 +61,14 @@ def test_a_message_becomes_words_in_the_language() -> None:
     assert words(SEASON, 'ru') == 'Год 1: наступило лето.'
 
 
-def test_goods_worn_are_told_with_their_amount() -> None:
-    worn = {'key': 'goods-worn', 'values': {'resource': 'stones', 'count': 3.0}}
+def test_goods_spoiled_and_worn_are_told_with_their_count() -> None:
+    worn = {'key': 'goods-worn', 'values': {'resource': 'stones', 'count': 3}}
+    spoiled = {'key': 'goods-spoiled', 'values': {'resource': 'sticks', 'count': 2}}
 
     assert words(worn, 'en') == 'Worn out: stones 3.'
     assert words(worn, 'ru') == 'Износились: камни 3.'
+    assert words(spoiled, 'en') == 'Spoiled: sticks 2.'
+    assert words(spoiled, 'ru') == 'Испортились: палки 2.'
 
 
 def test_a_message_without_values_is_rendered() -> None:

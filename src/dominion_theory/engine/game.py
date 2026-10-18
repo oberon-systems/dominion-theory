@@ -32,6 +32,7 @@ from .events import (
     COUNCIL_OUTVOTED,
     COUNCIL_TURNED,
     ENCOUNTER,
+    GOODS_SPOILED,
     GOODS_WORN,
     INTENT_ARRIVED,
     INTENT_ENDED,
@@ -61,7 +62,7 @@ from .events import (
 from .hashing import digest
 from .streams import Streams
 
-SNAPSHOT_FORMAT = 20
+SNAPSHOT_FORMAT = 21
 DIED = 'died'
 BANISHED = 'banished'
 VOTED = 'voted'
@@ -684,6 +685,7 @@ class Game:
         camp_parts = self.params.units.band.camp_parts
         if camp_parts and self.date.part == camp_parts[0]:
             bands.hand_out(self.params, band)
+            bands.wear(self.params, band, bands.NIGHTS, band.population)
         if done['kind'] == bands.CAMP and self.date.part not in self.params.units.band.camp_parts:
             band.camped += 1
         proposal = None if band.intent is None else band.intent['proposal']
@@ -705,11 +707,13 @@ class Game:
         per_day, span = self.params.time.parts_per_day, self.params.eras[self.era].parts_per_tick
         parts = self.clock.parts
         if parts % per_day < span:
-            for name, count in bands.spoil(self.params, band, self.day).items():
-                tick.events.append(Event(GOODS_WORN, {'resource': name, 'count': round(count, 2)}))
+            bands.spoil(self.params, band, self.day)
         self._encounter(tick, band)
         if (parts + span) // per_day > parts // per_day:
             self._day_ends(tick, band)
+        for key, lost in ((GOODS_SPOILED, band.spoiled), (GOODS_WORN, band.worn)):
+            for name, count in bands.told(lost).items():
+                tick.events.append(Event(key, {'resource': name, 'count': count}))
         if band.population < self.params.units.band.population.least:
             tick.events.append(Event(BAND_DIED, {}))
             tick.gone.append(band.id)
@@ -763,8 +767,11 @@ class Game:
         builds, or on the march in the others.
         """
         guard = bands.applied(self.params, band).units.band.threat
-        camped = band.action['kind'] in (bands.CAMP, bands.BUILD)
-        return self._threat(band) * (guard.camp if camped else guard.march)
+        return self._threat(band) * (guard.camp if self._camped(band) else guard.march)
+
+    @staticmethod
+    def _camped(band: Band) -> bool:
+        return band.action['kind'] in (bands.CAMP, bands.BUILD)
 
     def _encounter(self, tick: _Tick, band: Band) -> None:
         threat = self._guarded(band)
@@ -774,6 +781,8 @@ class Game:
         if met is None:
             return
         kind, taken, hurt = met
+        if self._camped(band):
+            bands.wear(self.params, band, bands.ATTACKS, 1.0)
         wounds = self.params.encounters.kinds[kind].wounds
         lost, injured = bands.struck(self.params, band, taken, hurt, wounds, self.streams['people'])
         if lost or injured:

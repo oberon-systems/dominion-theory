@@ -91,10 +91,12 @@ class Stock(dict[str, list[Lot]]):
     def spoil(self, day: int, keeps: Mapping[str, int], ages: float = 1.0) -> dict[str, float]:
         """
         Drops the lots older than the days their resource keeps, aged at a pace; a lot of goods with a quality
-        lasts that share of the days. Gives what was dropped of every resource.
+        lasts that share of the days, and a resource with no days given never spoils. Gives what was dropped.
         """
         dropped: dict[str, float] = {}
         for name in list(self):
+            if name not in keeps:
+                continue
             kept: list[Lot] = []
             gone = 0.0
             for lot in self[name]:
@@ -106,6 +108,24 @@ class Stock(dict[str, list[Lot]]):
                 dropped[name] = gone
             self[name] = kept
         return dropped
+
+    def wear(self, name: str, uses: float, serves: float) -> tuple[float, float]:
+        """
+        Wears a good by its uses, the oldest lots first: a unit of quality 1 serves that many, one of a lower quality
+        that share. Gives the amount worn out and the uses no lot was left to serve.
+        """
+        worn = 0.0
+        for lot in self.get(name, []):
+            if uses <= 0:
+                break
+            served = serves * (1.0 if len(lot) < 3 else lot[2])
+            taken = min(lot[1], uses / served)
+            lot[1] -= taken
+            worn += taken
+            uses -= taken * served
+        if name in self:
+            self[name] = [lot for lot in self[name] if lot[1] > 0]
+        return worn, max(uses, 0.0)
 
 
 def _quality(lot: Lot) -> float | None:

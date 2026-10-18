@@ -20,12 +20,13 @@ def test_resources_are_those_of_their_documents() -> None:
     resources = load_params().resources
 
     assert {
-        name: (held.kind, held.property, held.weight_kg, held.lasts.model_dump()) for name, held in resources.items()
+        name: (held.kind, held.property, held.weight_kg, held.spoils and held.spoils.model_dump(), held.wears)
+        for name, held in resources.items()
     } == {
-        'water': ('water', 'water', 1.0, {'days': 5}),
-        'forage': ('food', 'food', 1.0, {'days': 3}),
-        'stones': ('goods', 'stone', 0.5, {'months': 6}),
-        'sticks': ('goods', 'wood', 1.0, {'months': 2}),
+        'water': ('water', 'water', 1.0, {'days': 5}, {}),
+        'forage': ('food', 'food', 1.0, {'days': 3}, {}),
+        'stones': ('goods', 'stone', 0.5, None, {'eaten': 150}),
+        'sticks': ('goods', 'wood', 1.0, {'years': 1}, {'nights': 150, 'attacks': 1}),
     }
 
 
@@ -421,13 +422,17 @@ def test_recovery_names_a_season_of_the_year() -> None:
     }
 
 
-def test_goods_wear_for_a_time_and_draw_a_quality_where_their_property_is_given() -> None:
+def test_goods_spoil_or_wear_by_their_uses_and_draw_a_quality_where_their_property_is_given() -> None:
     stones = load_params().resources['stones']
 
     assert stones.held == 'common'
     assert stones.keep is not None and stones.keep.model_dump() == {'per': 'head', 'amount': 0.3}
     assert stones.quality['mountain'].model_dump() == {'min': 0.8, 'max': 1.0}
-    assert refused({'resources.stones.wears': {'days': 0}})['path'] == 'resources.stones'
+    assert refused({'resources.stones.wears': {'walked': 1}})['path'] == 'resources.stones'
+    assert refused({'resources.stones.wears': {}})['path'] == 'resources.stones'
+    assert refused({'resources.sticks.spoils': {'days': 0}})['path'] == 'resources.sticks'
+    worn = {'kind': 'food', 'property': 'food', 'weight_kg': 1.0, 'spoils': {'days': 3}, 'wears': {'eaten': 1}}
+    assert refused({'resources.forage': worn})['path'] == 'resources.forage'
     assert refused({'resources.stones.kind': 'alpha'})['path'] == 'resources.stones'
     assert refused({'resources.stones.quality.hills.max': 1.5})['path'] == 'resources.stones.quality.hills.max'
     assert refused({'resources.stones.quality': {'forest': {'min': 0.5, 'max': 0.6}}}) == {

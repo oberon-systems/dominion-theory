@@ -137,20 +137,21 @@ ___
 
 Goods are resources, entries of the section `resources` like food and
 water, so the stores, weight and lots already work for them. A resource
-gains a kind, a holder, wear, a quality, a keep and a recipe.
+gains a kind, a holder, a time to spoil, the uses it wears by, a
+quality, a keep and a recipe.
 
-| Good         | Kind  | Held     | Weight | Wears after        | Quality         | Keep                | Made of                    |
-|--------------|-------|----------|--------|--------------------|-----------------|---------------------|----------------------------|
-| `stones`     | goods | common   | 0.5 kg | 6 months x quality | 0.5 to 1.0, by the place | 0.3 a head  | gathered                   |
-| `sticks`     | goods | common   | 1 kg   | 2 months           | 1               | 0.3 a head          | gathered                   |
-| `herbs`      | goods | common   | 0.1 kg | 2 months           | 1               | 0.2 a head          | gathered                   |
-| `cords`      | goods | common   | 0.1 kg | 4 months x quality | 0.5 to 1.0, by the place | 0.2 a head  | gathered                   |
-| `litters`    | goods | personal | 4 kg   | 4 months x quality | its materials'  | 1 a puller          | 3 sticks, 2 cords          |
-| `spears`     | goods | personal | 1.5 kg | 6 months x quality | its materials'  | 1 a hunter          | 1 stick, 1 stone, 1 cord   |
-| `hides`      | goods | common   | 2 kg   | 2 months           | 1               | -                   | hunted                     |
-| `clothes`    | goods | personal | 2 kg   | 8 months x quality | its materials'  | 1 a member          | 1 hide, 1 cord             |
-| `waterskins` | goods | personal | 0.5 kg | 6 months x quality | its materials'  | 1 an adult or elder | 1 hide, 1 cord             |
-| `meat`       | food  | common   | 1 kg   | 2 days             | -               | -                   | hunted                     |
+| Good         | Kind  | Held     | Weight | Spoils after       | Wears by                                   | Quality         | Keep                | Made of                    |
+|--------------|-------|----------|--------|--------------------|--------------------------------------------|-----------------|---------------------|----------------------------|
+| `stones`     | goods | common   | 0.5 kg | -                  | 150 food eaten                             | 0.5 to 1.0, by the place | 0.3 a head  | gathered                   |
+| `sticks`     | goods | common   | 1 kg   | 1 year             | 150 heads a night in camp, 1 an attack in camp | 1          | 0.3 a head          | gathered                   |
+| `herbs`      | goods | common   | 0.1 kg | 2 months           | 1 a cure                                   | 1               | 0.2 a head          | gathered                   |
+| `cords`      | goods | common   | 0.1 kg | 6 months x quality | - (spent in what is made)                  | 0.5 to 1.0, by the place | 0.2 a head  | gathered                   |
+| `litters`    | goods | personal | 4 kg   | -                  | 40 days pulled                             | its materials'  | 1 a puller          | 3 sticks, 2 cords          |
+| `spears`     | goods | personal | 1.5 kg | -                  | 60 hunts                                   | its materials'  | 1 a hunter          | 1 stick, 1 stone, 1 cord   |
+| `hides`      | goods | common   | 2 kg   | 2 months           | - (spent in what is made)                  | 1               | -                   | hunted                     |
+| `clothes`    | goods | personal | 2 kg   | 8 months x quality | -                                          | its materials'  | 1 a member          | 1 hide, 1 cord             |
+| `waterskins` | goods | personal | 0.5 kg | 6 months x quality | -                                          | its materials'  | 1 an adult or elder | 1 hide, 1 cord             |
+| `meat`       | food  | common   | 1 kg   | 2 days             | -                                          | -               | -                   | hunted                     |
 
 What each gives is in [Bonuses](#bonuses).
 
@@ -159,8 +160,16 @@ What each gives is in [Bonuses](#bonuses).
   sickens.
 - **Held** - `common` goods stay in the band's stores; `personal` goods
   are handed to a member, see [Handing out](#handing-out).
-- **Wears** - a time like `spoils`, stretched by the quality of the lot:
-  a stone of quality 0.5 lasts 3 months, one of 1.0 lasts 6.
+- **Spoils** - a time, as for food and water: a lot is lost when it is
+  over, used or not. For goods it is stretched by the quality of the
+  lot. A good without one never spoils.
+- **Wears** - the uses a unit of quality 1 serves, by use: a lot of a
+  lower quality serves that share, and the oldest lots are worn first.
+  A good held and not used does not wear. The uses are `eaten` (a unit
+  of food eaten), `nights` (a head that spends a night in camp) and
+  `attacks` (an encounter met in camp); the later steps add days
+  pulled, hunts and cures. A good has a time to spoil, uses, or both;
+  food and water have only the time.
 - **Quality** - the third number of a lot, beside the day and the
   amount. Lots of the same day and quality merge.
 - **Keep** - how much the band wants to hold, per head or per member of
@@ -207,15 +216,21 @@ range of the biome of the cell it came from, on a stream of its own,
 `goods`, and rounded to two places. The reed of a floodplain makes the
 best cords, the bast of a forest the worst.
 
-| Good     | Biome        | Quality      | Lasts                   |
-|----------|--------------|--------------|-------------------------|
-| `stones` | `mountain`   | 0.8 to 1.0   | about 5 to 6 months     |
-| `stones` | `outcrops`   | 0.65 to 0.9  | about 4 to 5.5 months   |
-| `stones` | `hills`      | 0.5 to 0.75  | about 3 to 4.5 months   |
-| `cords`  | `floodplain` | 0.8 to 1.0   | about 3 to 4 months     |
-| `cords`  | `swamp`      | 0.65 to 0.9  | about 2.5 to 3.5 months |
-| `cords`  | `grass`      | 0.55 to 0.8  | about 2 to 3 months     |
-| `cords`  | `forest`     | 0.5 to 0.75  | about 2 to 3 months     |
+| Good     | Biome        | Quality      | Serves                       |
+|----------|--------------|--------------|------------------------------|
+| `stones` | `mountain`   | 0.8 to 1.0   | cuts 120 to 150 food         |
+| `stones` | `outcrops`   | 0.65 to 0.9  | cuts about 100 to 135 food   |
+| `stones` | `hills`      | 0.5 to 0.75  | cuts about 75 to 110 food    |
+| `cords`  | `floodplain` | 0.8 to 1.0   | spoils in about 5 to 6 months |
+| `cords`  | `swamp`      | 0.65 to 0.9  | spoils in about 4 to 5.5 months |
+| `cords`  | `grass`      | 0.55 to 0.8  | spoils in about 3.5 to 5 months |
+| `cords`  | `forest`     | 0.5 to 0.75  | spoils in about 3 to 4.5 months |
+
+A band of 15 eats about 13 food a day with stones held, so its 4.5
+stones of the hills last some 30 days and those of a mountain some 45.
+Its sticks keep 15 heads a night, 0.1 of a stick, and lose one more to
+every attack in camp; on the march they do not wear. Whatever wore out
+or spoiled is told in whole units: the rest waits for the next.
 
 Every biome that gives a new property lists the resource, and every
 property needs its value in `decisions.unknown`, what a band expects of
@@ -274,7 +289,7 @@ below its keep is made while the materials of its recipe are held.
   a band of 15 adults makes 3 goods in an evening and 3 in the night.
 - The materials are taken from the oldest lots. A made good takes the
   mean quality of its materials, 1 for those without one: a spear of a
-  mountain stone and a reed cord lasts longest, a waterskin is as good
+  mountain stone and a reed cord serves longest, a waterskin is as good
   as its cord allows. Every made good but the spear needs a cord, so
   the reed of a floodplain is worth a detour.
 - Every good made is in the event `goods-made` of that tick.
@@ -324,7 +339,8 @@ pace. There is no death of cold; the frailty of winter stands for it.
 
 The parameters with the bonuses laid over them are computed once and
 kept, like the census, until the goods, the members or the roles change:
-a gathering, a meal, the wear of a day and the handing out forget them.
+a gathering, a meal, the wear and spoiling of goods and the handing out
+forget them.
 The pluses of a path are added before its times multiply, and a plus of
 a span, like the year of `age.begins`, is laid in days. A bonus of
 seasons holds only where the code that reads it names the season.
@@ -406,6 +422,7 @@ update of the tick, a line of the client from the catalogues `en` and
 |------------------|--------------------------------|----------------------------------------|
 | `skill-learned`  | `skill`                        | The band has learned stone tools.      |
 | `goods-made`     | `resource`, `count`            | 2 spears were made.                    |
+| `goods-spoiled`  | `resource`, `count`            | Spoiled: sticks 2.                     |
 | `goods-worn`     | `resource`, `count`            | Worn out: stones 3.                    |
 | `people-sickened`| `count`, `cause`               | 2 people are sick from raw meat.       |
 | `people-cured`   | `count`                        | Herbs helped 2 people.                 |
@@ -506,7 +523,7 @@ resources:
     kind: goods
     property: stone
     weight_kg: 0.5
-    wears: {months: 6}
+    wears: {eaten: 150}
     quality: {mountain: {min: 0.8, max: 1.0}, outcrops: {min: 0.65, max: 0.9}, hills: {min: 0.5, max: 0.75}}
     keep: {per: head, amount: 0.3}
     gives:
@@ -516,16 +533,17 @@ resources:
     kind: goods
     property: wood
     weight_kg: 1.0
-    wears: {months: 2}
+    spoils: {years: 1}
+    wears: {nights: 150, attacks: 1}
     keep: {per: head, amount: 0.3}
     gives:
       - {to: band, path: units.band.threat.camp, times: 0.8}
-  herbs: {kind: goods, property: plants, weight_kg: 0.1, wears: {months: 2}, keep: {per: head, amount: 0.2}}
+  herbs: {kind: goods, property: plants, weight_kg: 0.1, spoils: {months: 2}, wears: {cures: 1}, keep: {per: head, amount: 0.2}}
   cords:
     kind: goods
     property: plants
     weight_kg: 0.1
-    wears: {months: 4}
+    spoils: {months: 6}
     quality:
       floodplain: {min: 0.8, max: 1.0}
       swamp: {min: 0.65, max: 0.9}
@@ -536,7 +554,7 @@ resources:
     kind: goods
     held: personal
     weight_kg: 4.0
-    wears: {months: 4}
+    wears: {pulled: 40}
     keep: {per: puller, amount: 1}
     made: {sticks: 3, cords: 2}
     gives:
@@ -547,15 +565,15 @@ resources:
     kind: goods
     held: personal
     weight_kg: 1.5
-    wears: {months: 6}
+    wears: {hunts: 60}
     keep: {per: hunter, amount: 1}
     made: {sticks: 1, stones: 1, cords: 1}
-  hides: {kind: goods, weight_kg: 2.0, wears: {months: 2}}
+  hides: {kind: goods, weight_kg: 2.0, spoils: {months: 2}}
   clothes:
     kind: goods
     held: personal
     weight_kg: 2.0
-    wears: {months: 8}
+    spoils: {months: 8}
     keep: {per: member, amount: 1}
     made: {hides: 1, cords: 1}
     gives:
@@ -568,7 +586,7 @@ resources:
     kind: goods
     held: personal
     weight_kg: 0.5
-    wears: {months: 6}
+    spoils: {months: 6}
     keep: {per: adult, amount: 1}
     made: {hides: 1, cords: 1}
     gives:
@@ -617,8 +635,9 @@ A game does not start from skills and goods that do not add up.
   resources of the section `resources`.
 - Everything a skill opens exists: a resource, a recipe, a role, a
   proposal.
-- A good of the kind `goods` has a time to wear; a range of quality lies
-  in 0 to 1 and names biomes that give its property.
+- A good of the kind `goods` has a time to spoil, uses to wear by, or
+  both, and the uses are known ones; a range of quality lies in 0 to 1
+  and names biomes that give its property.
 - A recipe names resources only, with amounts above 0, and no good is
   made of itself.
 - A bonus names a path of the tree that holds a number, and `to` is

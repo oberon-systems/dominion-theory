@@ -372,23 +372,26 @@ ___
 ## Stores
 
 A band carries food, water and goods, and each resource is an entry of
-the section `resources`: a kind, a weight per unit and a time after which
-it spoils or, for goods, wears out.
+the section `resources`: a kind, a weight per unit, a time after which
+it spoils and, for goods, the uses it wears out by.
 
-| Resource | Kind    | Unit    | Weight | Spoils or wears after |
-|----------|---------|---------|--------|-----------------------|
-| `water`  | `water` | a litre | 1 kg   | 5 days                |
-| `forage` | `food`  | a kilo  | 1 kg   | 3 days                |
-| `stones` | `goods` | a stone | 0.5 kg | 60 days x quality     |
-| `sticks` | `goods` | a stick | 1 kg   | 20 days               |
+| Resource | Kind    | Unit    | Weight | Spoils after | Wears out by                               |
+|----------|---------|---------|--------|--------------|--------------------------------------------|
+| `water`  | `water` | a litre | 1 kg   | 5 days       | -                                          |
+| `forage` | `food`  | a kilo  | 1 kg   | 3 days       | -                                          |
+| `stones` | `goods` | a stone | 0.5 kg | -            | 150 food eaten x quality                   |
+| `sticks` | `goods` | a stick | 1 kg   | 100 days     | 150 heads a night in camp, 1 an attack in camp |
 
 Stores are kept in lots, one per resource and day gathered. The oldest
 lot is eaten first, and a lot older than its time is thrown away in the
 phase `world` of the first tick of a day. A band holds at most five lots
 of water and three of forage, so the state stays small. A lot of goods
-with a quality is `[day, amount, quality]`, and lasts that share of its
-time; the goods worn out are told by the event `goods-worn`. In a winter
-camp goods wear at the pace food spoils there.
+with a quality is `[day, amount, quality]`, and serves that share of its
+uses or keeps that share of its time. A good held and not used does not
+wear. The goods spoiled and worn out are told in whole units by the
+events `goods-spoiled` and `goods-worn`; the rest of a unit waits in the
+band's `spoiled` and `worn`. In a winter camp goods spoil at the pace
+food does there.
 
 An adult carries 6 kg, a child a quarter of it and an elder half. A
 band never gathers more than it can carry: what does not fit is left on
@@ -775,8 +778,8 @@ A game does not start from a band that does not add up.
 
 - A resource is of a kind, `food`, `water` or `goods`; it names a
   property of every era that uses it, if it is gathered, and a positive
-  weight. Food and water have a time to spoil, goods a time to wear, and
-  neither is zero.
+  weight. Food and water have a time to spoil, goods a time to spoil,
+  uses to wear by, or both; no time is zero.
 - A biome lists only resources of the section `resources` that are
   gathered, and `gathering` names only those.
 - The start population is not below `population.least`.

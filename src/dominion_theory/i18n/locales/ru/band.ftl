@@ -12,4 +12,5 @@ skill-wintering = зимовать
 skill-stone_tools = обрабатывать камень
 skill-sticks = заготавливать палки
 
-goods-worn = Износились: { NAME("resource", $resource) } { NUMBER($count, maximumFractionDigits: 1) }.
+goods-spoiled = Испортились: { NAME("resource", $resource) } { $count }.
+goods-worn = Износились: { NAME("resource", $resource) } { $count }.

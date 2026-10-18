@@ -4,7 +4,7 @@ import numpy as np
 import pytest
 
 from dominion_theory.content import Params, load_params
-from dominion_theory.engine import Game, StepResult, Window, decisions
+from dominion_theory.engine import Game, StepResult, Window, decisions, encounters
 from dominion_theory.engine import band as bands
 from dominion_theory.engine.band import Action, Member, camp, gathering
 from dominion_theory.engine.stock import Stock
@@ -37,7 +37,7 @@ SPEARS = {
     'kind': 'goods',
     'held': 'personal',
     'weight_kg': 1.5,
-    'wears': {'months': 6},
+    'wears': {'attacks': 1},
     'keep': {'per': 'adult', 'amount': 1.0},
     'gives': [{'to': 'member', 'path': 'units.band.people.injury.per_day', 'times': 0.5}],
 }
@@ -108,17 +108,65 @@ def test_a_gathering_of_goods_stops_at_their_keep(params: Params) -> None:
     assert band(game).held('sticks') == pytest.approx(0.3 * 15)
 
 
-def test_stones_wear_out_by_their_quality_and_the_band_is_told(params: Params) -> None:
+def test_stones_wear_by_the_food_they_cut_and_a_poor_one_cuts_less(params: Params) -> None:
+    held = holding({'stones': [[0.0, 1.0, 0.5]], 'forage': [[0.0, 20.0]], 'water': [[0.0, 20.0]]})
+
+    bands.eat(params, held)
+
+    eaten = 20.0 - held.held('forage')
+    assert eaten > 0
+    assert held.held('stones') == pytest.approx(1.0 - eaten / 75)
+    assert held.worn == pytest.approx({'stones': eaten / 75})
+
+
+def test_stones_kept_in_the_stores_do_not_wear_while_nothing_is_eaten(params: Params) -> None:
+    held = holding({'stones': [[0.0, 1.0, 0.5]]})
+
+    bands.eat(params, held)
+    bands.spoil(params, held, 1000)
+
+    assert held.held('stones') == 1.0
+    assert held.worn == {} and held.spoiled == {}
+
+
+def test_sticks_wear_by_the_heads_they_keep_at_night_and_break_in_attacks(params: Params) -> None:
+    held = holding({'sticks': [[0.0, 3.0]]})
+
+    bands.wear(params, held, bands.NIGHTS, 15)
+    assert held.held('sticks') == pytest.approx(2.9)
+    bands.wear(params, held, bands.ATTACKS, 1)
+    assert held.held('sticks') == pytest.approx(1.9)
+    assert held.worn == pytest.approx({'sticks': 1.1})
+
+
+def test_an_attack_in_camp_breaks_a_stick_and_one_on_the_march_does_not(
+    params: Params, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setattr(encounters, 'strike', lambda *_: ('predator', 0.0, 0.0))
+    game = land(params, at=(WEST + 2, NORTH))
+    band(game).stores = Stock({'sticks': [[0.0, 3.0]], 'forage': [[0.0, 90.0]], 'water': [[0.0, 90.0]]})
+
+    do(game, camp())
+    assert band(game).held('sticks') == pytest.approx(2.0)
+    do(game, bands.moving('west'))
+    assert band(game).held('sticks') == pytest.approx(2.0)
+
+
+def test_goods_lost_are_told_in_whole_units_and_the_rest_waits(params: Params) -> None:
     game = land(params)
-    band(game).stores = Stock({'stones': [[0.0, 1.0, 0.5], [0.0, 2.0, 1.0]]})
-    game.clock.parts = 31 * DAY
+    band(game).stores = Stock({'sticks': [[0.0, 2.5]]})
+    band(game).worn = {'stones': 1.2}
+    game.clock.parts = 101 * DAY
 
     result = do(game, camp())
 
-    assert [event.values for event in result.events if event.key == 'goods-worn'] == [
-        {'resource': 'stones', 'count': 1.0}
+    lost = [(event.key, event.values) for event in result.events if event.key.startswith('goods-')]
+    assert lost == [
+        ('goods-spoiled', {'resource': 'sticks', 'count': 2}),
+        ('goods-worn', {'resource': 'stones', 'count': 1}),
     ]
-    assert band(game).held('stones') == 2.0
+    assert band(game).spoiled == pytest.approx({'sticks': 0.5})
+    assert band(game).worn == pytest.approx({'stones': 0.2})
 
 
 def test_a_band_without_goods_lives_by_the_tree_as_it_is(params: Params) -> None:

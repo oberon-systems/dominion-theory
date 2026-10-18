@@ -5,8 +5,8 @@ resources:
     kind: goods
     property: stone
     weight_kg: 0.5
-    # A stone of quality 0.5 lasts half the time, one of quality 1 all of it.
-    wears: {months: 6}
+    # The food a stone of quality 1 cuts; one of quality 0.5 cuts half of it.
+    wears: {eaten: 150}
     quality:
       mountain: {min: 0.8, max: 1.0}
       outcrops: {min: 0.65, max: 0.9}
@@ -19,7 +19,9 @@ resources:
     kind: goods
     property: wood
     weight_kg: 1.0
-    wears: {months: 2}
+    spoils: {years: 1}
+    # The heads a stick keeps for a night in camp, and one stick broken by each attack there.
+    wears: {nights: 150, attacks: 1}
     keep: {per: head, amount: 0.3}
     gives:
       - {to: band, path: units.band.threat.camp, times: 0.8}

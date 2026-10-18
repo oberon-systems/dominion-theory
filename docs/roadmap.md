@@ -347,6 +347,8 @@ The first unit, and the rules of indirect control.
   the vote goes, how what the player carried is judged and moves status,
   what abstaining costs, banishment at zero.
 - Chance encounters, driven by the threat of the biome.
+- Skills learned by doing, the goods they make and the bonuses the
+  goods give; see [Skills learned by doing](#skills-learned-by-doing).
 
 **How:**
 
@@ -361,7 +363,7 @@ The first unit, and the rules of indirect control.
 
 **Docs**: `docs/units/band.md` (rewritten), `docs/game/01_bands.md`
 (rewritten), `docs/game/indirect_control.md`, `docs/game/decisions.md`,
-`docs/values/` kept current.
+`docs/game/skills.md`, `docs/values/` kept current.
 
 **Done**: one band lives on a map headless for a long run: it moves, gathers,
 camps, starves when it should. A proposal made over the API changes what
@@ -613,41 +615,32 @@ less often. The table of pairs is data too.
 
 ### Skills learned by doing
 
-A band learns by living, not by a tree of research: what it does, where
-it does it and what happens to it add experience, and a skill comes when
-enough of it is gathered. A skill may need another first. Skills are
-data: what teaches them, what they need and what they change.
+Placed in stage 2 by the user on 2026-10-18, before the stage is
+closed; the design is [Skills](game/skills.md). A band learns by living,
+not by a tree of research: what it does, where it does it and what it
+lives through teach it. Knowledge opens a gathering, a recipe, a role
+or a proposal; the goods it makes and holds give the bonuses, weigh and
+wear out. Skills, goods and bonuses are data.
 
-Raised by the user:
+The first set, from the user's list: orientation, wintering, stone
+tools, sticks, litters, herbs, stone spears with the role of the
+hunter, and waterskins. Fire and how to make it is left to the tribes
+of stage 5, and drying and smoking go with it.
 
-- **Spears of sticks** - from long time in a forest. Better hunting and
-  defence; needed for traps.
-- **Litters** - from long walking with full loads. A band carries more.
-- **Cages and traps** - from a forest, with spears. A predator met can be
-  caught instead of only fought, by chance.
+Raised for the band era and left for later; each is discussed when it
+is reached:
+
+- **Cages and traps** - from a forest, with spears. A predator met can
+  be caught instead of only fought, by chance.
 - **Dogs** - from caught wolves. A band with dogs meets predators less
   often and is stronger in a fight with a band, and the dogs eat and
   drink.
-
-Proposed for the band era and agreed in principle by the user on
-2026-10-14; the list is discussed when the item is reached:
-
-- **Fire** - from camping, most in the cold. Food goes further, and the
-  cold of winter costs less.
-- **Drying and smoking** - from fire and much gathering of food. Forage
-  spoils later.
-- **Skins for water** - from gathering water often. More water is
-  carried and it keeps longer.
-- **Stone tools** - from outcrops and hills. Gathering is faster; needed
-  for spears.
 - **Fishing** - from gathering in shallows and on rivers. Food from
   water cells.
 - **Swimming and rafts** - from time at the shore and on rivers. Fewer
   drownings; the bed of a great river can be crossed.
-- **Herb lore** - from gathering in swamps, marshes and forests. Fewer
-  poisonings, and hunger and thirst kill fewer.
-- **Hides and shelters** - from winters in tundra and snow. Winter costs
-  less, and camping rests better.
+- **Shelters** - from winters in tundra and snow. Winter costs less,
+  and camping rests better.
 - **Climbing** - from hills and mountains. Fewer accidents, faster on
   steep land.
 - **Tracking** - from encounters with predators survived. Hunting gives

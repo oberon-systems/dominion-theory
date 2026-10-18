@@ -52,6 +52,8 @@ is no number of a band in the code.
 | `route`      | the cells still ahead to the place of a go, and the day they were laid |
 
 Stage 2 puts one band on the map, the player's. Other bands are stage 3.
+What a band learns, `lore`, and the goods its members hold, `kit`, are
+told in [Skills](../game/skills.md#stocks-and-holders).
 
 ___
 
@@ -136,6 +138,9 @@ nannies kept the children while everyone starved; now they go out.
 A band rarely holds more than 2 days at the end of a day, so a nanny
 sent out while the stores fed less than a day came back only once they
 fed 3 days, which meant she almost never came back.
+
+The role `hunter` opens with the skill of spears; who hunts and when is
+told in [Skills](../game/skills.md#hunting).
 
 Children and elders are gatherers who gather nothing for their stage. A
 role is meant to grow with the doing - a member who fetches water for
@@ -370,6 +375,11 @@ of water and three of forage, so the state stays small.
 An adult carries 6 kg, a child a quarter of it and an elder half. A
 band never gathers more than it can carry: what does not fit is left on
 the cell and the stock is not lowered for it.
+
+The goods a band learns to gather and make - stones, sticks, herbs,
+cords, meat and the personal goods of its members - are resources of
+the same stores, with wear and quality; see
+[Skills](../game/skills.md#goods).
 
 ___
 

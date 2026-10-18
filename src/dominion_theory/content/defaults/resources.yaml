@@ -1,3 +1,25 @@
 resources:
-  water: {property: water, weight_kg: 1.0, spoils: {days: 5}}
-  forage: {property: food, weight_kg: 1.0, spoils: {days: 3}}
+  water: {kind: water, property: water, weight_kg: 1.0, spoils: {days: 5}}
+  forage: {kind: food, property: food, weight_kg: 1.0, spoils: {days: 3}}
+  stones:
+    kind: goods
+    property: stone
+    weight_kg: 0.5
+    # A stone of quality 0.5 lasts half the time, one of quality 1 all of it.
+    wears: {months: 6}
+    quality:
+      mountain: {min: 0.8, max: 1.0}
+      outcrops: {min: 0.65, max: 0.9}
+      hills: {min: 0.5, max: 0.75}
+    keep: {per: head, amount: 0.3}
+    gives:
+      - {to: band, path: units.band.consumption_per_day.forage, times: 0.9}
+      - {to: band, path: units.band.people.age.begins, plus: {years: 1}}
+  sticks:
+    kind: goods
+    property: wood
+    weight_kg: 1.0
+    wears: {months: 2}
+    keep: {per: head, amount: 0.3}
+    gives:
+      - {to: band, path: units.band.threat.camp, times: 0.8}

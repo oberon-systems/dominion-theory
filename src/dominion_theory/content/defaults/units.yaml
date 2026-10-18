@@ -70,7 +70,7 @@ units:
         child_survives: 0.5
         mother_dies: 0.05
     carry_kg: 6.0
-    gathering: {forage: 3.0, water: 4.0}
+    gathering: {forage: 3.0, water: 4.0, stones: 0.5, sticks: 1.0}
     consumption_per_day: {forage: 1.0, water: 1.0}
     speed:
       base: 1.2
@@ -93,6 +93,8 @@ units:
     unease: {gain: 0.1, fade: 0.2}
     route: {margin: 4, threat: 2.0, hunger: 1.0, thirst: 1.0}
     shelter: {encounter: 0.5, frailty: 0.5}
+    # What the guard of the band leaves of the threat it meets, in camp and on the march.
+    threat: {camp: 1.0, march: 1.0}
     winter_camp:
       # Offered through the winter and the last five days of the autumn, enough to build before it.
       offered: {seasons: [winter], before: {days: 5}}
@@ -113,12 +115,14 @@ units:
         hungry: {days: 0, need: 0.8}
       distance: 0.25
       horizon: 2
-      unknown: {food: 0.5, water: 0.5, threat: 0.4, passability: 0.7}
+      unknown: {food: 0.5, water: 0.5, threat: 0.4, passability: 0.7, stone: 0.1, wood: 0.2}
       idle: 0.05
       wander: {days: 1}
       weights:
         hunger: 1.5
         thirst: 1.2
+        # A good wanted pulls the gatherers of a fed band; a hungry band wants none.
+        goods: 0.4
         safety: 2.0
         move: 3.0
         momentum: 0.1

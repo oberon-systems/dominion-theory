@@ -204,6 +204,7 @@ class Unit(BaseModel):
     injured: int
     wounds: dict[str, int]
     stores: dict[str, float]
+    goods: dict[str, float]
     fatigue: float
     states: list[str]
     action: Action

@@ -17,6 +17,7 @@ QUIET = {
     'units.band.sight': 0,
     'units.band.consumption_per_day.forage': 0.0,
     'units.band.consumption_per_day.water': 0.0,
+    'units.band.decisions.weights.goods': 0.0,
     'units.band.people.birth.conceive_per_day': 0.0,
     'units.band.people.injury.per_day': 0.0,
     'units.band.people.age.per_year': 0.0,

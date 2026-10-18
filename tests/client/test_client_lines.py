@@ -51,12 +51,20 @@ SAMPLES: dict[str, dict[str, Any]] = {
     'seat-praised': {'born': 1, 'status': 55.0},
     'seat-banished': {},
     'skill-learned': {'skill': 'skill-orientation'},
+    'goods-worn': {'resource': 'stones', 'count': 3.0},
 }
 
 
 def test_a_message_becomes_words_in_the_language() -> None:
     assert words(SEASON, 'en') == 'Year 1: summer has come.'
     assert words(SEASON, 'ru') == 'Год 1: наступило лето.'
+
+
+def test_goods_worn_are_told_with_their_amount() -> None:
+    worn = {'key': 'goods-worn', 'values': {'resource': 'stones', 'count': 3.0}}
+
+    assert words(worn, 'en') == 'Worn out: stones 3.'
+    assert words(worn, 'ru') == 'Износились: камни 3.'
 
 
 def test_a_message_without_values_is_rendered() -> None:
@@ -159,6 +167,17 @@ def test_a_line_without_events_is_the_date_alone() -> None:
             {**BAND, 'lore': ['wintering']},
             'ru',
             '15 человек, умеет зимовать, подножный корм 22,5, вода 30, стоит лагерем.',
+        ),
+        (
+            {**BAND, 'stores': {'forage': 22.5, 'water': 30.0, 'stones': 4.0}, 'goods': {'stones': 4.0, 'sticks': 1.5}},
+            'en',
+            '15 people, forage 22.5, water 30, stones 4, sticks 1.5, camps.',
+        ),
+        (
+            {**BAND, 'lore': ['stone_tools', 'sticks'], 'goods': {'stones': 4.0}},
+            'ru',
+            '15 человек, умеет обрабатывать камень, заготавливать палки, подножный корм 22,5, вода 30, камни 4, '
+            'стоит лагерем.',
         ),
     ],
 )

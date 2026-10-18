@@ -9,6 +9,8 @@ from dominion_theory.engine import Game, Window
 from dominion_theory.engine.streams import Streams
 from dominion_theory.planet import biome_names
 
+# The stocks of stone and wood no cell here has lost.
+FULL = {'stone': 1.0, 'wood': 1.0}
 WEST = 100
 NORTH = 50
 ROWS = (('forest', 'forest', 'water', 'mountain'), ('grass', 'grass', 'grass', 'grass'))
@@ -134,11 +136,11 @@ def test_a_stripped_cell_is_full_after_exactly_its_recovery_time(game: Game) -> 
     kept = len(game.cells)
     last = game.step().changes['cells']
 
-    assert game.stocked == ('water', 'food')
+    assert game.stocked == ('water', 'food', 'stone', 'wood')
     for tick, cells in enumerate(seen, start=1):
-        assert cells == [pytest.approx({'x': WEST, 'y': NORTH, 'water': tick / ticks, 'food': 1.0})]
+        assert cells == [pytest.approx({'x': WEST, 'y': NORTH, 'water': tick / ticks, 'food': 1.0, **FULL})]
     assert kept == 1
-    assert last == [{'x': WEST, 'y': NORTH, 'water': 1.0, 'food': 1.0}]
+    assert last == [{'x': WEST, 'y': NORTH, 'water': 1.0, 'food': 1.0, **FULL}]
     assert len(game.cells) == 0
     assert game.snapshot()['cells'] == []
     assert game.step().changes['cells'] == []
@@ -157,11 +159,11 @@ def test_two_properties_of_a_cell_recover_each_at_its_pace(game: Game) -> None:
     before = len(game.cells)
     last = game.step().changes['cells']
 
-    assert early == [pytest.approx({'x': WEST, 'y': NORTH + 1, 'water': 1.0, 'food': 0.15})]
+    assert early == [pytest.approx({'x': WEST, 'y': NORTH + 1, 'water': 1.0, 'food': 0.15, **FULL})]
     assert kept == [{'x': WEST, 'y': NORTH + 1, 'stocks': {'food': pytest.approx(0.15)}}]
-    assert late == [pytest.approx({'x': WEST, 'y': NORTH + 1, 'water': 1.0, 'food': 0.99})]
+    assert late == [pytest.approx({'x': WEST, 'y': NORTH + 1, 'water': 1.0, 'food': 0.99, **FULL})]
     assert before == 1
-    assert last == [{'x': WEST, 'y': NORTH + 1, 'water': 1.0, 'food': 1.0}]
+    assert last == [{'x': WEST, 'y': NORTH + 1, 'water': 1.0, 'food': 1.0, **FULL}]
     assert len(game.cells) == 0
 
 
@@ -170,7 +172,7 @@ def test_a_cell_without_one_of_the_stocks_reports_it_full(game: Game) -> None:
 
     (cell,) = game.step().changes['cells']
 
-    assert cell == pytest.approx({'x': WEST + 2, 'y': NORTH, 'water': 1.0, 'food': 0.5 + 1 / (30 * DAY)})
+    assert cell == pytest.approx({'x': WEST + 2, 'y': NORTH, 'water': 1.0, 'food': 0.5 + 1 / (30 * DAY), **FULL})
 
 
 def test_changed_cells_come_by_coordinate(game: Game) -> None:

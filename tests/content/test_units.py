@@ -19,9 +19,13 @@ def refused(overrides: dict[str, object]) -> dict[str, object]:
 def test_resources_are_those_of_their_documents() -> None:
     resources = load_params().resources
 
-    assert {name: (held.property, held.weight_kg, held.spoils.model_dump()) for name, held in resources.items()} == {
-        'water': ('water', 1.0, {'days': 5}),
-        'forage': ('food', 1.0, {'days': 3}),
+    assert {
+        name: (held.kind, held.property, held.weight_kg, held.lasts.model_dump()) for name, held in resources.items()
+    } == {
+        'water': ('water', 'water', 1.0, {'days': 5}),
+        'forage': ('food', 'food', 1.0, {'days': 3}),
+        'stones': ('goods', 'stone', 0.5, {'months': 6}),
+        'sticks': ('goods', 'wood', 1.0, {'months': 2}),
     }
 
 
@@ -37,9 +41,10 @@ def test_band_is_the_one_of_its_document() -> None:
     assert band.population.wellbeing.model_dump() == {'food': 1.0, 'water': 1.0, 'safety': 1.0, 'rest': 1.0}
     assert (band.carry_kg, band.gathering, band.consumption_per_day) == (
         6.0,
-        {'forage': 3.0, 'water': 4.0},
+        {'forage': 3.0, 'water': 4.0, 'stones': 0.5, 'sticks': 1.0},
         {'forage': 1.0, 'water': 1.0},
     )
+    assert band.threat.model_dump() == {'camp': 1.0, 'march': 1.0}
     assert (band.speed.base, band.speed.slowdown, band.speed.slowest) == (1.2, 0.03, 0.3)
     assert band.fatigue.model_dump() == {
         'move': 0.3,
@@ -85,7 +90,7 @@ def test_band_is_the_one_of_its_document() -> None:
         'heavy': {'days': 20, 'pace': 0.4, 'gathers': 0.2},
     }
     weights = band.decisions.weights
-    assert (weights.hunger, weights.safety, weights.move) == (1.5, 2.0, 3.0)
+    assert (weights.hunger, weights.goods, weights.safety, weights.move) == (1.5, 0.4, 2.0, 3.0)
     assert {name: held.model_dump() for name, held in band.decisions.levels.items()} == {
         'sated': {'days': 2.0, 'need': 0.1},
         'fed': {'days': 1.0, 'need': 0.4},
@@ -101,7 +106,7 @@ def test_unknown_unit_is_a_key_error() -> None:
 def test_era_holds_what_a_cell_gives_and_how_winter_slows_it() -> None:
     band = load_params().eras.band
 
-    assert band.capacity == {'food': 100.0, 'water': 2000.0}
+    assert band.capacity == {'food': 100.0, 'water': 2000.0, 'stone': 50.0, 'wood': 100.0}
     assert band.recovery == {'food': {'winter': 0.25}}
 
 
@@ -189,7 +194,7 @@ def test_resource_names_a_property_of_the_era() -> None:
     assert refused({'resources.forage.property': 'soil'}) == {
         'path': 'resources.forage.property',
         'found': 'soil',
-        'expected': 'a property of the era band: water, food, threat, passability',
+        'expected': 'a property of the era band: water, food, threat, passability, stone, wood',
     }
 
 
@@ -203,7 +208,7 @@ def test_band_names_only_resources_that_exist(section: str) -> None:
     assert refused({f'{BAND}.{section}': {'stone': 1.0}}) == {
         'path': f'{BAND}.{section}',
         'found': 'stone',
-        'expected': 'one of water, forage',
+        'expected': 'one of water, forage, stones, sticks',
     }
 
 
@@ -365,7 +370,7 @@ def test_status_starts_within_its_scale() -> None:
     [
         ('biomes', ['alpha'], None),
         ('actions', ['swim'], 'one of move, roam, gather, camp, build'),
-        ('resources', ['stone'], 'one of water, forage'),
+        ('resources', ['stone'], 'one of water, forage, stones, sticks'),
     ],
 )
 def test_encounter_names_what_exists(section: str, value: list[str], expected: str | None) -> None:
@@ -395,7 +400,7 @@ def test_era_names_its_own_properties(section: str) -> None:
     assert refused({f'eras.band.{section}': value}) == {
         'path': f'eras.band.{section}',
         'found': 'soil',
-        'expected': 'one of water, food, threat, passability',
+        'expected': 'one of water, food, threat, passability, stone, wood',
     }
 
 
@@ -414,3 +419,54 @@ def test_recovery_names_a_season_of_the_year() -> None:
         'found': 'monsoon',
         'expected': 'one of spring, summer, autumn, winter',
     }
+
+
+def test_goods_wear_for_a_time_and_draw_a_quality_where_their_property_is_given() -> None:
+    stones = load_params().resources['stones']
+
+    assert stones.held == 'common'
+    assert stones.keep is not None and stones.keep.model_dump() == {'per': 'head', 'amount': 0.3}
+    assert stones.quality['mountain'].model_dump() == {'min': 0.8, 'max': 1.0}
+    assert refused({'resources.stones.wears': {'days': 0}})['path'] == 'resources.stones'
+    assert refused({'resources.stones.kind': 'alpha'})['path'] == 'resources.stones'
+    assert refused({'resources.stones.quality.hills.max': 1.5})['path'] == 'resources.stones.quality.hills.max'
+    assert refused({'resources.stones.quality': {'forest': {'min': 0.5, 'max': 0.6}}}) == {
+        'path': 'resources.stones.quality',
+        'found': 'forest',
+        'expected': 'a biome that gives the property stone',
+    }
+
+
+def test_a_keep_counts_members_of_a_kind_and_a_recipe_names_other_resources() -> None:
+    assert refused({'resources.sticks.keep.per': 'alpha'})['path'] == 'resources.sticks.keep.per'
+    assert refused({'resources.sticks.made': {'sticks': 1.0}})['path'] == 'resources.sticks.made'
+    assert refused({'resources.sticks.made': {'alpha': 1.0}})['path'] == 'resources.sticks.made'
+
+
+@pytest.mark.parametrize(
+    ('bonus', 'path'),
+    [
+        ({'to': 'band', 'path': 'units.band.speed', 'times': 0.8}, 'resources.sticks.gives.path'),
+        ({'to': 'band', 'path': 'units.band.alpha', 'times': 0.8}, 'resources.sticks.gives.path'),
+        ({'to': 'band', 'path': 'units.band.carry_kg', 'plus': {'days': 1}}, 'resources.sticks.gives.path'),
+        ({'to': 'band', 'path': 'units.band.memory', 'plus': 1.0}, 'resources.sticks.gives.path'),
+        ({'to': 'member', 'path': 'units.band.carry_kg', 'times': 2.0}, 'resources.sticks.gives.to'),
+        ({'to': 'alpha', 'path': 'units.band.carry_kg', 'times': 2.0}, 'resources.sticks.gives.to'),
+        ({'to': 'band', 'path': 'units.band.carry_kg', 'times': 2.0, 'sex': 'alpha'}, 'resources.sticks.gives.sex'),
+        (
+            {'to': 'band', 'path': 'units.band.carry_kg', 'times': 2.0, 'seasons': ['alpha']},
+            'resources.sticks.gives.seasons',
+        ),
+    ],
+)
+def test_a_bonus_lies_on_the_band_or_a_member_over_a_number_of_the_tree(bonus: dict[str, object], path: str) -> None:
+    assert refused({'resources.sticks.gives': [bonus]})['path'] == path
+
+
+def test_a_bonus_of_a_span_is_a_span() -> None:
+    gives = load_params().resources['stones'].gives
+
+    assert [(bonus.path, bonus.model_dump(exclude_none=True)) for bonus in gives][1] == (
+        'units.band.people.age.begins',
+        {'to': 'band', 'path': 'units.band.people.age.begins', 'plus': {'years': 1}, 'seasons': ()},
+    )

@@ -24,4 +24,6 @@ biomes:
             seasons:
               spring: {times: 0.7}
               winter: {times: 0.6}
+          stone: {base: 0.0}
+          wood: {base: 0.0}
         resources: [water, forage]

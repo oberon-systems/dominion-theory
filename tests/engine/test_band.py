@@ -107,7 +107,7 @@ def band(game: Game) -> bands.Band:
 
 
 def told(result: StepResult) -> list[tuple[str, dict[str, Any]]]:
-    return [(event.key, event.values) for event in result.events if event.key not in CALENDAR]
+    return [(event.key, event.values) for event in result.events if event.key not in (*CALENDAR, 'skill-learned')]
 
 
 def counted(game: Game) -> dict[str, float]:
@@ -373,6 +373,8 @@ def test_the_band_knows_what_lies_within_its_sight(params: Params) -> None:
         'food': pytest.approx(0.9),
         'threat': pytest.approx(0.4),
         'passability': pytest.approx(0.6),
+        'stone': 0.0,
+        'wood': pytest.approx(0.8),
         'seen': 20,
     }
 
@@ -715,7 +717,7 @@ def test_a_restored_game_carries_the_band_in_the_middle_of_a_day(params: Params)
 def test_a_snapshot_of_the_format_before_the_band_is_refused(params: Params) -> None:
     snapshot = land(params).snapshot()
 
-    assert snapshot['format'] == 19
+    assert snapshot["format"] == 20
     with pytest.raises(ValueError, match='format 2'):
         Game.restore({**snapshot, 'format': 2})
 

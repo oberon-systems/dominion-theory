@@ -9,12 +9,13 @@ from typing import Any, Protocol
 
 import numpy as np
 
+from ..content import GOODS, PERSONAL, TO, Bonus, Duration, Params, Resource
 from ..content import Band as Rules
-from ..content import Params
 from . import lore as lores
 from .cells import Place
 from .commands import WINTER
 from .stock import Stock
+from .streams import Streams
 
 KIND = 'band'
 MOVE = 'move'
@@ -39,6 +40,10 @@ SEXES = (FEMALE, MALE)
 PREGNANT = 'pregnant'
 INJURED = 'injured'
 WOUNDS = 'wounds'
+HUNTER = 'hunter'
+ADULT = 'adult'
+PULLER = 'puller'
+TO_BAND, TO_MEMBER = TO
 
 # Clockwise from the north; y grows to the south.
 DIRECTIONS: dict[str, Place] = {
@@ -70,6 +75,7 @@ class Land(Protocol):
 
     params: Params
     era: str
+    streams: Streams
 
     def inside(self, x: int, y: int) -> bool: ...
 
@@ -95,13 +101,15 @@ class Member:
     hungry: float = 0.0
     thirsty: float = 0.0
     role: str | None = None
+    # The personal goods the member holds.
+    kit: Stock = field(default_factory=Stock)
 
     @classmethod
     def read(cls, plain: dict[str, Any]) -> Member:
-        return cls(**plain)
+        return cls(**{**plain, 'kit': Stock.read(plain['kit'])})
 
     def plain(self) -> dict[str, Any]:
-        return asdict(self)
+        return {**asdict(self), 'kit': self.kit.plain()}
 
 
 @dataclass(frozen=True)
@@ -152,6 +160,7 @@ class Band:
     # The skills known and the counters they are learned by.
     lore: dict[str, Any] = field(default_factory=lores.fresh)
     counted: tuple[int, Census] | None = field(default=None, init=False, repr=False, compare=False)
+    laid: dict[Any, Params] = field(default_factory=dict, init=False, repr=False, compare=False)
 
     @classmethod
     def read(cls, plain: dict[str, Any]) -> Band:
@@ -194,9 +203,16 @@ class Band:
 
     def changed(self) -> None:
         """
-        Forgets the census; called by whatever adds, removes, ages or hurts a member.
+        Forgets the census and the bonuses; called by whatever adds, removes, ages or hurts a member.
         """
         self.counted = None
+        self.laid = {}
+
+    def restocked(self) -> None:
+        """
+        Forgets the bonuses; called by whatever adds, takes, wears or hands out goods.
+        """
+        self.laid = {}
 
     def held(self, resource: str) -> float:
         return self.stores.held(resource)
@@ -246,6 +262,7 @@ class Band:
             INJURED: counted.injured,
             WOUNDS: dict(counted.wounds),
             'stores': self.stores.amounts(),
+            'goods': goods(params, self),
             'fatigue': self.fatigue,
             'states': list(self.states),
             'action': dict(self.action),
@@ -261,7 +278,7 @@ class Band:
         totals = dict.fromkeys(SHORTAGES, 0.0)
         for name in self.stores:
             prop = params.resources[name].property
-            if prop in totals:
+            if prop is not None and prop in totals:
                 totals[prop] += self.held(name)
         state = '+'.join(self.states) or NORMAL
         return [self.id, self.x, self.y, state, self.action['kind'], self.population, totals['food'], totals['water']]
@@ -503,7 +520,7 @@ def source(land: Land, at: Place, name: str) -> Place | None:
     The cell a band standing at a place gathers a resource from: the place itself or a shore beside it that
     lists the resource, whichever gives more of it; the place first on a tie, then clockwise from the north.
     """
-    prop = land.params.resources[name].property
+    prop = land.params.resources[name].land
     found: Place | None = None
     best = -math.inf
     for dx, dy in [(0, 0), *DIRECTIONS.values()]:
@@ -557,7 +574,7 @@ def reached(land: Land, band: Band, name: str) -> tuple[Place, float] | None:
     if not ranging(band):
         return held
     camp = land.params.units.band.winter_camp
-    prop = land.params.resources[name].property
+    prop = land.params.resources[name].land
     best = -math.inf if found is None else land.value(prop, *found)
     for x, y in around(band.place, camp.reach):
         if not enterable(land, x, y) or name not in _era(land, x, y).resources:
@@ -582,7 +599,22 @@ def efficiency(rules: Rules, band: Band) -> float:
 
 
 def weight(params: Params, band: Band) -> float:
-    return band.stores.weight(params.resources)
+    """
+    What the stores and the kits of the members weigh.
+    """
+    return band.stores.weight(params.resources) + sum(member.kit.weight(params.resources) for member in band.members)
+
+
+def goods(params: Params, band: Band) -> dict[str, float]:
+    """
+    The goods the band holds in its stores and its kits, per good.
+    """
+    found: dict[str, float] = {}
+    for stock in (band.stores, *(member.kit for member in band.members)):
+        for name in stock:
+            if params.resources[name].kind == GOODS:
+                found[name] = found.get(name, 0.0) + stock.held(name)
+    return {name: found[name] for name in params.resources if found.get(name, 0.0) > 0}
 
 
 def sheltered(band: Band) -> bool:
@@ -605,7 +637,7 @@ def held_days(params: Params, band: Band, prop: str) -> float:
     The days the stores of a property last the band; endless when nobody eats it.
     """
     resources = [name for name, held in params.resources.items() if held.property == prop]
-    rates = params.units.band.consumption_per_day
+    rates = applied(params, band).units.band.consumption_per_day
     eaten = census(params, band).eaters * appetite(params, band) * sum(rates.get(name, 0.0) for name in resources)
     return sum(band.held(name) for name in resources) / eaten if eaten > 0 else math.inf
 
@@ -615,7 +647,7 @@ def short(params: Params, band: Band, name: str) -> bool:
     Whether the band holds fewer days of what a resource feeds than the top level of its needs asks.
     """
     top = max(level.days for level in params.units.band.decisions.levels.values())
-    return held_days(params, band, params.resources[name].property) < top
+    return held_days(params, band, params.resources[name].land) < top
 
 
 def room(params: Params, band: Band) -> float:
@@ -719,14 +751,27 @@ def _take(
 ) -> None:
     params = land.params
     resource = params.resources[name]
-    wanted = census(params, band).gatherers * rules.gathering.get(name, 0.0) * land.value(resource.property, *at)
+    wanted = census(params, band).gatherers * rules.gathering.get(name, 0.0) * land.value(resource.land, *at)
     space = room(params, band) if free is None else free
     taken = min(wanted * share * efficiency(rules, band), space / resource.weight_kg)
+    if resource.keep is not None:
+        taken = min(taken, kept(params, band, name) - band.held(name))
     if taken > 0:
-        band.stores.add(name, day, taken)
-        capacity = params.eras[land.era].capacity.get(resource.property)
-        if capacity and _era(land, *at).properties[resource.property].recovery is not None:
-            land.deplete(*at, resource.property, taken / capacity)
+        band.stores.add(name, day, taken, _graded(land, resource, at))
+        band.restocked()
+        capacity = params.eras[land.era].capacity.get(resource.land)
+        if capacity and _era(land, *at).properties[resource.land].recovery is not None:
+            land.deplete(*at, resource.land, taken / capacity)
+
+
+def _graded(land: Land, resource: Resource, at: Place) -> float | None:
+    """
+    The quality of a good gathered on a cell, drawn from the range of its biome; None for one without.
+    """
+    held = resource.quality.get(land.biome(*at))
+    if held is None:
+        return None
+    return round(held.min + float(land.streams[GOODS].random()) * (held.max - held.min), 2)
 
 
 def tire(rules: Rules, band: Band) -> tuple[list[str], list[str]]:
@@ -817,14 +862,21 @@ def reseason(land: Land, band: Band, was: str) -> list[Place]:
     return changed
 
 
-def spoil(params: Params, band: Band, day: int) -> None:
+def spoil(params: Params, band: Band, day: int) -> dict[str, float]:
     """
-    Drops the lots older than their resource keeps; in a winter camp they age slower.
+    Drops the lots older than their resource keeps and the goods worn out, of the stores and the kits; in a winter
+    camp they age slower. Gives the goods worn out.
     """
     per_day = params.time.parts_per_day
     ages = params.units.band.winter_camp.spoil if sheltered(band) else 1.0
-    keeps = {name: params.parts(params.resources[name].spoils) // per_day for name in band.stores}
-    band.stores.spoil(day, keeps, ages)
+    worn: dict[str, float] = {}
+    for stock in (band.stores, *(member.kit for member in band.members)):
+        keeps = {name: params.parts(params.resources[name].lasts) // per_day for name in stock}
+        for name, amount in stock.spoil(day, keeps, ages).items():
+            if params.resources[name].kind == GOODS:
+                worn[name] = worn.get(name, 0.0) + amount
+    band.restocked()
+    return {name: worn[name] for name in params.resources if name in worn}
 
 
 def eat(params: Params, band: Band) -> dict[str, float]:
@@ -840,8 +892,8 @@ def eat(params: Params, band: Band) -> dict[str, float]:
     eating = appetite(params, band)
     shares: dict[str, list[float]] = {}
     met: dict[str, float] = {}
-    for name, rate in rules.consumption_per_day.items():
-        prop = params.resources[name].property
+    for name, rate in applied(params, band).units.band.consumption_per_day.items():
+        prop = params.resources[name].property or ''
         rations = [stages[stage].eats * rate * eating for stage in named]
         need = sum(rations)
         missing = band.stores.take(name, need)
@@ -940,7 +992,11 @@ def _drawn(rng: np.random.Generator, weights: list[float], count: int) -> list[i
 
 
 def bury(band: Band, picked: list[int]) -> int:
+    """
+    The members picked die; their goods go back to the stores.
+    """
     for at in sorted(picked, reverse=True):
+        band.stores.join(band.members[at].kit)
         del band.members[at]
     if picked:
         band.changed()
@@ -1028,14 +1084,15 @@ def live(
         if member.rest_until is not None and member.rest_until <= day:
             member.rest_until = None
     band.changed()
-    begins, doubles = params.days(people.age.begins), params.days(people.age.doubles)
+    begins = [params.days(applied(params, band, member).units.band.people.age.begins) for member in band.members]
+    doubles = params.days(people.age.doubles)
     old = [
         (
             0.0
-            if member.player or member.age_days < begins
-            else min(people.age.per_year * 2 ** ((member.age_days - begins) / doubles), 1.0) / per_year
+            if member.player or member.age_days < begun
+            else min(people.age.per_year * 2 ** ((member.age_days - begun) / doubles), 1.0) / per_year
         )
-        for member in band.members
+        for member, begun in zip(band.members, begins, strict=True)
     ]
     lived.lost.append((AGE, bury(band, _chanced(rng, old))))
     sheltered = 1.0 - (1.0 - rules.shelter.frailty) * camped
@@ -1103,3 +1160,144 @@ def _conceive(params: Params, band: Band, day: int, rng: np.random.Generator) ->
         if ready and drawn[at] < people.birth.conceive_per_day:
             member.pregnant_until = day + pregnancy
     band.changed()
+
+
+def eligible(params: Params, band: Band, per: str) -> list[int]:
+    """
+    The members a keep counts, in the order goods are handed to them: every member and head the least protected
+    first, children, elders, then adults; adults before elders; pullers, the adults of the common role who gather,
+    men first; hunters. The youngest first in each: docs/game/skills.md, Handing out.
+    """
+    people = params.units.band.people
+    names = list(people.stages)
+    first, last = names[0], names[-1]
+    named = census(params, band).stages
+    everyone = common(params)
+
+    def fits(member: Member, name: str) -> bool:
+        if per == ADULT:
+            return name != first
+        if per == PULLER:
+            return name != first and people.stages[name].gathers > 0 and member.role in (None, everyone)
+        return member.role == HUNTER if per == HUNTER else True
+
+    def rank(at: int) -> tuple[int, int, int]:
+        member, name = band.members[at], named[at]
+        if per == PULLER:
+            before = int(member.sex != MALE)
+        elif per == ADULT:
+            before = int(name == last)
+        else:
+            before = 0 if name == first else 1 if name == last else 2
+        return before, member.age_days, at
+
+    found = [at for at, (member, name) in enumerate(zip(band.members, named, strict=True)) if fits(member, name)]
+    return sorted(found, key=rank)
+
+
+def kept(params: Params, band: Band, name: str) -> float:
+    """
+    How much of a good the band wants to hold by its keep; nothing for a good without one.
+    """
+    keep = params.resources[name].keep
+    return 0.0 if keep is None else keep.amount * len(eligible(params, band, keep.per))
+
+
+def hand_out(params: Params, band: Band) -> None:
+    """
+    The evening: a personal good goes back to the stores from a holder who may no longer use it, then to those its
+    keep counts who lack it, in their order.
+    """
+    for name, resource in params.resources.items():
+        if resource.held != PERSONAL:
+            continue
+        keep = resource.keep
+        takers = [] if keep is None else eligible(params, band, keep.per)
+        for at, member in enumerate(band.members):
+            if at not in takers and member.kit.held(name) > 0:
+                band.stores.join(member.kit.part(name, member.kit.held(name)))
+        for at in takers:
+            kit = band.members[at].kit
+            wanted = 0.0 if keep is None else keep.amount - kit.held(name)
+            if wanted > NOTHING and band.held(name) > NOTHING:
+                kit.join(band.stores.part(name, wanted))
+    band.restocked()
+
+
+def shared(params: Params, band: Band, name: str) -> float:
+    """
+    The share a good lays its bonuses on the band by: of its keep held for a common good, of those its keep counts
+    holding one for a personal good; all of it for a good without a keep while any is held.
+    """
+    resource = params.resources[name]
+    if resource.held == PERSONAL:
+        counted = range(band.population) if resource.keep is None else eligible(params, band, resource.keep.per)
+        holding = sum(band.members[at].kit.held(name) > 0 for at in counted)
+        return holding / len(counted) if counted else 0.0
+    held, wanted = band.held(name), kept(params, band, name)
+    if resource.keep is None:
+        return 1.0 if held > 0 else 0.0
+    return min(held / wanted, 1.0) if wanted > 0 else 0.0
+
+
+def applied(params: Params, band: Band, member: Member | None = None, season: str | None = None) -> Params:
+    """
+    The tree with the bonuses of the goods held laid over it: those on the band by their share and, for a member,
+    those of its own kit; a bonus of a sex or of seasons only for them. Kept until the goods or the members change.
+    """
+    worn = () if member is None else tuple(name for name in sorted(member.kit) if member.kit.held(name) > 0)
+    key = (id(params), season, None if member is None or not worn else (member.sex, worn))
+    if key in band.laid:
+        return band.laid[key]
+    if member is not None and worn:
+        bonuses = [
+            (bonus, 1.0)
+            for name in worn
+            for bonus in params.resources[name].gives
+            if bonus.to == TO_MEMBER and _holds(bonus, member.sex, season)
+        ]
+        laid = _lay(params, applied(params, band, None, season), bonuses)
+    else:
+        bonuses = [
+            (bonus, share)
+            for name, resource in params.resources.items()
+            for bonus in resource.gives
+            if bonus.to == TO_BAND and _holds(bonus, None, season) and (share := shared(params, band, name)) > 0
+        ]
+        laid = _lay(params, params, bonuses)
+    band.laid[key] = laid
+    return laid
+
+
+def _holds(bonus: Bonus, sex: str | None, season: str | None) -> bool:
+    return (bonus.sex is None or bonus.sex == sex) and (not bonus.seasons or season in bonus.seasons)
+
+
+def _lay(params: Params, tree: Params, bonuses: list[tuple[Bonus, float]]) -> Params:
+    """
+    Lays bonuses over a tree, each by its share: {times: x} as 1 + (x - 1) * share, {plus: x} as x * share; the
+    pluses of a path are added before its times multiply.
+    """
+    over: dict[str, list[float]] = {}
+    for bonus, share in bonuses:
+        held = over.setdefault(bonus.path, [0.0, 1.0])
+        if bonus.times is not None:
+            held[1] *= 1.0 + (bonus.times - 1.0) * share
+        elif isinstance(bonus.plus, Duration):
+            held[0] += params.days(bonus.plus) * share
+        elif bonus.plus is not None:
+            held[0] += bonus.plus * share
+    for path, (plus, times) in over.items():
+        tree = _over(params, tree, path.split('.'), plus, times)
+    return tree
+
+
+def _over(params: Params, node: Any, names: list[str], plus: float, times: float) -> Any:
+    if not names:
+        if isinstance(node, Duration):
+            return Duration(days=round((params.days(node) + plus) * times))
+        return (node + plus) * times
+    name, rest = names[0], names[1:]
+    if isinstance(node, dict):
+        return {**node, name: _over(params, node[name], rest, plus, times)}
+    return node.model_copy(update={name: _over(params, getattr(node, name), rest, plus, times)})

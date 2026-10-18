@@ -9,3 +9,7 @@ state-tiredness = усталость
 skill-learned = Община научилась: { $skill }.
 skill-orientation = находить дорогу
 skill-wintering = зимовать
+skill-stone_tools = обрабатывать камень
+skill-sticks = заготавливать палки
+
+goods-worn = Износились: { NAME("resource", $resource) } { NUMBER($count, maximumFractionDigits: 1) }.

@@ -7,8 +7,8 @@ from collections.abc import Callable, Collection
 from dataclasses import dataclass
 from typing import Any
 
-from ..content import Params
-from . import commands
+from ..content import GOODS, Params
+from . import commands, lore
 from .band import (
     CAMP,
     DIRECTIONS,
@@ -27,6 +27,7 @@ from .band import (
     census,
     gathering,
     held_days,
+    kept,
     left,
     moving,
     perceived,
@@ -163,7 +164,7 @@ def _fed(params: Params, cell: dict[str, Any], era: str) -> set[str]:
     """
     The properties the resources a known cell lists are gathered by.
     """
-    return {params.resources[name].property for name in _listed(params, cell, era)}
+    return {params.resources[name].land for name in _listed(params, cell, era)}
 
 
 def _listed(params: Params, cell: dict[str, Any], era: str) -> tuple[str, ...]:
@@ -274,7 +275,7 @@ def options(
             moves.append(Scored(moving(name), weights.move * gain + kept, need, source))
             ahead = band.known[target]
             ahead_of = _worths(params, band, ahead, set(_listed(params, ahead, era)), wanted)
-            short_of = [score for name, (score, _) in ahead_of.items() if short(params, band, name)]
+            short_of = [score for name, (score, *_) in ahead_of.items() if short(params, band, name)]
             on_the_way = rules.roaming.share * sum(short_of)
             roams.append(Scored(roaming(name), weights.move * gain * pace + kept + on_the_way, need, source))
         if (allowed is None or MOVE in allowed) and (walking or not hungry):
@@ -286,32 +287,48 @@ def options(
 
 def _worths(
     params: Params, band: Band, own: dict[str, Any], listed: Collection[str], wanted: dict[str, float]
-) -> dict[str, tuple[float, str]]:
+) -> dict[str, tuple[float, str, float]]:
     """
     What a gathering of every resource listed that the cell gives would be worth by the need it serves and the
-    share that fits, with that need.
+    share that fits, with that need and its pull.
     """
     rules = params.units.band
     free = room(params, band)
-    found: dict[str, tuple[float, str]] = {}
+    found: dict[str, tuple[float, str, float]] = {}
     for name, rate in rules.gathering.items():
         resource = params.resources[name]
-        value = own.get(resource.property, 0.0)
-        if name in listed and resource.property in NEEDS and value > 0:
-            need = NEEDS[resource.property][0]
+        value = own.get(resource.land, 0.0)
+        pulled = _pulled(params, band, name, wanted) if name in listed and value > 0 else None
+        if pulled is not None:
+            need, pull = pulled
             haul = census(params, band).gatherers * rate * value * resource.weight_kg
             fits = min(free / haul, 1.0) if haul > 0 else 0.0
-            found[name] = getattr(rules.decisions.weights, need) * wanted[need] * value * fits, need
+            found[name] = pull * value * fits, need, pull
     return found
 
 
-def split(params: Params, wanted: dict[str, float], needs_of: dict[str, str]) -> dict[str, float]:
+def _pulled(params: Params, band: Band, name: str, wanted: dict[str, float]) -> tuple[str, float] | None:
     """
-    The share of the gatherers every resource gets: its need by its weight, over all of them; a need of 0 gets
-    nobody.
+    The need a resource serves and how hard it pulls the gatherers: hunger or thirst by their weight, or a good
+    the band has learned to gather, by the share missing of its keep, while the band is not hungry.
     """
-    weights = params.units.band.decisions.weights
-    pulls = {name: getattr(weights, need) * wanted[need] for name, need in needs_of.items()}
+    rules = params.units.band
+    weights = rules.decisions.weights
+    resource = params.resources[name]
+    if resource.property in NEEDS:
+        need = NEEDS[resource.land][0]
+        return need, getattr(weights, need) * wanted[need]
+    hungry = max(wanted.values()) >= rules.roaming.hunger
+    if resource.kind != GOODS or hungry or not lore.opened(params, band, lore.GATHERS, name):
+        return None
+    wants = kept(params, band, name)
+    return (GOODS, weights.goods * max(0.0, 1.0 - band.held(name) / wants)) if wants > 0 else None
+
+
+def split(pulls: dict[str, float]) -> dict[str, float]:
+    """
+    The share of the gatherers every resource gets: its pull over all of them; a pull of 0 gets nobody.
+    """
     total = sum(pulls.values())
     return {} if total <= 0 else {name: round(pull / total, 9) for name, pull in pulls.items() if pull > 0}
 
@@ -324,7 +341,7 @@ def _gathered(
     its resource is worth; none when nothing is wanted.
     """
     worths = _worths(params, band, own, listed, wanted)
-    shares = split(params, wanted, {name: need for name, (_, need) in worths.items()})
+    shares = split({name: pull for name, (_, _, pull) in worths.items()})
     if not shares:
         return []
     score = sum(worths[name][0] * share for name, share in shares.items())

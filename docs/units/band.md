@@ -41,7 +41,7 @@ is no number of a band in the code.
 | `place`      | planet coordinates of its cell, with the scale          |
 | `members`    | its people one by one, the player among them            |
 | `population` | how many members, read from `members`                   |
-| `stores`     | what it carries, per resource, in lots by day gathered  |
+| `stores`     | what it carries, per resource, in lots by day gathered and, for goods, quality |
 | `fatigue`    | how tired it is, from 0 to 1                            |
 | `states`     | which of the bad states hold now; none means `normal`   |
 | `action`     | what it did in the last tick                            |
@@ -53,7 +53,9 @@ is no number of a band in the code.
 
 Stage 2 puts one band on the map, the player's. Other bands are stage 3.
 What a band learns, `lore`, and the goods its members hold, `kit`, are
-told in [Skills](../game/skills.md#stocks-and-holders).
+told in [Skills](../game/skills.md#stocks-and-holders). A member's `kit`
+is a stock like `stores`: it weighs in the load of the band, and the kit
+of a member who dies goes back to the stores.
 
 ___
 
@@ -311,6 +313,16 @@ The active parts are those not named by `camp_parts`: the morning, the
 midday and the afternoon. A band that rests all day halves its frailty;
 a band that walks all day has none of it.
 
+### The guard
+
+`threat` is what the guard of the band leaves of the threat it meets:
+`threat.camp` in the ticks it camps or builds, `threat.march` in the
+others, both 1.0. It multiplies the threat of the encounters and the
+threat in the safety of wellbeing, after `winter_camp.threat`. Goods
+held lower it: sticks lay `threat.camp` times 0.8, see
+[Bonuses](../game/skills.md#bonuses). What the band sees of the land,
+its unease and its decisions are not changed.
+
 ___
 
 ## Winter camp
@@ -359,18 +371,24 @@ ___
 
 ## Stores
 
-A band carries food and water, and each resource is an entry of the
-section `resources`: a weight per unit and a time after which it spoils.
+A band carries food, water and goods, and each resource is an entry of
+the section `resources`: a kind, a weight per unit and a time after which
+it spoils or, for goods, wears out.
 
-| Resource | Unit    | Weight | Spoils after |
-|----------|---------|--------|--------------|
-| `water`  | a litre | 1 kg   | 5 days       |
-| `forage` | a kilo  | 1 kg   | 3 days       |
+| Resource | Kind    | Unit    | Weight | Spoils or wears after |
+|----------|---------|---------|--------|-----------------------|
+| `water`  | `water` | a litre | 1 kg   | 5 days                |
+| `forage` | `food`  | a kilo  | 1 kg   | 3 days                |
+| `stones` | `goods` | a stone | 0.5 kg | 60 days x quality     |
+| `sticks` | `goods` | a stick | 1 kg   | 20 days               |
 
 Stores are kept in lots, one per resource and day gathered. The oldest
 lot is eaten first, and a lot older than its time is thrown away in the
 phase `world` of the first tick of a day. A band holds at most five lots
-of water and three of forage, so the state stays small.
+of water and three of forage, so the state stays small. A lot of goods
+with a quality is `[day, amount, quality]`, and lasts that share of its
+time; the goods worn out are told by the event `goods-worn`. In a winter
+camp goods wear at the pace food spoils there.
 
 An adult carries 6 kg, a child a quarter of it and an elder half. A
 band never gathers more than it can carry: what does not fit is left on
@@ -379,7 +397,9 @@ the cell and the stock is not lowered for it.
 The goods a band learns to gather and make - stones, sticks, herbs,
 cords, meat and the personal goods of its members - are resources of
 the same stores, with wear and quality; see
-[Skills](../game/skills.md#goods).
+[Skills](../game/skills.md#goods). The kits of the members weigh in the
+load: the free carry is what the members carry less the stores and the
+kits.
 
 ___
 
@@ -411,6 +431,14 @@ takes is its rate times the property of the cell, as
 |----------|----------|--------------------------|
 | `forage` | `food`   | 3.0                      |
 | `water`  | `water`  | 4.0                      |
+| `stones` | `stone`  | 0.5                      |
+| `sticks` | `wood`   | 1.0                      |
+
+A good is gathered only once the band knows the skill that opens it, and
+its need is the share missing of its keep, weighed by
+`decisions.weights.goods`, 0.4; a hungry band wants no goods, and a
+gathering takes no more than is missing of the keep. See
+[Gathering goods](../game/skills.md#gathering-goods).
 
 The cell pays for it. A cell at full stock holds a fixed amount per
 property, and the stock falls by what was taken over that amount. The
@@ -421,6 +449,8 @@ the band is pushed on.
 |----------|-------------------|
 | `food`   | 100 units         |
 | `water`  | 2000 units        |
+| `stone`  | 50 units          |
+| `wood`   | 100 units         |
 
 A band gathers on the cell it stands on and nowhere else, but for a
 roaming band, which forages the cell ahead as it walks into it. It
@@ -606,9 +636,12 @@ asks.
 
 ```yaml
 resources:
-  water: {property: water, weight_kg: 1.0, spoils: {days: 5}}
-  forage: {property: food, weight_kg: 1.0, spoils: {days: 3}}
+  water: {kind: water, property: water, weight_kg: 1.0, spoils: {days: 5}}
+  forage: {kind: food, property: food, weight_kg: 1.0, spoils: {days: 3}}
 ```
+
+The goods `stones` and `sticks` are in
+[Skills](../game/skills.md#parameters).
 
 ```yaml
 units:
@@ -681,6 +714,8 @@ units:
     gathering:
       forage: 3.0
       water: 4.0
+      stones: 0.5
+      sticks: 1.0
     consumption_per_day:
       forage: 1.0
       water: 1.0
@@ -705,6 +740,7 @@ units:
     unease: {gain: 0.1, fade: 0.2}
     route: {margin: 4, threat: 2.0, hunger: 1.0, thirst: 1.0}
     shelter: {encounter: 0.5, frailty: 0.5}
+    threat: {camp: 1.0, march: 1.0}
     winter_camp:
       offered: {seasons: [winter], before: {days: 5}}
       build: {days: 2}
@@ -723,7 +759,7 @@ units:
 ```yaml
 eras:
   band:
-    capacity: {food: 100, water: 2000}
+    capacity: {food: 100, water: 2000, stone: 50, wood: 100}
     recovery: {food: {winter: 0.25}}
 ```
 
@@ -737,9 +773,12 @@ ___
 
 A game does not start from a band that does not add up.
 
-- A resource names a property of every era that uses it, a positive
-  weight and a time to spoil that is not zero.
-- A biome lists only resources of the section `resources`.
+- A resource is of a kind, `food`, `water` or `goods`; it names a
+  property of every era that uses it, if it is gathered, and a positive
+  weight. Food and water have a time to spoil, goods a time to wear, and
+  neither is zero.
+- A biome lists only resources of the section `resources` that are
+  gathered, and `gathering` names only those.
 - The start population is not below `population.least`.
 - Every stage but the last has an age `until`, and the ages rise; the
   last has none.

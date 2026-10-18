@@ -47,7 +47,7 @@ def test_an_untouched_map_has_rivers_and_full_stocks(game: Game) -> None:
     whole = rectangle(game)
     part = rectangle(game, x=game.window.x + 4, y=game.window.y + 2, width=3, height=2)
 
-    assert game.stocked == ('water', 'food')
+    assert game.stocked == ('water', 'food', 'stone', 'wood')
     assert whole['rivers'] == game.rivers.astype(int).ravel().tolist()
     assert set(whole['rivers']) <= {0, 1}
     assert whole['water'] == whole['food'] == [1.0] * (32 * 16)
@@ -171,7 +171,8 @@ def test_the_map_is_served_in_rectangles(client: TestClient, new_game: Callable[
     part = client.get(address, params={'x': window['x'] + 4, 'y': window['y'] + 2, 'width': 3, 'height': 2})
 
     assert part.status_code == 200
-    assert set(part.json()) == {'scale', 'x', 'y', 'width', 'height', 'biomes', 'cells', 'rivers', 'water', 'food'}
+    named = {'scale', 'x', 'y', 'width', 'height', 'biomes', 'cells', 'rivers', 'water', 'food', 'stone', 'wood'}
+    assert set(part.json()) == named
     assert [len(part.json()[name]) for name in ('cells', 'rivers', 'water', 'food')] == [6, 6, 6, 6]
     assert len(client.get(address).json()['cells']) == 32 * 16
     assert client.get(address, params={'width': -1}).status_code == 400
@@ -195,7 +196,7 @@ def test_a_depletion_reaches_the_map_and_the_stream(
 
     assert (shown['food'], shown['water']) == ([0.5], [1.0])
     assert isinstance(STREAM.validate_python(update), Update)
-    assert set(cell) == {'x', 'y', 'water', 'food'}
+    assert set(cell) == {'x', 'y', 'water', 'food', 'stone', 'wood'}
     assert (cell['x'], cell['y'], cell['water']) == (x, y, 1.0)
     assert 0.5 < cell['food'] < 0.6
     assert client.get(f'{address}/map').json()['food'][3 * 32 + 5] == cell['food']

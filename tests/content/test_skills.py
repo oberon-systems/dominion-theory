@@ -16,10 +16,13 @@ def refused(skill: dict[str, Any], name: str = 'wintering') -> dict[str, object]
     return raised.value.values
 
 
-def test_the_skills_of_the_band_era_are_orientation_and_wintering() -> None:
+def test_the_skills_of_the_band_era_are_those_of_their_document() -> None:
     skills = load_params().skills
 
-    assert list(skills) == ['orientation', 'wintering']
+    assert list(skills) == ['orientation', 'wintering', 'stone_tools', 'sticks']
+    assert skills['stone_tools'].learned.biomes == ('hills', 'mountain', 'outcrops')
+    assert (skills['stone_tools'].opens.gathers, skills['sticks'].opens.gathers) == (('stones',), ('sticks',))
+    assert skills['sticks'].learned.biome == 'forest'
     assert skills['orientation'].opens.proposals == ('go_place',)
     assert [held.counter for held in skills['orientation'].learned.any] == ['seen', 'marched']
     assert skills['wintering'].learned.at_least == 1

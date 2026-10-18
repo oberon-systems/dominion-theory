@@ -113,7 +113,8 @@ def test_an_ended_game_is_409(
 
 
 def test_the_snapshot_is_what_the_caller_may_see(client: TestClient, new_game: NewGame) -> None:
-    game = new_game()['id']
+    # A seed drawn may put the window where no band can start.
+    game = new_game(seed=42)['id']
 
     seat = client.get(f'{PREFIX}/games/{game}/snapshot')
     spectator = client.get(f'{PREFIX}/games/{game}/snapshot', params={'view': 'spectator'})
@@ -138,6 +139,7 @@ def test_the_snapshot_is_what_the_caller_may_see(client: TestClient, new_game: N
         'injured': 0,
         'wounds': {'light': 0, 'medium': 0, 'heavy': 0},
         'stores': {'forage': 15.0, 'water': 15.0},
+        'goods': {},
         'fatigue': 0.0,
         'states': [],
         'action': {'kind': 'camp'},

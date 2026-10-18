@@ -233,9 +233,10 @@ def band_parts(band: Unit, lang: str) -> list[Part]:
     if band.get('lore'):
         skills = ', '.join(render(f'{SKILL}{name}', lang=lang) for name in band['lore'])
         pieces.append(Part(Look.BAND, render(SKILLS, {'skills': skills}, lang)))
+    goods = band.get('goods', {})
+    held = {**{name: amount for name, amount in band['stores'].items() if name not in goods}, **goods}
     pieces += [
-        Part(Look.BAND, render(STORE, {'resource': name, 'amount': amount}, lang))
-        for name, amount in band['stores'].items()
+        Part(Look.BAND, render(STORE, {'resource': name, 'amount': amount}, lang)) for name, amount in held.items()
     ]
     pieces += [Part(Look.STATE, render(f'{STATE}{state}', lang=lang)) for state in band['states']]
     pieces.append(Part(Look.BAND, doing(band['action'], lang)))

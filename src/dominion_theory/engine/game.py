@@ -32,6 +32,7 @@ from .events import (
     COUNCIL_OUTVOTED,
     COUNCIL_TURNED,
     ENCOUNTER,
+    GOODS_WORN,
     INTENT_ARRIVED,
     INTENT_ENDED,
     KIND,
@@ -60,7 +61,7 @@ from .events import (
 from .hashing import digest
 from .streams import Streams
 
-SNAPSHOT_FORMAT = 19
+SNAPSHOT_FORMAT = 20
 DIED = 'died'
 BANISHED = 'banished'
 VOTED = 'voted'
@@ -680,6 +681,9 @@ class Game:
         if done['kind'] in (bands.MOVE, bands.ROAM):
             lore.march(band)
         self._totals[f'{done["kind"]}s'] += 1
+        camp_parts = self.params.units.band.camp_parts
+        if camp_parts and self.date.part == camp_parts[0]:
+            bands.hand_out(self.params, band)
         if done['kind'] == bands.CAMP and self.date.part not in self.params.units.band.camp_parts:
             band.camped += 1
         proposal = None if band.intent is None else band.intent['proposal']
@@ -701,7 +705,8 @@ class Game:
         per_day, span = self.params.time.parts_per_day, self.params.eras[self.era].parts_per_tick
         parts = self.clock.parts
         if parts % per_day < span:
-            bands.spoil(self.params, band, self.day)
+            for name, count in bands.spoil(self.params, band, self.day).items():
+                tick.events.append(Event(GOODS_WORN, {'resource': name, 'count': round(count, 2)}))
         self._encounter(tick, band)
         if (parts + span) // per_day > parts // per_day:
             self._day_ends(tick, band)
@@ -752,8 +757,17 @@ class Game:
         threat = self.value(decisions.THREAT, band.x, band.y)
         return threat * self.params.units.band.winter_camp.threat if bands.sheltered(band) else threat
 
+    def _guarded(self, band: Band) -> float:
+        """
+        The threat the band meets: that of its cell, less what its guard keeps off in the ticks it camps or
+        builds, or on the march in the others.
+        """
+        guard = bands.applied(self.params, band).units.band.threat
+        camped = band.action['kind'] in (bands.CAMP, bands.BUILD)
+        return self._threat(band) * (guard.camp if camped else guard.march)
+
     def _encounter(self, tick: _Tick, band: Band) -> None:
-        threat = self._threat(band)
+        threat = self._guarded(band)
         biome, river = self.biome(band.x, band.y), self.river(band.x, band.y)
         rng = self.streams['encounters']
         met = encounters.strike(self.params, biome, river, threat, band.action, rng)
@@ -780,7 +794,7 @@ class Game:
         for cause, count in lost:
             self._lost(tick, cause, count)
         threat = self._threat(band)
-        wellbeing = decisions.wellbeing(self.params, band, threat)
+        wellbeing = decisions.wellbeing(self.params, band, self._guarded(band))
         active = self.params.time.parts_per_day - len(self.params.units.band.camp_parts)
         camped = min(band.camped / active, 1.0) if active > 0 else 1.0
         band.camped = 0

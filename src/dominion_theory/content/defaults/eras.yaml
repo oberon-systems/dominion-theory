@@ -2,7 +2,7 @@ eras:
   band:
     parts_per_tick: 1
     cell_km: 10
-    properties: [water, food, threat, passability]
-    capacity: {food: 100, water: 2000}
+    properties: [water, food, threat, passability, stone, wood]
+    capacity: {food: 100, water: 2000, stone: 50, wood: 100}
     recovery:
       food: {winter: 0.25}

@@ -9,3 +9,7 @@ state-tiredness = tiredness
 skill-learned = The band has learned { $skill }.
 skill-orientation = to find its way
 skill-wintering = to winter
+skill-stone_tools = to work stone
+skill-sticks = to cut sticks
+
+goods-worn = Worn out: { NAME("resource", $resource) } { NUMBER($count, maximumFractionDigits: 1) }.

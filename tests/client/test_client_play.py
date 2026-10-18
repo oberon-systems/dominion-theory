@@ -63,7 +63,11 @@ FOREST = {'biome': 'forest', 'river': False, 'water': 0.6, 'food': 0.5, 'threat'
 WATCHED = {(1, 0): FOREST, (1, -2): FOREST}
 SMALL = ('planet.circumference_km=4000', 'planet.window.width=32', 'planet.window.height=16')
 # A voice that outweighs the whole band, so that what the player says is what the council does; no skill gates it.
-LOUD = tuple(part for given in (*SMALL, 'council.voice.least=20.0', 'skills={}') for part in ('--set', given))
+LOUD = tuple(
+    part
+    for given in (*SMALL, 'council.voice.least=20.0', 'skills={}', 'units.band.decisions.weights.goods=0')
+    for part in ('--set', given)
+)
 
 
 def update(seq: int, waiting: list[str] | None = None, seat: Body | None = None) -> Body:

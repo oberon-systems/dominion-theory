@@ -31,13 +31,13 @@ ORDER = [
     'forest',
     'grass',
 ]
-BASES = {'water': 0.6, 'food': 0.9, 'threat': 0.4, 'passability': 0.6}
+BASES = {'water': 0.6, 'food': 0.9, 'threat': 0.4, 'passability': 0.6, 'stone': 0.0, 'wood': 0.8}
 FOREST = {
     'id': 'forest',
     'name': {'key': 'biome-forest', 'values': {}},
     'colour': '#006400',
     'properties': BASES,
-    'resources': ['water', 'forage'],
+    'resources': ['water', 'forage', 'sticks'],
 }
 
 

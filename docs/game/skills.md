@@ -198,9 +198,14 @@ the cost of the weight of food, and a hungry band spends none.
 need of a good = max(0, 1 - held / keep)
 ```
 
+A gathering of a good takes no more than is missing of its keep: one tick
+of a band of 15 in a forest would bring 12 sticks against a keep of 4.5,
+and the rest would only weigh and wear out.
+
 The quality of a stone or a cord is drawn when it is gathered, from the
-range of the biome of the cell it came from. The reed of a floodplain
-makes the best cords, the bast of a forest the worst.
+range of the biome of the cell it came from, on a stream of its own,
+`goods`, and rounded to two places. The reed of a floodplain makes the
+best cords, the bast of a forest the worst.
 
 | Good     | Biome        | Quality      | Lasts                   |
 |----------|--------------|--------------|-------------------------|
@@ -214,7 +219,8 @@ makes the best cords, the bast of a forest the worst.
 
 Every biome that gives a new property lists the resource, and every
 property needs its value in `decisions.unknown`, what a band expects of
-land it does not know.
+land it does not know: `stone` 0.1 and `wood` 0.2, since few biomes give
+them. The biomes that do not give a property hold it at a base of 0.
 
 ___
 
@@ -279,6 +285,8 @@ ___
 
 A bonus is laid over the parameters the band reads, by the goods it
 holds and the roles it has. It is laid either on a member or on the band.
+Its field `to` names which, `band` or `member`; it is not called `on`,
+since YAML reads a key `on` as true.
 
 - **On a member** - the bonus of a personal good holds for its holder:
   injury, frailty and carry are already drawn and summed per member.
@@ -289,7 +297,7 @@ holds and the roles it has. It is laid either on a member or on the band.
 
 | Laid by      | On     | Path                                    | Modifier       | Share or condition         |
 |--------------|--------|-----------------------------------------|----------------|----------------------------|
-| `stones`     | band   | `units.band.consumption_per_day` of food | times 0.9     | keep held                  |
+| `stones`     | band   | `units.band.consumption_per_day.forage` | times 0.9      | keep held                  |
 | `stones`     | band   | `units.band.people.age.begins`          | plus 1 year    | keep held                  |
 | `sticks`     | band   | `units.band.threat.camp`                | times 0.8      | keep held                  |
 | `litters`    | member | the carry of a man                      | times 2.0      | -                          |
@@ -315,7 +323,15 @@ A litter in a band of 15 adults, 8 men and 7 women, all pulling, adds
 pace. There is no death of cold; the frailty of winter stands for it.
 
 The parameters with the bonuses laid over them are computed once and
-kept, like the census, until the goods or the roles change.
+kept, like the census, until the goods, the members or the roles change:
+a gathering, a meal, the wear of a day and the handing out forget them.
+The pluses of a path are added before its times multiply, and a plus of
+a span, like the year of `age.begins`, is laid in days. A bonus of
+seasons holds only where the code that reads it names the season.
+
+The bonuses of stones and sticks are built so far: a band holding 0.3
+stones a head eats 0.9 of its forage and dies of age a year later, and
+one holding 0.3 sticks a head meets 0.8 of the threat in camp.
 
 ___
 
@@ -390,7 +406,7 @@ update of the tick, a line of the client from the catalogues `en` and
 |------------------|--------------------------------|----------------------------------------|
 | `skill-learned`  | `skill`                        | The band has learned stone tools.      |
 | `goods-made`     | `resource`, `count`            | 2 spears were made.                    |
-| `goods-worn`     | `resource`, `count`            | 3 stones are worn out.                 |
+| `goods-worn`     | `resource`, `count`            | Worn out: stones 3.                    |
 | `people-sickened`| `count`, `cause`               | 2 people are sick from raw meat.       |
 | `people-cured`   | `count`                        | Herbs helped 2 people.                 |
 
@@ -406,12 +422,15 @@ ___
 
 ## What the API shows
 
-The unit of the snapshot gains three fields; `roles` gains the hunter
-and `stores` the goods.
+The unit of the snapshot gains four fields; `roles` gains the hunter
+and `stores` the common goods. `goods` sums every good the band holds,
+in its stores and in the kits of its members, per good; it is built
+with stones and sticks, `kit` and `sick` come with the personal goods.
 
 ```json
 {
   "lore": ["orientation", "sticks", "stone_tools"],
+  "goods": {"stones": 4.0, "sticks": 2.0, "spears": 2.0},
   "kit": {"clothes": 9, "litters": 6, "spears": 2, "waterskins": 0},
   "sick": 1,
   "roles": {"gatherer": 10, "nanny": 1, "hunter": 2},
@@ -491,8 +510,8 @@ resources:
     quality: {mountain: {min: 0.8, max: 1.0}, outcrops: {min: 0.65, max: 0.9}, hills: {min: 0.5, max: 0.75}}
     keep: {per: head, amount: 0.3}
     gives:
-      - {on: band, path: units.band.consumption_per_day.food, times: 0.9}
-      - {on: band, path: units.band.people.age.begins, plus: {years: 1}}
+      - {to: band, path: units.band.consumption_per_day.forage, times: 0.9}
+      - {to: band, path: units.band.people.age.begins, plus: {years: 1}}
   sticks:
     kind: goods
     property: wood
@@ -500,7 +519,7 @@ resources:
     wears: {months: 2}
     keep: {per: head, amount: 0.3}
     gives:
-      - {on: band, path: units.band.threat.camp, times: 0.8}
+      - {to: band, path: units.band.threat.camp, times: 0.8}
   herbs: {kind: goods, property: plants, weight_kg: 0.1, wears: {months: 2}, keep: {per: head, amount: 0.2}}
   cords:
     kind: goods
@@ -521,9 +540,9 @@ resources:
     keep: {per: puller, amount: 1}
     made: {sticks: 3, cords: 2}
     gives:
-      - {on: member, sex: male, path: carries, times: 2.0}
-      - {on: member, sex: female, path: carries, times: 1.5}
-      - {on: band, path: units.band.speed.base, times: 0.85}
+      - {to: member, sex: male, path: carries, times: 2.0}
+      - {to: member, sex: female, path: carries, times: 1.5}
+      - {to: band, path: units.band.speed.base, times: 0.85}
   spears:
     kind: goods
     held: personal
@@ -540,11 +559,11 @@ resources:
     keep: {per: member, amount: 1}
     made: {hides: 1, cords: 1}
     gives:
-      - {on: member, path: units.band.people.injury.per_day, times: 0.7}
-      - {on: member, path: dies.encounter, times: 0.8}
-      - {on: member, path: dies.frailty, times: 0.7, seasons: [winter]}
-      - {on: band, path: units.band.threat.camp, times: 0.9}
-      - {on: band, path: units.band.threat.march, times: 0.9}
+      - {to: member, path: units.band.people.injury.per_day, times: 0.7}
+      - {to: member, path: dies.encounter, times: 0.8}
+      - {to: member, path: dies.frailty, times: 0.7, seasons: [winter]}
+      - {to: band, path: units.band.threat.camp, times: 0.9}
+      - {to: band, path: units.band.threat.march, times: 0.9}
   waterskins:
     kind: goods
     held: personal
@@ -553,8 +572,8 @@ resources:
     keep: {per: adult, amount: 1}
     made: {hides: 1, cords: 1}
     gives:
-      - {on: member, path: carries_water_kg, plus: 3.0}
-      - {on: band, path: resources.water.spoils, times: 1.5}
+      - {to: member, path: carries_water_kg, plus: 3.0}
+      - {to: band, path: resources.water.spoils, times: 1.5}
 ```
 
 ```yaml
@@ -563,6 +582,7 @@ units:
     threat: {camp: 1.0, march: 1.0}
     gathering: {stones: 0.5, sticks: 1.0, herbs: 0.2, cords: 0.3}
     decisions:
+      unknown: {stone: 0.1, wood: 0.2}
       weights: {goods: 0.4}
     people:
       roles:
@@ -571,8 +591,8 @@ units:
           share: 0.2
           needs: spears
           gives:
-            - {on: band, path: units.band.threat.camp, times: 0.8}
-            - {on: band, path: units.band.threat.march, times: 0.8}
+            - {to: band, path: units.band.threat.camp, times: 0.8}
+            - {to: band, path: units.band.threat.march, times: 0.8}
       sickness: {lasts: {days: 5}, pace: 0.7, gathers: 0.5, frailty: 2.0}
     making: {per_part: 0.2}
     hunting: {meat: 4.0, hides: 0.05}
@@ -601,7 +621,7 @@ A game does not start from skills and goods that do not add up.
   in 0 to 1 and names biomes that give its property.
 - A recipe names resources only, with amounts above 0, and no good is
   made of itself.
-- A bonus names a path of the tree that holds a number, and `on` is
+- A bonus names a path of the tree that holds a number, and `to` is
   `band` or `member`.
 - A role that `needs` a good names a personal one; the share of a role
   lies in 0 to 1.

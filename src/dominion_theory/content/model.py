@@ -2,6 +2,7 @@
 The tree of parameters: every number that shapes a game, typed and frozen.
 """
 
+import builtins
 import hashlib
 import json
 from functools import cached_property
@@ -28,6 +29,16 @@ COUNTERS = TALLIES + BY_BIOME
 NEW = 'new'
 OPENED = ('proposals', 'gathers', 'makes', 'roles')
 GATES = ('go_place', 'winter_camp')
+# The goods of docs/game/skills.md: what a resource is, who holds it, whom its keep counts, whom a bonus goes to.
+KINDS = ('food', 'water', 'goods')
+GOODS = 'goods'
+COMMON = 'common'
+PERSONAL = 'personal'
+HOLDERS = (COMMON, PERSONAL)
+PER = ('head', 'member', 'adult', 'puller', 'hunter')
+# A bonus goes `to`, not `on`: YAML reads a key on as true.
+TO = ('band', 'member')
+SEXES = ('female', 'male')
 
 Name = Annotated[str, Field(strict=True, pattern=r'^[a-z][a-z0-9_]*$')]
 Count = Annotated[int, Field(strict=True, ge=1)]
@@ -371,20 +382,101 @@ class Planet(Node):
     window: Window
 
 
-class Resource(Node):
+class Quality(Node):
     """
-    Something a band gathers and carries: the property of a cell it is taken by, its weight, how long it keeps.
+    The range the quality of a good is drawn from where it is gathered.
     """
 
-    property: Name
+    min: Share
+    max: Share
+
+    @model_validator(mode='after')
+    def _ordered(self) -> Self:
+        if self.min > self.max:
+            raise ValueError('min not above max')
+        return self
+
+
+class Keep(Node):
+    """
+    How much of a good the band wants to hold: an amount for every head, member, adult, puller or hunter.
+    """
+
+    per: Name
+    amount: Positive
+
+
+class Bonus(Node):
+    """
+    What a good held lays over a path of the tree, {plus: x} or {times: x}, on the band or on its holder; a bonus
+    of a sex or of seasons holds only for them.
+    """
+
+    to: Name
+    path: Annotated[str, Field(strict=True, pattern=r'^[a-z][a-z0-9_]*(\.[a-z][a-z0-9_]*)*$')]
+    plus: Amount | Duration | None = None
+    times: Factor | None = None
+    sex: Name | None = None
+    seasons: tuple[Name, ...] = ()
+
+    @model_validator(mode='after')
+    def _one_kind(self) -> Self:
+        if (self.plus is None) == (self.times is None):
+            raise ValueError(f'exactly one of {", ".join(MODIFIER_KINDS)}')
+        return self
+
+
+class Resource(Node):
+    """
+    Something a band gathers, makes or carries: its kind, the property of a cell it is taken by, its weight, how
+    long food and water keep and goods last; for goods, who holds them, their quality by biome, the keep, the
+    recipe and the bonuses they give.
+    """
+
+    kind: Name
+    property: Name | None = None
     weight_kg: Positive
-    spoils: Duration
+    spoils: Duration | None = None
+    wears: Duration | None = None
+    held: Name = COMMON
+    quality: dict[Name, Quality] = Field(default_factory=dict)
+    keep: Keep | None = None
+    made: dict[Name, Positive] = Field(default_factory=dict)
+    sickens: Share | None = None
+    gives: tuple[Bonus, ...] = ()
 
     @model_validator(mode='after')
     def _keeps_for_a_time(self) -> Self:
-        if self.spoils.amount == 0:
-            raise ValueError('a time to spoil that is not zero')
+        if self.kind not in KINDS:
+            raise ValueError(f'a kind of {", ".join(KINDS)}')
+        lasts, other = ('wears', 'spoils') if self.kind == GOODS else ('spoils', 'wears')
+        held: Duration | None = getattr(self, lasts)
+        if held is None or held.amount == 0 or getattr(self, other) is not None:
+            raise ValueError(f'a time to {lasts.removesuffix("s")} that is not zero, and none to {other}')
+        if self.held not in HOLDERS:
+            raise ValueError(f'held as one of {", ".join(HOLDERS)}')
+        if self.kind != GOODS and (self.quality or self.keep or self.made or self.gives or self.held != COMMON):
+            raise ValueError('a holder, quality, keep, recipe and bonuses for goods only')
         return self
+
+    @builtins.property
+    def land(self) -> str:
+        """
+        The property of the land a gathered resource is taken by.
+        """
+        if self.property is None:
+            raise ValueError('a resource that is not gathered')
+        return self.property
+
+    @builtins.property
+    def lasts(self) -> Duration:
+        """
+        How long a lot of food or water keeps, or a good of quality 1 lasts.
+        """
+        held = self.wears if self.kind == GOODS else self.spoils
+        if held is None:
+            raise ValueError('a resource with no time to keep')
+        return held
 
 
 class Start(Node):
@@ -671,6 +763,7 @@ class States(Node):
 class Weights(Node):
     hunger: Factor
     thirst: Factor
+    goods: Factor
     safety: Factor
     move: Factor
     momentum: Factor
@@ -703,6 +796,16 @@ class Decisions(Node):
         return self
 
 
+class Threat(Node):
+    """
+    What the guard of the band leaves of the threat of encounters and of the safety of wellbeing, in camp and on
+    the march; goods held lower it.
+    """
+
+    camp: Factor
+    march: Factor
+
+
 class Band(Node):
     start: Start
     population: Population
@@ -723,6 +826,7 @@ class Band(Node):
     route: Route
     shelter: Shelter
     winter_camp: WinterCamp
+    threat: Threat
 
 
 class Units(Node):
@@ -894,6 +998,8 @@ class Params(Node):
         self._check_council()
         self._check_encounters()
         self._check_skills()
+        for name, resource in self.resources.items():
+            self._check_goods(name, resource)
         return self
 
     def _check_names(self) -> None:
@@ -929,9 +1035,10 @@ class Params(Node):
                 if set(given.properties) != set(wanted):
                     found = sorted(given.properties)
                     raise _invalid(f'{path}.{era}.properties', found, f'the properties {", ".join(wanted)}')
+                gathered = [name for name, held in self.resources.items() if held.property is not None]
                 for resource in given.resources:
-                    if resource not in self.resources:
-                        raise _invalid(f'{path}.{era}.resources', resource, f'one of {", ".join(self.resources)}')
+                    if resource not in gathered:
+                        raise _invalid(f'{path}.{era}.resources', resource, f'one of {", ".join(gathered)}')
                 for prop, held in given.properties.items():
                     for season in held.seasons:
                         if season not in seasons:
@@ -993,9 +1100,46 @@ class Params(Node):
         eras: dict[str, Era] = dict(self.eras)
         for name, resource in self.resources.items():
             for era, held in eras.items():
-                if resource.property not in held.properties:
+                if resource.property is not None and resource.property not in held.properties:
                     expected = f'a property of the era {era}: {", ".join(held.properties)}'
                     raise _invalid(f'resources.{name}.property', resource.property, expected)
+
+    def _check_goods(self, name: str, resource: Resource) -> None:
+        path, seasons = f'resources.{name}', [season.name for season in self.time.seasons]
+        if resource.keep is not None and resource.keep.per not in PER:
+            raise _invalid(f'{path}.keep.per', resource.keep.per, f'one of {", ".join(PER)}')
+        for biome in resource.quality:
+            given = self.biomes.get(biome)
+            prop = resource.property
+            held = None if given is None or prop is None else given.eras[BAND].properties[prop]
+            if held is None or held.base <= 0:
+                raise _invalid(f'{path}.quality', biome, f'a biome that gives the property {resource.property}')
+        for material in resource.made:
+            if material not in self.resources or material == name:
+                others = [held for held in self.resources if held != name]
+                raise _invalid(f'{path}.made', material, f'one of {", ".join(others)}')
+        for bonus in resource.gives:
+            if bonus.to not in TO or (bonus.to == TO[1] and resource.held != PERSONAL):
+                raise _invalid(f'{path}.gives.to', bonus.to, f'one of {", ".join(TO)}, a member for personal goods')
+            if bonus.sex is not None and bonus.sex not in SEXES:
+                raise _invalid(f'{path}.gives.sex', bonus.sex, f'one of {", ".join(SEXES)}')
+            for season in bonus.seasons:
+                if season not in seasons:
+                    raise _invalid(f'{path}.gives.seasons', season, f'one of {", ".join(seasons)}')
+            if not self._holds_number(bonus):
+                expected = 'a path of the tree that holds a number, or a span for a plus of a span'
+                raise _invalid(f'{path}.gives.path', bonus.path, expected)
+
+    def _holds_number(self, bonus: Bonus) -> bool:
+        node: Any = self
+        for name in bonus.path.split('.'):
+            if isinstance(node, dict):
+                node = node.get(name)
+            else:
+                node = getattr(node, name) if isinstance(node, BaseModel) and name in type(node).model_fields else None
+        span = isinstance(node, Duration)
+        number = isinstance(node, int | float) and not isinstance(node, bool)
+        return (span or number) and (bonus.plus is None or isinstance(bonus.plus, Duration) == span)
 
     def _check_eras(self) -> None:
         seasons = [season.name for season in self.time.seasons]
@@ -1015,6 +1159,9 @@ class Params(Node):
             for resource in getattr(band, section):
                 if resource not in self.resources:
                     raise _invalid(f'units.band.{section}', resource, f'one of {known}')
+        for resource in band.gathering:
+            if self.resources[resource].property is None:
+                raise _invalid('units.band.gathering', resource, 'a resource gathered by a property of the land')
         start = band.start
         if start.population < band.population.least:
             expected = f'at least the {band.population.least} people of population.least'

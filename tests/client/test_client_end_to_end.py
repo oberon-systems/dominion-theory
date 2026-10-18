@@ -20,6 +20,7 @@ QUIET = (
     'units.band.sight=0',
     'units.band.consumption_per_day.forage=0',
     'units.band.consumption_per_day.water=0',
+    'units.band.decisions.weights.goods=0',
     'units.band.people.birth.conceive_per_day=0',
     'units.band.people.injury.per_day=0',
     'units.band.people.age.per_year=0',
@@ -32,21 +33,21 @@ PLANET = ('planet.circumference_km=4000', 'planet.window.width=32', 'planet.wind
 SMALL = tuple(part for given in (*PLANET, *QUIET) for part in ('--set', given))
 SIZE = {'planet.circumference_km': 4000, 'planet.window.width': 32, 'planet.window.height': 16}
 # A voice that outweighs the whole band, so that what the player says is what the council does; no skill gates it.
-LOUD = {**SIZE, 'council.voice.least': 20.0, 'skills': {}}
+LOUD = {**SIZE, 'council.voice.least': 20.0, 'skills': {}, 'units.band.decisions.weights.goods': 0.0}
 SPOKEN = {
     'en': {
         4: (
-            'day 2, month 1, year 1, spring: 15 people, forage 15, water 15, camps. '
-            'Command pass-4 was accepted. Day 2 of month 1, year 1, begins.'
+            'day 2, month 1, year 1, spring: 15 people, knows how to cut sticks, forage 15, water 15, camps. '
+            'Command pass-4 was accepted. The band has learned to cut sticks. Day 2 of month 1, year 1, begins.'
         ),
         99: (
-            'day 1, month 3, year 1, summer: 15 people, forage 0, water 0, camps. '
+            'day 1, month 3, year 1, summer: 15 people, knows how to cut sticks, forage 0, water 0, camps. '
             'Command pass-99 was accepted. '
             'Day 1 of month 3, year 1, begins. Month 3 of year 1 begins; the season is summer. '
             'Year 1: summer has come.'
         ),
         499: (
-            'day 1, month 1, year 2, spring: 15 people, forage 0, water 0, camps. '
+            'day 1, month 1, year 2, spring: 15 people, knows how to cut sticks, forage 0, water 0, camps. '
             'Command pass-499 was accepted. '
             'Day 1 of month 1, year 2, begins. Month 1 of year 2 begins; the season is spring. '
             'Year 2: spring has come. Year 2 begins.'
@@ -54,17 +55,20 @@ SPOKEN = {
     },
     'ru': {
         4: (
-            'день 2, месяц 1, год 1, весна: 15 человек, подножный корм 15, вода 15, стоит лагерем. '
-            'Команда pass-4 принята. Начался день 2 месяца 1, год 1.'
+            'день 2, месяц 1, год 1, весна: 15 человек, умеет заготавливать палки, подножный корм 15, вода 15, '
+            'стоит лагерем. '
+            'Команда pass-4 принята. Община научилась: заготавливать палки. Начался день 2 месяца 1, год 1.'
         ),
         99: (
-            'день 1, месяц 3, год 1, лето: 15 человек, подножный корм 0, вода 0, стоит лагерем. '
+            'день 1, месяц 3, год 1, лето: 15 человек, умеет заготавливать палки, подножный корм 0, вода 0, '
+            'стоит лагерем. '
             'Команда pass-99 принята. '
             'Начался день 1 месяца 3, год 1. Начался месяц 3 года 1; время года — лето. '
             'Год 1: наступило лето.'
         ),
         499: (
-            'день 1, месяц 1, год 2, весна: 15 человек, подножный корм 0, вода 0, стоит лагерем. '
+            'день 1, месяц 1, год 2, весна: 15 человек, умеет заготавливать палки, подножный корм 0, вода 0, '
+            'стоит лагерем. '
             'Команда pass-499 принята. '
             'Начался день 1 месяца 1, год 2. Начался месяц 1 года 2; время года — весна. '
             'Год 2: наступила весна. Начался год 2.'

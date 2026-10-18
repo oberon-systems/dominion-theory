@@ -12,6 +12,7 @@ from dominion_theory.planet import Planet, place
 
 SMALL = {'planet.circumference_km': 4000, 'planet.window.width': 32, 'planet.window.height': 16}
 TICKS = 300
+BOUNDARIES = (DAY_STARTED, MONTH_STARTED, SEASON_STARTED, YEAR_STARTED)
 
 
 def hashes(game: Game, ticks: int = TICKS) -> list[str]:
@@ -117,7 +118,7 @@ def test_snapshot_does_not_share_its_arrays(params: Params) -> None:
 def test_unreadable_snapshot_is_refused(params: Params) -> None:
     snapshot = Game.create(seed=11, params=params).snapshot()
 
-    assert snapshot['format'] == 19
+    assert snapshot["format"] == 20
     with pytest.raises(ValueError, match='format 1'):
         Game.restore({**snapshot, 'format': 1})
 
@@ -199,11 +200,15 @@ def test_boundary_events_come_in_the_documented_order(params: Params) -> None:
     results = [game.step() for _ in range(500)]
 
     assert [result.events for result in results[:4]] == [[], [], [], []]
-    assert [event.data() for event in results[4].events] == [
+    assert [event.data() for event in results[4].events if event.key in BOUNDARIES] == [
         {'key': DAY_STARTED, 'values': {'year': 1, 'month': 1, 'day': 2}},
     ]
-    assert [event.key for event in results[99].events] == [DAY_STARTED, MONTH_STARTED, SEASON_STARTED]
-    assert [event.data() for event in results[499].events] == [
+    assert [event.key for event in results[99].events if event.key in BOUNDARIES] == [
+        DAY_STARTED,
+        MONTH_STARTED,
+        SEASON_STARTED,
+    ]
+    assert [event.data() for event in results[499].events if event.key in BOUNDARIES] == [
         {'key': DAY_STARTED, 'values': {'year': 2, 'month': 1, 'day': 1}},
         {'key': MONTH_STARTED, 'values': {'year': 2, 'month': 1, 'season': 'spring'}},
         {'key': SEASON_STARTED, 'values': {'year': 2, 'season': 'spring'}},
@@ -218,7 +223,9 @@ def test_verdicts_come_before_the_boundaries(params: Params) -> None:
         game.step()
     game.submit(Pass(seat='player', id='c-1'))
 
-    assert [event.key for event in game.step().events] == ['command-accepted', DAY_STARTED]
+    told = [event.key for event in game.step().events if event.key != 'skill-learned']
+
+    assert told == ['command-accepted', DAY_STARTED]
 
 
 def test_phases_run_in_the_documented_order(params: Params, monkeypatch: pytest.MonkeyPatch) -> None:

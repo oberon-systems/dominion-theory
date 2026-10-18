@@ -44,7 +44,9 @@ def test_the_stream_joins_right_after_the_snapshot(client: TestClient, new_game:
     assert seq == 2
     assert [update['seq'] for update in updates] == [3, 4, 5]
     assert all(isinstance(STREAM.validate_python(update), Update) for update in updates)
-    assert updates[2]['events'] == [{'key': 'day-started', 'values': {'year': 1, 'month': 1, 'day': 2}}]
+    # The skills a band learns on its first night depend on where the drawn seed puts it.
+    told = [event for event in updates[2]['events'] if event['key'] != 'skill-learned']
+    assert told == [{'key': 'day-started', 'values': {'year': 1, 'month': 1, 'day': 2}}]
     assert {**updates[2]['changes'], 'units': []} == {'units': [], 'gone': [], 'cells': [], 'known': [], 'seat': {}}
 
 

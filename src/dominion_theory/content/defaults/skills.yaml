@@ -8,3 +8,9 @@ skills:
   wintering:
     learned: {counter: winters, at_least: 1}
     opens: {proposals: [winter_camp]}
+  stone_tools:
+    learned: {counter: camped_by, biomes: [hills, mountain, outcrops], at_least: 1}
+    opens: {gathers: [stones]}
+  sticks:
+    learned: {counter: camped_by, biome: forest, at_least: 1}
+    opens: {gathers: [sticks]}

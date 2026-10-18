@@ -163,8 +163,8 @@ def test_a_band_that_sees_four_biomes_learns_orientation_at_the_end_of_the_day(p
     told = learned(game, DAY)
 
     assert not before
-    assert told == [{'skill': 'skill-orientation'}]
-    assert game.counters.row()[game.counters.names.index('skills')] == 1
+    assert told == [{'skill': 'skill-orientation'}, {'skill': 'skill-sticks'}]
+    assert game.counters.row()[game.counters.names.index('skills')] == 2
 
 
 def test_a_day_counts_on_the_march_only_when_the_band_walked(params: Params) -> None:
@@ -218,7 +218,7 @@ def test_the_lore_is_carried_by_the_snapshot_and_shown_as_the_skills_known(param
     copy = Game.restore(snapshot)
     band(copy).lore['counts']['winters'] += 1
 
-    assert band(copy).lore['known'] == ['orientation']
+    assert band(copy).lore['known'] == ['orientation', 'sticks']
     assert snapshot['units'][0]['lore']['counts']['winters'] == 0
     assert band(game).lore['counts']['winters'] == 0
-    assert band(game).shown(params, 0)['lore'] == ['orientation']
+    assert band(game).shown(params, 0)['lore'] == ['orientation', 'sticks']

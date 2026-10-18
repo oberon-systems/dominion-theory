@@ -191,11 +191,13 @@ A unit is a band in stage 2, as
 | `action`     | what it did in the last tick: `camp`, `build`, `gather`, `move` or `roam` |
 | `intent`     | the proposal the council bound it to, or `null`             |
 | `route`      | the cells still ahead to the place of a go, each `{"x", "y"}` |
+| `roles`      | the people by role: `gatherer`, `nanny`                     |
 | `camp`       | its winter camp, `{"x", "y", "built"}` with the share built, or `null` |
 | `reason`     | why it took that action; see [Decisions](../game/decisions.md#the-reason) |
 
-An action of `gather` names its `resource` and one of `move` its
-`towards`. An intent is `null` or a proposal as
+An action of `gather` carries its `shares`, the share of the gatherers
+that went to every resource, `{"forage": 0.56, "water": 0.44}`, and one
+of `move` its `towards`. An intent is `null` or a proposal as
 [Commands](commands.md#the-commands) gives it.
 
 ```json

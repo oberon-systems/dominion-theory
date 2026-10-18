@@ -30,9 +30,14 @@ def held(known: dict[tuple[int, int], dict[str, Any]], forage: float, water: flo
 def scores(params: Params, band: Band) -> dict[str, float]:
     found = {}
     for scored in decisions.options(params, band, ERA):
-        name = str(scored.action.get('towards', scored.action.get('resource', 'camp')))
+        name = str(scored.action.get('towards', 'gather' if scored.action['kind'] == 'gather' else 'camp'))
         found[f'roam-{name}' if scored.action['kind'] == 'roam' else name] = scored.score
     return found
+
+
+def shared(params: Params, band: Band) -> dict[str, float]:
+    gathered = [scored.action for scored in decisions.options(params, band, ERA) if scored.action['kind'] == 'gather']
+    return dict(gathered[0]['shares']) if gathered else {}
 
 
 def fixed(index: int) -> Any:
@@ -50,10 +55,17 @@ def test_hunger_is_the_level_the_days_in_the_stores_reach(params: Params, days: 
     assert decisions.level(params, days) == need
 
 
-def test_a_state_makes_its_need_whole(params: Params) -> None:
-    band = held({}, forage=30.0, water=0.0, fatigue=0.6, states=['starvation', 'thirst', 'tiredness'])
+def test_a_need_is_whole_only_when_the_stores_lack_a_day_and_somebody_would_die_tonight(params: Params) -> None:
+    empty = held({}, forage=0.0, water=0.0, states=['starvation', 'thirst'])
+    stocked = held({}, forage=30.0, water=0.0)
+    alive = decisions.needs(params, empty)
+    for band in (empty, stocked):
+        band.members[1].hungry = 1.0
+        band.changed()
 
-    assert decisions.needs(params, band) == pytest.approx({'hunger': 1.0, 'thirst': 1.0})
+    assert alive == pytest.approx({'hunger': 0.8, 'thirst': 0.8})
+    assert decisions.needs(params, empty) == pytest.approx({'hunger': 1.0, 'thirst': 0.8})
+    assert decisions.needs(params, stocked) == pytest.approx({'hunger': 0.1, 'thirst': 0.8})
 
 
 def test_a_calm_band_is_one_that_neither_hunger_nor_thirst_presses() -> None:
@@ -120,13 +132,14 @@ def test_the_first_example_of_the_document_gathers_forage(params: Params) -> Non
 
     found = scores(params, band)
 
-    assert found == pytest.approx({'camp': 0.0, 'forage': 1.5 * 0.4 * 0.9 * 37.5 / 40.5, 'water': 1.2 * 0.1 * 0.6})
-    assert decisions.decide(params, band, 0, ERA) == {'kind': 'gather', 'resource': 'forage'}
+    shares = {'forage': pytest.approx(5 / 6), 'water': pytest.approx(1 / 6)}
+    assert found == pytest.approx({'camp': 0.0, 'gather': 0.5 * 5 / 6 + 1.2 * 0.1 * 0.6 / 6})
+    assert decisions.decide(params, band, 0, ERA) == {'kind': 'gather', 'shares': shares}
     assert band.reason == {
         'action': 'gather',
-        'resource': 'forage',
+        'shares': shares,
         'need': 'hunger',
-        'score': pytest.approx(0.5),
+        'score': pytest.approx(0.5 * 5 / 6 + 0.072 / 6),
         'pull': None,
     }
 
@@ -150,8 +163,11 @@ def test_a_hungry_band_stays_in_the_forest_to_gather(params: Params) -> None:
     own = 0.8 * 0.9 + 0.1 * 0.6 - 2.0 * 0.2 * 0.4
     grass = 0.8 * 0.8 + 0.1 * 0.28 - 2.0 * 0.2 * 0.1
     assert found['roam-east'] == pytest.approx(0.75 * 3.0 * (grass / 1.25 - own) + 0.5 * 1.5 * 0.8 * 0.8)
-    assert found['forage'] == pytest.approx(1.5 * 0.8 * 0.9)
-    assert decisions.decide(params, band, 0, ERA) == {'kind': 'gather', 'resource': 'forage'}
+    assert found['gather'] == pytest.approx(1.5 * 0.8 * 0.9 * 10 / 11 + 1.2 * 0.1 * 0.6 / 11)
+    assert decisions.decide(params, band, 0, ERA) == {
+        'kind': 'gather',
+        'shares': {'forage': pytest.approx(10 / 11), 'water': pytest.approx(1 / 11)},
+    }
 
 
 def test_a_hungry_band_only_roams_and_a_fed_one_may_walk(params: Params) -> None:
@@ -205,8 +221,7 @@ def test_the_stripped_example_of_the_document_walks_to_the_remembered_forest() -
     assert found == pytest.approx(
         {
             'camp': 0.0,
-            'forage': 1.5 * 0.8 * 0.09,
-            'water': 0.0,
+            'gather': 1.5 * 0.8 * 0.09,
             'roam-east': 0.75 * 3.0 * (forest / 1.75 - own) + 0.5 * 1.5 * 0.8 * 0.09,
         }
     )
@@ -221,8 +236,8 @@ def test_a_cell_the_band_has_not_seen_does_not_pull(params: Params) -> None:
 
     found = scores(params, blind)
 
-    assert found['roam-east'] < found['forage']
-    assert set(found) == {'camp', 'forage', 'water', 'roam-east'}
+    assert found['roam-east'] < found['gather']
+    assert set(found) == {'camp', 'gather', 'roam-east'}
 
 
 def test_a_loaded_band_does_not_gather(params: Params) -> None:
@@ -230,13 +245,14 @@ def test_a_loaded_band_does_not_gather(params: Params) -> None:
 
     found = scores(params, band)
 
-    assert (found['forage'], found['water']) == (0.0, 0.0)
+    assert found['gather'] == 0.0
 
 
 def test_a_cell_gives_only_what_its_biome_lists(params: Params) -> None:
     band = held({HOME: {**FOREST, 'biome': 'snow'}}, forage=0.0, water=0.0)
 
-    assert set(scores(params, band)) == {'camp', 'water'}
+    assert set(scores(params, band)) == {'camp', 'gather'}
+    assert set(shared(params, band)) == {'water'}
 
 
 def test_water_and_shallows_are_no_way_and_a_band_beside_the_shallows_gathers_from_them(params: Params) -> None:
@@ -245,10 +261,10 @@ def test_water_and_shallows_are_no_way_and_a_band_beside_the_shallows_gathers_fr
     inland = held({HOME: FOREST}, forage=0.0, water=0.0)
 
     assert not any(decisions.reachable(band, at) for at in (east, north, (HOME[0] - 1, HOME[1])))
-    assert set(scores(params, band)) == {'camp', 'forage', 'water'}
+    assert set(shared(params, band)) == {'forage', 'water'}
     assert decisions.seen(params, band, HOME, ERA) == {**FOREST, 'water': 1.0}
-    assert scores(params, band)['water'] > scores(params, inland)['water']
-    assert scores(params, band)['forage'] == scores(params, inland)['forage']
+    assert scores(params, band)['gather'] > scores(params, inland)['gather']
+    assert shared(params, band) == shared(params, inland)
 
 
 def test_a_cell_by_the_shallows_lists_what_they_give(params: Params) -> None:
@@ -257,7 +273,7 @@ def test_a_cell_by_the_shallows_lists_what_they_give(params: Params) -> None:
 
     assert decisions.gathers(params, band, HOME, ERA) == {'water', 'forage'}
     assert decisions.seen(params, band, HOME, ERA) == {**FOREST, 'biome': 'snow', 'water': 1.0}
-    assert set(scores(params, band)) == {'camp', 'forage', 'water'}
+    assert set(shared(params, band)) == {'forage', 'water'}
 
 
 def test_a_tie_goes_to_the_first_in_the_order_and_a_way_in_progress_is_kept(params: Params) -> None:
@@ -294,7 +310,7 @@ def test_a_band_that_has_a_reason_draws_nothing(params: Params) -> None:
 
     band = held({HOME: FOREST}, forage=0.0, water=45.0, wander={'towards': 'east', 'until': 9})
 
-    assert decisions.decide(params, band, 0, ERA, never) == {'kind': 'gather', 'resource': 'forage'}
+    assert decisions.decide(params, band, 0, ERA, never)['kind'] == 'gather'
     assert band.wander is None
 
 

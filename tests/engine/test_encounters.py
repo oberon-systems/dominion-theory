@@ -39,10 +39,10 @@ def test_a_kind_fits_its_biomes_its_actions_and_its_resources(params: Params) ->
     assert fitting(params, 'forest', True, moving('east')) == ['drowning', 'predator']
     assert fitting(params, 'forest', True, camp()) == ['predator']
     assert fitting(params, 'mountain', False, moving('east')) == ['accident', 'predator']
-    assert fitting(params, 'mountain', False, gathering('forage')) == ['predator']
-    assert fitting(params, 'shallows', False, gathering('water')) == ['drowning', 'predator']
-    assert fitting(params, 'swamp', False, gathering('water')) == ['poisoning', 'predator']
-    assert fitting(params, 'swamp', False, gathering('forage')) == ['predator']
+    assert fitting(params, 'mountain', False, gathering({'forage': 1.0})) == ['predator']
+    assert fitting(params, 'shallows', False, gathering({'water': 1.0})) == ['drowning', 'predator']
+    assert fitting(params, 'swamp', False, gathering({'water': 1.0})) == ['poisoning', 'predator']
+    assert fitting(params, 'swamp', False, gathering({'forage': 1.0})) == ['predator']
 
 
 def test_the_chance_follows_the_threat_and_the_action(params: Params) -> None:
@@ -51,13 +51,13 @@ def test_the_chance_follows_the_threat_and_the_action(params: Params) -> None:
 
     assert (met(0.0049, 0.5, camp()), met(0.005, 0.5, camp())) == (True, False)
     assert (met(0.0149, 0.5, moving('east')), met(0.015, 0.5, moving('east'))) == (True, False)
-    assert (met(0.0199, 1.0, gathering('forage')), met(0.02, 1.0, gathering('forage'))) == (True, False)
+    assert (met(0.0199, 1.0, gathering({'forage': 1.0})), met(0.02, 1.0, gathering({'forage': 1.0}))) == (True, False)
     assert not met(0.0, 0.0, camp())
 
 
 def test_the_kind_is_drawn_by_weight_among_those_that_fit(params: Params) -> None:
     def kind(which: float) -> str:
-        met = encounters.strike(params, 'swamp', False, 1.0, gathering('water'), dice(0.0, which, 0.0))
+        met = encounters.strike(params, 'swamp', False, 1.0, gathering({'water': 1.0}), dice(0.0, which, 0.0))
         assert met is not None
         return met[0]
 
@@ -82,7 +82,7 @@ def test_a_band_in_camp_loses_half_the_share_and_is_hurt_the_same(params: Params
 
 
 def test_a_drowning_always_takes_somebody(params: Params) -> None:
-    met = encounters.strike(params, 'shallows', False, 1.0, gathering('water'), dice(0.0, 0.0, 0.0))
+    met = encounters.strike(params, 'shallows', False, 1.0, gathering({'water': 1.0}), dice(0.0, 0.0, 0.0))
     band = Band(id=1, x=0, y=0, members=adults(15), stores={})
 
     assert met == ('drowning', 0.05, 0.0)
@@ -123,3 +123,9 @@ def test_no_chance_means_no_encounter_and_the_stream_is_drawn_all_the_same() -> 
 
     assert [key for key, _ in told if key == 'encounter'] == []
     assert quiet.streams.states()['encounters'] == loud.streams.states()['encounters']
+
+
+def test_a_shared_gathering_meets_what_any_of_its_resources_meets(params: Params) -> None:
+    both = gathering({'forage': 0.6, 'water': 0.4})
+
+    assert fitting(params, 'swamp', False, both) == ['poisoning', 'predator']

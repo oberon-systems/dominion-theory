@@ -705,9 +705,9 @@ def test_a_year_of_votes_gives_the_same_hashes_twice(params: Params) -> None:
 
 @pytest.mark.parametrize(
     ('day', 'offered'),
-    [(20, False), (59, False), (60, True), (70, True), (99, True), (100, False), (160, True)],
+    [(20, False), (64, False), (65, True), (70, True), (99, True), (100, False), (160, False), (165, True)],
 )
-def test_a_winter_camp_is_offered_in_the_winter_and_the_ten_days_before_it(
+def test_a_winter_camp_is_offered_in_the_winter_and_the_five_days_before_it(
     params: Params, day: int, offered: bool
 ) -> None:
     assert council.offered(params, day) is offered
@@ -804,7 +804,8 @@ def test_a_hungry_band_bound_to_a_winter_camp_gathers_its_reach(params: Params) 
     game.step()
     near = [at for at in bands.around(HOME, 1) if game.inside(*at)]
 
-    assert band(game).action == {'kind': 'gather', 'resource': 'forage'}
+    assert band(game).action['kind'] == 'gather'
+    assert max(band(game).action['shares'].items(), key=lambda held: held[1])[0] == 'forage'
     assert game.cells.stock(HOME, 'food') == pytest.approx(0.1, abs=0.01)
     assert any(game.cells.stock(at, 'food') < 1.0 for at in near)
 

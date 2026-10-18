@@ -56,6 +56,10 @@ units:
           heavy: {days: 20, pace: 0.4, gathers: 0.2}
         drawn: {light: 0.5, medium: 0.3, heavy: 0.2}
       weakened: {pace: 0.6, gathers: 0.6}
+      # A nanny for every five children, rounded up, gathers half by the camp; everyone else gathers.
+      roles:
+        gatherer: {gathers: 1.0}
+        nanny: {gathers: 0.5, cares: 5}
       birth:
         pregnancy: {months: 3}
         pause: {min: {months: 1}, max: {months: 2}}
@@ -88,8 +92,8 @@ units:
     route: {margin: 4, threat: 2.0, hunger: 1.0, thirst: 1.0}
     shelter: {encounter: 0.5, frailty: 0.5}
     winter_camp:
-      # Offered through the winter and the last days of the autumn before it.
-      offered: {seasons: [winter], before: {days: 10}}
+      # Offered through the winter and the last five days of the autumn, enough to build before it.
+      offered: {seasons: [winter], before: {days: 5}}
       build: {days: 2}
       # Gathered from the own cell and the cells around it, a cell away giving afar of a gathering.
       reach: 1

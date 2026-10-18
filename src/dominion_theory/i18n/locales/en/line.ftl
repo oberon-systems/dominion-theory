@@ -29,7 +29,15 @@ line-votes = { $proposal } - { $votes }
 
 line-action-camp = camps
 line-action-build = builds a winter camp
-line-action-gather = gathers { NAME("resource", $resource) }
+line-action-gather = gathers { $what }
+line-gathered = { NAME("resource", $resource) }
+line-gathered-share = { NAME("resource", $resource) } ({ $percent }%)
+line-and = { $first } and { $last }
+line-role-nanny =
+    { $count ->
+        [one] { $count } nanny
+       *[other] { $count } nannies
+    }
 line-action-move = walks { NAME("line-direction", $towards) }
 line-action-roam = roams { NAME("line-direction", $towards) }, foraging on the way
 

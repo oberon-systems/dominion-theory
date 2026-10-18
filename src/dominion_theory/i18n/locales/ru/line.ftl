@@ -32,7 +32,16 @@ line-votes = { $proposal } - { $votes }
 
 line-action-camp = стоит лагерем
 line-action-build = ставит зимний лагерь
-line-action-gather = собирает { NAME("resource", $resource, form: "accusative") }
+line-action-gather = собирает { $what }
+line-gathered = { NAME("resource", $resource, form: "accusative") }
+line-gathered-share = { NAME("resource", $resource, form: "accusative") } ({ $percent }%)
+line-and = { $first } и { $last }
+line-role-nanny =
+    { $count ->
+        [one] { $count } нянька
+        [few] { $count } няньки
+       *[many] { $count } нянек
+    }
 line-action-move = идёт { NAME("line-direction", $towards) }
 line-action-roam = кочует { NAME("line-direction", $towards) }, собирая по пути
 

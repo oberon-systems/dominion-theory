@@ -578,6 +578,16 @@ class Route(Node):
     thirst: Factor
 
 
+class Role(Node):
+    """
+    What a member does for the band: the share of a gathering it brings, and for a role that cares, one member
+    of it for every so many children.
+    """
+
+    gathers: Factor
+    cares: Count | None = None
+
+
 class Weakened(Node):
     """
     The share of pace and gathering a hungry or thirsty member keeps.
@@ -593,6 +603,7 @@ class People(Node):
     injury: Injury
     birth: Birth
     weakened: Weakened
+    roles: dict[Name, Role] = Field(min_length=1)
 
 
 class Speed(Node):
@@ -998,6 +1009,9 @@ class Params(Node):
         if self.days(pause.min) > self.days(pause.max):
             raise _invalid(f'{path}.birth.pause', pause.model_dump(), 'min not above max')
         self._check_wounds(f'{path}.injury.drawn', people.injury.drawn)
+        common = [name for name, role in people.roles.items() if role.cares is None]
+        if len(common) != 1:
+            raise _invalid(f'{path}.roles', common, 'exactly one role that cares for nobody')
 
     def _check_wounds(self, path: str, weights: dict[str, float]) -> None:
         severities = self.units.band.people.injury.severities

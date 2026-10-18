@@ -24,6 +24,12 @@ WOUNDS = 'wounds'
 HEAVY = 'heavy'
 STORE = 'line-store'
 CAMP = 'line-camp'
+GATHERED = 'line-gathered'
+SHARED = 'line-gathered-share'
+AND = 'line-and'
+ROLE = 'line-role-'
+# The roles told by their count: everyone else gathers.
+ROLES = ('nanny',)
 STATUS = 'line-status'
 COUNCIL = 'line-council'
 VOTES = 'line-votes'
@@ -66,6 +72,10 @@ MESSAGES: tuple[str, ...] = (
     BADLY,
     STORE,
     CAMP,
+    GATHERED,
+    SHARED,
+    AND,
+    *(f'{ROLE}{name}' for name in ROLES),
     STATUS,
     COUNCIL,
     VOTES,
@@ -184,15 +194,32 @@ def _joined(pieces: list[Part], between: str) -> list[Part]:
     return joined
 
 
-def band_parts(band: Unit, lang: str) -> list[Part]:
-    action = band['action']
+def doing(action: Mapping[str, Any], lang: str) -> str:
+    """
+    The words of an action; a gathering names its resources, most gathered first, with their shares when there
+    are several.
+    """
     told = {name: value for name, value in action.items() if name != 'kind'}
+    if action['kind'] != 'gather':
+        return render(f'{ACTION}{action["kind"]}', told, lang)
+    shares = sorted(action['shares'].items(), key=lambda held: -held[1])
+    key = GATHERED if len(shares) == 1 else SHARED
+    names = [render(key, {'resource': name, 'percent': round(share * 100)}, lang) for name, share in shares]
+    what = names[0] if len(names) == 1 else render(AND, {'first': ', '.join(names[:-1]), 'last': names[-1]}, lang)
+    return render(f'{ACTION}gather', {'what': what}, lang)
+
+
+def band_parts(band: Unit, lang: str) -> list[Part]:
     pieces = [Part(Look.BAND, render(PEOPLE, {'count': band['population']}, lang))]
     ages = {name: count for name, count in band.get('ages', {}).items() if count}
     # A band of one stage says no more than its people.
     if len(ages) > 1:
         pieces += [Part(Look.BAND, render(f'{STAGE}{name}', {'count': count}, lang)) for name, count in ages.items()]
     pieces += [Part(Look.STATE, _condition(band, name, lang)) for name in CONDITIONS if band.get(name)]
+    roles = band.get('roles', {})
+    pieces += [
+        Part(Look.BAND, render(f'{ROLE}{name}', {'count': roles[name]}, lang)) for name in ROLES if roles.get(name)
+    ]
     if _sheltered(band):
         pieces.append(Part(Look.BAND, render(CAMP, lang=lang)))
     pieces += [
@@ -200,7 +227,7 @@ def band_parts(band: Unit, lang: str) -> list[Part]:
         for name, amount in band['stores'].items()
     ]
     pieces += [Part(Look.STATE, render(f'{STATE}{state}', lang=lang)) for state in band['states']]
-    pieces.append(Part(Look.BAND, render(f'{ACTION}{action["kind"]}', told, lang)))
+    pieces.append(Part(Look.BAND, doing(band['action'], lang)))
     return [*_joined(pieces, ', '), Part(Look.PLAIN, '.')]
 
 

@@ -19,8 +19,8 @@ def fits(kind: Encounter, biome: str, river: bool, action: Action) -> bool:
         return False
     if kind.actions and action['kind'] not in kind.actions:
         return False
-    gathered = action.get('resource') if action['kind'] == GATHER else None
-    return not kind.resources or gathered in kind.resources
+    gathered = set(action.get('shares', ())) if action['kind'] == GATHER else set()
+    return not kind.resources or bool(gathered & set(kind.resources))
 
 
 def strike(

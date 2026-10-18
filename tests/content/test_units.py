@@ -51,6 +51,10 @@ def test_band_is_the_one_of_its_document() -> None:
     }
     assert band.roaming.model_dump() == {'speed': 0.75, 'share': 0.5, 'hunger': 0.8}
     assert band.people.weakened.model_dump() == {'pace': 0.6, 'gathers': 0.6}
+    assert {name: role.model_dump() for name, role in band.people.roles.items()} == {
+        'gatherer': {'gathers': 1.0, 'cares': None},
+        'nanny': {'gathers': 0.5, 'cares': 5},
+    }
     assert {name: stage.reserve.model_dump() for name, stage in band.people.stages.items()} == {
         'child': {'food': 1.0, 'water': 1.0, 'grows': True},
         'adult': {'food': 2.0, 'water': 2.0, 'grows': False},
@@ -61,7 +65,7 @@ def test_band_is_the_one_of_its_document() -> None:
     assert band.camp_parts == ('evening', 'night')
     assert band.shelter.model_dump() == {'encounter': 0.5, 'frailty': 0.5}
     assert band.winter_camp.model_dump() == {
-        'offered': {'seasons': ('winter',), 'before': {'days': 10}},
+        'offered': {'seasons': ('winter',), 'before': {'days': 5}},
         'build': {'days': 2},
         'reach': 1,
         'afar': 1.0,
@@ -242,6 +246,12 @@ def test_wounds_are_drawn_from_severities_that_exist_by_some_weight(path: str) -
 
     assert raised.value.values == {'path': path, 'found': 'grave', 'expected': 'one of light, medium, heavy'}
     assert refused({f'{path}.{name}': 0.0 for name in ('light', 'medium', 'heavy')})['path'] == path
+
+
+def test_one_role_cares_for_nobody() -> None:
+    roles = {'gatherer': {'gathers': 1.0}, 'nanny': {'gathers': 0.0}}
+
+    assert refused({f'{BAND}.people.roles': roles})['path'] == f'{BAND}.people.roles'
 
 
 def test_the_last_stage_does_not_grow_its_reserve() -> None:

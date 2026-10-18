@@ -158,7 +158,7 @@ go     = weights.move * pull
 
 A winter camp is offered in the seasons of
 `units.band.winter_camp.offered`, the winter, and in its `before` days
-ahead of them, the last 10 days of the autumn. The camp is worth the best
+ahead of them, the last 5 days of the autumn. The camp is worth the best
 food and water within its reach, so the others want to leave only once
 the cells around are stripped too. Its other effects - less eaten,
 slower spoiling, a deeper rest - are no part of the worth of a cell, so

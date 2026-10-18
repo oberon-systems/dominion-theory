@@ -282,7 +282,7 @@ def test_a_vote_from_the_terminal_turns_the_band_and_its_verdict_moves_the_statu
     assert 'Not understood: alpha.' in lines
     assert 'Your standing is 50.' in lines
     assert any(f'You turned the band: {north}.' in text for text in lines)
-    assert any(f'It came out even: {north}. Your standing stays 50.' in text for text in lines)
+    assert any(f'It went well: {north}. Your standing is now 54.' in text for text in lines)
     assert any('@ ' in text and not text.startswith('@ ') for text in lines)
     assert any(text.startswith('@ ') and '| reason ' in text for text in lines)
 

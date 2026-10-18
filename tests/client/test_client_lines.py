@@ -85,12 +85,12 @@ def test_a_line_without_events_is_the_date_alone() -> None:
         (BAND, 'en', '15 people, forage 22.5, water 30, camps.'),
         (BAND, 'ru', '15 человек, подножный корм 22,5, вода 30, стоит лагерем.'),
         (
-            {**BAND, 'population': 1, 'states': ['thirst'], 'action': {'kind': 'gather', 'resource': 'water'}},
+            {**BAND, 'population': 1, 'states': ['thirst'], 'action': {'kind': 'gather', 'shares': {'water': 1.0}}},
             'en',
             '1 person, forage 22.5, water 30, thirst, gathers water.',
         ),
         (
-            {**BAND, 'population': 2, 'states': ['thirst'], 'action': {'kind': 'gather', 'resource': 'water'}},
+            {**BAND, 'population': 2, 'states': ['thirst'], 'action': {'kind': 'gather', 'shares': {'water': 1.0}}},
             'ru',
             '2 человека, подножный корм 22,5, вода 30, жажда, собирает воду.',
         ),
@@ -123,6 +123,21 @@ def test_a_line_without_events_is_the_date_alone() -> None:
             {**BAND, 'injured': 3, 'wounds': {'light': 2, 'medium': 0, 'heavy': 1}},
             'en',
             '15 people, 3 injured (1 badly), forage 22.5, water 30, camps.',
+        ),
+        (
+            {**BAND, 'action': {'kind': 'gather', 'shares': {'water': 0.44, 'forage': 0.56}}},
+            'en',
+            '15 people, forage 22.5, water 30, gathers forage (56%) and water (44%).',
+        ),
+        (
+            {**BAND, 'action': {'kind': 'gather', 'shares': {'water': 0.44, 'forage': 0.56}}},
+            'ru',
+            '15 человек, подножный корм 22,5, вода 30, собирает подножный корм (56%) и воду (44%).',
+        ),
+        (
+            {**BAND, 'roles': {'gatherer': 13, 'nanny': 2}},
+            'ru',
+            '15 человек, 2 няньки, подножный корм 22,5, вода 30, стоит лагерем.',
         ),
         (
             {**BAND, 'camp': {'x': 2301, 'y': 744, 'built': 0.5}, 'action': {'kind': 'build'}},

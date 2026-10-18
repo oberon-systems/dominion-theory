@@ -94,7 +94,8 @@ or thirsty one at `people.weakened`, 0.6, see
 [Hunger and thirst](#hunger-and-thirst).
 
 ```text
-gatherers = sum of gathers, times severity.gathers for the wounded, times weakened.gathers for the hungry
+gatherers = sum of gathers, times severity.gathers for the wounded, times weakened.gathers for the hungry,
+            times the gathers of the role
 eaters    = sum of eats
 carriers  = sum of carries
 pace      = mean of pace, times severity.pace for the wounded, times weakened.pace for the hungry
@@ -106,6 +107,27 @@ population before; the speed is multiplied by the mean pace and a gain
 of fatigue by the mean tiring. A band of adults lives as a band of
 heads did. Only the stages that vote sit in the council; see
 [Indirect control](../game/indirect_control.md#the-table-of-votes).
+
+### Roles
+
+Every member has a role. For every `cares` children, rounded up, one
+woman of a stage that conceives, never the player, is a nanny: the
+pregnant and the resting first, then the oldest. A nanny keeps the
+children by the camp and gathers half of what a gatherer does. Everyone
+else is a gatherer. The roles are laid anew at the end of every day.
+
+| Role       | Gathers | One for every |
+|------------|---------|---------------|
+| `gatherer` | 1       | -             |
+| `nanny`    | 0.5     | 5 children    |
+
+A nanny that gathered nothing took a third of the hands of a band with
+more children than adults: the headless band of seed 7 had 16 children,
+11 adults and 4 nannies in its third winter and starved.
+
+Children and elders are gatherers who gather nothing for their stage. A
+role is meant to grow with the doing - a member who fetches water for
+long fetches it better - once a tribe shares its work more finely.
 
 ### Wellbeing
 
@@ -277,7 +299,8 @@ ___
 ## Winter camp
 
 A winter camp is the council's answer `winter-camp`, offered through the
-winter and the last 10 days of the autumn. The band builds it on the cell
+winter and the last 5 days of the autumn, time enough to build it before
+the cold. The band builds it on the cell
 it stands on with the action `build`: `winter_camp.build`, 2 days of the
 active parts, 6 ticks, with no gathering; while it starves or thirsts
 it gathers instead, and the share built waits for it. Before game
@@ -340,13 +363,27 @@ ___
 
 ## Gathering
 
-A gathering tick is spent on one resource. What the band takes is its own
-rate times the property of the cell, as
-[Biomes](../biomes/overview.md#properties) defines it.
+A gathering tick sends the gatherers after every resource the band wants,
+each share of them as the need for it weighs:
 
 ```text
-taken = gatherers * rate * value(property, cell)
+share of a resource = weights.<need> * need / the sum of them all
+taken               = gatherers * share * rate * value(property, its cell)
 ```
+
+So a band with water for a day and food for two sends most of its
+gatherers for water and some for food, and a band with neither sends
+them for both. A need of 0 gets nobody. Every share takes its resource
+from its own cell - the cell the band stands on, a shore beside it, the
+reach of a winter camp - and the same share of the free carrying weight,
+so a band can no longer fill its carry with food and leave no room for
+water. Before game b54a7608 a tick was spent on one resource: a band dying
+of thirst beside water gathered forage all day, since food weighed more,
+and died.
+
+`gatherers` counts the gatherers only; see [Roles](#roles). What the band
+takes is its rate times the property of the cell, as
+[Biomes](../biomes/overview.md#properties) defines it.
 
 | Resource | Property | Rate per person per tick |
 |----------|----------|--------------------------|
@@ -608,6 +645,9 @@ units:
           heavy: {days: 20, pace: 0.4, gathers: 0.2}
         drawn: {light: 0.5, medium: 0.3, heavy: 0.2}
       weakened: {pace: 0.6, gathers: 0.6}
+      roles:
+        gatherer: {gathers: 1.0}
+        nanny: {gathers: 0.5, cares: 5}
       birth:
         pregnancy: {months: 3}
         pause: {min: {months: 1}, max: {months: 2}}
@@ -644,7 +684,7 @@ units:
     route: {margin: 4, threat: 2.0, hunger: 1.0, thirst: 1.0}
     shelter: {encounter: 0.5, frailty: 0.5}
     winter_camp:
-      offered: {seasons: [winter], before: {days: 10}}
+      offered: {seasons: [winter], before: {days: 5}}
       build: {days: 2}
       reach: 1
       afar: 1.0

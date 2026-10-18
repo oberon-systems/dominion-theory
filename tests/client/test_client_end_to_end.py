@@ -94,12 +94,12 @@ def test_a_game_year_is_played_printed_and_replayed(server: str, lang: str) -> N
 COUNCIL = {
     'en': (
         'You turned the band: we go on through the forest.',
-        'It came out even: we go on through the forest. Your standing stays 50.',
+        'It went well: we go on through the forest. Your standing is now 54.',
         'The votes: ',
     ),
     'ru': (
         'Вы повернули общину: идём по лесу.',
-        'Ни хорошо, ни плохо: идём по лесу. Ваш вес остаётся 50.',
+        'Всё вышло хорошо: идём по лесу. Ваш вес теперь 54.',
         'Голоса: ',
     ),
 }
@@ -130,9 +130,9 @@ def test_a_vote_that_turns_the_band_sends_it_there_and_judges_it_on_arrival(api:
     turned, judged, table = COUNCIL[lang]
     judging = EVENING + DAY - 1
 
-    assert [action['kind'] for action in actions[EVENING : judging + 1]] == ['camp', 'camp', 'roam', 'move', 'gather']
+    assert [action['kind'] for action in actions[EVENING : judging + 1]] == ['camp', 'camp', 'roam', 'move', 'roam']
     assert updates[EVENING]['changes']['seat'] == {'council': None}
-    assert 'status' not in updates[judging]['changes']['seat']
+    assert updates[judging]['changes']['seat']['status'] == 54.0
     assert turned in lines[EVENING]
     assert judged in lines[judging] and table in lines[judging]
     assert api.snapshot(called)['seat']['seated'] is True

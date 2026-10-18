@@ -91,6 +91,7 @@ class Member:
     # The days of food and of water gone without since the last full ration.
     hungry: float = 0.0
     thirsty: float = 0.0
+    role: str | None = None
 
     @classmethod
     def read(cls, plain: dict[str, Any]) -> Member:
@@ -239,6 +240,7 @@ class Band:
             'action': dict(self.action),
             'intent': self.intent,
             'route': [] if self.route is None else [{'x': x, 'y': y} for x, y in self.route['cells']],
+            'roles': roles(params, self),
             'camp': self.camp,
             'reason': self.reason,
         }
@@ -261,8 +263,11 @@ def building() -> Action:
     return {'kind': BUILD}
 
 
-def gathering(resource: str) -> Action:
-    return {'kind': GATHER, 'resource': resource}
+def gathering(shares: dict[str, float]) -> Action:
+    """
+    A gathering with the share of the gatherers that goes to every resource.
+    """
+    return {'kind': GATHER, 'shares': dict(shares)}
 
 
 def moving(towards: str) -> Action:
@@ -291,6 +296,7 @@ def start(land: Land, x: int, y: int, day: int, rng: np.random.Generator) -> Ban
     ]
     stores = {name: [[float(day), float(amount)]] for name, amount in rules.start.stores.items() if amount > 0}
     band = Band(id=1, x=x, y=y, members=members, stores=stores)
+    assign(params, band)
     look(land, band, day)
     return band
 
@@ -329,6 +335,7 @@ def census(params: Params, band: Band) -> Census:
     named = tuple(next(name for name, until in limits if member.age_days < until) for member in band.members)
     severities = people.injury.severities
     weakened = people.weakened
+    jobs = people.roles
     gatherers = eaters = carriers = pace = tires = 0.0
     voters = pregnant = 0
     counts = dict.fromkeys(stages, 0)
@@ -338,9 +345,9 @@ def census(params: Params, band: Band) -> Census:
         wound = None if member.wound is None else member.wound['severity']
         weak = any(wanting(params, member, name, prop) for prop in DEFICITS)
         counts[name] += 1
-        gatherers += (
-            stage.gathers * (1.0 if wound is None else severities[wound].gathers) * (weakened.gathers if weak else 1.0)
-        )
+        job = 1.0 if member.role is None else jobs[member.role].gathers
+        hurt = 1.0 if wound is None else severities[wound].gathers
+        gatherers += stage.gathers * hurt * (weakened.gathers if weak else 1.0) * job
         eaters += stage.eats
         carriers += stage.carries
         pace += stage.pace * (1.0 if wound is None else severities[wound].pace) * (weakened.pace if weak else 1.0)
@@ -356,6 +363,55 @@ def census(params: Params, band: Band) -> Census:
     )
     band.counted = id(params), counted
     return counted
+
+
+def common(params: Params) -> str:
+    """
+    The role of everyone no other role takes.
+    """
+    return next(name for name, role in params.units.band.people.roles.items() if role.cares is None)
+
+
+def assign(params: Params, band: Band) -> None:
+    """
+    Lays the roles anew: for every `cares` children, rounded up, one woman of a stage that conceives, never the
+    player, takes a role that cares - the pregnant and the resting first, then the oldest; everyone else takes
+    the role that cares for nobody.
+    """
+    people = params.units.band.people
+    named = census(params, band).stages
+    children = sum(name == next(iter(people.stages)) for name in named)
+    women = sorted(
+        (
+            at
+            for at, (member, name) in enumerate(zip(band.members, named, strict=True))
+            if member.sex == FEMALE and not member.player and people.stages[name].conceives
+        ),
+        key=lambda at: (
+            band.members[at].pregnant_until is None and band.members[at].rest_until is None,
+            -band.members[at].age_days,
+            at,
+        ),
+    )
+    for member in band.members:
+        member.role = common(params)
+    for name, role in people.roles.items():
+        if role.cares is not None:
+            taken = min(math.ceil(children / role.cares), len(women))
+            for at in women[:taken]:
+                band.members[at].role = name
+            women = women[taken:]
+    band.changed()
+
+
+def roles(params: Params, band: Band) -> dict[str, int]:
+    """
+    The members by role; one with none yet counts in the common role.
+    """
+    found = dict.fromkeys(params.units.band.people.roles, 0)
+    for member in band.members:
+        found[member.role or common(params)] += 1
+    return found
 
 
 def reserve(params: Params, name: str, age_days: int, prop: str) -> float:
@@ -593,12 +649,18 @@ def _roam(land: Land, band: Band, action: Action, rules: Rules, day: int) -> Act
 
 
 def _gather(land: Land, band: Band, action: Action, rules: Rules, day: int) -> Action:
-    name = action['resource']
-    held = reached(land, band, name)
-    if held is None:
-        return camp()
-    _take(land, band, name, rules, day, held[1], held[0])
-    return gathering(name)
+    """
+    The gatherers split by the shares of the action: every share takes its resource from its own source, with
+    the same share of the room.
+    """
+    free = room(land.params, band)
+    done: dict[str, float] = {}
+    for name, share in action['shares'].items():
+        held = reached(land, band, name)
+        if held is not None and share > 0:
+            _take(land, band, name, rules, day, share * held[1], held[0], free * share)
+            done[name] = share
+    return gathering(done) if done else camp()
 
 
 def _build(land: Land, band: Band) -> Action:
@@ -617,11 +679,14 @@ def _build(land: Land, band: Band) -> Action:
     return building()
 
 
-def _take(land: Land, band: Band, name: str, rules: Rules, day: int, share: float, at: Place) -> None:
+def _take(
+    land: Land, band: Band, name: str, rules: Rules, day: int, share: float, at: Place, free: float | None = None
+) -> None:
     params = land.params
     resource = params.resources[name]
     wanted = census(params, band).gatherers * rules.gathering.get(name, 0.0) * land.value(resource.property, *at)
-    taken = min(wanted * share * efficiency(rules, band), room(params, band) / resource.weight_kg)
+    space = room(params, band) if free is None else free
+    taken = min(wanted * share * efficiency(rules, band), space / resource.weight_kg)
     if taken > 0:
         _stored(band, name, day, taken)
         capacity = params.eras[land.era].capacity.get(resource.property)
@@ -961,6 +1026,7 @@ def live(
     lived.lost.append((BIRTH, bury(band, mothers)))
     if feeds:
         _conceive(params, band, day, rng)
+    assign(params, band)
     lived.lost = [(cause, count) for cause, count in lived.lost if count]
     return lived
 

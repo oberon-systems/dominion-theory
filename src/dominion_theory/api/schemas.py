@@ -121,8 +121,12 @@ class Build(BaseModel):
 
 
 class Gather(BaseModel):
+    """
+    A gathering: the share of the gatherers that went to every resource.
+    """
+
     kind: Literal['gather']
-    resource: str
+    shares: dict[str, float]
 
 
 class Walk(BaseModel):
@@ -168,7 +172,7 @@ class Reason(BaseModel):
     """
 
     model_config = ConfigDict(extra='allow')
-    __pydantic_extra__: dict[str, str] = Field(init=False)
+    __pydantic_extra__: dict[str, Any] = Field(init=False)
 
     action: Literal['camp', 'build', 'gather', 'move', 'roam']
     need: str
@@ -205,6 +209,7 @@ class Unit(BaseModel):
     action: Action
     intent: Intent | None
     route: list[Spot]
+    roles: dict[str, int]
     camp: Site | None
     reason: Reason | None
 

@@ -57,8 +57,8 @@ def test_the_band_and_its_council_fit_the_snapshot_and_the_stream_and_lose_nothi
     assert risen.changes.seat == SeatChange(council=None) and 'council' in risen.changes.seat.model_fields_set
     assert opened.changes.seat.council is not None
     assert sum(entry.votes for entry in opened.changes.seat.council.table) == 14
-    assert silent.changes.seat == SeatChange(council=None, status=48.0)
-    assert (snapshot.seat.status, snapshot.seat.seated) == (48.0, True)
+    assert silent.changes.seat == SeatChange(council=None, status=51.84)
+    assert (snapshot.seat.status, snapshot.seat.seated) == (51.84, True)
 
 
 def test_an_intent_is_a_proposal_alone() -> None:

@@ -35,9 +35,9 @@ def test_a_real_time_game_is_created_watched_and_left_paused(server: str, api: A
 
     assert result.exit_code == 0
     assert result.stdout.splitlines() == [
-        'day 1, month 1, year 1, spring: 15 people, forage 43.4, water 15, gathers forage.',
-        'day 1, month 1, year 1, spring: 15 people, forage 43.4, water 46.6, gathers water.',
-        'day 1, month 1, year 1, spring: ' '15 people, forage 43.4, water 46.6, roams south, foraging on the way.',
+        'day 1, month 1, year 1, spring: 15 people, forage 30.8, water 31, gathers forage (56%) and water (44%).',
+        'day 1, month 1, year 1, spring: 15 people, forage 43.5, water 43.6, gathers forage (56%) and water (44%).',
+        'day 1, month 1, year 1, spring: ' '15 people, forage 43.5, water 43.6, roams south, foraging on the way.',
     ]
     assert (game['seed'], game['mode'], game['running']) == (42, 'real-time', False)
     assert api.snapshot(game['id'])['seq'] >= 3
@@ -52,9 +52,10 @@ def test_a_game_is_joined_by_its_id_and_stepped(server: str, api: Api) -> None:
     assert result.stderr == f'game {game}\n'
     assert result.stdout.splitlines() == [
         'день 1, месяц 1, год 1, весна: '
-        '15 человек, подножный корм 43,4, вода 15, собирает подножный корм. Команда pass-0 принята.',
+        '15 человек, подножный корм 30,8, вода 31, собирает подножный корм (56%) и воду (44%). Команда pass-0 принята.',
         'день 1, месяц 1, год 1, весна: '
-        '15 человек, подножный корм 43,4, вода 46,6, собирает воду. Команда pass-1 принята.',
+        '15 человек, подножный корм 43,5, вода 43,6, собирает подножный корм (56%) и воду (44%). '
+        'Команда pass-1 принята.',
     ]
     assert api.snapshot(game)['seq'] == 2
 
@@ -142,8 +143,8 @@ def test_a_band_with_no_food_is_lived_headless_into_a_row_for_its_last_year() ->
         '0',
         '0',
         '1',
-        '3',
-        '6',
+        '5',
+        '4',
         '0',
         '5',
         '0',

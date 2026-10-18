@@ -60,7 +60,7 @@ ___
 |----------|-----------------------------------------------------------------|-----------|
 | `move`   | walks towards one of the eight cells around                     | grows     |
 | `roam`   | walks there slower, foraging the cell ahead on the way          | grows less |
-| `gather` | takes one resource from the cell it stands on                   | grows     |
+| `gather` | sends the gatherers after food and water, as the need for each weighs | grows |
 | `camp`   | rests where it stands                                           | falls     |
 | `build`  | builds a winter camp on the cell it stands on                   | grows     |
 
@@ -305,9 +305,10 @@ of them. Both views of the API show the same for now.
       "stores": {"water": 30.0, "forage": 22.5},
       "fatigue": 0.3,
       "states": [],
-      "action": {"kind": "gather", "resource": "forage"},
+      "action": {"kind": "gather", "shares": {"forage": 0.83, "water": 0.17}},
       "intent": {"proposal": {"kind": "go", "to": {"x": 2304, "y": 742}}},
       "route": [{"x": 2302, "y": 743}, {"x": 2303, "y": 742}, {"x": 2304, "y": 742}],
+      "roles": {"gatherer": 14, "nanny": 1},
       "camp": null
     }
   ],
@@ -318,7 +319,7 @@ of them. Both views of the API show the same for now.
 `ages` counts the members by stage, `pregnant` and `injured` the
 members who are, `wounds` the injured by severity; the members themselves stay in the state of the game.
 `route` is the cells still ahead to the place of a go, empty when the
-band is not on its way.
+band is not on its way. `roles` counts the members by role.
 `camp` is the winter camp, `{x, y, built}` with `built` the share done,
 or null.
 `council` is the table of the council of the day while it sits; see

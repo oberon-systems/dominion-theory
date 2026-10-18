@@ -55,10 +55,15 @@ whose `days` the stores reach gives the need.
 | `sated`  | 2 or more          | 0.1  |
 | `fed`    | 1 to 2             | 0.4  |
 | `hungry` | less than 1        | 0.8  |
-| starving | the state holds    | 1.0  |
+| dying    | less than 1, and a member would die tonight without its ration | 1.0 |
 
-A band that starves or thirsts has the need 1 whatever its stores say.
-The levels are data, and so is their number.
+A need is whole only while the stores lack a day and some member, with
+a day or less of its reserve left, would die tonight without it; see
+[Hunger and thirst](../units/band.md#hunger-and-thirst). As soon as the
+stores hold the day the need falls back to its level. Before game
+b54a7608 a need was whole while the state held, whatever the stores: a
+band that had gathered five days of food still gathered food all day,
+and died of thirst. The levels are data, and so is their number.
 
 Fatigue is no need. Every night rests the band, and fatigue does not
 weigh in a decision; it takes from what the band can do instead, its
@@ -132,8 +137,13 @@ need it serves.
 | Action          | Score                                                        |
 |-----------------|--------------------------------------------------------------|
 | `camp`          | 0: what a band does when nothing else is worth it            |
-| `gather` forage | `weights.hunger` times hunger, food of the cell and fit      |
-| `gather` water  | `weights.thirst` times thirst, water of the cell and fit     |
+| `gather`        | the sum over its shares of share times what the resource is worth |
+
+What a resource is worth to a gathering: `weights.hunger` times hunger,
+food of the cell and fit for forage; `weights.thirst` times thirst,
+water of the cell and fit for water. The shares are those of
+[Gathering](../units/band.md#gathering): the need of every resource by
+its weight, over them all.
 | `move` to a cell| see below                                                    |
 | `roam` to a cell| see below                                                    |
 

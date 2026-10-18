@@ -181,7 +181,7 @@ def test_a_camp_keeps_the_way_into_a_cell_and_a_gather_loses_it(params: Params) 
     halfway = band(kept).progress, band(kept).target
     do(kept, moving('north'))
     do(lost, moving('north'))
-    do(lost, gathering('forage'))
+    do(lost, gathering({'forage': 1.0}))
     do(lost, moving('north'))
 
     assert halfway[0] == pytest.approx(PACE * 0.6)
@@ -206,7 +206,7 @@ def test_a_band_by_the_shallows_gathers_from_them_when_they_give_more(params: Pa
     game = land(params, at=MEADOW, parts=WINTER)
     sources = bands.source(game, MEADOW, 'forage'), bands.source(game, HOME, 'forage')
 
-    do(game, gathering('forage'))
+    do(game, gathering({'forage': 1.0}))
 
     assert sources == (SHELF, HOME)
     assert game.cells.stock(SHELF, 'food') < 1.0
@@ -241,16 +241,16 @@ def test_a_move_out_of_the_window_is_a_camp(params: Params) -> None:
 def test_gathering_fills_the_stores_and_empties_the_cell(params: Params) -> None:
     game = land(params)
 
-    first = do(game, gathering('forage'))
+    first = do(game, gathering({'forage': 1.0}))
     once = band(game).held('forage')
-    do(game, gathering('water'))
-    do(game, gathering('forage'))
+    do(game, gathering({'water': 1.0}))
+    do(game, gathering({'forage': 1.0}))
 
     assert once == pytest.approx(15 + 15 * 3.0 * 0.8)
     assert band(game).held('water') == pytest.approx(15 + 15 * 4.0 * 0.4 * 0.7 * (1 - 0.5 * 0.1))
     assert band(game).held('forage') == pytest.approx(90 - band(game).held('water'))
     assert bands.room(params, band(game)) == pytest.approx(0.0)
-    assert first.changes['units'][0]['action'] == {'kind': 'gather', 'resource': 'forage'}
+    assert first.changes['units'][0]['action'] == {'kind': 'gather', 'shares': {'forage': 1.0}}
     assert first.changes['units'][0]['place'] == {'scale': 0, 'x': WEST, 'y': NORTH + 1}
     assert first.changes['cells'][0]['food'] < 1.0
     assert counted(game)['gathers'] == 3
@@ -259,7 +259,7 @@ def test_gathering_fills_the_stores_and_empties_the_cell(params: Params) -> None
 def test_a_cell_pays_the_share_of_its_capacity_that_was_taken(params: Params) -> None:
     game = land(params)
 
-    do(game, gathering('forage'))
+    do(game, gathering({'forage': 1.0}))
 
     assert game.cells.stock(HOME, 'food') == pytest.approx(1 - 36 / 100 + 1 / (20 * DAY))
     assert game.cells.stock(HOME, 'water') == 1.0
@@ -305,18 +305,18 @@ def test_a_loaded_band_gathers_nothing_and_leaves_the_cell_alone(params: Params)
     game = land(params)
     band(game).stores['water'] = [[20.0, 75.0]]
 
-    do(game, gathering('forage'))
+    do(game, gathering({'forage': 1.0}))
 
     assert bands.room(params, band(game)) == 0.0
     assert band(game).held('forage') == 15.0
-    assert band(game).action == {'kind': 'gather', 'resource': 'forage'}
+    assert band(game).action == {'kind': 'gather', 'shares': {'forage': 1.0}}
     assert len(game.cells) == 0
 
 
 def test_water_that_does_not_run_out_keeps_no_cell(params: Params) -> None:
     game = land(params, at=MEADOW)
 
-    do(game, gathering('water'))
+    do(game, gathering({'water': 1.0}))
 
     assert band(game).held('water') == pytest.approx(15 + 60)
     assert len(game.cells) == 0
@@ -326,7 +326,7 @@ def test_fatigue_grows_with_work_and_falls_in_camp(params: Params) -> None:
     game = land(params)
 
     do(game, moving('east'))
-    do(game, gathering('forage'))
+    do(game, gathering({'forage': 1.0}))
     worked = band(game).fatigue
     do(game, camp())
 
@@ -336,7 +336,7 @@ def test_fatigue_grows_with_work_and_falls_in_camp(params: Params) -> None:
 
 def test_the_band_camps_in_the_evening_and_the_night_whatever_it_wants() -> None:
     game = land(load_params(overrides={**SMALL, 'units.band.camp_parts': ['evening', 'night']}))
-    game.choose = lambda _game, _band: gathering('forage')
+    game.choose = lambda _game, _band: gathering({'forage': 1.0})
 
     kinds = [game.step().units[0][4] for _ in range(DAY)]
 
@@ -381,7 +381,7 @@ def test_news_of_the_land_come_with_the_tick_and_old_memories_go(params: Params)
     band(game).known[WEST + 4, NORTH] = {'biome': 'water', 'river': False, 'seen': -1}
 
     quiet = do(game, camp())
-    gathered = do(game, gathering('forage'))
+    gathered = do(game, gathering({'forage': 1.0}))
     walked = do(game, moving('east'))
 
     assert quiet.changes['known'] == []
@@ -600,7 +600,7 @@ def test_a_day_in_camp_heals_a_wound_by_two_days_and_a_day_of_work_by_one(params
     do(game, camp(), DAY)
     camped = dict(band(game).members[1].wound or {})
     do(game, camp(), 2)
-    do(game, gathering('forage'), DAY - 2)
+    do(game, gathering({'forage': 1.0}), DAY - 2)
 
     assert camped == {'severity': 'heavy', 'left': 18.0}
     assert (band(game).members[1].wound, band(game).camped) == ({'severity': 'heavy', 'left': 16.6}, 0)
@@ -664,7 +664,7 @@ def test_a_band_that_falls_below_its_least_dies_and_the_game_is_over() -> None:
 def test_a_tick_carries_the_row_of_the_band(params: Params) -> None:
     game = land(params)
 
-    result = do(game, gathering('forage'))
+    result = do(game, gathering({'forage': 1.0}))
 
     assert game.unit_columns == ('id', 'x', 'y', 'state', 'action', 'people', 'food', 'water')
     assert result.units == [[1, WEST, NORTH + 1, 'normal', 'gather', 15, pytest.approx(51.0), 15.0]]
@@ -698,7 +698,7 @@ def test_a_restored_game_carries_the_band_in_the_middle_of_a_day(params: Params)
     game = land(params)
     band(game).members[1].wound = {'severity': 'light', 'left': 3.5}
     band(game).changed()
-    do(game, gathering('forage'), 2)
+    do(game, gathering({'forage': 1.0}), 2)
     do(game, moving('north-east'))
     do(game, camp(), 4)
 
@@ -713,7 +713,7 @@ def test_a_restored_game_carries_the_band_in_the_middle_of_a_day(params: Params)
 def test_a_snapshot_of_the_format_before_the_band_is_refused(params: Params) -> None:
     snapshot = land(params).snapshot()
 
-    assert snapshot['format'] == 15
+    assert snapshot['format'] == 16
     with pytest.raises(ValueError, match='format 2'):
         Game.restore({**snapshot, 'format': 2})
 
@@ -802,7 +802,7 @@ def test_a_winter_camp_is_carried_by_the_snapshot(params: Params) -> None:
 
 def gathered(game: Game) -> float:
     before = band(game).held('forage')
-    do(game, gathering('forage'))
+    do(game, gathering({'forage': 1.0}))
     return band(game).held('forage') - before
 
 
@@ -837,3 +837,29 @@ def test_the_cells_in_reach_are_the_rings_around_a_place() -> None:
     assert bands.around((5, 5), 0) == []
     assert bands.around((5, 5), 1) == [(5, 4), (6, 4), (6, 5), (6, 6), (5, 6), (4, 6), (4, 5), (4, 4)]
     assert len(bands.around((5, 5), 2)) == 24
+
+
+def test_gatherers_split_between_resources_take_a_share_of_each(params: Params) -> None:
+    alone, shared = land(params), land(params)
+    before = band(alone).held('forage'), band(alone).held('water')
+
+    do(alone, gathering({'forage': 1.0}))
+    do(shared, gathering({'forage': 0.5, 'water': 0.5}))
+    forage = band(alone).held('forage') - before[0]
+
+    assert band(shared).action == {'kind': 'gather', 'shares': {'forage': 0.5, 'water': 0.5}}
+    assert band(shared).held('forage') - before[0] == pytest.approx(forage / 2)
+    assert band(shared).held('water') > before[1]
+
+
+def test_a_nanny_cares_for_every_five_children_and_gathers_half(params: Params) -> None:
+    women = [bands.Member(1000, 'female'), bands.Member(1200, 'female'), bands.Member(900, 'female')]
+    women[2].pregnant_until = 50
+    children = [bands.Member(100, 'male') for _ in range(6)]
+    held = bands.Band(id=1, x=WEST, y=NORTH, members=[*bands.adults(1), *women, *children], stores={})
+
+    bands.assign(params, held)
+
+    assert [member.role for member in held.members[:4]] == ['gatherer', 'gatherer', 'nanny', 'nanny']
+    assert bands.roles(params, held) == {'gatherer': 8, 'nanny': 2}
+    assert bands.census(params, held).gatherers == pytest.approx(3.0)

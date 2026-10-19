@@ -82,6 +82,8 @@ units:
         child_survives: 0.5
         mother_dies: 0.05
     carry_kg: 6.0
+    # The water a member carries beside its load: none but in a waterskin.
+    carry_water_kg: 0.0
     gathering: {forage: 3.0, water: 4.0, stones: 0.5, sticks: 1.0, herbs: 0.2, cords: 0.3}
     consumption_per_day: {forage: 1.0, water: 1.0}
     speed:

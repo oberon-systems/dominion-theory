@@ -352,7 +352,7 @@ since YAML reads a key `on` as true.
 | `clothes`    | member | `units.band.people.exposure.encounter`  | times 0.8      | -                          |
 | `clothes`    | member | `units.band.people.exposure.frailty`    | times 0.7      | in winter                  |
 | `clothes`    | band   | `units.band.threat.camp` and `.march`   | times 0.9      | members holding            |
-| `waterskins` | member | the carry, for water only               | plus 3 kg      | -                          |
+| `waterskins` | member | `units.band.carry_water_kg`             | plus 3 kg      | -                          |
 | `waterskins` | band   | `resources.water.spoils`                | times 1.5      | adults and elders holding  |
 | `hunter`     | band   | `units.band.threat.camp` and `.march`   | times 0.8      | quota filled               |
 
@@ -379,8 +379,7 @@ seasons holds only where the code that reads it names the season.
 what the goods of a member leave of its weights for those causes of
 death, multiplied into the weights of its stage.
 
-The bonuses of stones, sticks, litters, clothes and the hunters are
-built so far: a band
+Every bonus of the table is built: a band
 holding 0.3 stones a head eats 0.9 of its forage and dies of age a year
 later, one holding 0.3 sticks a head meets 0.8 of the threat in camp,
 and one whose pullers all pull a litter carries more at 0.85 of its
@@ -388,6 +387,15 @@ base pace. The carry of a member is its stage's share of `carry_kg`
 with the bonuses of its own kit laid over. A bonus on the carry is
 net: the good that lays it weighs in the load and adds its own weight
 to the carry, so a man pulling a litter has 12 kg free and a woman 9.
+
+`units.band.carry_water_kg` is new, 0: the water a member carries
+beside its load, which only a waterskin gives, 3 kg. The water the
+skins hold weighs nothing on the carry, so the room for water is the
+room of the band and what its skins still take, and the room for
+anything else is not cut by the water in them. A band of 15 adults,
+all holding a skin, carries 45 kg of water beside its 90 kg of load,
+and its water keeps 8 days instead of 5: a skin weighs 0.5 kg and a
+day of water for the band 15.
 
 ___
 
@@ -492,10 +500,10 @@ update of the tick, a line of the client from the catalogues `en` and
 | `goods-spoiled`  | `resource`, `count`            | Spoiled: sticks 2.                     |
 | `goods-worn`     | `resource`, `count`            | Worn out: stones 3.                    |
 | `people-sickened`| `count`, `cause`               | 2 people are sick from raw meat.       |
+| `people-cured`   | `count`                        | Herbs helped 2 people.                 |
 
 The `cause` of `people-sickened` is `meat`, or the kind of the
 encounter that sickened, `poisoning`.
-| `people-cured`   | `count`                        | Herbs helped 2 people.                 |
 
 The band line of the client shows the skills known and the kit: how
 many hold a spear, clothes, a litter, a waterskin. The stores line shows
@@ -660,7 +668,7 @@ resources:
     keep: {per: adult, amount: 1}
     made: {hides: 1, cords: 1}
     gives:
-      - {to: member, path: carries_water_kg, plus: 3.0}
+      - {to: member, path: units.band.carry_water_kg, plus: 3.0}
       - {to: band, path: resources.water.spoils, times: 1.5}
 ```
 
@@ -668,6 +676,7 @@ resources:
 units:
   band:
     threat: {camp: 1.0, march: 1.0}
+    carry_water_kg: 0.0
     gathering: {stones: 0.5, sticks: 1.0, herbs: 0.2, cords: 0.3}
     decisions:
       unknown: {stone: 0.1, wood: 0.2, plants: 0.3, game: 0.3}

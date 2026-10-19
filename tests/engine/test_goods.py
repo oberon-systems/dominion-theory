@@ -3,7 +3,7 @@ from typing import Any
 import numpy as np
 import pytest
 
-from dominion_theory.content import Params, load_params
+from dominion_theory.content import Duration, Params, load_params
 from dominion_theory.engine import Game, StepResult, Window, decisions, encounters
 from dominion_theory.engine import band as bands
 from dominion_theory.engine.band import Action, Member, camp, gathering
@@ -491,6 +491,46 @@ def test_clothes_guard_their_holder_and_the_band_by_the_members_holding_them() -
     assert bands.vulnerable(params, held, 'frailty', 'winter') == pytest.approx([0.0, 0.05 * 0.7])
     guard = bands.applied(params, held).units.band.threat
     assert (guard.camp, guard.march) == pytest.approx((0.95, 0.95))
+
+
+def test_a_waterskin_carries_water_beside_the_load_of_its_holder(params: Params) -> None:
+    held = holding({'water': [[0.0, 10.0]]}, bands.adults(2))
+    assert (bands.weight(params, held), bands.room(params, held, 'water')) == (10.0, 2.0)
+
+    held.members[0].kit.add('waterskins', 0, 1.0)
+    held.restocked()
+    assert bands.skins(params, held) == 3.0
+    assert bands.weight(params, held) == pytest.approx(7.5)
+    assert bands.room(params, held, 'water') == pytest.approx(4.5)
+    held.stores = Stock({'water': [[0.0, 1.0]]})
+    assert bands.room(params, held) == pytest.approx(11.5)
+    assert bands.room(params, held, 'water') == pytest.approx(13.5)
+    assert bands.room(params, held, 'forage') == pytest.approx(11.5)
+
+
+def test_water_keeps_longer_by_the_adults_and_elders_holding_a_waterskin(params: Params) -> None:
+    held = holding({'water': [[0.0, 10.0]]}, [*bands.adults(2), Member(100, 'female')])
+    held.members[0].kit.add('waterskins', 0, 1.0)
+    held.restocked()
+    assert bands.applied(params, held).resources['water'].spoils == Duration(days=6)
+
+    held.members[1].kit.add('waterskins', 0, 1.0)
+    held.restocked()
+    assert bands.applied(params, held).resources['water'].spoils == Duration(days=8)
+    bands.spoil(params, held, 7)
+    assert held.held('water') == 10.0
+    bands.spoil(params, held, 8)
+    assert held.held('water') == 0.0
+
+
+def test_waterskins_go_to_the_adults_then_the_elders_and_never_to_a_child(params: Params) -> None:
+    elder = bands.bounds(params, 'adult')[1] + 1
+    held = holding({'waterskins': [[0.0, 3.0, 0.9]]}, [Member(elder, 'male'), Member(100, 'female'), *bands.adults(1)])
+
+    bands.hand_out(params, held, 0)
+
+    assert [member.kit.held('waterskins') for member in held.members] == [1.0, 0.0, 1.0]
+    assert held.held('waterskins') == 1.0
 
 
 def test_a_day_of_raw_meat_sickens_and_herbs_cure_the_sick_that_evening() -> None:

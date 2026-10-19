@@ -329,7 +329,6 @@ def _worths(
     share that fits, with that need and its pull.
     """
     rules = params.units.band
-    free = room(params, band)
     found: dict[str, tuple[float, str, float]] = {}
     for name, rate in rules.gathering.items():
         resource = params.resources[name]
@@ -338,7 +337,7 @@ def _worths(
         if pulled is not None:
             need, pull = pulled
             haul = census(params, band).gatherers * rate * value * resource.weight_kg
-            fits = min(free / haul, 1.0) if haul > 0 else 0.0
+            fits = min(room(params, band, name) / haul, 1.0) if haul > 0 else 0.0
             found[name] = pull * value * fits, need, pull
     return found
 

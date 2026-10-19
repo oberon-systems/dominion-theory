@@ -1,5 +1,5 @@
 {
-  "inputs": "2cf78d7fc8ec13a41c218e231d45a290488495077e5688487fcd26eed67489fe",
+  "inputs": "c20d42e300c2f5fee9cb2bded41fdc043fac55815b7a808cbd28c3c85ff81f61",
   "seeds": {
     "1": {
       "outcome": "died",
@@ -44,7 +44,7 @@
           "hunters": 0,
           "sick": 0.0,
           "known": 30,
-          "snapshot": 41.8
+          "snapshot": 42.4
         },
         {
           "year": 2,
@@ -83,7 +83,7 @@
           "hunters": 0,
           "sick": 0.0,
           "known": 25,
-          "snapshot": 43.6
+          "snapshot": 44.3
         },
         {
           "year": 3,
@@ -122,7 +122,7 @@
           "hunters": 0,
           "sick": 0.0,
           "known": 25,
-          "snapshot": 46.7
+          "snapshot": 47.3
         },
         {
           "year": 4,
@@ -161,7 +161,7 @@
           "hunters": 0,
           "sick": 0.0,
           "known": 25,
-          "snapshot": 44.5
+          "snapshot": 45.2
         },
         {
           "year": 5,
@@ -200,7 +200,7 @@
           "hunters": 0,
           "sick": 0.0,
           "known": 25,
-          "snapshot": 45.8
+          "snapshot": 46.4
         },
         {
           "year": 6,
@@ -239,7 +239,7 @@
           "hunters": 0,
           "sick": 0.0,
           "known": 25,
-          "snapshot": 42.8
+          "snapshot": 43.4
         },
         {
           "year": 7,
@@ -278,7 +278,7 @@
           "hunters": 0,
           "sick": 0.0,
           "known": 25,
-          "snapshot": 44.3
+          "snapshot": 44.9
         },
         {
           "year": 8,
@@ -317,7 +317,7 @@
           "hunters": 0,
           "sick": 0.0,
           "known": 25,
-          "snapshot": 46.3
+          "snapshot": 47.0
         },
         {
           "year": 9,
@@ -356,7 +356,7 @@
           "hunters": 0,
           "sick": 0.0,
           "known": 25,
-          "snapshot": 46.7
+          "snapshot": 47.4
         },
         {
           "year": 10,
@@ -395,7 +395,7 @@
           "hunters": 0,
           "sick": 0.0,
           "known": 25,
-          "snapshot": 45.6
+          "snapshot": 46.2
         },
         {
           "year": 11,
@@ -434,7 +434,7 @@
           "hunters": 0,
           "sick": 0.0,
           "known": 25,
-          "snapshot": 45.0
+          "snapshot": 45.7
         },
         {
           "year": 12,
@@ -473,7 +473,7 @@
           "hunters": 0,
           "sick": 0.0,
           "known": 25,
-          "snapshot": 42.1
+          "snapshot": 42.8
         },
         {
           "year": 13,
@@ -512,7 +512,7 @@
           "hunters": 0,
           "sick": 0,
           "known": 0,
-          "snapshot": 33.2
+          "snapshot": 33.9
         }
       ],
       "learned": {
@@ -581,7 +581,7 @@
           "hunters": 0,
           "sick": 0.0,
           "known": 53,
-          "snapshot": 49.3
+          "snapshot": 49.9
         },
         {
           "year": 2,
@@ -620,7 +620,7 @@
           "hunters": 0,
           "sick": 0.0,
           "known": 25,
-          "snapshot": 49.9
+          "snapshot": 50.5
         },
         {
           "year": 3,
@@ -659,7 +659,7 @@
           "hunters": 0,
           "sick": 0.0,
           "known": 25,
-          "snapshot": 50.1
+          "snapshot": 50.7
         },
         {
           "year": 4,
@@ -698,7 +698,7 @@
           "hunters": 0,
           "sick": 0.0,
           "known": 25,
-          "snapshot": 49.5
+          "snapshot": 50.2
         },
         {
           "year": 5,
@@ -737,7 +737,7 @@
           "hunters": 0,
           "sick": 0.0,
           "known": 25,
-          "snapshot": 50.1
+          "snapshot": 50.8
         },
         {
           "year": 6,
@@ -776,7 +776,7 @@
           "hunters": 0,
           "sick": 0.0,
           "known": 25,
-          "snapshot": 50.5
+          "snapshot": 51.2
         },
         {
           "year": 7,
@@ -815,7 +815,7 @@
           "hunters": 0,
           "sick": 0.0,
           "known": 25,
-          "snapshot": 48.7
+          "snapshot": 49.4
         },
         {
           "year": 8,
@@ -854,7 +854,7 @@
           "hunters": 0,
           "sick": 0.0,
           "known": 25,
-          "snapshot": 50.1
+          "snapshot": 50.7
         },
         {
           "year": 9,
@@ -893,7 +893,7 @@
           "hunters": 0,
           "sick": 0.0,
           "known": 25,
-          "snapshot": 52.4
+          "snapshot": 53.1
         },
         {
           "year": 10,
@@ -932,7 +932,7 @@
           "hunters": 0,
           "sick": 0.0,
           "known": 25,
-          "snapshot": 48.3
+          "snapshot": 48.9
         },
         {
           "year": 11,
@@ -971,7 +971,7 @@
           "hunters": 0,
           "sick": 0.0,
           "known": 25,
-          "snapshot": 50.2
+          "snapshot": 50.8
         },
         {
           "year": 12,
@@ -1010,7 +1010,7 @@
           "hunters": 0,
           "sick": 0.0,
           "known": 25,
-          "snapshot": 48.3
+          "snapshot": 49.0
         },
         {
           "year": 13,
@@ -1049,7 +1049,7 @@
           "hunters": 0,
           "sick": 0.0,
           "known": 25,
-          "snapshot": 49.0
+          "snapshot": 49.7
         },
         {
           "year": 14,
@@ -1088,7 +1088,7 @@
           "hunters": 0,
           "sick": 0.0,
           "known": 25,
-          "snapshot": 48.9
+          "snapshot": 49.5
         },
         {
           "year": 15,
@@ -1127,7 +1127,7 @@
           "hunters": 0,
           "sick": 0.0,
           "known": 25,
-          "snapshot": 51.5
+          "snapshot": 52.1
         },
         {
           "year": 16,
@@ -1166,7 +1166,7 @@
           "hunters": 0,
           "sick": 0.0,
           "known": 25,
-          "snapshot": 50.3
+          "snapshot": 51.0
         },
         {
           "year": 17,
@@ -1205,7 +1205,7 @@
           "hunters": 0,
           "sick": 0.0,
           "known": 25,
-          "snapshot": 51.1
+          "snapshot": 51.8
         },
         {
           "year": 18,
@@ -1244,7 +1244,7 @@
           "hunters": 0,
           "sick": 0.0,
           "known": 25,
-          "snapshot": 51.4
+          "snapshot": 52.0
         }
       ],
       "learned": {
@@ -1317,7 +1317,7 @@
           "hunters": 0,
           "sick": 0.0,
           "known": 52,
-          "snapshot": 47.4
+          "snapshot": 48.0
         },
         {
           "year": 2,
@@ -1356,7 +1356,7 @@
           "hunters": 0,
           "sick": 0.0,
           "known": 25,
-          "snapshot": 44.6
+          "snapshot": 45.3
         },
         {
           "year": 3,
@@ -1395,7 +1395,7 @@
           "hunters": 0,
           "sick": 0.0,
           "known": 25,
-          "snapshot": 45.4
+          "snapshot": 46.0
         },
         {
           "year": 4,
@@ -1434,7 +1434,7 @@
           "hunters": 0,
           "sick": 0.0,
           "known": 25,
-          "snapshot": 45.3
+          "snapshot": 45.9
         },
         {
           "year": 5,
@@ -1473,7 +1473,7 @@
           "hunters": 0,
           "sick": 0.0,
           "known": 25,
-          "snapshot": 46.7
+          "snapshot": 47.3
         },
         {
           "year": 6,
@@ -1512,7 +1512,7 @@
           "hunters": 0,
           "sick": 0.0,
           "known": 25,
-          "snapshot": 47.8
+          "snapshot": 48.5
         },
         {
           "year": 7,
@@ -1551,7 +1551,7 @@
           "hunters": 0,
           "sick": 0.0,
           "known": 25,
-          "snapshot": 47.4
+          "snapshot": 48.1
         },
         {
           "year": 8,
@@ -1590,7 +1590,7 @@
           "hunters": 0,
           "sick": 0.0,
           "known": 25,
-          "snapshot": 43.6
+          "snapshot": 44.3
         },
         {
           "year": 9,
@@ -1629,7 +1629,7 @@
           "hunters": 0,
           "sick": 0.0,
           "known": 25,
-          "snapshot": 44.8
+          "snapshot": 45.4
         },
         {
           "year": 10,
@@ -1668,7 +1668,7 @@
           "hunters": 0,
           "sick": 0.0,
           "known": 25,
-          "snapshot": 45.7
+          "snapshot": 46.3
         },
         {
           "year": 11,
@@ -1707,7 +1707,7 @@
           "hunters": 0,
           "sick": 0.0,
           "known": 25,
-          "snapshot": 43.7
+          "snapshot": 44.3
         },
         {
           "year": 12,
@@ -1746,7 +1746,7 @@
           "hunters": 0,
           "sick": 0.0,
           "known": 25,
-          "snapshot": 41.9
+          "snapshot": 42.5
         },
         {
           "year": 13,
@@ -1785,7 +1785,7 @@
           "hunters": 0,
           "sick": 0.0,
           "known": 25,
-          "snapshot": 43.7
+          "snapshot": 44.4
         },
         {
           "year": 14,
@@ -1824,7 +1824,7 @@
           "hunters": 0,
           "sick": 0.0,
           "known": 25,
-          "snapshot": 42.3
+          "snapshot": 42.9
         },
         {
           "year": 15,
@@ -1863,7 +1863,7 @@
           "hunters": 0,
           "sick": 0.0,
           "known": 25,
-          "snapshot": 42.0
+          "snapshot": 42.7
         },
         {
           "year": 16,
@@ -1902,7 +1902,7 @@
           "hunters": 0,
           "sick": 0.0,
           "known": 25,
-          "snapshot": 43.6
+          "snapshot": 44.3
         },
         {
           "year": 17,
@@ -1941,7 +1941,7 @@
           "hunters": 0,
           "sick": 0.0,
           "known": 25,
-          "snapshot": 47.0
+          "snapshot": 47.6
         },
         {
           "year": 18,
@@ -1980,7 +1980,7 @@
           "hunters": 0,
           "sick": 0.0,
           "known": 25,
-          "snapshot": 47.5
+          "snapshot": 48.1
         }
       ],
       "learned": {
@@ -2054,7 +2054,7 @@
           "hunters": 0,
           "sick": 0.0,
           "known": 30,
-          "snapshot": 44.6
+          "snapshot": 45.2
         },
         {
           "year": 2,
@@ -2093,7 +2093,7 @@
           "hunters": 0,
           "sick": 0.0,
           "known": 25,
-          "snapshot": 47.6
+          "snapshot": 48.2
         },
         {
           "year": 3,
@@ -2132,7 +2132,7 @@
           "hunters": 0,
           "sick": 0.0,
           "known": 25,
-          "snapshot": 47.2
+          "snapshot": 47.8
         },
         {
           "year": 4,
@@ -2171,7 +2171,7 @@
           "hunters": 0,
           "sick": 0.0,
           "known": 25,
-          "snapshot": 48.7
+          "snapshot": 49.3
         },
         {
           "year": 5,
@@ -2210,7 +2210,7 @@
           "hunters": 0,
           "sick": 0.0,
           "known": 25,
-          "snapshot": 46.2
+          "snapshot": 46.8
         },
         {
           "year": 6,
@@ -2249,7 +2249,7 @@
           "hunters": 0,
           "sick": 0.0,
           "known": 25,
-          "snapshot": 47.6
+          "snapshot": 48.3
         },
         {
           "year": 7,
@@ -2288,7 +2288,7 @@
           "hunters": 0,
           "sick": 0.0,
           "known": 25,
-          "snapshot": 48.5
+          "snapshot": 49.2
         },
         {
           "year": 8,
@@ -2327,7 +2327,7 @@
           "hunters": 0,
           "sick": 0.0,
           "known": 25,
-          "snapshot": 44.6
+          "snapshot": 45.2
         },
         {
           "year": 9,
@@ -2366,7 +2366,7 @@
           "hunters": 0,
           "sick": 0.0,
           "known": 25,
-          "snapshot": 45.6
+          "snapshot": 46.2
         },
         {
           "year": 10,
@@ -2405,7 +2405,7 @@
           "hunters": 0,
           "sick": 0.0,
           "known": 25,
-          "snapshot": 47.4
+          "snapshot": 48.1
         },
         {
           "year": 11,
@@ -2444,7 +2444,7 @@
           "hunters": 0,
           "sick": 0.0,
           "known": 25,
-          "snapshot": 46.4
+          "snapshot": 47.1
         },
         {
           "year": 12,
@@ -2483,7 +2483,7 @@
           "hunters": 0,
           "sick": 0.0,
           "known": 25,
-          "snapshot": 52.3
+          "snapshot": 52.9
         },
         {
           "year": 13,
@@ -2522,7 +2522,7 @@
           "hunters": 0,
           "sick": 0.0,
           "known": 25,
-          "snapshot": 45.3
+          "snapshot": 45.9
         },
         {
           "year": 14,
@@ -2561,7 +2561,7 @@
           "hunters": 0,
           "sick": 0.0,
           "known": 25,
-          "snapshot": 46.9
+          "snapshot": 47.6
         },
         {
           "year": 15,
@@ -2600,7 +2600,7 @@
           "hunters": 0,
           "sick": 0.0,
           "known": 25,
-          "snapshot": 49.0
+          "snapshot": 49.7
         },
         {
           "year": 16,
@@ -2639,7 +2639,7 @@
           "hunters": 0,
           "sick": 0.0,
           "known": 25,
-          "snapshot": 52.1
+          "snapshot": 52.7
         },
         {
           "year": 17,
@@ -2678,7 +2678,7 @@
           "hunters": 0,
           "sick": 0.0,
           "known": 25,
-          "snapshot": 48.5
+          "snapshot": 49.1
         },
         {
           "year": 18,
@@ -2717,7 +2717,7 @@
           "hunters": 0,
           "sick": 0.0,
           "known": 25,
-          "snapshot": 47.2
+          "snapshot": 47.9
         }
       ],
       "learned": {
@@ -2751,7 +2751,7 @@
     "5": {
       "outcome": "alive",
       "tick": 9000,
-      "growth": -0.028,
+      "growth": -0.0592,
       "tribe": null,
       "years": [
         {
@@ -2791,7 +2791,7 @@
           "hunters": 0,
           "sick": 0.0,
           "known": 50,
-          "snapshot": 45.7
+          "snapshot": 46.3
         },
         {
           "year": 2,
@@ -2830,7 +2830,7 @@
           "hunters": 0,
           "sick": 0.0,
           "known": 25,
-          "snapshot": 41.7
+          "snapshot": 42.4
         },
         {
           "year": 3,
@@ -2869,7 +2869,7 @@
           "hunters": 0,
           "sick": 0.0,
           "known": 25,
-          "snapshot": 45.4
+          "snapshot": 46.0
         },
         {
           "year": 4,
@@ -2908,7 +2908,7 @@
           "hunters": 0,
           "sick": 0.0,
           "known": 25,
-          "snapshot": 44.0
+          "snapshot": 44.6
         },
         {
           "year": 5,
@@ -2947,216 +2947,60 @@
           "hunters": 3,
           "sick": 0.0,
           "known": 25,
-          "snapshot": 44.9
+          "snapshot": 45.9
         },
         {
           "year": 6,
-          "people": 18,
+          "people": 16,
           "child": 5.0,
-          "adult": 11.0,
-          "elder": 2.0,
-          "pregnant": 3.0,
-          "injured": 0.0,
-          "growth": 1,
-          "rate": 5.9,
-          "least": 17,
-          "born": 1.0,
-          "grown": 1.0,
-          "child-deaths": 0.0,
-          "deaths": 0,
-          "of-hunger": 0.0,
-          "of-thirst": 0.0,
-          "of-encounter": 0.0,
-          "of-age": 0.0,
-          "of-frailty": 0.0,
-          "of-birth": 0.0,
-          "food": 20.7,
-          "water": 14.3,
-          "moves": 22,
-          "roams": 38,
-          "gathers": 231,
-          "camps": 200,
-          "builds": 9,
-          "starving": 0.0,
-          "thirsty": 5.0,
-          "tired": 4.0,
-          "encounters": 0,
-          "status": 50.0,
-          "skills": 7,
-          "hunters": 3,
-          "sick": 0.0,
-          "known": 25,
-          "snapshot": 47.2
-        },
-        {
-          "year": 7,
-          "people": 17,
-          "child": 4.0,
-          "adult": 11.0,
-          "elder": 2.0,
+          "adult": 10.0,
+          "elder": 1.0,
           "pregnant": 2.0,
           "injured": 0.0,
           "growth": -1,
-          "rate": -5.6,
-          "least": 17,
-          "born": 3.0,
-          "grown": 2.0,
-          "child-deaths": 2.0,
-          "deaths": 4,
-          "of-hunger": 0.0,
-          "of-thirst": 0.0,
-          "of-encounter": 2.0,
-          "of-age": 1.0,
-          "of-frailty": 1.0,
-          "of-birth": 0.0,
-          "food": 19.5,
-          "water": 64.6,
-          "moves": 13,
-          "roams": 21,
-          "gathers": 257,
-          "camps": 203,
-          "builds": 6,
-          "starving": 5.0,
-          "thirsty": 5.0,
-          "tired": 9.0,
-          "encounters": 2,
-          "status": 50.0,
-          "skills": 7,
-          "hunters": 0,
-          "sick": 0.0,
-          "known": 25,
-          "snapshot": 44.2
-        },
-        {
-          "year": 8,
-          "people": 16,
-          "child": 5.0,
-          "adult": 8.0,
-          "elder": 3.0,
-          "pregnant": 1.0,
-          "injured": 1.0,
-          "growth": -1,
           "rate": -5.9,
           "least": 16,
-          "born": 2.0,
-          "grown": 0.0,
-          "child-deaths": 1.0,
-          "deaths": 3,
-          "of-hunger": 0.0,
-          "of-thirst": 0.0,
-          "of-encounter": 1.0,
-          "of-age": 1.0,
-          "of-frailty": 1.0,
-          "of-birth": 0.0,
-          "food": 16.3,
-          "water": 60.4,
-          "moves": 12,
-          "roams": 23,
-          "gathers": 258,
-          "camps": 201,
-          "builds": 6,
-          "starving": 0.0,
-          "thirsty": 0.0,
-          "tired": 6.0,
-          "encounters": 1,
-          "status": 50.0,
-          "skills": 7,
-          "hunters": 0,
-          "sick": 0.0,
-          "known": 25,
-          "snapshot": 43.3
-        },
-        {
-          "year": 9,
-          "people": 12,
-          "child": 2.0,
-          "adult": 10.0,
-          "elder": 0.0,
-          "pregnant": 0.0,
-          "injured": 0.0,
-          "growth": -4,
-          "rate": -25.0,
-          "least": 12,
           "born": 1.0,
-          "grown": 2.0,
-          "child-deaths": 2.0,
-          "deaths": 5,
-          "of-hunger": 0.0,
-          "of-thirst": 0.0,
-          "of-encounter": 3.0,
-          "of-age": 2.0,
-          "of-frailty": 0.0,
-          "of-birth": 0.0,
-          "food": 17.2,
-          "water": 75.1,
-          "moves": 12,
-          "roams": 6,
-          "gathers": 253,
-          "camps": 220,
-          "builds": 9,
-          "starving": 0.0,
-          "thirsty": 0.0,
-          "tired": 7.0,
-          "encounters": 1,
-          "status": 50.0,
-          "skills": 7,
-          "hunters": 0,
-          "sick": 0.0,
-          "known": 25,
-          "snapshot": 43.2
-        },
-        {
-          "year": 10,
-          "people": 15,
-          "child": 5.0,
-          "adult": 9.0,
-          "elder": 1.0,
-          "pregnant": 1.0,
-          "injured": 0.0,
-          "growth": 3,
-          "rate": 25.0,
-          "least": 12,
-          "born": 3.0,
-          "grown": 0.0,
+          "grown": 1.0,
           "child-deaths": 0.0,
-          "deaths": 0,
+          "deaths": 2,
           "of-hunger": 0.0,
           "of-thirst": 0.0,
           "of-encounter": 0.0,
-          "of-age": 0.0,
+          "of-age": 1.0,
           "of-frailty": 0.0,
-          "of-birth": 0.0,
-          "food": 18.7,
-          "water": 66.2,
-          "moves": 6,
-          "roams": 6,
-          "gathers": 279,
-          "camps": 200,
+          "of-birth": 1.0,
+          "food": 22.9,
+          "water": 32.5,
+          "moves": 19,
+          "roams": 34,
+          "gathers": 236,
+          "camps": 202,
           "builds": 9,
           "starving": 0.0,
-          "thirsty": 0.0,
-          "tired": 4.0,
-          "encounters": 1,
+          "thirsty": 5.0,
+          "tired": 14.0,
+          "encounters": 0,
           "status": 50.0,
-          "skills": 7,
-          "hunters": 0,
+          "skills": 8,
+          "hunters": 2,
           "sick": 0.0,
           "known": 25,
-          "snapshot": 45.5
+          "snapshot": 48.8
         },
         {
-          "year": 11,
-          "people": 14,
-          "child": 5.0,
-          "adult": 8.0,
-          "elder": 1.0,
-          "pregnant": 0.0,
-          "injured": 2.0,
+          "year": 7,
+          "people": 15,
+          "child": 3.0,
+          "adult": 10.0,
+          "elder": 2.0,
+          "pregnant": 1.0,
+          "injured": 1.0,
           "growth": -1,
-          "rate": -6.7,
-          "least": 13,
+          "rate": -6.2,
+          "least": 15,
           "born": 1.0,
-          "grown": 0.0,
+          "grown": 2.0,
           "child-deaths": 1.0,
           "deaths": 2,
           "of-hunger": 0.0,
@@ -3165,74 +3009,191 @@
           "of-age": 0.0,
           "of-frailty": 0.0,
           "of-birth": 0.0,
-          "food": 24.9,
-          "water": 21.4,
-          "moves": 11,
-          "roams": 12,
-          "gathers": 258,
-          "camps": 204,
-          "builds": 15,
-          "starving": 20.0,
+          "food": 20.9,
+          "water": 72.7,
+          "moves": 17,
+          "roams": 33,
+          "gathers": 241,
+          "camps": 203,
+          "builds": 6,
+          "starving": 5.0,
           "thirsty": 0.0,
-          "tired": 10.0,
+          "tired": 9.0,
           "encounters": 2,
           "status": 50.0,
-          "skills": 7,
-          "hunters": 2,
+          "skills": 8,
+          "hunters": 0,
           "sick": 0.0,
           "known": 25,
-          "snapshot": 44.3
+          "snapshot": 45.1
         },
         {
-          "year": 12,
-          "people": 12,
+          "year": 8,
+          "people": 15,
           "child": 4.0,
-          "adult": 6.0,
-          "elder": 2.0,
-          "pregnant": 2.0,
+          "adult": 8.0,
+          "elder": 3.0,
+          "pregnant": 0.0,
           "injured": 0.0,
-          "growth": -2,
-          "rate": -14.3,
-          "least": 12,
+          "growth": 0,
+          "rate": 0.0,
+          "least": 15,
           "born": 1.0,
-          "grown": 1.0,
-          "child-deaths": 1.0,
-          "deaths": 3,
+          "grown": 0.0,
+          "child-deaths": 0.0,
+          "deaths": 1,
           "of-hunger": 0.0,
           "of-thirst": 0.0,
           "of-encounter": 1.0,
           "of-age": 0.0,
-          "of-frailty": 2.0,
+          "of-frailty": 0.0,
           "of-birth": 0.0,
-          "food": 14.1,
-          "water": 27.7,
-          "moves": 9,
-          "roams": 26,
-          "gathers": 258,
-          "camps": 201,
+          "food": 36.8,
+          "water": 20.5,
+          "moves": 20,
+          "roams": 53,
+          "gathers": 217,
+          "camps": 204,
           "builds": 6,
           "starving": 5.0,
-          "thirsty": 0.0,
-          "tired": 2.0,
+          "thirsty": 5.0,
+          "tired": 14.0,
           "encounters": 1,
           "status": 50.0,
-          "skills": 7,
-          "hunters": 0,
+          "skills": 8,
+          "hunters": 3,
           "sick": 0.0,
           "known": 25,
-          "snapshot": 43.5
+          "snapshot": 45.8
         },
         {
-          "year": 13,
+          "year": 9,
           "people": 12,
-          "child": 4.0,
-          "adult": 6.0,
+          "child": 3.0,
+          "adult": 8.0,
+          "elder": 1.0,
+          "pregnant": 0.0,
+          "injured": 0.0,
+          "growth": -3,
+          "rate": -20.0,
+          "least": 12,
+          "born": 0.0,
+          "grown": 1.0,
+          "child-deaths": 0.0,
+          "deaths": 3,
+          "of-hunger": 0.0,
+          "of-thirst": 0.0,
+          "of-encounter": 2.0,
+          "of-age": 1.0,
+          "of-frailty": 0.0,
+          "of-birth": 0.0,
+          "food": 37.2,
+          "water": 27.2,
+          "moves": 28,
+          "roams": 45,
+          "gathers": 214,
+          "camps": 207,
+          "builds": 6,
+          "starving": 0.0,
+          "thirsty": 5.0,
+          "tired": 22.0,
+          "encounters": 1,
+          "status": 50.0,
+          "skills": 8,
+          "hunters": 2,
+          "sick": 0.0,
+          "known": 25,
+          "snapshot": 45.9
+        },
+        {
+          "year": 10,
+          "people": 12,
+          "child": 2.0,
+          "adult": 8.0,
           "elder": 2.0,
-          "pregnant": 1.0,
+          "pregnant": 0.0,
           "injured": 0.0,
           "growth": 0,
           "rate": 0.0,
           "least": 12,
+          "born": 0.0,
+          "grown": 1.0,
+          "child-deaths": 0.0,
+          "deaths": 0,
+          "of-hunger": 0.0,
+          "of-thirst": 0.0,
+          "of-encounter": 0.0,
+          "of-age": 0.0,
+          "of-frailty": 0.0,
+          "of-birth": 0.0,
+          "food": 37.2,
+          "water": 33.9,
+          "moves": 33,
+          "roams": 39,
+          "gathers": 216,
+          "camps": 206,
+          "builds": 6,
+          "starving": 0.0,
+          "thirsty": 0.0,
+          "tired": 28.0,
+          "encounters": 1,
+          "status": 50.0,
+          "skills": 8,
+          "hunters": 2,
+          "sick": 0.0,
+          "known": 25,
+          "snapshot": 47.1
+        },
+        {
+          "year": 11,
+          "people": 11,
+          "child": 1.0,
+          "adult": 9.0,
+          "elder": 1.0,
+          "pregnant": 0.0,
+          "injured": 0.0,
+          "growth": -1,
+          "rate": -8.3,
+          "least": 11,
+          "born": 0.0,
+          "grown": 1.0,
+          "child-deaths": 0.0,
+          "deaths": 1,
+          "of-hunger": 0.0,
+          "of-thirst": 0.0,
+          "of-encounter": 1.0,
+          "of-age": 0.0,
+          "of-frailty": 0.0,
+          "of-birth": 0.0,
+          "food": 32.1,
+          "water": 44.7,
+          "moves": 16,
+          "roams": 16,
+          "gathers": 257,
+          "camps": 202,
+          "builds": 9,
+          "starving": 0.0,
+          "thirsty": 0.0,
+          "tired": 12.0,
+          "encounters": 2,
+          "status": 50.0,
+          "skills": 8,
+          "hunters": 2,
+          "sick": 0.0,
+          "known": 25,
+          "snapshot": 46.1
+        },
+        {
+          "year": 12,
+          "people": 11,
+          "child": 1.0,
+          "adult": 7.0,
+          "elder": 3.0,
+          "pregnant": 0.0,
+          "injured": 0.0,
+          "growth": 0,
+          "rate": 0.0,
+          "least": 11,
           "born": 1.0,
           "grown": 1.0,
           "child-deaths": 0.0,
@@ -3241,72 +3202,33 @@
           "of-thirst": 0.0,
           "of-encounter": 0.0,
           "of-age": 0.0,
-          "of-frailty": 1.0,
-          "of-birth": 0.0,
-          "food": 14.6,
-          "water": 38.2,
-          "moves": 13,
-          "roams": 25,
-          "gathers": 254,
-          "camps": 202,
-          "builds": 6,
-          "starving": 0.0,
-          "thirsty": 0.0,
-          "tired": 11.0,
-          "encounters": 1,
-          "status": 50.0,
-          "skills": 7,
-          "hunters": 0,
-          "sick": 0.0,
-          "known": 25,
-          "snapshot": 45.0
-        },
-        {
-          "year": 14,
-          "people": 11,
-          "child": 3.0,
-          "adult": 6.0,
-          "elder": 2.0,
-          "pregnant": 0.0,
-          "injured": 0.0,
-          "growth": -1,
-          "rate": -8.3,
-          "least": 11,
-          "born": 3.0,
-          "grown": 2.0,
-          "child-deaths": 2.0,
-          "deaths": 4,
-          "of-hunger": 0.0,
-          "of-thirst": 0.0,
-          "of-encounter": 2.0,
-          "of-age": 0.0,
-          "of-frailty": 1.0,
+          "of-frailty": 0.0,
           "of-birth": 1.0,
-          "food": 14.6,
-          "water": 38.8,
-          "moves": 11,
-          "roams": 9,
-          "gathers": 255,
-          "camps": 216,
-          "builds": 9,
-          "starving": 0.0,
+          "food": 14.5,
+          "water": 62.8,
+          "moves": 21,
+          "roams": 24,
+          "gathers": 239,
+          "camps": 210,
+          "builds": 6,
+          "starving": 5.0,
           "thirsty": 0.0,
-          "tired": 9.0,
-          "encounters": 1,
+          "tired": 17.0,
+          "encounters": 0,
           "status": 50.0,
-          "skills": 7,
+          "skills": 8,
           "hunters": 0,
           "sick": 0.0,
           "known": 25,
-          "snapshot": 42.4
+          "snapshot": 44.3
         },
         {
-          "year": 15,
+          "year": 13,
           "people": 11,
-          "child": 3.0,
+          "child": 1.0,
           "adult": 6.0,
-          "elder": 2.0,
-          "pregnant": 1.0,
+          "elder": 4.0,
+          "pregnant": 0.0,
           "injured": 0.0,
           "growth": 0,
           "rate": 0.0,
@@ -3321,36 +3243,75 @@
           "of-age": 0.0,
           "of-frailty": 0.0,
           "of-birth": 0.0,
-          "food": 11.5,
-          "water": 40.0,
-          "moves": 7,
-          "roams": 6,
-          "gathers": 281,
-          "camps": 200,
+          "food": 13.4,
+          "water": 53.5,
+          "moves": 9,
+          "roams": 7,
+          "gathers": 277,
+          "camps": 201,
           "builds": 6,
           "starving": 5.0,
           "thirsty": 0.0,
-          "tired": 2.0,
+          "tired": 5.0,
           "encounters": 1,
           "status": 50.0,
-          "skills": 7,
+          "skills": 8,
           "hunters": 0,
           "sick": 0.0,
           "known": 25,
-          "snapshot": 43.8
+          "snapshot": 45.5
         },
         {
-          "year": 16,
-          "people": 12,
-          "child": 4.0,
-          "adult": 6.0,
-          "elder": 2.0,
-          "pregnant": 1.0,
+          "year": 14,
+          "people": 8,
+          "child": 1.0,
+          "adult": 4.0,
+          "elder": 3.0,
+          "pregnant": 0.0,
           "injured": 0.0,
-          "growth": 1,
-          "rate": 9.1,
-          "least": 11,
-          "born": 1.0,
+          "growth": -3,
+          "rate": -27.3,
+          "least": 8,
+          "born": 0.0,
+          "grown": 0.0,
+          "child-deaths": 0.0,
+          "deaths": 3,
+          "of-hunger": 0.0,
+          "of-thirst": 0.0,
+          "of-encounter": 3.0,
+          "of-age": 0.0,
+          "of-frailty": 0.0,
+          "of-birth": 0.0,
+          "food": 10.1,
+          "water": 34.8,
+          "moves": 9,
+          "roams": 11,
+          "gathers": 272,
+          "camps": 202,
+          "builds": 6,
+          "starving": 5.0,
+          "thirsty": 0.0,
+          "tired": 8.0,
+          "encounters": 2,
+          "status": 50.0,
+          "skills": 8,
+          "hunters": 0,
+          "sick": 0.0,
+          "known": 25,
+          "snapshot": 44.2
+        },
+        {
+          "year": 15,
+          "people": 8,
+          "child": 1.0,
+          "adult": 4.0,
+          "elder": 3.0,
+          "pregnant": 0.0,
+          "injured": 0.0,
+          "growth": 0,
+          "rate": 0.0,
+          "least": 8,
+          "born": 0.0,
           "grown": 0.0,
           "child-deaths": 0.0,
           "deaths": 0,
@@ -3360,101 +3321,140 @@
           "of-age": 0.0,
           "of-frailty": 0.0,
           "of-birth": 0.0,
-          "food": 12.2,
-          "water": 40.9,
-          "moves": 7,
-          "roams": 7,
-          "gathers": 279,
-          "camps": 201,
+          "food": 10.1,
+          "water": 35.1,
+          "moves": 2,
+          "roams": 0,
+          "gathers": 292,
+          "camps": 200,
           "builds": 6,
           "starving": 5.0,
           "thirsty": 0.0,
-          "tired": 3.0,
-          "encounters": 0,
+          "tired": 2.0,
+          "encounters": 1,
           "status": 50.0,
-          "skills": 7,
+          "skills": 8,
           "hunters": 0,
           "sick": 0.0,
           "known": 25,
-          "snapshot": 43.9
+          "snapshot": 44.1
+        },
+        {
+          "year": 16,
+          "people": 6,
+          "child": 0.0,
+          "adult": 4.0,
+          "elder": 2.0,
+          "pregnant": 0.0,
+          "injured": 0.0,
+          "growth": -2,
+          "rate": -25.0,
+          "least": 6,
+          "born": 0.0,
+          "grown": 1.0,
+          "child-deaths": 0.0,
+          "deaths": 2,
+          "of-hunger": 0.0,
+          "of-thirst": 0.0,
+          "of-encounter": 0.0,
+          "of-age": 1.0,
+          "of-frailty": 1.0,
+          "of-birth": 0.0,
+          "food": 8.3,
+          "water": 35.0,
+          "moves": 1,
+          "roams": 2,
+          "gathers": 282,
+          "camps": 209,
+          "builds": 6,
+          "starving": 5.0,
+          "thirsty": 0.0,
+          "tired": 0.0,
+          "encounters": 0,
+          "status": 50.0,
+          "skills": 8,
+          "hunters": 0,
+          "sick": 0.0,
+          "known": 25,
+          "snapshot": 44.2
         },
         {
           "year": 17,
-          "people": 13,
-          "child": 5.0,
-          "adult": 6.0,
-          "elder": 2.0,
+          "people": 5,
+          "child": 0.0,
+          "adult": 4.0,
+          "elder": 1.0,
           "pregnant": 0.0,
-          "injured": 2.0,
-          "growth": 1,
-          "rate": 8.3,
-          "least": 11,
-          "born": 2.0,
-          "grown": 1.0,
+          "injured": 0.0,
+          "growth": -1,
+          "rate": -16.7,
+          "least": 5,
+          "born": 0.0,
+          "grown": 0.0,
           "child-deaths": 0.0,
           "deaths": 1,
           "of-hunger": 0.0,
           "of-thirst": 0.0,
           "of-encounter": 0.0,
-          "of-age": 0.0,
-          "of-frailty": 1.0,
+          "of-age": 1.0,
+          "of-frailty": 0.0,
           "of-birth": 0.0,
-          "food": 12.2,
-          "water": 42.8,
-          "moves": 6,
-          "roams": 18,
-          "gathers": 268,
-          "camps": 202,
+          "food": 7.4,
+          "water": 34.4,
+          "moves": 0,
+          "roams": 0,
+          "gathers": 265,
+          "camps": 229,
           "builds": 6,
           "starving": 0.0,
           "thirsty": 0.0,
-          "tired": 4.0,
+          "tired": 0.0,
           "encounters": 0,
           "status": 50.0,
-          "skills": 7,
+          "skills": 8,
           "hunters": 0,
           "sick": 0.0,
           "known": 25,
-          "snapshot": 44.8
+          "snapshot": 43.6
         },
         {
           "year": 18,
-          "people": 9,
-          "child": 2.0,
-          "adult": 6.0,
+          "people": 5,
+          "child": 0.0,
+          "adult": 4.0,
           "elder": 1.0,
-          "pregnant": 2.0,
+          "pregnant": 0.0,
           "injured": 0.0,
-          "growth": -4,
-          "rate": -30.8,
-          "least": 9,
-          "born": 1.0,
-          "grown": 2.0,
-          "child-deaths": 2.0,
-          "deaths": 5,
+          "growth": 0,
+          "rate": 0.0,
+          "least": 5,
+          "born": 0.0,
+          "grown": 0.0,
+          "child-deaths": 0.0,
+          "deaths": 0,
           "of-hunger": 0.0,
           "of-thirst": 0.0,
-          "of-encounter": 5.0,
+          "of-encounter": 0.0,
           "of-age": 0.0,
           "of-frailty": 0.0,
           "of-birth": 0.0,
-          "food": 11.6,
-          "water": 45.6,
-          "moves": 5,
-          "roams": 6,
-          "gathers": 275,
-          "camps": 205,
+          "food": 7.2,
+          "water": 34.6,
+          "moves": 0,
+          "roams": 0,
+          "gathers": 284,
+          "camps": 207,
           "builds": 9,
-          "starving": 5.0,
+          "starving": 0.0,
           "thirsty": 0.0,
-          "tired": 4.0,
+          "tired": 0.0,
           "encounters": 4,
           "status": 50.0,
-          "skills": 7,
+          "skills": 8,
           "hunters": 0,
           "sick": 0.0,
           "known": 25,
-          "snapshot": 41.6
+          "snapshot": 43.5
         }
       ],
       "learned": {
@@ -3464,27 +3464,28 @@
         "orientation": 126,
         "herbs": 235,
         "litters": 326,
-        "spears": 470
+        "spears": 470,
+        "waterskins": 518
       },
       "hashes": [
         "3c30f0457c66d47e04f010d241c54591d71e728b8e7bf0bade5ef4601659ad9d",
         "de8a52bb21d39e3031c3e288bdc741a8972a4a8d63f35ab0d93c9514ee5cd842",
         "a2fda8211b2abdbb38cb423d316f71c7814464d045fca0b5588cbc8f03cb2646",
         "c0673b7f481e88129fa7ceff6d013e36777cee8ab27eee0433d306838c2c0624",
-        "339999a86b1ac391dd3456d7dcb6375698a3f4197373c06b9b7e8951cfe2cf15",
-        "767cdb9cf9dc3aa2217641d87a8b838359a05150c9a6521de9ab1d56dd23c12b",
-        "e2e6c4ab78339ef32307c9c3856074c05463ef7436d7594a45617c25c62f7538",
-        "38772134cf68c227bb55edbe445c81b531f356febea7c15420bead7562e689d5",
-        "4a269cf6118d43f0e1290adabf9a519ef5771089031e1f953e80a26f14d105f5",
-        "bb313cc803aa308e75ce93ad3daab33cba175b498c0996b80fbd8f5f36cf2131",
-        "cfeed8b183c7984ab8e255760e4b738f794d02f311b4db5b4e17e412fd5a669e",
-        "26aef9b2086ca6bf97128ad0f3617c37076fae28c6c58ffaa6391831c4da467e",
-        "9279d5cdf3f7920b21274e8b3f68da25fba4d195f6c071784322a608add991d6",
-        "43839bc35cafec6e31b6bf2aab496e08f21de85fc892ed211a4db2e00351ada5",
-        "70cea037b308cb5558f5d0f1fa77c378ba7051a6c2fd888bc6b035a45c7c72f9",
-        "ef109a1aacb0a3484333c3f8a7363345b3966cdc5b21c1436815965fc0086bbe",
-        "c2b82b0093b8b4711609deabca52e510fb01e529335a0420f752f2489b5bc503",
-        "f808577c746b5b48889f1fd1111b0937b1d3e9e66edccad2075013c61b6f1ae9"
+        "ec9ce60e79751cdb270a963e668367b88671d82fbd0d232fdc17b6b6ff3fa3e7",
+        "a03107690ef82e4af8c2c98a13ab19bb4208faa470697958ffed700128849dd9",
+        "226d81bd01a0cefc20dd235f64b01fd2d885a8d38adab6e5998e10bc49950af1",
+        "39ff8b35cce5196b86ef0b65ab4385795b7510e89ecdfbd5cc270a4f425c4345",
+        "f7272982e0281616f6228055917718da468d595a96b0294c2739d6acb4c9c841",
+        "5922047d8ba53196f801eb138153208394ff3c46081e1d63f5d581ea32935661",
+        "e35c8547baf281cbf951755f849a7a4dfab553ea523115e4c092d1603b0a14a9",
+        "83e53f5928ec08238851cba1a91811273baea11969f6d82cf2c45feda000d800",
+        "b540e244917b3238ac2b27fb34491b819e83ae77ec1ae96314a0ee8e230bbd80",
+        "7be7b5196907413e0d3d2e42c5a67f3f5572069ad049a1ce8eaa2d2712b47fce",
+        "c952507aef2b225cc7629093be2e14825a049fc63ccf12d764f2de0e18fb150d",
+        "9d04cb85ff016735ec6cfdf1d723f8e0aa362ab7b0a9bc1bdc7747dac41d3176",
+        "a26fc99094bbfbc2709e9d6be61e6e8db4dda4e1313c74fe8982e02996567b54",
+        "9cc73207dab2da46da89e3c8c07e327ace6b563a15a276cb1c135fd2d40d5ba9"
       ]
     }
   },

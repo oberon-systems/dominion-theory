@@ -20,3 +20,5 @@ resource-hides = шкуры
     .accusative = шкуры
 resource-clothes = одежда
     .accusative = одежду
+resource-waterskins = бурдюки
+    .accusative = бурдюки

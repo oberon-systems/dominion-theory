@@ -9,3 +9,4 @@ resource-litters = litters
 resource-spears = spears
 resource-hides = hides
 resource-clothes = clothes
+resource-waterskins = waterskins

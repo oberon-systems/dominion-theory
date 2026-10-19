@@ -855,6 +855,7 @@ class Band(Node):
     population: Population
     people: People
     carry_kg: Positive
+    carry_water_kg: Factor
     gathering: dict[Name, Factor]
     consumption_per_day: dict[Name, Factor]
     speed: Speed

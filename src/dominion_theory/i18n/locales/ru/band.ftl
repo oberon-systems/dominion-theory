@@ -14,6 +14,7 @@ skill-sticks = заготавливать палки
 skill-litters = делать волокуши
 skill-herbs = разбираться в травах
 skill-spears = делать копья и охотиться
+skill-waterskins = делать бурдюки
 
 goods-made = Сделаны: { NAME("resource", $resource) } { $count }.
 goods-spoiled = Испортились: { NAME("resource", $resource) } { $count }.

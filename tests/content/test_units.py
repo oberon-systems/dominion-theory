@@ -6,6 +6,7 @@ from dominion_theory.core.errors import DominionError
 BAND = 'units.band'
 KINDS = 'encounters.kinds'
 STAGES = 'units.band.people.stages'
+RESOURCES = 'one of water, forage, meat, stones, sticks, herbs, cords, litters, spears, hides, clothes, waterskins'
 
 
 def refused(overrides: dict[str, object]) -> dict[str, object]:
@@ -34,6 +35,7 @@ def test_resources_are_those_of_their_documents() -> None:
         'spears': ('goods', None, 1.5, None, {'hunts': 60}),
         'hides': ('goods', None, 2.0, {'months': 2}, {}),
         'clothes': ('goods', None, 2.0, {'months': 8}, {}),
+        'waterskins': ('goods', None, 0.5, {'months': 6}, {}),
     }
 
 
@@ -53,6 +55,7 @@ def test_band_is_the_one_of_its_document() -> None:
         {'forage': 1.0, 'water': 1.0},
     )
     assert band.threat.model_dump() == {'camp': 1.0, 'march': 1.0}
+    assert band.carry_water_kg == 0.0
     assert (band.speed.base, band.speed.slowdown, band.speed.slowest) == (1.2, 0.03, 0.3)
     assert band.fatigue.model_dump() == {
         'move': 0.3,
@@ -235,7 +238,7 @@ def test_band_names_only_resources_that_exist(section: str) -> None:
     assert refused({f'{BAND}.{section}': {'stone': 1.0}}) == {
         'path': f'{BAND}.{section}',
         'found': 'stone',
-        'expected': 'one of water, forage, meat, stones, sticks, herbs, cords, litters, spears, hides, clothes',
+        'expected': RESOURCES,
     }
 
 
@@ -408,11 +411,7 @@ def test_status_starts_within_its_scale() -> None:
     [
         ('biomes', ['alpha'], None),
         ('actions', ['swim'], 'one of move, roam, gather, camp, build'),
-        (
-            'resources',
-            ['stone'],
-            'one of water, forage, meat, stones, sticks, herbs, cords, litters, spears, hides, clothes',
-        ),
+        ('resources', ['stone'], RESOURCES),
     ],
 )
 def test_encounter_names_what_exists(section: str, value: list[str], expected: str | None) -> None:

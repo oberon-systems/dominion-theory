@@ -44,7 +44,7 @@ WOUNDS = 'wounds'
 HUNTER = 'hunter'
 ADULT = 'adult'
 PULLER = 'puller'
-FOOD = KINDS[0]
+FOOD, WATER = KINDS[:2]
 EATEN, NIGHTS, ATTACKS, CURES, PULLED, HUNTS = USES
 TO_BAND, TO_MEMBER = TO
 CARRY_KG = 'units.band.carry_kg'
@@ -678,9 +678,31 @@ def efficiency(rules: Rules, band: Band) -> float:
 
 def weight(params: Params, band: Band) -> float:
     """
-    What the stores and the kits of the members weigh.
+    What the stores and the kits of the members weigh on the carry: the water the waterskins hold does not.
     """
-    return band.stores.weight(params.resources) + sum(member.kit.weight(params.resources) for member in band.members)
+    held = band.stores.weight(params.resources) + sum(member.kit.weight(params.resources) for member in band.members)
+    return held - min(_water(params, band), skins(params, band))
+
+
+def skins(params: Params, band: Band) -> float:
+    """
+    The kilos of water the members carry beside their load, by the waterskins of their kits.
+    """
+    return sum(applied(params, band, member).units.band.carry_water_kg for member in band.members)
+
+
+def _water(params: Params, band: Band) -> float:
+    resources = params.resources
+    return sum(band.held(name) * resources[name].weight_kg for name in band.stores if resources[name].kind == WATER)
+
+
+def spare(params: Params, band: Band, name: str) -> float:
+    """
+    The kilos of a resource the waterskins still take beside the room: of water only.
+    """
+    if params.resources[name].kind != WATER:
+        return 0.0
+    return max(skins(params, band) - _water(params, band), 0.0)
 
 
 def kits(params: Params, band: Band) -> dict[str, int]:
@@ -768,11 +790,12 @@ def _carried(params: Params, member: Member) -> float:
     )
 
 
-def room(params: Params, band: Band) -> float:
+def room(params: Params, band: Band, name: str | None = None) -> float:
     """
-    The carrying weight still free, in kilos.
+    The carrying weight still free, in kilos; for a resource named, with what the waterskins still take of it.
     """
-    return max(carry(params, band) - weight(params, band), 0.0)
+    free = max(carry(params, band) - weight(params, band), 0.0)
+    return free if name is None else free + spare(params, band, name)
 
 
 def act(land: Land, band: Band, action: Action, day: int) -> Action:
@@ -845,7 +868,8 @@ def _gather(land: Land, band: Band, action: Action, rules: Rules, day: int) -> A
         held = reached(land, band, name)
         if held is not None and share > 0:
             hands = counted.gatherers - counted.hunting
-            _take(land, band, name, rules, day, share * held[1], held[0], free * share, hands)
+            space = free * share + spare(land.params, band, name)
+            _take(land, band, name, rules, day, share * held[1], held[0], space, hands)
             done[name] = share
     return gathering(done) if done else camp()
 
@@ -881,7 +905,7 @@ def _take(
     resource = params.resources[name]
     gatherers = census(params, band).gatherers if hands is None else hands
     wanted = gatherers * rules.gathering.get(name, 0.0) * land.value(resource.land, *at)
-    space = room(params, band) if free is None else free
+    space = room(params, band, name) if free is None else free
     taken = min(wanted * share * efficiency(rules, band), space / resource.weight_kg)
     if resource.keep is not None:
         taken = min(taken, kept(params, band, name) - band.held(name))
@@ -1042,16 +1066,15 @@ def reseason(land: Land, band: Band, was: str) -> list[Place]:
 
 def spoil(params: Params, band: Band, day: int) -> None:
     """
-    Drops the lots older than their resource keeps, of the stores and the kits; in a winter camp they age slower.
-    The goods spoiled wait in the band's spoiled to be told.
+    Drops the lots older than their resource keeps, by the bonuses held, of the stores and the kits; in a winter
+    camp they age slower. The goods spoiled wait in the band's spoiled to be told.
     """
     per_day = params.time.parts_per_day
     ages = params.units.band.winter_camp.spoil if sheltered(band) else 1.0
+    resources = applied(params, band).resources
     for stock in (band.stores, *(member.kit for member in band.members)):
         keeps = {
-            name: params.parts(spoils) // per_day
-            for name in stock
-            if (spoils := params.resources[name].spoils) is not None
+            name: params.parts(spoils) // per_day for name in stock if (spoils := resources[name].spoils) is not None
         }
         for name, amount in stock.spoil(day, keeps, ages).items():
             if params.resources[name].kind == GOODS:

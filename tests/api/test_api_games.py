@@ -140,7 +140,7 @@ def test_the_snapshot_is_what_the_caller_may_see(client: TestClient, new_game: N
         'sick': 0,
         'stores': {'forage': 15.0, 'water': 15.0},
         'goods': {},
-        'kit': {'litters': 0, 'spears': 0, 'clothes': 0},
+        'kit': {'litters': 0, 'spears': 0, 'clothes': 0, 'waterskins': 0},
         'fatigue': 0.0,
         'states': [],
         'action': {'kind': 'camp'},

@@ -390,19 +390,20 @@ A band carries food, water and goods, and each resource is an entry of
 the section `resources`: a kind, a weight per unit, a time after which
 it spoils and, for goods, the uses it wears out by.
 
-| Resource  | Kind    | Unit     | Weight | Spoils after       | Wears out by                                   |
-|-----------|---------|----------|--------|--------------------|------------------------------------------------|
-| `water`   | `water` | a litre  | 1 kg   | 5 days             | -                                              |
-| `forage`  | `food`  | a kilo   | 1 kg   | 3 days             | -                                              |
-| `stones`  | `goods` | a stone  | 0.5 kg | -                  | 150 food eaten x quality                       |
-| `sticks`  | `goods` | a stick  | 1 kg   | 100 days           | 150 heads a night in camp, 1 an attack in camp |
-| `herbs`   | `goods` | a bunch  | 0.1 kg | 2 months           | 1 a cure                                       |
-| `cords`   | `goods` | a cord   | 0.1 kg | 6 months x quality | - (spent in what is made)                      |
-| `litters` | `goods` | a litter | 4 kg   | -                  | 40 days pulled x quality                       |
-| `meat`    | `food`  | a kilo   | 1 kg   | 2 days             | -                                              |
-| `spears`  | `goods` | a spear  | 1.5 kg | -                  | 60 hunts x quality                             |
-| `hides`   | `goods` | a hide   | 2 kg   | 2 months           | - (spent in what is made)                      |
-| `clothes` | `goods` | a suit   | 2 kg   | 8 months x quality | -                                              |
+| Resource     | Kind    | Unit     | Weight | Spoils after       | Wears out by                                   |
+|--------------|---------|----------|--------|--------------------|------------------------------------------------|
+| `water`      | `water` | a litre  | 1 kg   | 5 days             | -                                              |
+| `forage`     | `food`  | a kilo   | 1 kg   | 3 days             | -                                              |
+| `stones`     | `goods` | a stone  | 0.5 kg | -                  | 150 food eaten x quality                       |
+| `sticks`     | `goods` | a stick  | 1 kg   | 100 days           | 150 heads a night in camp, 1 an attack in camp |
+| `herbs`      | `goods` | a bunch  | 0.1 kg | 2 months           | 1 a cure                                       |
+| `cords`      | `goods` | a cord   | 0.1 kg | 6 months x quality | - (spent in what is made)                      |
+| `litters`    | `goods` | a litter | 4 kg   | -                  | 40 days pulled x quality                       |
+| `meat`       | `food`  | a kilo   | 1 kg   | 2 days             | -                                              |
+| `spears`     | `goods` | a spear  | 1.5 kg | -                  | 60 hunts x quality                             |
+| `hides`      | `goods` | a hide   | 2 kg   | 2 months           | - (spent in what is made)                      |
+| `clothes`    | `goods` | a suit   | 2 kg   | 8 months x quality | -                                              |
+| `waterskins` | `goods` | a skin   | 0.5 kg | 6 months x quality | -                                              |
 
 Stores are kept in lots, one per resource and day gathered. The oldest
 lot is eaten first, and a lot older than its time is thrown away in the
@@ -418,7 +419,10 @@ food does there.
 An adult carries 6 kg, a child a quarter of it and an elder half. A
 member who pulls a litter carries more, a man twice and a woman half
 again, net of the litter: its 4 kg weigh in the load and are carried
-on top, see [Bonuses](../game/skills.md#bonuses). A band never gathers
+on top, see [Bonuses](../game/skills.md#bonuses). A member holding a
+waterskin carries 3 kg of water beside its load, `carry_water_kg`, and
+the water of a band whose adults and elders all hold one keeps 1.5 times
+as long. A band never gathers
 more than it can carry: what does not fit is left on the cell and the
 stock is not lowered for it.
 
@@ -759,6 +763,7 @@ units:
         child_survives: 0.5
         mother_dies: 0.05
     carry_kg: 6.0
+    carry_water_kg: 0.0
     gathering:
       forage: 3.0
       water: 4.0

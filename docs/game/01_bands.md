@@ -308,7 +308,7 @@ of them. Both views of the API show the same for now.
       "sick": 0,
       "stores": {"water": 30.0, "forage": 22.5},
       "goods": {"stones": 4.0},
-      "kit": {"litters": 0, "spears": 0, "clothes": 0},
+      "kit": {"litters": 0, "spears": 0, "clothes": 0, "waterskins": 0},
       "fatigue": 0.3,
       "states": [],
       "action": {"kind": "gather", "shares": {"forage": 0.83, "water": 0.17}},

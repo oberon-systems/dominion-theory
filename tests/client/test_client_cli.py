@@ -106,7 +106,8 @@ def test_a_band_with_no_food_is_lived_headless_into_a_row_for_its_last_year() ->
 
     assert result.exit_code == 0
     assert result.stderr == 'seed 42\n'
-    header, row, end = result.stdout.splitlines()
+    header, row, *learned, end = result.stdout.splitlines()
+    assert all(line.startswith('learned: ') for line in learned)
     *counted, snapshot = row.split()
     assert len(header) == len(row)
     assert header.split() == [

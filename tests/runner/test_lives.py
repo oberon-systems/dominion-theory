@@ -71,6 +71,13 @@ def test_growth_is_compounded_and_tells_the_year_of_a_tribe() -> None:
     assert (shrunk.tribe, died.growth, died.tribe) == (None, None, None)
 
 
+def test_the_skills_are_told_by_the_day_they_were_learned() -> None:
+    life = lives.Lived(1, 15, [], lives.ALIVE, 500, learned={'litters': 401, 'orientation': 354})
+
+    assert life.lines()[-2] == 'learned: orientation on day 354, litters on day 401'
+    assert lives.Lived(1, 15, [], lives.ALIVE, 500).lines()[-1].startswith('alive at tick 500')
+
+
 def test_what_moved_between_two_references_is_told_by_path_and_year() -> None:
     old = {'1': {'outcome': 'alive', 'years': [{'people': 15}, {'people': 17}]}}
     new = {'1': {'outcome': 'died', 'years': [{'people': 15}]}}

@@ -126,7 +126,10 @@ class Lived:
         grown = sum(row['grown'] for row in self.years)
         left = grown + sum(row['child-deaths'] for row in self.years)
         raised = f'{int(grown)} of {int(left)} children grew up'
-        return [*table(self.years), f'{self.outcome} at tick {self.tick}: {grew}, {reached}, {raised}']
+        ended = f'{self.outcome} at tick {self.tick}: {grew}, {reached}, {raised}'
+        days = sorted(self.learned.items(), key=lambda held: held[1])
+        learned = [f'learned: {", ".join(f"{name} on day {day}" for name, day in days)}'] if days else []
+        return [*table(self.years), *learned, ended]
 
 
 def live(seed: int | None, years: int, preset: str | None = None, overrides: dict[str, Any] | None = None) -> Lived:

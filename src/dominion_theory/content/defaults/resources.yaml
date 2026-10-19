@@ -83,3 +83,13 @@ resources:
       - {to: member, path: units.band.people.exposure.frailty, times: 0.7, seasons: [winter]}
       - {to: band, path: units.band.threat.camp, times: 0.9}
       - {to: band, path: units.band.threat.march, times: 0.9}
+  waterskins:
+    kind: goods
+    held: personal
+    weight_kg: 0.5
+    spoils: {months: 6}
+    keep: {per: adult, amount: 1.0}
+    made: {hides: 1.0, cords: 1.0}
+    gives:
+      - {to: member, path: units.band.carry_water_kg, plus: 3.0}
+      - {to: band, path: resources.water.spoils, times: 1.5}

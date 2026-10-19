@@ -308,20 +308,21 @@ below its keep is made while the materials of its recipe are held.
 
 - The good furthest below its keep, by the share of it missing, is
   made first.
-- Every adult makes `making.per_part`, 0.2, of a good in a camp part, so
-  a band of 15 adults makes 3 goods in an evening and 3 in the night.
+- The `making.hands`, 3, members most experienced in that good make it,
+  each `making.per_part`, 1, a camp part, so a band makes 3 goods in an
+  evening and 3 in the night. A maker is a member of a stage that
+  gathers, an adult or an elder, whatever its role: the camp parts are
+  no one's work, so a nanny or an elder makes as well.
 - The materials are taken from the oldest lots. A made good takes the
-  mean quality of its materials, 1 for those without one: a spear of a
-  mountain stone and a reed cord serves longest, a waterskin is as good
-  as its cord allows. Every made good but the spear needs a cord, so
-  the reed of a floodplain is worth a detour.
+  mean quality of its materials, 1 for those without one, times what the
+  makers' mastery leaves of it; see [Mastery](#mastery). A spear of a
+  mountain stone and a reed cord by a master serves longest. Every made
+  good but the spear needs a cord, so the reed of a floodplain is worth
+  a detour.
 - A good goes into the stores whole. The work done on the next one waits
-  in the band's `work`, with the quality of the materials spent on it,
-  and a good is made when its work reaches one. So a band of 3 adults
-  makes a litter in two camp parts, and no member holds a share of one.
+  in the band's `work`, with the quality it was made at, and a good is
+  made when its work reaches one, so no member holds a share of one.
 - Every good made is in the event `goods-made`.
-
-An adult here is a member of a stage that gathers, whatever its role.
 The keep of a personal good counts the goods in the stores, every kit
 holding one as one, worn or not, and the work begun, so a band of 10
 pullers holding 10 litters makes no more. Making goes before the handing out of the evening, so a litter
@@ -333,7 +334,28 @@ evening, every stick and cord spent, and gathers them again up to its
 keep. A
 litter takes the mean quality of its 3 sticks and 2 cords, so one of
 reed cords serves some 64 to 70 days pulled and one of forest bast some
-56 to 63.
+56 to 63 - when masters make it; the first litters of a band are made by
+novices at 0.6 of that.
+
+### Mastery
+
+Every member keeps its experience of every good it made: the goods it
+worked, shares included. Its mastery of a good grows with it, half way
+at `mastery.half`, 10 goods:
+
+```text
+mastery = experience / (experience + half)
+quality = mean quality of the materials * (floor + (1 - floor) * mastery of the makers)
+```
+
+`floor`, 0.6, is what a novice makes of good materials. The makers'
+mastery is their mean, each gaining the experience of its share. The
+most experienced make, the oldest first among equals, so an elder who
+made spears all its life makes the band's spears. A member's mastery
+dies with it: the skill stays with the band, the hand that knew the
+goods does not, and the next makers start below. Five goods made give a
+mastery of 0.33, twenty of 0.67; a master's goods are as good as their
+materials.
 
 ___
 
@@ -706,7 +728,7 @@ units:
       injury:
         severities:
           light: {days: 10, pace: 0.8, gathers: 0.7, treated: 0.5}
-    making: {per_part: 0.2}
+    making: {per_part: 1.0, hands: 3, mastery: {half: 10, floor: 0.6}}
     hunting: {meat: 4.0, hides: 0.05}
 eras:
   band:
@@ -748,14 +770,12 @@ ___
 
 ## Open points
 
-- **Knowledge that dies** - knowledge stays with the band. Whether a
-  skill is lost when the people who held it die is weighed beside the
-  roles of members.
+- **Knowledge that dies** - a skill stays with the band and a mastery
+  dies with its member, as [Mastery](#mastery) tells. Whether a skill
+  is lost when every member who used it is dead is not settled.
 - **A council on a new skill** - an occasion that calls the council
   when a skill is learned is a later bridge to the encounters between
   bands.
-- **Who makes** - every adult makes at the same pace. A maker who gets
-  better with the doing belongs with the finer roles of a tribe.
 - **Goods in a camp** - a winter camp could keep a cache of goods left
   behind; the holder `place` is ready for it.
 - **Loot** - the goods of a beaten band belong to stage 3.

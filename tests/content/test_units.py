@@ -98,7 +98,7 @@ def test_band_is_the_one_of_its_document() -> None:
     assert (band.states.tiredness.begins, band.states.tiredness.ends) == (0.8, 0.3)
     assert (band.sight, band.memory.model_dump()) == (2, {'days': 20})
     assert band.camp_parts == ('evening', 'night')
-    assert band.making.per_part == 0.2
+    assert band.making.model_dump() == {'per_part': 1.0, 'hands': 3, 'mastery': {'half': 10.0, 'floor': 0.6}}
     assert band.shelter.model_dump() == {'encounter': 0.5, 'frailty': 0.5}
     assert band.winter_camp.model_dump() == {
         'offered': {'seasons': ('winter',), 'before': {'days': 5}},

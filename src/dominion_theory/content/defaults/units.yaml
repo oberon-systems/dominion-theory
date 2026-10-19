@@ -102,7 +102,11 @@ units:
       slows: 0.5
     camp_parts: [evening, night]
     # What every adult makes of a good in a camp part.
-    making: {per_part: 0.2}
+    making:
+      per_part: 1.0
+      hands: 3
+      # A maker with 10 goods made is half a master; a novice makes a good of 0.6 of its materials.
+      mastery: {half: 10, floor: 0.6}
     # The meat a hunter brings in a tick of full game, and the hides of a kilo of it.
     hunting: {meat: 4.0, hides: 0.05}
     states:

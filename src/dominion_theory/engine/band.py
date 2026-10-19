@@ -117,6 +117,8 @@ class Member:
     kit: Stock = field(default_factory=Stock)
     # The days of sickness left.
     sick: float = 0.0
+    # The goods made by the member, by good: its experience of each.
+    craft: dict[str, float] = field(default_factory=dict)
 
     @classmethod
     def read(cls, plain: dict[str, Any]) -> Member:
@@ -472,6 +474,7 @@ def people(params: Params, band: Band) -> list[dict[str, Any]]:
             'hungry': member.hungry,
             'thirsty': member.thirsty,
             KIT: [name for name in member.kit if member.kit.held(name) > 0],
+            'craft': {good: round(mastery(params, member, good), 2) for good in sorted(member.craft)},
         }
         for member, name in zip(band.members, census(params, band).stages, strict=True)
     ]
@@ -1660,11 +1663,12 @@ def hand_out(params: Params, band: Band, day: int) -> None:
 def make(params: Params, band: Band, day: int) -> None:
     """
     A camp part: of the goods the band knows how to make, the one furthest below its keep whose materials are held
-    is worked on by every adult, a member of a stage that gathers, at `making.per_part`, of the oldest lots of the
-    materials. A good goes into the stores whole, at the mean quality of the materials spent on it; the rest of the
-    work waits in the band's work. What was made waits in the band's made to be told.
+    is worked on by its `making.hands` most experienced makers, members of a stage that gathers, each at
+    `making.per_part`, of the oldest lots of the materials; each gains the experience of its work. A good goes into
+    the stores whole, at the mean quality of the materials spent on it times what the makers' mastery leaves of
+    it; the rest of the work waits in the band's work. What was made waits in the band's made to be told.
     """
-    stages = params.units.band.people.stages
+    making = params.units.band.making
     found: tuple[float, str, float] | None = None
     for name, resource in params.resources.items():
         if not resource.made or not lores.opened(params, band, lores.MAKES, name):
@@ -1679,8 +1683,8 @@ def make(params: Params, band: Band, day: int) -> None:
     if found is None:
         return
     _, name, most = found
-    makers = sum(stages[stage].gathers > 0 for stage in census(params, band).stages)
-    amount = min(params.units.band.making.per_part * makers, most)
+    hands = makers(params, band, name)
+    amount = min(making.per_part * len(hands), most)
     if amount <= NOTHING:
         return
     graded = units = 0.0
@@ -1688,9 +1692,14 @@ def make(params: Params, band: Band, day: int) -> None:
         for lot in band.stores.part(material, needed * amount).get(material, []):
             graded += lot[1] * (lot[2] if len(lot) > 2 else 1.0)
             units += lot[1]
+    skill = sum(mastery(params, band.members[at], name) for at in hands) / len(hands)
+    floor = making.mastery.floor
+    for at in hands:
+        crafted = band.members[at].craft
+        crafted[name] = crafted.get(name, 0.0) + amount / len(hands)
     work = band.work.setdefault(name, [0.0, 0.0])
     work[0] += amount
-    work[1] += amount * graded / units
+    work[1] += amount * graded / units * (floor + (1.0 - floor) * skill)
     done = math.floor(work[0] + NOTHING)
     if done > 0:
         quality = round(work[1] / work[0], 2)
@@ -1701,6 +1710,26 @@ def make(params: Params, band: Band, day: int) -> None:
         band.restocked()
     if band.work[name][0] <= NOTHING:
         del band.work[name]
+
+
+def makers(params: Params, band: Band, name: str) -> list[int]:
+    """
+    The members who make a good in a camp part: of a stage that gathers, the most experienced of it first, then
+    the oldest, up to `making.hands`.
+    """
+    stages = params.units.band.people.stages
+    able = [at for at, stage in enumerate(census(params, band).stages) if stages[stage].gathers > 0]
+    members = band.members
+    able.sort(key=lambda at: (-members[at].craft.get(name, 0.0), -members[at].age_days, at))
+    return able[: params.units.band.making.hands]
+
+
+def mastery(params: Params, member: Member, name: str) -> float:
+    """
+    A member's mastery of a good, from 0 to nearly 1: its experience over that and the half of mastery.
+    """
+    done = member.craft.get(name, 0.0)
+    return done / (done + params.units.band.making.mastery.half)
 
 
 def whole(band: Band, name: str) -> float:

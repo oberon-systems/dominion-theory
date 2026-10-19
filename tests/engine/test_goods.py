@@ -257,7 +257,9 @@ def test_a_band_that_knows_herbs_wants_herbs_and_cords_in_a_forest(params: Param
     assert {'herbs', 'cords'} <= set(shares(params, held))
 
 
-def test_litters_are_made_whole_of_the_oldest_materials_at_their_mean_quality(params: Params) -> None:
+def test_litters_are_made_whole_of_the_oldest_materials_at_their_quality_times_the_makers_mastery(
+    params: Params,
+) -> None:
     held = holding({'sticks': [[0.0, 4.5]], 'cords': [[0.0, 3.0, 0.8]]})
 
     bands.make(params, held, 1)
@@ -265,23 +267,40 @@ def test_litters_are_made_whole_of_the_oldest_materials_at_their_mean_quality(pa
     held.lore['known'].append('litters')
     bands.make(params, held, 1)
 
-    assert held.stores['litters'] == [[1.0, 1.0, 0.92]]
-    assert held.work == {'litters': pytest.approx([0.5, 0.46])}
+    assert held.stores['litters'] == [[1.0, 1.0, 0.55]]
+    assert held.work == {'litters': pytest.approx([0.5, 0.5 * 0.55])}
     assert (held.held('sticks'), held.held('cords')) == (0.0, 0.0)
     assert held.made == {'litters': 1.0}
+    assert [member.craft.get('litters', 0.0) for member in held.members[:4]] == pytest.approx([0.5, 0.5, 0.5, 0.0])
 
 
-def test_making_stops_at_the_keep_and_at_what_the_adults_make(params: Params) -> None:
-    held = holding({'sticks': [[0.0, 90.0]], 'cords': [[0.0, 60.0]]}, bands.adults(3))
+def test_the_most_experienced_make_and_a_master_makes_a_good_as_good_as_its_materials(params: Params) -> None:
+    held = holding({'sticks': [[0.0, 3.0]], 'cords': [[0.0, 2.0, 0.8]]}, bands.adults(4))
+    held.lore['known'].append('litters')
+    for member in held.members[1:]:
+        member.craft['litters'] = 10_000.0
+
+    assert bands.makers(params, held, 'litters') == [1, 2, 3]
+    assert bands.mastery(params, held.members[1], 'litters') == pytest.approx(10_000 / 10_010)
+    bands.make(params, held, 1)
+
+    assert held.stores['litters'] == [[1.0, 1.0, 0.92]]
+    assert held.members[0].craft == {}
+    held.members.pop(1)
+    held.changed()
+    assert bands.makers(params, held, 'litters') == [1, 2, 0]
+
+
+def test_making_stops_at_the_keep_and_at_what_the_hands_make(params: Params) -> None:
+    held = holding({'sticks': [[0.0, 90.0]], 'cords': [[0.0, 60.0]]}, bands.adults(5))
     held.lore['known'].append('litters')
     held.members[1].kit.add('litters', 0, 1.0)
 
     bands.make(params, held, 1)
-    assert held.held('litters') == 0.0
-    assert held.work['litters'][0] == pytest.approx(0.6)
-    for _ in range(5):
+    assert held.held('litters') == 3.0
+    for _ in range(3):
         bands.make(params, held, 1)
-    assert bands.goods(params, held)['litters'] == pytest.approx(3.0)
+    assert bands.goods(params, held)['litters'] == pytest.approx(5.0)
     assert held.work == {}
 
 
@@ -294,10 +313,9 @@ def test_the_good_furthest_below_its_keep_is_made_first(params: Params) -> None:
     held.members[1].kit.add('litters', 0, 1.0)
 
     bands.make(two, held, 1)
+    assert (held.held('spears'), held.held('litters')) == (3.0, 0.0)
     bands.make(two, held, 1)
-
-    assert held.held('spears') == 1.0
-    assert held.held('litters') == 0.0
+    assert (held.held('spears'), held.held('litters')) == (3.0, 3.0)
 
 
 def test_a_litter_made_in_the_evening_goes_to_a_man_and_is_told(params: Params) -> None:

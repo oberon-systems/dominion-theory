@@ -60,6 +60,7 @@ FARING = ('sick', 'hungry', 'thirsty')
 STAGE = f'{REVIEW}stage-'
 ROLE = f'{REVIEW}role-'
 WOUND = f'{REVIEW}wound-'
+MASTERY = f'{REVIEW}mastery'
 MESSAGES: tuple[str, ...] = (
     *(f'{TITLE}{name}' for name in TITLES),
     *(f'{COLUMN}{name}' for name in COLUMNS),
@@ -84,6 +85,7 @@ MESSAGES: tuple[str, ...] = (
             'pregnant',
             'you',
             'members-none',
+            'mastery',
         )
     ),
 )
@@ -145,6 +147,9 @@ def member(held: Mapping[str, Any], days_a_year: int, lang: str) -> str:
         if held[state]:
             said.append(render(f'{REVIEW}{state}', lang=lang))
     said += [render('line-gathered', {'resource': name}, lang) for name in held['kit']]
+    said += [
+        render(MASTERY, {'resource': name, 'mastery': level}, lang) for name, level in held.get('craft', {}).items()
+    ]
     return ', '.join(said)
 
 

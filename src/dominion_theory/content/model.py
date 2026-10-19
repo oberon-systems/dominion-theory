@@ -834,12 +834,24 @@ class Threat(Node):
     march: Factor
 
 
+class Mastery(Node):
+    """
+    How a maker's experience of a good becomes mastery, half of it at `half` goods made, and the share of the
+    materials' quality a maker with none gives a good.
+    """
+
+    half: Positive
+    floor: Share
+
+
 class Making(Node):
     """
-    What every adult makes of a good in a camp part.
+    The makers of a good in a camp part, the most experienced first, and what each makes of it.
     """
 
     per_part: Factor
+    hands: Count
+    mastery: Mastery
 
 
 class Hunting(Node):

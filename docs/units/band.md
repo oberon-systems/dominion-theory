@@ -794,7 +794,10 @@ units:
       build: 0.15
       slows: 0.5
     camp_parts: [evening, night]
-    making: {per_part: 0.2}
+    making:
+      per_part: 1.0
+      hands: 3
+      mastery: {half: 10, floor: 0.6}
     hunting: {meat: 4.0, hides: 0.05}
     states:
       tiredness: {begins: 0.8, ends: 0.3}

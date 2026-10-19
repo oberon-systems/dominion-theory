@@ -519,8 +519,8 @@ ___
 
 The unit of the snapshot gains four fields; `roles` gains the hunter
 and `stores` the common goods. `goods` sums every good the band holds,
-in its stores and in the kits of its members, per good; it is built
-with stones and sticks, `kit` and `sick` come with the personal goods.
+in its stores and in the kits of its members, per good; `kit` counts
+the members holding each personal good and `sick` the members who are.
 
 ```json
 {
@@ -752,7 +752,7 @@ ___
   any day, since the band camps in them. A complex good, marked so in
   its recipe, will be made only at a standing camp - the camp parts of a
   day the band did not walk or roam - or in a built winter camp. None is
-  complex yet; the first is weighed with spears.
+  complex yet: spears and waterskins are made in any camp part.
 - **Game in the decisions** - a band does not weigh the `game` of a cell
   when it chooses where to go: the hunters take what the land the band
   stands on gives. A pull of meat beside the pull of forage is weighed

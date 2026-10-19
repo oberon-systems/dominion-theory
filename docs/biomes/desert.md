@@ -29,6 +29,10 @@ ___
 | `food`        | 0.1  | 90 days  | none    |
 | `threat`      | 0.3  | none     | none    |
 | `passability` | 0.8  | none     | none    |
+| `stone`       | 0.0  | none     | none    |
+| `wood`        | 0.0  | none     | none    |
+| `plants`      | 0.0  | none     | none    |
+| `game`        | 0.0  | none     | none    |
 
 Resources: `water`, `forage`. Colour: `#D9C27E`.
 

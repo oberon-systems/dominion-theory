@@ -31,8 +31,8 @@ ___
 ## The idea
 
 There is no headman. The band acts on its own, by
-[its decision function](decisions.md), and the council of every evening
-shows what the band is minded to do tomorrow. The player answers in one of three
+[its decision function](decisions.md), and the council of an evening
+an occasion calls shows what the band is minded to do next. The player answers in one of three
 ways: backs one of the options the others voted for, proposes another,
 or does not vote, which costs status.
 
@@ -145,10 +145,10 @@ with the needs of [Decisions](decisions.md#needs):
 |-------------------|-------------------------------------------------------------|
 | `stay-and-gather` | `weights.move` times the worth of the own cell              |
 | `winter-camp`     | the same with the reach of the camp, under the threat a built camp leaves |
+| `go` to a place   | `weights.move` times the pull that way                      |
 
 A built camp the band stands in adds `winter_camp.kept`, 0.2, to the
 worth of both: staying in it is worth more than standing on its land.
-| `go` to a place   | `weights.move` times the pull that way                      |
 
 ```text
 stay   = weights.move * (worth(own) + kept)

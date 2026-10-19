@@ -23,9 +23,10 @@ ___
 ## The idea
 
 In the phase `decisions` the band lists what it could do, gives every
-option a score and takes the best. The options are a camp, gathering of
-each resource the cell gives, and a move and a roam to each of the eight
-cells around that can be entered: at most nineteen. The function decides
+option a score and takes the best. The options are a camp, one
+gathering of what the cell gives, its gatherers shared by need, and a
+move and a roam to each of the eight cells around that can be entered:
+at most eighteen. The function decides
 the parts of the day the band works in; in the parts of
 `units.band.camp_parts`, the evening and the night, the band camps
 without asking it.
@@ -147,14 +148,16 @@ need it serves.
 |-----------------|--------------------------------------------------------------|
 | `camp`          | 0: what a band does when nothing else is worth it            |
 | `gather`        | the sum over its shares of share times what the resource is worth |
+| `move` to a cell| see below                                                    |
+| `roam` to a cell| see below                                                    |
 
 What a resource is worth to a gathering: `weights.hunger` times hunger,
 food of the cell and fit for forage; `weights.thirst` times thirst,
-water of the cell and fit for water. The shares are those of
-[Gathering](../units/band.md#gathering): the need of every resource by
-its weight, over them all.
-| `move` to a cell| see below                                                    |
-| `roam` to a cell| see below                                                    |
+water of the cell and fit for water; for a good the band has learned to
+gather, `weights.goods` times the share missing of its keep, its
+property and its fit, while the band is not hungry. The shares are those
+of [Gathering](../units/band.md#gathering): the need of every resource
+by its weight, over them all.
 
 ```text
 move = weights.move * (pull - staying)
@@ -195,8 +198,8 @@ ___
 The best score wins. Two rules settle the rest.
 
 - **A tie** goes to the option that comes first in a fixed order: `camp`,
-  `gather` forage, `gather` water, then the moves clockwise from the
-  north, then the roams the same.
+  the gathering, then the moves clockwise from the north, then the roams
+  the same.
 - **A move in progress is kept.** The cell the band is already walking
   towards gets `weights.momentum` added, so a band does not turn back in
   the middle of a forest.
@@ -290,12 +293,13 @@ units:
         hungry: {days: 0, need: 0.8}
       distance: 0.25
       horizon: 2
-      unknown: {food: 0.5, water: 0.5, threat: 0.4, passability: 0.7}
+      unknown: {food: 0.5, water: 0.5, threat: 0.4, passability: 0.7, stone: 0.1, wood: 0.2, plants: 0.3, game: 0.3}
       idle: 0.05
       wander: {days: 1}
       weights:
         hunger: 1.5
         thirst: 1.2
+        goods: 0.4
         safety: 2.0
         move: 3.0
         momentum: 0.1

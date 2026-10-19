@@ -25,12 +25,16 @@ ___
 
 ## Band era
 
-| Property      | Base | Recovery | Seasons                 |
-|---------------|------|----------|-------------------------|
-| `water`       | 0.4  | 3 days   | none                    |
-| `food`        | 0.2  | 60 days  | summer 1.5, winter 0.1  |
-| `threat`      | 0.4  | none     | none                    |
-| `passability` | 0.6  | none     | none                    |
+| Property      | Base | Recovery | Seasons                |
+|---------------|------|----------|------------------------|
+| `water`       | 0.4  | 3 days   | none                   |
+| `food`        | 0.2  | 60 days  | summer 1.5, winter 0.1 |
+| `threat`      | 0.4  | none     | none                   |
+| `passability` | 0.6  | none     | none                   |
+| `stone`       | 0.0  | none     | none                   |
+| `wood`        | 0.0  | none     | none                   |
+| `plants`      | 0.0  | none     | none                   |
+| `game`        | 0.4  | 60 days  | none                   |
 
 Resources: `water`, `forage`. Colour: `#A9B8A0`.
 

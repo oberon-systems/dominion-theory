@@ -26,3 +26,7 @@ ___
 Every biome that lists `forage` among its resources. The forest and the
 floodplain are the richest, the season changes what they give, and a
 cell that was gathered from needs weeks to grow back.
+
+A band with hunters eats meat beside forage, the oldest lot of either
+first, and one holding stones eats 0.9 of the forage it would; see
+[Skills](../../game/skills.md#bonuses).

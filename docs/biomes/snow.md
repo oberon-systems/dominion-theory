@@ -30,5 +30,9 @@ ___
 | `food`        | 0.05 | 90 days  | none    |
 | `threat`      | 0.5  | none     | none    |
 | `passability` | 0.4  | none     | none    |
+| `stone`       | 0.0  | none     | none    |
+| `wood`        | 0.0  | none     | none    |
+| `plants`      | 0.0  | none     | none    |
+| `game`        | 0.0  | none     | none    |
 
 Resources: `water`. Colour: `#F5F5F5`.

@@ -57,18 +57,18 @@ The tree has a fixed set of top-level sections. Each later stage fills its
 own: stage 0 defined the frame and `time`, stage 1 filled `planet` and
 `biomes` and gave an era its cell and its properties.
 
-| Section      | Holds                                               | Filled in     |
-|--------------|-----------------------------------------------------|---------------|
-| `time`       | parts of a day, days in a month, seasons            | stage 0       |
-| `eras`       | per era: parts per tick, size of a cell, properties | stage 0, 1, 5 |
-| `planet`     | size, the layers, the sea, rivers, the first window | stage 1       |
-| `biomes`     | one entry per biome: its rule, properties per era   | stage 1       |
-| `resources`  | weight, how fast each one spoils                    | stage 2       |
-| `units`      | one entry per kind of unit: the band first          | stage 2       |
-| `council`    | when it sits, the voice, what a vote does to status | stage 2       |
-| `encounters` | chance and cost of what a band may run into         | stage 2       |
-| `skills`     | what teaches a skill, what it needs and opens       | stage 2       |
-| `peoples`    | how many other bands, how they are spawned          | stage 3       |
+| Section      | Holds                                                  | Filled in     |
+|--------------|--------------------------------------------------------|---------------|
+| `time`       | parts of a day, days in a month, seasons               | stage 0       |
+| `eras`       | per era: parts per tick, size of a cell, properties    | stage 0, 1, 5 |
+| `planet`     | size, the layers, the sea, rivers, the first window    | stage 1       |
+| `biomes`     | one entry per biome: its rule, properties per era      | stage 1       |
+| `resources`  | kind, weight, spoiling and wear, keep, recipe, bonuses | stage 2       |
+| `units`      | one entry per kind of unit: the band first             | stage 2       |
+| `council`    | when it sits, the voice, what a vote does to status    | stage 2       |
+| `encounters` | chance and cost of what a band may run into            | stage 2       |
+| `skills`     | what teaches a skill, what it needs and opens          | stage 2       |
+| `peoples`    | how many other bands, how they are spawned             | stage 3       |
 
 Content and balance are the same thing here. A biome is an entry in the
 tree, so adding a biome and changing how much food a forest gives are both
@@ -178,7 +178,7 @@ ___
 A few conventions keep the tree readable and the overrides predictable.
 
 - **Names** are lower case with underscores. A path joins them with dots:
-  `units.band.consumption.food`.
+  `units.band.consumption_per_day.forage`.
 - **An item of a list** is reached by its `name` when it has one, and by
   its position otherwise: `time.seasons.winter.months`.
 - **The unit is in the name** when it is not obvious: `cell_km`,

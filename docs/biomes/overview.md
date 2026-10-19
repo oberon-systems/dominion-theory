@@ -78,7 +78,11 @@ biomes:
               winter: {times: 0.4}
           threat: {base: 0.4}
           passability: {base: 0.6}
-        resources: [water, forage]
+          stone: {base: 0.0}
+          wood: {base: 0.8, recovery: {days: 30}}
+          plants: {base: 0.5, recovery: {days: 30}}
+          game: {base: 0.7, recovery: {days: 60}}
+        resources: [water, forage, sticks, herbs, cords]
 ```
 
 | Field        | Holds                                                    |
@@ -104,12 +108,19 @@ of the biome gives. It is a measure, not an amount: how many units of food
 a band takes from a cell is a rule of the band, which multiplies its own
 rate by the property.
 
-| Property      | 0 means               | 1 means                      |
-|---------------|-----------------------|------------------------------|
-| `water`       | none to be found      | as much as anybody can carry |
-| `food`        | nothing to gather     | the richest land there is    |
-| `threat`      | nothing to fear       | an encounter is likely       |
-| `passability` | cannot be entered     | crossed at full speed        |
+| Property      | 0 means             | 1 means                      |
+|---------------|---------------------|------------------------------|
+| `water`       | none to be found    | as much as anybody can carry |
+| `food`        | nothing to gather   | the richest land there is    |
+| `threat`      | nothing to fear     | an encounter is likely       |
+| `passability` | cannot be entered   | crossed at full speed        |
+| `stone`       | no stone to pick up | stone everywhere             |
+| `wood`        | no wood             | a forest of good wood        |
+| `plants`      | no herbs or fibre   | the richest herbs and reed   |
+| `game`        | no beasts to hunt   | the richest hunting there is |
+
+The last four came with [Skills](../game/skills.md#gathering-goods): a
+band gathers or hunts them only once it has learned how.
 
 ___
 
@@ -121,7 +132,7 @@ the set, and every biome gives a value for each name in it.
 ```yaml
 eras:
   band:
-    properties: [water, food, threat, passability]
+    properties: [water, food, threat, passability, stone, wood, plants, game]
 ```
 
 A band reads `food` as forage. A tribe will read pasture, and a settlement

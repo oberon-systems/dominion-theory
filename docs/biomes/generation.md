@@ -492,7 +492,7 @@ eras:
   band:
     parts_per_tick: 1
     cell_km: 10
-    properties: [water, food, threat, passability]
+    properties: [water, food, threat, passability, stone, wood, plants, game]
 ```
 
 - **`scale_km`** is the size of the largest shapes of a layer.

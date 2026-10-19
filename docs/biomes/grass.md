@@ -21,14 +21,18 @@ ___
 
 ## Band era
 
-| Property      | Base | Recovery | Seasons                                 |
-|---------------|------|----------|-----------------------------------------|
-| `water`       | 0.4  | 3 days   | none                                    |
-| `food`        | 0.8  | 20 days  | spring 0.7, autumn 1.2, winter 0.3      |
-| `threat`      | 0.1  | none     | none                                    |
-| `passability` | 1.0  | none     | none                                    |
+| Property      | Base | Recovery | Seasons                            |
+|---------------|------|----------|------------------------------------|
+| `water`       | 0.4  | 3 days   | none                               |
+| `food`        | 0.8  | 20 days  | spring 0.7, autumn 1.2, winter 0.3 |
+| `threat`      | 0.1  | none     | none                               |
+| `passability` | 1.0  | none     | none                               |
+| `stone`       | 0.0  | none     | none                               |
+| `wood`        | 0.0  | none     | none                               |
+| `plants`      | 0.6  | 30 days  | none                               |
+| `game`        | 0.6  | 60 days  | none                               |
 
-Resources: `water`, `forage`. Colour: `#228B22`.
+Resources: `water`, `forage`, `herbs`, `cords`. Colour: `#228B22`.
 
 Grass recovers faster than any other land, and loses more in winter than
 the forest does.

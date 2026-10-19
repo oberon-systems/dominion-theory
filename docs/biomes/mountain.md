@@ -23,14 +23,18 @@ ___
 
 ## Band era
 
-| Property      | Base | Recovery | Seasons      |
-|---------------|------|----------|--------------|
-| `water`       | 0.2  | 3 days   | none         |
-| `food`        | 0.2  | 60 days  | winter 0.2   |
-| `threat`      | 0.7  | none     | none         |
-| `passability` | 0.3  | none     | none         |
+| Property      | Base | Recovery | Seasons    |
+|---------------|------|----------|------------|
+| `water`       | 0.2  | 3 days   | none       |
+| `food`        | 0.2  | 60 days  | winter 0.2 |
+| `threat`      | 0.7  | none     | none       |
+| `passability` | 0.3  | none     | none       |
+| `stone`       | 0.6  | 90 days  | none       |
+| `wood`        | 0.0  | none     | none       |
+| `plants`      | 0.0  | none     | none       |
+| `game`        | 0.0  | none     | none       |
 
-Resources: `water`, `forage`. Colour: `#8B8989`.
+Resources: `water`, `forage`, `stones`. Colour: `#8B8989`.
 
 The old generator put mountains on middle heights, next to the shore.
 That is the defect this rule fixes.

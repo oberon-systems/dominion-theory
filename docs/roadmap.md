@@ -93,8 +93,9 @@ What is already settled and binds every stage.
   and the player is one voice in it. The weight of that voice is the
   player's status: decisions that end in hunger or loss lower it, and a
   player whose status is gone is banished, which ends the game.
-- **A band acts on its own, and the council meets every evening.** It
-  decides the next day. The others put their votes on what the band
+- **A band acts on its own, and the council meets in the evening.** It
+  decides the days until the next one, and since 2026-10-15 it sits only
+  when an occasion calls it: the last decision stands between councils. The others put their votes on what the band
   could do, the player sees how they lie and backs an option, proposes
   another or does not vote, which costs status. On a day the player
   voted for, every death costs status and every birth earns it; on a
@@ -109,7 +110,7 @@ What is already settled and binds every stage.
 - **There is no rest to propose**: the band works by day and camps every
   evening and night, decided by the user on 2026-10-15. Fatigue takes
   from the pace and the gathering and weighs in no decision.
-- **The council meets once a day**, decided by the user on 2026-10-14 in
+- **The council meets at most once a day**, decided by the user on 2026-10-14 in
   place of a council called by the player with a gap between two. The
   others' votes lie by how good each option looks to the band; the
   player's voice always weighs more than one, and more with status. A
@@ -119,9 +120,10 @@ What is already settled and binds every stage.
 - **A proposal is judged by supplies and people**: the days of food and
   water in the stores at the call and at the close of the window, and
   the share of people lost. A fifth of the band lost is a disaster.
-- **A band gathers on its own cell only.** The shallows can be entered
-  at the very shore, where water and food are plenty and the threat is
-  high; a river gives more water; the water of a swamp may poison.
+- **A band gathers on its own cell**, from a shore beside it, and from
+  the cells around a winter camp it built. The shallows are not entered:
+  their plenty of water and food is gathered from the land beside them.
+  A river gives more water; the water of a swamp may poison.
 - **A season changes food, water and movement** through modifiers of the
   biome, and winter slows what grows back. Frost comes later.
 - **Every amount and every window here is a parameter.**
@@ -333,19 +335,24 @@ The first unit, and the rules of indirect control.
   consumption rates, stored resources with weight and expiration.
 - States: `normal`, `starvation`, `thirst`, `tiredness`, with what triggers
   each, what it does and how it ends.
-- Actions: `move`, `gather`, `camp`. The turn of five actions.
+- Actions: `move`, `roam`, `gather`, `camp`, `build`. A day of five ticks:
+  three to work, the evening and the night in camp.
 - How a band decides: needs are scored against what it knows about the
-  cells around it, and the best action wins.
-- Movement: eight directions, no water, no occupied cell, cost from
-  passability and band size.
+  cells around it, the gatherers are shared by need, and the best action
+  wins.
+- Movement: eight directions, no water or shallows, no occupied cell,
+  cost from passability and band size; a go is walked by a route.
 - Population growth and loss: members kept one by one, with age, sex,
-  pregnancy and injuries, born by conception and dying by cause and
-  the vulnerability of their stage of life.
-- Indirect control: a council every evening. The others' votes are laid
-  out over the options - to move in a direction or to stay and gather -
-  and the player backs one, proposes another or abstains. How
-  the vote goes, how what the player carried is judged and moves status,
-  what abstaining costs, banishment at zero.
+  pregnancy, wounds, sickness and their own reserves of food and water,
+  born by conception and dying by cause and the vulnerability of their
+  stage of life; roles of gatherers, nannies and hunters.
+- Indirect control: a council in the evening when an occasion calls it.
+  The others' votes are laid out over the options - a go to a place, a
+  stay to gather, a winter camp - and the player backs one, proposes
+  another or abstains. How the vote goes, how what the player carried is
+  judged and moves status, what abstaining costs, banishment at zero.
+- A winter camp: built under the council, it shelters, saves food and
+  gathers the cells around it until the spring.
 - Chance encounters, driven by the threat of the biome.
 - Skills learned by doing, the goods they make and the bonuses the
   goods give; see [Skills learned by doing](#skills-learned-by-doing).
@@ -368,6 +375,25 @@ The first unit, and the rules of indirect control.
 **Done**: one band lives on a map headless for a long run: it moves, gathers,
 camps, starves when it should. A proposal made over the API changes what
 the band does, and the outcome moves the player's status.
+
+The stage is closed. The long run is kept as a reference like the maps:
+five seeds lived eighteen years and fifty lived one, every value that
+moves printed by `make test`; see [Setup](dev/setup.md#check). Playing
+the band from the console widened the stage: members one by one with
+their own reserves, roles, wounds and sickness, councils called by
+occasions, routes, the winter camp, and the skills learned by doing with
+their goods. The numbers are first guesses: no reference band grows to
+150 people in eighteen years, and the best of them would in about fifty.
+
+What follows the close:
+
+- **What the player sees** - the days of the stores, what lies each way,
+  landmarks seen from afar and the way back to the last water.
+- **A band that grows** - the goal of 150 people in 15 to 30 minutes of
+  play is not reached; it is reached or handed to the balance of the
+  band era.
+- **Ages in a band** - built with the members one by one; the item is
+  closed with what is left of it.
 
 ___
 
@@ -615,15 +641,15 @@ less often. The table of pairs is data too.
 
 ### Skills learned by doing
 
-Placed in stage 2 by the user on 2026-10-18, before the stage is
-closed; the design is [Skills](game/skills.md). A band learns by living,
+Placed in stage 2 by the user on 2026-10-18 and built in it; the design
+is [Skills](game/skills.md). A band learns by living,
 not by a tree of research: what it does, where it does it and what it
 lives through teach it. Knowledge opens a gathering, a recipe, a role
 or a proposal; the goods it makes and holds give the bonuses, weigh and
 wear out. Skills, goods and bonuses are data.
 
-The first set, from the user's list: orientation, wintering, stone
-tools, sticks, litters, herbs, stone spears with the role of the
+The first set, from the user's list, is built: orientation, wintering,
+stone tools, sticks, litters, herbs, stone spears with the role of the
 hunter, and waterskins. Fire and how to make it is left to the tribes
 of stage 5, and drying and smoking go with it.
 
@@ -678,7 +704,7 @@ Each is answered in the design doc of the stage named.
 - **Land that comes into view** (stage 5) - whether the peoples placed
   there are raised bands only, or new ones as well.
 - **The sea** (not set) - sea and lake are one biome, so a band that
-  wades into the shallows drinks at the sea shore too. Telling salt
+  gathers from the shallows drinks at the sea shore too. Telling salt
   water from fresh needs a second biome or a mark like the river's.
 - **The size of the first window** (stage 3) - 5120 km across is a lot of
   land for one band and five to ten others. It is set again when it is

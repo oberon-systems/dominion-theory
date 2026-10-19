@@ -136,6 +136,9 @@ after it.
       "states": [],
       "action": {"kind": "camp"},
       "intent": null,
+      "route": [],
+      "roles": {"gatherer": 17, "nanny": 1, "hunter": 0},
+      "camp": null,
       "reason": {"action": "camp", "need": "rest", "score": 0.0, "pull": null},
       "lore": ["orientation"]
     }
@@ -251,14 +254,19 @@ Each message on the stream is one update.
         "states": [],
         "action": {"kind": "camp"},
         "intent": {"proposal": {"kind": "stay-and-gather"}},
-        "reason": {"action": "camp", "need": "rest", "score": 0.0, "pull": null}
+        "route": [],
+        "roles": {"gatherer": 17, "nanny": 1, "hunter": 0},
+        "camp": null,
+        "reason": {"action": "camp", "need": "rest", "score": 0.0, "pull": null},
+        "lore": ["orientation"]
       }
     ],
     "gone": [],
     "cells": [{"x": 2301, "y": 744, "water": 1.0, "food": 0.4}],
     "known": [
       {"x": 2301, "y": 744, "biome": "forest", "river": false, "water": 0.6,
-       "food": 0.36, "threat": 0.4, "passability": 0.6, "seen": 63}
+       "food": 0.36, "threat": 0.4, "passability": 0.6, "stone": 0.0,
+       "wood": 0.8, "plants": 0.5, "game": 0.7, "seen": 63}
     ],
     "seat": {"council": null}
   },

@@ -27,3 +27,12 @@ Every biome that lists `water` among its resources. A river adds to the
 water of its cell, the shallows at the shore give it freely and
 dangerously, and the water of a swamp or a marsh may poison; see
 [Bands](../game/01_bands.md#the-shore).
+
+___
+
+## Waterskins
+
+A band that has learned waterskins carries 3 kg of water in each beside
+the load of its holder, and its water keeps up to 1.5 times as long, by
+the share of its adults and elders holding one; see
+[Skills](../game/skills.md#bonuses).

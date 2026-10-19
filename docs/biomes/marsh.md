@@ -32,5 +32,9 @@ ___
 | `food`        | 0.6  | 30 days  | spring 0.7, autumn 1.1, winter 0.4 |
 | `threat`      | 0.4  | none     | none                               |
 | `passability` | 0.5  | none     | none                               |
+| `stone`       | 0.0  | none     | none                               |
+| `wood`        | 0.0  | none     | none                               |
+| `plants`      | 0.0  | none     | none                               |
+| `game`        | 0.0  | none     | none                               |
 
 Resources: `water`, `forage`. Colour: `#5F9E8F`.

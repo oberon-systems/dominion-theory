@@ -50,7 +50,10 @@ and a seated band holds its council in the evening.
 
 Things that are counted by the day happen at its edges. The first tick
 of a day throws away spoiled stores. The last tick feeds the people,
-counts every member's hunger and thirst, and adds the day's births.
+counts every member's hunger and thirst, and adds the day's births. The
+camp parts are for the goods as well: the adults make what the band
+knows how to make in both, and the evening hands the personal goods out;
+see [Skills](skills.md#making).
 
 ___
 
@@ -60,7 +63,7 @@ ___
 |----------|-----------------------------------------------------------------|-----------|
 | `move`   | walks towards one of the eight cells around                     | grows     |
 | `roam`   | walks there slower, foraging the cell ahead on the way          | grows less |
-| `gather` | sends the gatherers after food and water, as the need for each weighs | grows |
+| `gather` | sends the gatherers after food, water and the goods the band knows, as the need for each weighs | grows |
 | `camp`   | rests where it stands                                           | falls     |
 | `build`  | builds a winter camp on the cell it stands on                   | grows     |
 
@@ -247,18 +250,22 @@ What stage 2 puts into the phases of
    among those its intent allows, along its route under a go, building
    first under a winter camp; in the tick of a council, and while it is
    tired under an intent, it camps.
-4. **Actions** - the band moves, gathers, camps or builds; fatigue and what it
-   knows are brought up to date; a band that stands on the place of its
-   go has arrived.
-5. **World** - cells recover; on the first tick of a day stores spoil;
-   an encounter is drawn, under the threat a winter camp lowers; on the
-   last tick of a day people eat, states
-   begin and end, and the members age, die, heal, are hurt, give birth
-   and conceive, in the order of [Deaths](../units/band.md#deaths). The
-   share of the active parts the band camped heals faster and shelters
-   from frailty. Last, the counters the band learns by are brought up to
-   date and the skills they teach are learned; see
-   [Skills](skills.md#counters).
+4. **Actions** - the band moves, gathers, camps or builds; the hunters
+   hunt in a working tick the band stands; in the camp parts the adults
+   make goods, and in the evening the personal goods are handed out and
+   the sticks wear by the night; fatigue and what it knows are brought up
+   to date; a band that stands on the place of its go has arrived.
+5. **World** - cells recover; on the first tick of a day stores and
+   goods spoil; an encounter is drawn, under the threat a winter camp and
+   the guard of the band lower; on the last tick of a day people eat and
+   may sicken of meat, states begin and end, herbs cure, and the members
+   age, die, heal, are hurt, give birth and conceive, in the order of
+   [Deaths](../units/band.md#deaths). The share of the active parts the
+   band camped heals faster and shelters from frailty. A day on the march
+   wears the litters pulled. Last, the counters the band learns by are
+   brought up to date and the skills they teach are learned; see
+   [Skills](skills.md#counters). The goods made, spoiled and worn are
+   told in whole units.
 6. **Calendar** - as before; when the new part of the day is
    `council.part` and an occasion calls it, the intent ends and is
    judged, and the council sits down with its table. With an empty seat
@@ -267,9 +274,10 @@ What stage 2 puts into the phases of
    one counter per thing the lab will ask about.
 
 The counters added: `population`, `food`, `water`, `status`, `moves`,
-`gathers`, `camps`, `builds`, `encounters`, `deaths`, `councils`, then one per
-stage (`child`, `adult`, `elder`), `pregnant` and `injured`, and `skills`,
-the skills the band knows.
+`roams`, `gathers`, `camps`, `builds`, `encounters`, `deaths`,
+`councils`, then one per stage (`child`, `adult`, `elder`), `pregnant`
+and `injured`, `skills`, the skills the band knows, `hunters` and
+`sick`.
 
 ___
 

@@ -50,6 +50,7 @@ is no number of a band in the code.
 | `dread`      | the extra threat it sees on cells where it was struck   |
 | `unease`     | how much more staying in danger makes it fear threat    |
 | `route`      | the cells still ahead to the place of a go, and the day they were laid |
+| `camp`       | the cell of its winter camp and the share of it built   |
 
 Stage 2 puts one band on the map, the player's. Other bands are stage 3.
 What a band learns, `lore`, and the goods its members hold, `kit`, are
@@ -864,8 +865,6 @@ ___
 
 ## Open points
 
-- **Gathering both at once** - a tick is spent on one resource. Whether a
-  band splits its people between food and water is seen in the lab.
 - **The player's family** - the player is one member who never dies. A
   family that carries the player's line, an heir taking the seat, is a
   later step.

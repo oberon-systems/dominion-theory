@@ -111,12 +111,15 @@ skeleton instead of by the land. The numbers say that a map moved, not
 whether it is better, so the pictures are still looked at.
 
 The life of a band is kept the same way, in `tests/runner/lives.json`.
-Five seeds live ten years with no player, a row a year: people, births and
-deaths by cause, children who grew up (`grown`) and children who died
-(`child-deaths`), stores, actions, states, encounters, the cells the band
-remembers (`known`) and the size of the snapshot the store would keep, in
-KB (`snapshot`), with a hash of the state at the end of every year, so a
-band that walks another way to the same totals still moves the reference.
+Five seeds live eighteen years with no player, a row a year: people,
+births and deaths by cause, children who grew up (`grown`) and children
+who died (`child-deaths`), stores, actions, states, encounters, status,
+the skills known, the hunters and the sick, the cells the band remembers
+(`known`) and the size of the snapshot the store would keep, in KB
+(`snapshot`), with a hash of the state at the end of every year, so a
+band that walks another way to the same totals still moves the
+reference. The reference keeps the day every skill was learned, and the
+report tells them on a line, `learned: sticks on day 0, ...`.
 Fifty more seeds live one year each, and the reference keeps the tick
 every band that died in it died at.
 
@@ -241,7 +244,8 @@ The terminal becomes a screen of two panes, drawn with
   band knows them, as bars; while a place is lit or under the cursor, that
   place instead, titled "The target";
 - **the council** - while a council sits, its question and a menu of
-  three answers: roam, stay at the camp and say nothing. The answer most
+  the answers: roam, stay at the camp, build a winter camp while one is
+  offered, and say nothing. The answer most
   of the band leans to is green and under the pointer. An answer your
   voice cannot win is left out. A council meets only when an occasion calls it;
   on other evenings the screen runs on. When an occasion calls a council
@@ -306,8 +310,8 @@ Those words are the names of the parameter tree and are not translated.
 When the input or the output is not a terminal, as in a pipe, the game
 is played as lines instead: a coloured line per update, and at every
 council the map and a numbered list of the answers. The answer is then read
-as a line: a number, `roam`, `stay` or `abstain`, or an empty line, which says
-nothing. Roam asks for the place the same way: a number, a point as two
+as a line: a number, `roam`, `stay`, `winter` or `abstain`, or an empty line,
+which says nothing. Roam asks for the place the same way: a number, a point as two
 steps from the band, east then south (`+3 -2`), or an empty line to go back.
 Colour is dropped when the output is not a terminal.
 

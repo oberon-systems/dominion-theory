@@ -32,6 +32,7 @@ SEAT_BLAMED = 'seat-blamed'
 SEAT_PRAISED = 'seat-praised'
 SEAT_BANISHED = 'seat-banished'
 SKILL_LEARNED = 'skill-learned'
+GOODS_MADE = 'goods-made'
 GOODS_SPOILED = 'goods-spoiled'
 GOODS_WORN = 'goods-worn'
 
@@ -73,6 +74,7 @@ EVENTS: dict[str, tuple[str, ...]] = {
     SEAT_PRAISED: ('born', 'status'),
     SEAT_BANISHED: (),
     SKILL_LEARNED: ('skill',),
+    GOODS_MADE: ('resource', 'count'),
     GOODS_SPOILED: ('resource', 'count'),
     GOODS_WORN: ('resource', 'count'),
 }

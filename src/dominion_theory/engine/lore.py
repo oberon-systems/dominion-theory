@@ -27,6 +27,7 @@ GO_PLACE = 'go_place'
 WINTER_CAMP = 'winter_camp'
 PROPOSALS = 'proposals'
 GATHERS = 'gathers'
+MAKES = 'makes'
 
 
 class Land(Protocol):

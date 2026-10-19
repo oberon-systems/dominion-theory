@@ -4,6 +4,7 @@ The band: what it holds and the rules of its day, as docs/units/band.md and docs
 
 import copy
 import math
+from collections.abc import Iterable
 from dataclasses import asdict, dataclass, field
 from typing import Any, Protocol
 
@@ -44,7 +45,7 @@ HUNTER = 'hunter'
 ADULT = 'adult'
 PULLER = 'puller'
 FOOD = KINDS[0]
-EATEN, NIGHTS, ATTACKS = USES
+EATEN, NIGHTS, ATTACKS, CURES, PULLED = USES
 TO_BAND, TO_MEMBER = TO
 
 # Clockwise from the north; y grows to the south.
@@ -161,7 +162,10 @@ class Band:
     freed: int = 0
     # The skills known and the counters they are learned by.
     lore: dict[str, Any] = field(default_factory=lores.fresh)
-    # The goods spoiled and worn out not yet told, short of a whole unit.
+    # The goods made, spoiled and worn out not yet told, short of a whole unit.
+    made: dict[str, float] = field(default_factory=dict)
+    # The work done on goods not yet whole, and the quality of the materials spent on it summed.
+    work: dict[str, list[float]] = field(default_factory=dict)
     spoiled: dict[str, float] = field(default_factory=dict)
     worn: dict[str, float] = field(default_factory=dict)
     counted: tuple[int, Census] | None = field(default=None, init=False, repr=False, compare=False)
@@ -196,6 +200,8 @@ class Band:
             camp=plain['camp'],
             freed=plain['freed'],
             lore=copy.deepcopy(plain['lore']),
+            made=dict(plain['made']),
+            work={name: list(held) for name, held in plain['work'].items()},
             spoiled=dict(plain['spoiled']),
             worn=dict(plain['worn']),
         )
@@ -252,6 +258,8 @@ class Band:
             'camp': self.camp,
             'freed': self.freed,
             'lore': copy.deepcopy(self.lore),
+            'made': dict(sorted(self.made.items())),
+            'work': {name: list(held) for name, held in sorted(self.work.items())},
             'spoiled': dict(sorted(self.spoiled.items())),
             'worn': dict(sorted(self.worn.items())),
         }
@@ -595,7 +603,7 @@ def reached(land: Land, band: Band, name: str) -> tuple[Place, float] | None:
 
 
 def speed(params: Params, band: Band) -> float:
-    rules = params.units.band
+    rules = applied(params, band).units.band
     pace = max(rules.speed.slowest, rules.speed.base - rules.speed.slowdown * band.population / 10)
     return pace * efficiency(rules, band) * census(params, band).pace
 
@@ -659,11 +667,26 @@ def short(params: Params, band: Band, name: str) -> bool:
     return held_days(params, band, params.resources[name].land) < top
 
 
+def carry(params: Params, band: Band) -> float:
+    """
+    What the members carry by their stages, more for those whose kit lays a bonus on the carry.
+    """
+    counted = census(params, band)
+    stages = params.units.band.people.stages
+    base = applied(params, band).units.band.carry_kg
+    more = sum(
+        stages[name].carries * (applied(params, band, member).units.band.carry_kg - base)
+        for member, name in zip(band.members, counted.stages, strict=True)
+        if member.kit
+    )
+    return counted.carriers * base + more
+
+
 def room(params: Params, band: Band) -> float:
     """
     The carrying weight still free, in kilos.
     """
-    return max(census(params, band).carriers * params.units.band.carry_kg - weight(params, band), 0.0)
+    return max(carry(params, band) - weight(params, band), 0.0)
 
 
 def act(land: Land, band: Band, action: Action, day: int) -> Action:
@@ -890,26 +913,35 @@ def spoil(params: Params, band: Band, day: int) -> None:
     band.restocked()
 
 
-def wear(params: Params, band: Band, use: str, uses: float) -> None:
+def wear(params: Params, band: Band, use: str, uses: float, stocks: Iterable[Stock] | None = None) -> None:
     """
-    Wears the goods held that serve a use, of the stores and then the kits; what wore out waits in the band's worn
-    to be told.
+    Wears the goods held that serve a use, of the stocks given or of the stores and then the kits; what wore out
+    waits in the band's worn to be told.
     """
+    held = (band.stores, *(member.kit for member in band.members)) if stocks is None else tuple(stocks)
     for name, resource in params.resources.items():
         serves = resource.wears.get(use)
         if serves is None:
             continue
         left = uses
-        for stock in (band.stores, *(member.kit for member in band.members)):
+        for stock in held:
             worn, left = stock.wear(name, left, serves)
             if worn > 0:
                 band.worn[name] = band.worn.get(name, 0.0) + worn
                 band.restocked()
 
 
+def pull(params: Params, band: Band) -> None:
+    """
+    A day on the march: every member wears what it pulls by a day, and the goods in the stores do not wear.
+    """
+    for member in band.members:
+        wear(params, band, PULLED, 1.0, (member.kit,))
+
+
 def told(lost: dict[str, float]) -> dict[str, int]:
     """
-    The whole units of goods lost, taken out of the tally; the rest waits for the next.
+    The whole units of goods made or lost, taken out of the tally; the rest waits for the next.
     """
     whole = {name: math.floor(amount + 1e-9) for name, amount in lost.items()}
     whole = {name: count for name, count in whole.items() if count > 0}
@@ -1249,7 +1281,8 @@ def kept(params: Params, band: Band, name: str) -> float:
 def hand_out(params: Params, band: Band) -> None:
     """
     The evening: a personal good goes back to the stores from a holder who may no longer use it, then to those its
-    keep counts who lack it, in their order.
+    keep counts who lack it, in their order and whole only: a worn one counts as one, and less than one in the
+    stores is handed to nobody.
     """
     for name, resource in params.resources.items():
         if resource.held != PERSONAL:
@@ -1261,10 +1294,64 @@ def hand_out(params: Params, band: Band) -> None:
                 band.stores.join(member.kit.part(name, member.kit.held(name)))
         for at in takers:
             kit = band.members[at].kit
-            wanted = 0.0 if keep is None else keep.amount - kit.held(name)
-            if wanted > NOTHING and band.held(name) > NOTHING:
-                kit.join(band.stores.part(name, wanted))
+            wanted = 0.0 if keep is None else keep.amount - math.ceil(kit.held(name) - NOTHING)
+            given = math.floor(min(wanted, band.held(name)) + NOTHING)
+            if given > 0:
+                kit.join(band.stores.part(name, float(given)))
     band.restocked()
+
+
+def make(params: Params, band: Band, day: int) -> None:
+    """
+    A camp part: of the goods the band knows how to make, the one furthest below its keep whose materials are held
+    is worked on by every adult, a member of a stage that gathers, at `making.per_part`, of the oldest lots of the
+    materials. A good goes into the stores whole, at the mean quality of the materials spent on it; the rest of the
+    work waits in the band's work. What was made waits in the band's made to be told.
+    """
+    stages = params.units.band.people.stages
+    found: tuple[float, str, float] | None = None
+    for name, resource in params.resources.items():
+        if not resource.made or not lores.opened(params, band, lores.MAKES, name):
+            continue
+        wants = kept(params, band, name)
+        wanted = math.ceil(wants - whole(band, name) - NOTHING) - band.work.get(name, [0.0, 0.0])[0]
+        possible = min(band.held(material) / amount for material, amount in resource.made.items())
+        if wanted > NOTHING and possible > NOTHING:
+            missing = wanted / wants
+            if found is None or missing > found[0]:
+                found = missing, name, min(wanted, possible)
+    if found is None:
+        return
+    _, name, most = found
+    makers = sum(stages[stage].gathers > 0 for stage in census(params, band).stages)
+    amount = min(params.units.band.making.per_part * makers, most)
+    if amount <= NOTHING:
+        return
+    graded = units = 0.0
+    for material, needed in params.resources[name].made.items():
+        for lot in band.stores.part(material, needed * amount).get(material, []):
+            graded += lot[1] * (lot[2] if len(lot) > 2 else 1.0)
+            units += lot[1]
+    work = band.work.setdefault(name, [0.0, 0.0])
+    work[0] += amount
+    work[1] += amount * graded / units
+    done = math.floor(work[0] + NOTHING)
+    if done > 0:
+        quality = round(work[1] / work[0], 2)
+        rest = max(work[0] - done, 0.0)
+        band.stores.add(name, day, float(done), quality)
+        band.made[name] = band.made.get(name, 0.0) + done
+        band.work[name] = [rest, rest * quality]
+        band.restocked()
+    if band.work[name][0] <= NOTHING:
+        del band.work[name]
+
+
+def whole(band: Band, name: str) -> float:
+    """
+    The goods of a kind the band holds as things: the stores as they are, every kit holding one as one, worn or not.
+    """
+    return band.stores.held(name) + sum(math.ceil(member.kit.held(name) - NOTHING) for member in band.members)
 
 
 def shared(params: Params, band: Band, name: str) -> float:

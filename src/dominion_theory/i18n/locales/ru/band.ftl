@@ -11,6 +11,9 @@ skill-orientation = находить дорогу
 skill-wintering = зимовать
 skill-stone_tools = обрабатывать камень
 skill-sticks = заготавливать палки
+skill-litters = делать волокуши
+skill-herbs = разбираться в травах
 
+goods-made = Сделаны: { NAME("resource", $resource) } { $count }.
 goods-spoiled = Испортились: { NAME("resource", $resource) } { $count }.
 goods-worn = Износились: { NAME("resource", $resource) } { $count }.

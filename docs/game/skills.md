@@ -64,7 +64,7 @@ met, not from the start.
 | `wintering`   | a winter lived through                                    | -                        | the winter camp, `winter_camp` |
 | `stone_tools` | a night on or beside hills, mountain or outcrops          | -                        | gathering `stones` |
 | `sticks`      | a night in or beside a forest                             | -                        | gathering `sticks` |
-| `litters`     | 8 cells walked in or beside a forest                      | `sticks`                 | making `litters` |
+| `litters`     | 8 cells walked in or beside a forest                      | `sticks`, `herbs`        | making `litters` |
 | `herbs`       | 90 days in forest, or 90 in grass or floodplain, or 30 in swamp | -                        | gathering `herbs` and `cords` |
 | `spears`      | sticks, stones and cords held on the same day             | `stone_tools`, `sticks`, `herbs` | making `spears` and `clothes`, the role `hunter` |
 | `waterskins`  | hides and cords held on the same day                      | `spears`, `herbs`        | making `waterskins` |
@@ -80,8 +80,10 @@ offered from the second winter on. A winter is lived through when a
 season that offers no camp begins after one that does, the spring after
 the winter, and the band learns it at the end of that day.
 
-`litters` - the skill needs sticks alone, but a litter is lashed with
-cords, so none is made before `herbs` gives them.
+`litters` - a litter is lashed with cords, which only `herbs` gives, so
+the skill needs it beside sticks and its cells are counted from the day
+both are known. A band that learned litters by sticks alone in game
+064ea2a3 knew them 75 days before it could make one.
 
 `stone_tools` and `sticks` - one night is enough: every band camps every
 evening, so the first night by the right land teaches it.
@@ -122,7 +124,7 @@ orientation:
       - {counter: seen, at_least: 4}
       - {counter: marched, at_least: 30}
 litters:
-  needs: [sticks]
+  needs: [sticks, herbs]
   learned: {counter: walked_by, biome: forest, at_least: 8}
 spears:
   needs: [stone_tools, sticks, herbs]
@@ -166,10 +168,12 @@ What each gives is in [Bonuses](#bonuses).
 - **Wears** - the uses a unit of quality 1 serves, by use: a lot of a
   lower quality serves that share, and the oldest lots are worn first.
   A good held and not used does not wear. The uses are `eaten` (a unit
-  of food eaten), `nights` (a head that spends a night in camp) and
-  `attacks` (an encounter met in camp); the later steps add days
-  pulled, hunts and cures. A good has a time to spoil, uses, or both;
-  food and water have only the time.
+  of food eaten), `nights` (a head that spends a night in camp),
+  `attacks` (an encounter met in camp), `cures` (a herb spent on a sick
+  member or a wound) and `pulled` (a day its holder walked or roamed
+  with it); hunts come with spears. A litter wears in the kit of its
+  holder only: those left in the stores are not pulled. A good has a
+  time to spoil, uses, or both; food and water have only the time.
 - **Quality** - the third number of a lot, beside the day and the
   amount. Lots of the same day and quality merge.
 - **Keep** - how much the band wants to hold, per head or per member of
@@ -235,7 +239,7 @@ or spoiled is told in whole units: the rest waits for the next.
 Every biome that gives a new property lists the resource, and every
 property needs its value in `decisions.unknown`, what a band expects of
 land it does not know: `stone` 0.1 and `wood` 0.2, since few biomes give
-them. The biomes that do not give a property hold it at a base of 0.
+them, and `plants` 0.3. The biomes that do not give a property hold it at a base of 0.
 
 ___
 
@@ -262,7 +266,10 @@ ___
 In the first tick of the camp parts, the evening, the band hands its
 personal goods to those who lack them, the way food is shared: the
 least protected first. A good its holder may no longer use goes back to
-the stores first.
+the stores first. A good is handed out whole: a member takes one only
+while a whole one is in the stores, and a worn one in a kit counts as
+one, so it is not topped up. What is left of the goods of the dead, less
+than one, stays in the stores until more of it joins it.
 
 | Good         | Goes to, in order                                        |
 |--------------|----------------------------------------------------------|
@@ -284,7 +291,8 @@ Making is automatic, with no action and no council: in the camp parts,
 the evening and the night, a good whose skill is known and which is
 below its keep is made while the materials of its recipe are held.
 
-- The good furthest below its keep is made first.
+- The good furthest below its keep, by the share of it missing, is
+  made first.
 - Every adult makes `making.per_part`, 0.2, of a good in a camp part, so
   a band of 15 adults makes 3 goods in an evening and 3 in the night.
 - The materials are taken from the oldest lots. A made good takes the
@@ -292,7 +300,25 @@ below its keep is made while the materials of its recipe are held.
   mountain stone and a reed cord serves longest, a waterskin is as good
   as its cord allows. Every made good but the spear needs a cord, so
   the reed of a floodplain is worth a detour.
-- Every good made is in the event `goods-made` of that tick.
+- A good goes into the stores whole. The work done on the next one waits
+  in the band's `work`, with the quality of the materials spent on it,
+  and a good is made when its work reaches one. So a band of 3 adults
+  makes a litter in two camp parts, and no member holds a share of one.
+- Every good made is in the event `goods-made`.
+
+An adult here is a member of a stage that gathers, whatever its role.
+The keep of a personal good counts the goods in the stores, every kit
+holding one as one, worn or not, and the work begun, so a band of 10
+pullers holding 10 litters makes no more. Making goes before the handing out of the evening, so a litter
+made in the evening is pulled the next day.
+
+Litters are the first good made: a band of 15 adults holding its keep
+of 4.5 sticks and 3 cords makes a litter and half of the next in an
+evening, every stick and cord spent, and gathers them again up to its
+keep. A
+litter takes the mean quality of its 3 sticks and 2 cords, so one of
+reed cords serves some 37 to 40 days pulled and one of forest bast some
+32 to 36.
 
 ___
 
@@ -315,8 +341,8 @@ since YAML reads a key `on` as true.
 | `stones`     | band   | `units.band.consumption_per_day.forage` | times 0.9      | keep held                  |
 | `stones`     | band   | `units.band.people.age.begins`          | plus 1 year    | keep held                  |
 | `sticks`     | band   | `units.band.threat.camp`                | times 0.8      | keep held                  |
-| `litters`    | member | the carry of a man                      | times 2.0      | -                          |
-| `litters`    | member | the carry of a woman                    | times 1.5      | -                          |
+| `litters`    | member | `units.band.carry_kg`, of a man         | times 2.0      | -                          |
+| `litters`    | member | `units.band.carry_kg`, of a woman       | times 1.5      | -                          |
 | `litters`    | band   | `units.band.speed.base`                 | times 0.85     | members pulling            |
 | `clothes`    | member | `units.band.people.injury.per_day`      | times 0.7      | -                          |
 | `clothes`    | member | the encounter weight, `dies.encounter`  | times 0.8      | -                          |
@@ -345,9 +371,12 @@ The pluses of a path are added before its times multiply, and a plus of
 a span, like the year of `age.begins`, is laid in days. A bonus of
 seasons holds only where the code that reads it names the season.
 
-The bonuses of stones and sticks are built so far: a band holding 0.3
-stones a head eats 0.9 of its forage and dies of age a year later, and
-one holding 0.3 sticks a head meets 0.8 of the threat in camp.
+The bonuses of stones, sticks and litters are built so far: a band
+holding 0.3 stones a head eats 0.9 of its forage and dies of age a year
+later, one holding 0.3 sticks a head meets 0.8 of the threat in camp,
+and one whose pullers all pull a litter carries more at 0.85 of its
+base pace. The carry of a member is its stage's share of `carry_kg`
+with the bonuses of its own kit laid over.
 
 ___
 
@@ -421,7 +450,7 @@ update of the tick, a line of the client from the catalogues `en` and
 | Event            | Values                         | The client says                        |
 |------------------|--------------------------------|----------------------------------------|
 | `skill-learned`  | `skill`                        | The band has learned stone tools.      |
-| `goods-made`     | `resource`, `count`            | 2 spears were made.                    |
+| `goods-made`     | `resource`, `count`            | Made: litters 2.                       |
 | `goods-spoiled`  | `resource`, `count`            | Spoiled: sticks 2.                     |
 | `goods-worn`     | `resource`, `count`            | Worn out: stones 3.                    |
 | `people-sickened`| `count`, `cause`               | 2 people are sick from raw meat.       |
@@ -494,7 +523,7 @@ skills:
     learned: {counter: camped_by, biome: forest, at_least: 1}
     opens: {gathers: [sticks]}
   litters:
-    needs: [sticks]
+    needs: [sticks, herbs]
     learned: {counter: walked_by, biome: forest, at_least: 8}
     opens: {makes: [litters]}
   herbs:
@@ -558,8 +587,8 @@ resources:
     keep: {per: puller, amount: 1}
     made: {sticks: 3, cords: 2}
     gives:
-      - {to: member, sex: male, path: carries, times: 2.0}
-      - {to: member, sex: female, path: carries, times: 1.5}
+      - {to: member, sex: male, path: units.band.carry_kg, times: 2.0}
+      - {to: member, sex: female, path: units.band.carry_kg, times: 1.5}
       - {to: band, path: units.band.speed.base, times: 0.85}
   spears:
     kind: goods
@@ -600,7 +629,7 @@ units:
     threat: {camp: 1.0, march: 1.0}
     gathering: {stones: 0.5, sticks: 1.0, herbs: 0.2, cords: 0.3}
     decisions:
-      unknown: {stone: 0.1, wood: 0.2}
+      unknown: {stone: 0.1, wood: 0.2, plants: 0.3}
       weights: {goods: 0.4}
     people:
       roles:
@@ -660,3 +689,11 @@ ___
 - **Goods in a camp** - a winter camp could keep a cache of goods left
   behind; the holder `place` is ready for it.
 - **Loot** - the goods of a beaten band belong to stage 3.
+- **Complex goods** - every good made so far is made in the camp parts of
+  any day, since the band camps in them. A complex good, marked so in
+  its recipe, will be made only at a standing camp - the camp parts of a
+  day the band did not walk or roam - or in a built winter camp. None is
+  complex yet; the first is weighed with spears.
+- **A card of a member** - a member will get a name and a card with its
+  stats and its kit. Goods are handed out whole so that a card shows
+  things, not shares of them.

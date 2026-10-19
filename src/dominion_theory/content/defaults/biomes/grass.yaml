@@ -28,4 +28,5 @@ biomes:
               winter: {times: 0.7}
           stone: {base: 0.0}
           wood: {base: 0.0}
-        resources: [water, forage]
+          plants: {base: 0.6, recovery: {days: 30}}
+        resources: [water, forage, herbs, cords]

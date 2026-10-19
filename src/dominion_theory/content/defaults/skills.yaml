@@ -14,3 +14,14 @@ skills:
   sticks:
     learned: {counter: camped_by, biome: forest, at_least: 1}
     opens: {gathers: [sticks]}
+  litters:
+    needs: [sticks, herbs]
+    learned: {counter: walked_by, biome: forest, at_least: 8}
+    opens: {makes: [litters]}
+  herbs:
+    learned:
+      any:
+        - {counter: days_in, biome: forest, at_least: 90}
+        - {counter: days_in, biomes: [grass, floodplain], at_least: 90}
+        - {counter: days_in, biome: swamp, at_least: 30}
+    opens: {gathers: [herbs, cords]}

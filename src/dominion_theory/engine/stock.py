@@ -10,6 +10,9 @@ from ..content import Resource
 
 type Lot = list[float]
 
+# What is left of a lot below this is nothing: the steps of a float are not an amount.
+NOTHING = 1e-9
+
 
 class Stock(dict[str, list[Lot]]):
     """
@@ -69,7 +72,7 @@ class Stock(dict[str, list[Lot]]):
             taken = min(lot[1], missing)
             lot[1] -= taken
             missing -= taken
-        self[name] = [lot for lot in lots if lot[1] > 0]
+        self[name] = [lot for lot in lots if lot[1] > NOTHING]
         return missing
 
     def part(self, name: str, wanted: float) -> Stock:
@@ -85,7 +88,7 @@ class Stock(dict[str, list[Lot]]):
             lot[1] -= taken
             missing -= taken
         if name in self:
-            self[name] = [lot for lot in self[name] if lot[1] > 0]
+            self[name] = [lot for lot in self[name] if lot[1] > NOTHING]
         return parted
 
     def spoil(self, day: int, keeps: Mapping[str, int], ages: float = 1.0) -> dict[str, float]:
@@ -124,7 +127,7 @@ class Stock(dict[str, list[Lot]]):
             worn += taken
             uses -= taken * served
         if name in self:
-            self[name] = [lot for lot in self[name] if lot[1] > 0]
+            self[name] = [lot for lot in self[name] if lot[1] > NOTHING]
         return worn, max(uses, 0.0)
 
 

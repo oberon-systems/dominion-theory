@@ -32,6 +32,7 @@ from .events import (
     COUNCIL_OUTVOTED,
     COUNCIL_TURNED,
     ENCOUNTER,
+    GOODS_MADE,
     GOODS_SPOILED,
     GOODS_WORN,
     INTENT_ARRIVED,
@@ -62,7 +63,7 @@ from .events import (
 from .hashing import digest
 from .streams import Streams
 
-SNAPSHOT_FORMAT = 21
+SNAPSHOT_FORMAT = 22
 DIED = 'died'
 BANISHED = 'banished'
 VOTED = 'voted'
@@ -683,6 +684,8 @@ class Game:
             lore.march(band)
         self._totals[f'{done["kind"]}s'] += 1
         camp_parts = self.params.units.band.camp_parts
+        if self.date.part in camp_parts:
+            bands.make(self.params, band, self.day)
         if camp_parts and self.date.part == camp_parts[0]:
             bands.hand_out(self.params, band)
             bands.wear(self.params, band, bands.NIGHTS, band.population)
@@ -711,7 +714,7 @@ class Game:
         self._encounter(tick, band)
         if (parts + span) // per_day > parts // per_day:
             self._day_ends(tick, band)
-        for key, lost in ((GOODS_SPOILED, band.spoiled), (GOODS_WORN, band.worn)):
+        for key, lost in ((GOODS_MADE, band.made), (GOODS_SPOILED, band.spoiled), (GOODS_WORN, band.worn)):
             for name, count in bands.told(lost).items():
                 tick.events.append(Event(key, {'resource': name, 'count': count}))
         if band.population < self.params.units.band.population.least:
@@ -819,6 +822,8 @@ class Game:
             if self.answered['today'] == VOTED and not self.banished:
                 self._status(tick, self.params.council.status.birth * born)
                 tick.events.append(Event(SEAT_PRAISED, {'born': born, 'status': self.status}))
+        if band.lore[lore.MARCHING]:
+            bands.pull(self.params, band)
         lore.day_ends(self, band)
         for skill in lore.learn(self.params, band):
             tick.events.append(Event(SKILL_LEARNED, {'skill': f'{SKILL}{skill}'}))

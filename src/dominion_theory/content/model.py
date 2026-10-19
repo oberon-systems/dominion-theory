@@ -36,7 +36,7 @@ COMMON = 'common'
 PERSONAL = 'personal'
 HOLDERS = (COMMON, PERSONAL)
 PER = ('head', 'member', 'adult', 'puller', 'hunter')
-USES = ('eaten', 'nights', 'attacks')
+USES = ('eaten', 'nights', 'attacks', 'cures', 'pulled')
 # A bonus goes `to`, not `on`: YAML reads a key on as true.
 TO = ('band', 'member')
 SEXES = ('female', 'male')
@@ -802,6 +802,14 @@ class Threat(Node):
     march: Factor
 
 
+class Making(Node):
+    """
+    What every adult makes of a good in a camp part.
+    """
+
+    per_part: Factor
+
+
 class Band(Node):
     start: Start
     population: Population
@@ -813,6 +821,7 @@ class Band(Node):
     roaming: Roaming
     fatigue: Fatigue
     camp_parts: tuple[Name, ...]
+    making: Making
     states: States
     sight: Span
     memory: Duration

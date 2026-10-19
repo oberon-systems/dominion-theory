@@ -73,7 +73,7 @@ def test_biome_gives_exactly_the_properties_of_its_era() -> None:
     assert values == {
         'path': f'{BAND}.properties',
         'found': ['food'],
-        'expected': 'the properties water, food, threat, passability, stone, wood',
+        'expected': 'the properties water, food, threat, passability, stone, wood, plants',
     }
     assert refused({'eras.band.properties': ['water', 'food']})['path'] == 'biomes.desert.eras.band.properties'
 
@@ -99,7 +99,7 @@ def test_resource_is_a_known_one() -> None:
     assert refused({f'{BAND}.resources': ['water', 'stone']}) == {
         'path': f'{BAND}.resources',
         'found': 'stone',
-        'expected': 'one of water, forage, stones, sticks',
+        'expected': 'one of water, forage, stones, sticks, herbs, cords',
     }
     assert refused({f'{BAND}.resources': ['water', 'water']})['expected'] == 'names that do not repeat'
 
@@ -149,7 +149,7 @@ def test_river_effects_name_properties_of_their_era() -> None:
     assert refused({'planet.rivers.effects.band': {'shade': {'plus': 0.1}}}) == {
         'path': 'planet.rivers.effects.band',
         'found': 'shade',
-        'expected': 'one of water, food, threat, passability, stone, wood',
+        'expected': 'one of water, food, threat, passability, stone, wood, plants',
     }
     assert refused({'planet.rivers.effects': {'alpha': {}}})['path'] == 'planet.rivers.effects'
 

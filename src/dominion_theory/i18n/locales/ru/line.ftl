@@ -88,6 +88,7 @@ play-property-threat = угроза
 play-property-passability = проходимость
 play-property-stone = камень
 play-property-wood = дерево
+play-property-plants = растения
 play-title-band = Община
 play-title-cell = Её место
 play-title-target = Цель

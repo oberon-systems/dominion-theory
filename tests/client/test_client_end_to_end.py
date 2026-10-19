@@ -47,7 +47,8 @@ SPOKEN = {
             'Year 1: summer has come.'
         ),
         499: (
-            'day 1, month 1, year 2, spring: 15 people, knows how to cut sticks, forage 0, water 0, camps. '
+            'day 1, month 1, year 2, spring: 15 people, knows how to cut sticks, to know herbs, forage 0, water 0, '
+            'camps. '
             'Command pass-499 was accepted. '
             'Day 1 of month 1, year 2, begins. Month 1 of year 2 begins; the season is spring. '
             'Year 2: spring has come. Year 2 begins.'
@@ -67,8 +68,8 @@ SPOKEN = {
             'Год 1: наступило лето.'
         ),
         499: (
-            'день 1, месяц 1, год 2, весна: 15 человек, умеет заготавливать палки, подножный корм 0, вода 0, '
-            'стоит лагерем. '
+            'день 1, месяц 1, год 2, весна: 15 человек, умеет заготавливать палки, разбираться в травах, '
+            'подножный корм 0, вода 0, стоит лагерем. '
             'Команда pass-499 принята. '
             'Начался день 1 месяца 1, год 2. Начался месяц 1 года 2; время года — весна. '
             'Год 2: наступила весна. Начался год 2.'

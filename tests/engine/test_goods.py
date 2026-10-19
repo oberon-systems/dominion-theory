@@ -230,3 +230,125 @@ def test_personal_goods_go_to_those_their_keep_counts_and_back_from_the_dead() -
     bands.bury(held, [0])
     assert held.held('spears') == 1.0
     assert bands.goods(params, held) == {'spears': 2.0}
+
+
+def test_herbs_and_cords_are_gathered_on_the_plants_of_a_forest(params: Params) -> None:
+    game = land(params, at=(WEST + 2, NORTH))
+
+    do(game, gathering({'herbs': 0.5, 'cords': 0.5}))
+
+    assert band(game).held('herbs') == pytest.approx(15 * 0.2 * 0.5 * 0.5)
+    # The herbs gathered first lowered the plants of the cell the cords are gathered on.
+    assert band(game).held('cords') == pytest.approx(15 * 0.3 * 0.5 * 0.5 * (1 - 0.75 / 50))
+    assert len(band(game).stores['herbs'][0]) == 2
+    assert 0.5 <= band(game).stores['cords'][0][2] <= 0.75
+
+
+def test_a_band_that_knows_herbs_wants_herbs_and_cords_in_a_forest(params: Params) -> None:
+    game = land(params, at=(WEST + 2, NORTH))
+    held = band(game)
+    held.stores = Stock({'forage': [[20.0, 40.0]], 'water': [[20.0, 40.0]]})
+    held.changed()
+
+    assert {'herbs', 'cords'}.isdisjoint(shares(params, held))
+    held.lore['known'].append('herbs')
+    held.restocked()
+    assert {'herbs', 'cords'} <= set(shares(params, held))
+
+
+def test_litters_are_made_whole_of_the_oldest_materials_at_their_mean_quality(params: Params) -> None:
+    held = holding({'sticks': [[0.0, 4.5]], 'cords': [[0.0, 3.0, 0.8]]})
+
+    bands.make(params, held, 1)
+    assert held.held('litters') == 0.0
+    held.lore['known'].append('litters')
+    bands.make(params, held, 1)
+
+    assert held.stores['litters'] == [[1.0, 1.0, 0.92]]
+    assert held.work == {'litters': pytest.approx([0.5, 0.46])}
+    assert (held.held('sticks'), held.held('cords')) == (0.0, 0.0)
+    assert held.made == {'litters': 1.0}
+
+
+def test_making_stops_at_the_keep_and_at_what_the_adults_make(params: Params) -> None:
+    held = holding({'sticks': [[0.0, 90.0]], 'cords': [[0.0, 60.0]]}, bands.adults(3))
+    held.lore['known'].append('litters')
+    held.members[1].kit.add('litters', 0, 1.0)
+
+    bands.make(params, held, 1)
+    assert held.held('litters') == 0.0
+    assert held.work['litters'][0] == pytest.approx(0.6)
+    for _ in range(5):
+        bands.make(params, held, 1)
+    assert bands.goods(params, held)['litters'] == pytest.approx(3.0)
+    assert held.work == {}
+
+
+def test_the_good_furthest_below_its_keep_is_made_first(params: Params) -> None:
+    tree = params.tree()
+    tree['resources']['spears'] = {**SPEARS, 'made': {'sticks': 1.0}}
+    two = Params.model_validate(tree)
+    held = holding({'sticks': [[0.0, 90.0]], 'cords': [[0.0, 60.0]]}, bands.adults(4))
+    held.lore['known'].append('litters')
+    held.members[1].kit.add('litters', 0, 1.0)
+
+    bands.make(two, held, 1)
+    bands.make(two, held, 1)
+
+    assert held.held('spears') == 1.0
+    assert held.held('litters') == 0.0
+
+
+def test_a_litter_made_in_the_evening_goes_to_a_man_and_is_told(params: Params) -> None:
+    camping = load_params(overrides={name: value for name, value in SMALL.items() if name != 'units.band.camp_parts'})
+    game = land(camping)
+    game.clock.parts = SUMMER + 3
+    band(game).lore['known'].append('litters')
+    band(game).stores.add('sticks', game.day, 4.5)
+    band(game).stores.add('cords', game.day, 3.0, 0.8)
+
+    result = do(game, camp())
+
+    made = [event.values for event in result.events if event.key == 'goods-made']
+    assert made == [{'resource': 'litters', 'count': 1}]
+    assert band(game).work['litters'][0] == pytest.approx(0.5)
+    assert [member.kit.held('litters') for member in band(game).members[:4]] == [0.0, 1.0, 0.0, 0.0]
+
+
+def test_a_personal_good_is_handed_out_whole_and_a_worn_one_is_not_topped_up(params: Params) -> None:
+    held = holding({'litters': [[0.0, 0.6]]}, bands.adults(4))
+    held.members[3].kit.add('litters', 0, 0.7)
+
+    bands.hand_out(params, held)
+    assert [member.kit.held('litters') for member in held.members] == [0.0, 0.0, 0.0, 0.7]
+    held.stores.add('litters', 1, 1.0)
+    bands.hand_out(params, held)
+    assert [member.kit.held('litters') for member in held.members] == [0.0, 1.0, 0.0, 0.7]
+    assert held.held('litters') == pytest.approx(0.6)
+
+
+def test_a_puller_carries_more_by_the_sex_and_the_band_walks_slower(params: Params) -> None:
+    held = holding({}, bands.adults(2))
+    assert bands.carry(params, held) == 12.0
+
+    held.members[1].kit.add('litters', 0, 1.0)
+    held.restocked()
+    assert bands.carry(params, held) == pytest.approx(18.0)
+    assert bands.applied(params, held).units.band.speed.base == pytest.approx(1.2 * (1 - 0.15 * 0.5))
+    held.members[0].kit.add('litters', 0, 1.0)
+    held.restocked()
+    assert bands.carry(params, held) == pytest.approx(21.0)
+    assert bands.applied(params, held).units.band.speed.base == pytest.approx(1.2 * 0.85)
+
+
+def test_a_litter_wears_by_a_day_pulled_and_one_in_the_stores_does_not(params: Params) -> None:
+    game = land(params)
+    band(game).members[1].kit.add('litters', 0, 1.0, 0.8)
+    band(game).stores.add('litters', 0, 1.0)
+    game.clock.parts = 101 * DAY - 1
+
+    do(game, bands.moving('east'))
+
+    assert band(game).members[1].kit.held('litters') == pytest.approx(1.0 - 1 / 32)
+    assert band(game).held('litters') == 1.0
+    assert band(game).worn == pytest.approx({'litters': 1 / 32})

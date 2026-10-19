@@ -84,6 +84,7 @@ play-property-threat = threat
 play-property-passability = passability
 play-property-stone = stone
 play-property-wood = wood
+play-property-plants = plants
 play-title-band = The band
 play-title-cell = Its place
 play-title-target = The target

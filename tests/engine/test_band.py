@@ -375,6 +375,7 @@ def test_the_band_knows_what_lies_within_its_sight(params: Params) -> None:
         'passability': pytest.approx(0.6),
         'stone': 0.0,
         'wood': pytest.approx(0.8),
+        'plants': pytest.approx(0.5),
         'seen': 20,
     }
 
@@ -717,7 +718,7 @@ def test_a_restored_game_carries_the_band_in_the_middle_of_a_day(params: Params)
 def test_a_snapshot_of_the_format_before_the_band_is_refused(params: Params) -> None:
     snapshot = land(params).snapshot()
 
-    assert snapshot["format"] == 21
+    assert snapshot["format"] == 22
     with pytest.raises(ValueError, match='format 2'):
         Game.restore({**snapshot, 'format': 2})
 

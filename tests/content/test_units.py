@@ -27,6 +27,9 @@ def test_resources_are_those_of_their_documents() -> None:
         'forage': ('food', 'food', 1.0, {'days': 3}, {}),
         'stones': ('goods', 'stone', 0.5, None, {'eaten': 150}),
         'sticks': ('goods', 'wood', 1.0, {'years': 1}, {'nights': 150, 'attacks': 1}),
+        'herbs': ('goods', 'plants', 0.1, {'months': 2}, {'cures': 1}),
+        'cords': ('goods', 'plants', 0.1, {'months': 6}, {}),
+        'litters': ('goods', None, 4.0, None, {'pulled': 40}),
     }
 
 
@@ -42,7 +45,7 @@ def test_band_is_the_one_of_its_document() -> None:
     assert band.population.wellbeing.model_dump() == {'food': 1.0, 'water': 1.0, 'safety': 1.0, 'rest': 1.0}
     assert (band.carry_kg, band.gathering, band.consumption_per_day) == (
         6.0,
-        {'forage': 3.0, 'water': 4.0, 'stones': 0.5, 'sticks': 1.0},
+        {'forage': 3.0, 'water': 4.0, 'stones': 0.5, 'sticks': 1.0, 'herbs': 0.2, 'cords': 0.3},
         {'forage': 1.0, 'water': 1.0},
     )
     assert band.threat.model_dump() == {'camp': 1.0, 'march': 1.0}
@@ -70,6 +73,7 @@ def test_band_is_the_one_of_its_document() -> None:
     assert (band.states.tiredness.begins, band.states.tiredness.ends) == (0.8, 0.3)
     assert (band.sight, band.memory.model_dump()) == (2, {'days': 20})
     assert band.camp_parts == ('evening', 'night')
+    assert band.making.per_part == 0.2
     assert band.shelter.model_dump() == {'encounter': 0.5, 'frailty': 0.5}
     assert band.winter_camp.model_dump() == {
         'offered': {'seasons': ('winter',), 'before': {'days': 5}},
@@ -107,8 +111,8 @@ def test_unknown_unit_is_a_key_error() -> None:
 def test_era_holds_what_a_cell_gives_and_how_winter_slows_it() -> None:
     band = load_params().eras.band
 
-    assert band.capacity == {'food': 100.0, 'water': 2000.0, 'stone': 50.0, 'wood': 100.0}
-    assert band.recovery == {'food': {'winter': 0.25}}
+    assert band.capacity == {'food': 100.0, 'water': 2000.0, 'stone': 50.0, 'wood': 100.0, 'plants': 50.0}
+    assert band.recovery == {'food': {'winter': 0.25}, 'plants': {'winter': 0.25}}
 
 
 def test_council_is_the_one_of_its_document() -> None:
@@ -195,7 +199,7 @@ def test_resource_names_a_property_of_the_era() -> None:
     assert refused({'resources.forage.property': 'soil'}) == {
         'path': 'resources.forage.property',
         'found': 'soil',
-        'expected': 'a property of the era band: water, food, threat, passability, stone, wood',
+        'expected': 'a property of the era band: water, food, threat, passability, stone, wood, plants',
     }
 
 
@@ -209,7 +213,7 @@ def test_band_names_only_resources_that_exist(section: str) -> None:
     assert refused({f'{BAND}.{section}': {'stone': 1.0}}) == {
         'path': f'{BAND}.{section}',
         'found': 'stone',
-        'expected': 'one of water, forage, stones, sticks',
+        'expected': 'one of water, forage, stones, sticks, herbs, cords, litters',
     }
 
 
@@ -371,7 +375,7 @@ def test_status_starts_within_its_scale() -> None:
     [
         ('biomes', ['alpha'], None),
         ('actions', ['swim'], 'one of move, roam, gather, camp, build'),
-        ('resources', ['stone'], 'one of water, forage, stones, sticks'),
+        ('resources', ['stone'], 'one of water, forage, stones, sticks, herbs, cords, litters'),
     ],
 )
 def test_encounter_names_what_exists(section: str, value: list[str], expected: str | None) -> None:
@@ -401,7 +405,7 @@ def test_era_names_its_own_properties(section: str) -> None:
     assert refused({f'eras.band.{section}': value}) == {
         'path': f'eras.band.{section}',
         'found': 'soil',
-        'expected': 'one of water, food, threat, passability, stone, wood',
+        'expected': 'one of water, food, threat, passability, stone, wood, plants',
     }
 
 

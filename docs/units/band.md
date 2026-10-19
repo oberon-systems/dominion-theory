@@ -375,12 +375,15 @@ A band carries food, water and goods, and each resource is an entry of
 the section `resources`: a kind, a weight per unit, a time after which
 it spoils and, for goods, the uses it wears out by.
 
-| Resource | Kind    | Unit    | Weight | Spoils after | Wears out by                               |
-|----------|---------|---------|--------|--------------|--------------------------------------------|
-| `water`  | `water` | a litre | 1 kg   | 5 days       | -                                          |
-| `forage` | `food`  | a kilo  | 1 kg   | 3 days       | -                                          |
-| `stones` | `goods` | a stone | 0.5 kg | -            | 150 food eaten x quality                   |
-| `sticks` | `goods` | a stick | 1 kg   | 100 days     | 150 heads a night in camp, 1 an attack in camp |
+| Resource  | Kind    | Unit     | Weight | Spoils after       | Wears out by                                   |
+|-----------|---------|----------|--------|--------------------|------------------------------------------------|
+| `water`   | `water` | a litre  | 1 kg   | 5 days             | -                                              |
+| `forage`  | `food`  | a kilo   | 1 kg   | 3 days             | -                                              |
+| `stones`  | `goods` | a stone  | 0.5 kg | -                  | 150 food eaten x quality                       |
+| `sticks`  | `goods` | a stick  | 1 kg   | 100 days           | 150 heads a night in camp, 1 an attack in camp |
+| `herbs`   | `goods` | a bunch  | 0.1 kg | 2 months           | 1 a cure                                       |
+| `cords`   | `goods` | a cord   | 0.1 kg | 6 months x quality | - (spent in what is made)                      |
+| `litters` | `goods` | a litter | 4 kg   | -                  | 40 days pulled x quality                       |
 
 Stores are kept in lots, one per resource and day gathered. The oldest
 lot is eaten first, and a lot older than its time is thrown away in the
@@ -394,8 +397,10 @@ band's `spoiled` and `worn`. In a winter camp goods spoil at the pace
 food does there.
 
 An adult carries 6 kg, a child a quarter of it and an elder half. A
-band never gathers more than it can carry: what does not fit is left on
-the cell and the stock is not lowered for it.
+member who pulls a litter carries more, a man twice and a woman half
+again, see [Bonuses](../game/skills.md#bonuses). A band never gathers
+more than it can carry: what does not fit is left on the cell and the
+stock is not lowered for it.
 
 The goods a band learns to gather and make - stones, sticks, herbs,
 cords, meat and the personal goods of its members - are resources of
@@ -436,6 +441,8 @@ takes is its rate times the property of the cell, as
 | `water`  | `water`  | 4.0                      |
 | `stones` | `stone`  | 0.5                      |
 | `sticks` | `wood`   | 1.0                      |
+| `herbs`  | `plants` | 0.2                      |
+| `cords`  | `plants` | 0.3                      |
 
 A good is gathered only once the band knows the skill that opens it, and
 its need is the share missing of its keep, weighed by
@@ -454,6 +461,7 @@ the band is pushed on.
 | `water`  | 2000 units        |
 | `stone`  | 50 units          |
 | `wood`   | 100 units         |
+| `plants` | 50 units          |
 
 A band gathers on the cell it stands on and nowhere else, but for a
 roaming band, which forages the cell ahead as it walks into it. It
@@ -551,7 +559,9 @@ speed = max(slowest, base - slowdown * population / 10) * efficiency * pace
 ```
 
 With a base of 1.2 and a slowdown of 0.03 a band of 15 walks at 1.155
-and a band of 150 at 0.75; no band is slower than 0.3. A step along a
+and a band of 150 at 0.75; no band is slower than 0.3. Litters lay
+`speed.base` times 0.85 by the share of the pullers who pull one, so a
+band of 15 whose pullers all pull walks at 0.975. A step along a
 diagonal costs the same as a straight one. Progress above 1 is not
 carried over. A camp keeps the progress, so a cell the band cannot cross
 in the active parts of one day is entered on the next; a gather, or a
@@ -643,7 +653,7 @@ resources:
   forage: {kind: food, property: food, weight_kg: 1.0, spoils: {days: 3}}
 ```
 
-The goods `stones` and `sticks` are in
+The goods are in
 [Skills](../game/skills.md#parameters).
 
 ```yaml
@@ -719,6 +729,8 @@ units:
       water: 4.0
       stones: 0.5
       sticks: 1.0
+      herbs: 0.2
+      cords: 0.3
     consumption_per_day:
       forage: 1.0
       water: 1.0
@@ -735,6 +747,7 @@ units:
       build: 0.15
       slows: 0.5
     camp_parts: [evening, night]
+    making: {per_part: 0.2}
     states:
       tiredness: {begins: 0.8, ends: 0.3}
     sight: 2
@@ -762,12 +775,13 @@ units:
 ```yaml
 eras:
   band:
-    capacity: {food: 100, water: 2000, stone: 50, wood: 100}
-    recovery: {food: {winter: 0.25}}
+    capacity: {food: 100, water: 2000, stone: 50, wood: 100, plants: 50}
+    recovery: {food: {winter: 0.25}, plants: {winter: 0.25}}
 ```
 
 `eras.band.recovery` slows the recovery of a stock in a season: food
-grows back at a quarter of its pace in winter. Every number here is a
+and plants grow back at a quarter of their pace in winter. `making` is
+told in [Making](../game/skills.md#making). Every number here is a
 first guess; the lab of the roadmap is where they are tuned.
 
 ___

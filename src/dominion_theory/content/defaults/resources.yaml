@@ -25,3 +25,33 @@ resources:
     keep: {per: head, amount: 0.3}
     gives:
       - {to: band, path: units.band.threat.camp, times: 0.8}
+  herbs:
+    kind: goods
+    property: plants
+    weight_kg: 0.1
+    spoils: {months: 2}
+    wears: {cures: 1}
+    keep: {per: head, amount: 0.2}
+  cords:
+    kind: goods
+    property: plants
+    weight_kg: 0.1
+    spoils: {months: 6}
+    quality:
+      floodplain: {min: 0.8, max: 1.0}
+      swamp: {min: 0.65, max: 0.9}
+      grass: {min: 0.55, max: 0.8}
+      forest: {min: 0.5, max: 0.75}
+    keep: {per: head, amount: 0.2}
+  litters:
+    kind: goods
+    held: personal
+    weight_kg: 4.0
+    # The days a litter of quality 1 is pulled on the march.
+    wears: {pulled: 40}
+    keep: {per: puller, amount: 1.0}
+    made: {sticks: 3.0, cords: 2.0}
+    gives:
+      - {to: member, sex: male, path: units.band.carry_kg, times: 2.0}
+      - {to: member, sex: female, path: units.band.carry_kg, times: 1.5}
+      - {to: band, path: units.band.speed.base, times: 0.85}

@@ -70,7 +70,7 @@ units:
         child_survives: 0.5
         mother_dies: 0.05
     carry_kg: 6.0
-    gathering: {forage: 3.0, water: 4.0, stones: 0.5, sticks: 1.0}
+    gathering: {forage: 3.0, water: 4.0, stones: 0.5, sticks: 1.0, herbs: 0.2, cords: 0.3}
     consumption_per_day: {forage: 1.0, water: 1.0}
     speed:
       base: 1.2
@@ -85,6 +85,8 @@ units:
       build: 0.15
       slows: 0.5
     camp_parts: [evening, night]
+    # What every adult makes of a good in a camp part.
+    making: {per_part: 0.2}
     states:
       tiredness: {begins: 0.8, ends: 0.3}
     sight: 2
@@ -115,7 +117,7 @@ units:
         hungry: {days: 0, need: 0.8}
       distance: 0.25
       horizon: 2
-      unknown: {food: 0.5, water: 0.5, threat: 0.4, passability: 0.7, stone: 0.1, wood: 0.2}
+      unknown: {food: 0.5, water: 0.5, threat: 0.4, passability: 0.7, stone: 0.1, wood: 0.2, plants: 0.3}
       idle: 0.05
       wander: {days: 1}
       weights:

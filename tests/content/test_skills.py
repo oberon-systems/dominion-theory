@@ -19,13 +19,16 @@ def refused(skill: dict[str, Any], name: str = 'wintering') -> dict[str, object]
 def test_the_skills_of_the_band_era_are_those_of_their_document() -> None:
     skills = load_params().skills
 
-    assert list(skills) == ['orientation', 'wintering', 'stone_tools', 'sticks']
+    assert list(skills) == ['orientation', 'wintering', 'stone_tools', 'sticks', 'litters', 'herbs']
     assert skills['stone_tools'].learned.biomes == ('hills', 'mountain', 'outcrops')
     assert (skills['stone_tools'].opens.gathers, skills['sticks'].opens.gathers) == (('stones',), ('sticks',))
     assert skills['sticks'].learned.biome == 'forest'
     assert skills['orientation'].opens.proposals == ('go_place',)
     assert [held.counter for held in skills['orientation'].learned.any] == ['seen', 'marched']
     assert skills['wintering'].learned.at_least == 1
+    assert (skills['litters'].needs, skills['litters'].opens.makes) == (('sticks', 'herbs'), ('litters',))
+    assert skills['herbs'].opens.gathers == ('herbs', 'cords')
+    assert [held.at_least for held in skills['herbs'].learned.any] == [90, 90, 30]
 
 
 def test_a_skill_needs_skills_that_exist_and_never_itself() -> None:

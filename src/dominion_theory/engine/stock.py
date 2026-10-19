@@ -93,8 +93,8 @@ class Stock(dict[str, list[Lot]]):
 
     def spoil(self, day: int, keeps: Mapping[str, int], ages: float = 1.0) -> dict[str, float]:
         """
-        Drops the lots older than the days their resource keeps, aged at a pace; a lot of goods with a quality
-        lasts that share of the days, and a resource with no days given never spoils. Gives what was dropped.
+        Drops the lots older than the days their resource keeps, aged at a pace, whatever their quality; a
+        resource with no days given never spoils. Gives what was dropped.
         """
         dropped: dict[str, float] = {}
         for name in list(self):
@@ -103,7 +103,7 @@ class Stock(dict[str, list[Lot]]):
             kept: list[Lot] = []
             gone = 0.0
             for lot in self[name]:
-                if (day - lot[0]) * ages < _lasts(lot, keeps[name]):
+                if (day - lot[0]) * ages < keeps[name]:
                     kept.append(lot)
                 else:
                     gone += lot[1]
@@ -133,7 +133,3 @@ class Stock(dict[str, list[Lot]]):
 
 def _quality(lot: Lot) -> float | None:
     return lot[2] if len(lot) > 2 else None
-
-
-def _lasts(lot: Lot, keeps: int) -> float:
-    return keeps if len(lot) < 3 else keeps * lot[2]

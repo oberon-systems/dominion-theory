@@ -56,12 +56,12 @@ def test_a_lot_of_goods_keeps_its_quality_and_joins_only_its_like() -> None:
     assert stock.held('stones') == 4.5
 
 
-def test_goods_spoil_by_their_quality_and_the_stock_says_what_went() -> None:
+def test_goods_spoil_by_their_time_whatever_their_quality_and_the_stock_says_what_went() -> None:
     stock = Stock({'cords': [[0.0, 1.0, 0.5], [0.0, 2.0, 1.0]], 'forage': [[0.0, 3.0]], 'stones': [[0.0, 1.0, 0.5]]})
 
-    assert stock.spoil(30, {'cords': 60, 'forage': 3}) == {'cords': 1.0, 'forage': 3.0}
-    assert stock.plain() == {'cords': [[0.0, 2.0, 1.0]], 'forage': [], 'stones': [[0.0, 1.0, 0.5]]}
-    assert stock.spoil(31, {'cords': 60, 'forage': 3}) == {}
+    assert stock.spoil(30, {'cords': 60, 'forage': 3}) == {'forage': 3.0}
+    assert stock.plain() == {'cords': [[0.0, 1.0, 0.5], [0.0, 2.0, 1.0]], 'forage': [], 'stones': [[0.0, 1.0, 0.5]]}
+    assert stock.spoil(60, {'cords': 60, 'forage': 3}) == {'cords': 3.0}
 
 
 def test_goods_wear_by_their_uses_the_oldest_first_and_a_poor_one_serves_less() -> None:

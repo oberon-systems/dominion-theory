@@ -26,15 +26,15 @@ def test_resources_are_those_of_their_documents() -> None:
     } == {
         'water': ('water', 'water', 1.0, {'days': 5}, {}),
         'forage': ('food', 'food', 1.0, {'days': 3}, {}),
-        'stones': ('goods', 'stone', 0.5, None, {'eaten': 150}),
-        'sticks': ('goods', 'wood', 1.0, {'years': 1}, {'nights': 150, 'attacks': 1}),
+        'stones': ('goods', 'stone', 0.5, None, {'eaten': 300}),
+        'sticks': ('goods', 'wood', 1.0, {'years': 1}, {'nights': 400, 'attacks': 1}),
         'herbs': ('goods', 'plants', 0.1, {'months': 2}, {'cures': 1}),
         'cords': ('goods', 'plants', 0.1, {'months': 6}, {}),
-        'litters': ('goods', None, 4.0, None, {'pulled': 40}),
+        'litters': ('goods', None, 4.0, None, {'pulled': 70}),
         'meat': ('food', None, 1.0, {'days': 2}, {}),
-        'spears': ('goods', None, 1.5, None, {'hunts': 60}),
-        'hides': ('goods', None, 2.0, {'months': 2}, {}),
-        'clothes': ('goods', None, 2.0, {'months': 8}, {}),
+        'spears': ('goods', None, 1.5, None, {'hunts': 80}),
+        'hides': ('goods', None, 2.0, {'months': 12}, {}),
+        'clothes': ('goods', None, 2.0, {'months': 12}, {}),
         'waterskins': ('goods', None, 0.5, {'months': 6}, {}),
     }
 
@@ -46,7 +46,7 @@ def test_band_is_the_one_of_its_document() -> None:
     assert band is params.units['band']
     assert (band.start.population, band.start.stores) == (15, {'water': 15.0, 'forage': 15.0})
     assert (band.start.biomes, band.start.stage) == (('grass', 'forest', 'floodplain'), 'adult')
-    assert band.start.oldest == Duration(years=15)
+    assert band.start.oldest == Duration(years=12)
     assert band.population.least == 5
     assert band.population.wellbeing.model_dump() == {'food': 1.0, 'water': 1.0, 'safety': 1.0, 'rest': 1.0}
     assert (band.carry_kg, band.gathering, band.consumption_per_day) == (

@@ -65,7 +65,7 @@ met, not from the start.
 | `stone_tools` | a night on or beside hills, mountain or outcrops          | -                        | gathering `stones` |
 | `sticks`      | a night in or beside a forest                             | -                        | gathering `sticks` |
 | `litters`     | 8 cells walked in or beside a forest                      | `sticks`, `herbs`        | making `litters` |
-| `herbs`       | 90 days in forest, or 90 in grass or floodplain, or 30 in swamp | -                        | gathering `herbs` and `cords` |
+| `herbs`       | 40 days in forest, or 40 in grass or floodplain, or 15 in swamp | -                        | gathering `herbs` and `cords` |
 | `spears`      | sticks, stones and cords held on the same day             | `stone_tools`, `sticks`, `herbs` | making `spears` and `clothes`, the role `hunter` |
 | `waterskins`  | hides and cords held on the same day                      | `spears`, `herbs`        | making `waterskins` |
 
@@ -144,15 +144,15 @@ quality, a keep and a recipe.
 
 | Good         | Kind  | Held     | Weight | Spoils after       | Wears by                                   | Quality         | Keep                | Made of                    |
 |--------------|-------|----------|--------|--------------------|--------------------------------------------|-----------------|---------------------|----------------------------|
-| `stones`     | goods | common   | 0.5 kg | -                  | 150 food eaten                             | 0.5 to 1.0, by the place | 0.3 a head  | gathered                   |
-| `sticks`     | goods | common   | 1 kg   | 1 year             | 150 heads a night in camp, 1 an attack in camp | 1          | 0.3 a head          | gathered                   |
+| `stones`     | goods | common   | 0.5 kg | -                  | 300 food eaten                             | 0.5 to 1.0, by the place | 0.3 a head  | gathered                   |
+| `sticks`     | goods | common   | 1 kg   | 1 year             | 400 heads a night in camp, 1 an attack in camp | 1          | 0.3 a head          | gathered                   |
 | `herbs`      | goods | common   | 0.1 kg | 2 months           | 1 a cure                                   | 1               | 0.2 a head          | gathered                   |
-| `cords`      | goods | common   | 0.1 kg | 6 months x quality | - (spent in what is made)                  | 0.5 to 1.0, by the place | 0.2 a head  | gathered                   |
-| `litters`    | goods | personal | 4 kg   | -                  | 40 days pulled                             | its materials'  | 1 a puller          | 3 sticks, 2 cords          |
-| `spears`     | goods | personal | 1.5 kg | -                  | 60 hunts                                   | its materials'  | 1 a hunter          | 1 stick, 1 stone, 1 cord   |
-| `hides`      | goods | common   | 2 kg   | 2 months           | - (spent in what is made)                  | 1               | 0.2 a head          | hunted                     |
-| `clothes`    | goods | personal | 2 kg   | 8 months x quality | -                                          | its materials'  | 1 a member          | 1 hide, 1 cord             |
-| `waterskins` | goods | personal | 0.5 kg | 6 months x quality | -                                          | its materials'  | 1 an adult or elder | 1 hide, 1 cord             |
+| `cords`      | goods | common   | 0.1 kg | 6 months           | - (spent in what is made)                  | 0.5 to 1.0, by the place | 0.2 a head  | gathered                   |
+| `litters`    | goods | personal | 4 kg   | -                  | 70 days pulled                             | its materials'  | 1 a puller          | 3 sticks, 2 cords          |
+| `spears`     | goods | personal | 1.5 kg | -                  | 80 hunts                                   | its materials'  | 1 a hunter          | 1 stick, 1 stone, 1 cord   |
+| `hides`      | goods | common   | 2 kg   | 12 months          | - (spent in what is made)                  | 1               | 0.2 a head          | hunted                     |
+| `clothes`    | goods | personal | 2 kg   | 12 months          | -                                          | its materials'  | 1 a member          | 1 hide, 1 cord             |
+| `waterskins` | goods | personal | 0.5 kg | 6 months           | -                                          | its materials'  | 1 an adult or elder | 1 hide, 1 cord             |
 | `meat`       | food  | common   | 1 kg   | 2 days             | -                                          | -               | -                   | hunted                     |
 
 What each gives is in [Bonuses](#bonuses).
@@ -163,8 +163,8 @@ What each gives is in [Bonuses](#bonuses).
 - **Held** - `common` goods stay in the band's stores; `personal` goods
   are handed to a member, see [Handing out](#handing-out).
 - **Spoils** - a time, as for food and water: a lot is lost when it is
-  over, used or not. For goods it is stretched by the quality of the
-  lot. A good without one never spoils.
+  over, used or not, whatever its quality. A good without one never
+  spoils. Quality acts on wear by use only.
 - **Wears** - the uses a unit of quality 1 serves, by use: a lot of a
   lower quality serves that share, and the oldest lots are worn first.
   A good held and not used does not wear. The uses are `eaten` (a unit
@@ -233,17 +233,17 @@ best cords, the bast of a forest the worst.
 
 | Good     | Biome        | Quality      | Serves                       |
 |----------|--------------|--------------|------------------------------|
-| `stones` | `mountain`   | 0.8 to 1.0   | cuts 120 to 150 food         |
-| `stones` | `outcrops`   | 0.65 to 0.9  | cuts about 100 to 135 food   |
-| `stones` | `hills`      | 0.5 to 0.75  | cuts about 75 to 110 food    |
-| `cords`  | `floodplain` | 0.8 to 1.0   | spoils in about 5 to 6 months |
-| `cords`  | `swamp`      | 0.65 to 0.9  | spoils in about 4 to 5.5 months |
-| `cords`  | `grass`      | 0.55 to 0.8  | spoils in about 3.5 to 5 months |
-| `cords`  | `forest`     | 0.5 to 0.75  | spoils in about 3 to 4.5 months |
+| `stones` | `mountain`   | 0.8 to 1.0   | cuts 240 to 300 food         |
+| `stones` | `outcrops`   | 0.65 to 0.9  | cuts about 195 to 270 food   |
+| `stones` | `hills`      | 0.5 to 0.75  | cuts about 150 to 225 food   |
+| `cords`  | `floodplain` | 0.8 to 1.0   | makes the best goods          |
+| `cords`  | `swamp`      | 0.65 to 0.9  | makes good goods              |
+| `cords`  | `grass`      | 0.55 to 0.8  | makes fair goods              |
+| `cords`  | `forest`     | 0.5 to 0.75  | makes the poorest goods       |
 
 A band of 15 eats about 13 food a day with stones held, so its 4.5
-stones of the hills last some 30 days and those of a mountain some 45.
-Its sticks keep 15 heads a night, 0.1 of a stick, and lose one more to
+stones of the hills last some 60 days and those of a mountain some 90.
+Its sticks keep 15 heads a night, under 0.04 of a stick, and lose one more to
 every attack in camp; on the march they do not wear. Whatever wore out
 or spoiled is told in whole units: the rest waits for the next.
 
@@ -293,7 +293,7 @@ its quality, so 0.43 of a litter of quality 0.92 gives 1.29 sticks and
 | `litters`    | the pullers: men, then women                             |
 | `waterskins` | the adults, then the elders                              |
 
-A puller is an adult gatherer: children do not pull, and nannies,
+A puller is an adult gatherer: children and elders do not pull, and nannies,
 hunters and the holders of any other role do not either. So a band
 never pulls more litters than it has such adults, and the ones over
 stay in the stores and weigh as goods.
@@ -332,8 +332,8 @@ of 4.5 sticks and 3 cords makes a litter and half of the next in an
 evening, every stick and cord spent, and gathers them again up to its
 keep. A
 litter takes the mean quality of its 3 sticks and 2 cords, so one of
-reed cords serves some 37 to 40 days pulled and one of forest bast some
-32 to 36.
+reed cords serves some 64 to 70 days pulled and one of forest bast some
+56 to 63.
 
 ___
 
@@ -440,7 +440,7 @@ wounded, hungry or sick hunter brings its share, and the fatigue of the
 band lowers it the same way. `hunting.meat` is 4.0 kg and
 `hunting.hides` 0.05, one hide for 20 kg of meat. A hide is a material,
 held in the stores until it is sewn into clothes or a waterskin, and
-rots in 2 months if it is not. A hunt brings no more than the room
+rots in 12 months if it is not. A hunt brings no more than the room
 holds, meat and hides together, and no more hides than are missing of
 their keep, 0.2 a head: three hunters bring about a hide a day, and the
 rest would only weigh. The hunt pays the `game` of the cell, or of the
@@ -589,9 +589,9 @@ skills:
   herbs:
     learned:
       any:
-        - {counter: days_in, biome: forest, at_least: 90}
-        - {counter: days_in, biomes: [grass, floodplain], at_least: 90}
-        - {counter: days_in, biome: swamp, at_least: 30}
+        - {counter: days_in, biome: forest, at_least: 40}
+        - {counter: days_in, biomes: [grass, floodplain], at_least: 40}
+        - {counter: days_in, biome: swamp, at_least: 15}
     opens: {gathers: [herbs, cords]}
   spears:
     needs: [stone_tools, sticks, herbs]
@@ -612,7 +612,7 @@ resources:
     kind: goods
     property: stone
     weight_kg: 0.5
-    wears: {eaten: 150}
+    wears: {eaten: 300}
     quality: {mountain: {min: 0.8, max: 1.0}, outcrops: {min: 0.65, max: 0.9}, hills: {min: 0.5, max: 0.75}}
     keep: {per: head, amount: 0.3}
     gives:
@@ -623,7 +623,7 @@ resources:
     property: wood
     weight_kg: 1.0
     spoils: {years: 1}
-    wears: {nights: 150, attacks: 1}
+    wears: {nights: 400, attacks: 1}
     keep: {per: head, amount: 0.3}
     gives:
       - {to: band, path: units.band.threat.camp, times: 0.8}
@@ -643,7 +643,7 @@ resources:
     kind: goods
     held: personal
     weight_kg: 4.0
-    wears: {pulled: 40}
+    wears: {pulled: 70}
     keep: {per: puller, amount: 1}
     made: {sticks: 3, cords: 2}
     gives:
@@ -654,15 +654,15 @@ resources:
     kind: goods
     held: personal
     weight_kg: 1.5
-    wears: {hunts: 60}
+    wears: {hunts: 80}
     keep: {per: hunter, amount: 1}
     made: {sticks: 1, stones: 1, cords: 1}
-  hides: {kind: goods, weight_kg: 2.0, spoils: {months: 2}, keep: {per: head, amount: 0.2}}
+  hides: {kind: goods, weight_kg: 2.0, spoils: {months: 12}, keep: {per: head, amount: 0.2}}
   clothes:
     kind: goods
     held: personal
     weight_kg: 2.0
-    spoils: {months: 8}
+    spoils: {months: 12}
     keep: {per: member, amount: 1}
     made: {hides: 1, cords: 1}
     gives:

@@ -70,9 +70,9 @@ needs, and the days of a sickness left; see
 and a band dies when fewer than 5 are left; the game ends with it.
 
 A band starts with 15 members: the player and 14 others, adults of a
-random age from 4 to 15 years and of a random sex. None is older than
-`start.oldest`, so the first elder comes as the third year begins, about
-when the first child born grows up. The player is a
+random age from 4 to 12 years and of a random sex. None is older than
+`start.oldest`, so the first elder comes as the sixth year begins, when
+the first children born are grown. The player is a
 member who never dies, the line the player stands for; a family of the
 player is a later step. Every draw of this document comes from the
 stream `people` of the game, so the same seed lives the same band.
@@ -91,7 +91,7 @@ member does against an adult, whose weights are all 1.
 |---------|-------------|---------|---------|------|------|-------|-----------|-------|
 | `child` | 0 to 3      | 0       | 0.25    | 0.5  | 0.7  | 1.3   | no        | no    |
 | `adult` | 4 to 16     | 1       | 1       | 1    | 1    | 1     | yes       | yes   |
-| `elder` | 17 and over | 0       | 0.5     | 0.7  | 0.8  | 1.3   | no        | yes   |
+| `elder` | 17 and over | 0.4     | 0.5     | 0.7  | 0.8  | 1.3   | no        | yes   |
 
 A band sums its members where an amount grows with the people, and
 takes the mean where it is a pace. A wounded member gathers and walks
@@ -119,8 +119,11 @@ heads did. Only the stages that vote sit in the council; see
 ### Roles
 
 Every member has a role. For every `cares` children, rounded up, one
-woman of a stage that conceives, never the player, is a nanny: the
-pregnant and the resting first, then the oldest. A nanny keeps the
+carer, never the player, is a nanny. The first is a woman of a stage
+that conceives, the pregnant and the resting first, then the oldest;
+the second and the third are the elders first, either sex, the oldest
+first, then the women. So an elder keeps the children and an adult
+woman goes out to gather. A nanny keeps the
 children by the camp and gathers half of what a gatherer does. Everyone
 else is a gatherer. The roles are laid anew at the end of every day.
 
@@ -150,8 +153,9 @@ The role `hunter` opens with the skill of spears and takes the men
 first, after the nannies; who hunts and when is told in
 [Skills](../game/skills.md#hunting).
 
-Children and elders are gatherers who gather nothing for their stage. A
-role is meant to grow with the doing - a member who fetches water for
+Children are gatherers who gather nothing for their stage, and elders
+gather 0.4. Elders neither pull a litter nor hunt: those are the work of
+adults. A role is meant to grow with the doing - a member who fetches water for
 long fetches it better - once a tribe shares its work more finely.
 
 ### Wellbeing
@@ -395,23 +399,23 @@ it spoils and, for goods, the uses it wears out by.
 |--------------|---------|----------|--------|--------------------|------------------------------------------------|
 | `water`      | `water` | a litre  | 1 kg   | 5 days             | -                                              |
 | `forage`     | `food`  | a kilo   | 1 kg   | 3 days             | -                                              |
-| `stones`     | `goods` | a stone  | 0.5 kg | -                  | 150 food eaten x quality                       |
-| `sticks`     | `goods` | a stick  | 1 kg   | 100 days           | 150 heads a night in camp, 1 an attack in camp |
+| `stones`     | `goods` | a stone  | 0.5 kg | -                  | 300 food eaten x quality                       |
+| `sticks`     | `goods` | a stick  | 1 kg   | 1 year             | 400 heads a night in camp, 1 an attack in camp |
 | `herbs`      | `goods` | a bunch  | 0.1 kg | 2 months           | 1 a cure                                       |
-| `cords`      | `goods` | a cord   | 0.1 kg | 6 months x quality | - (spent in what is made)                      |
-| `litters`    | `goods` | a litter | 4 kg   | -                  | 40 days pulled x quality                       |
+| `cords`      | `goods` | a cord   | 0.1 kg | 6 months           | - (spent in what is made)                      |
+| `litters`    | `goods` | a litter | 4 kg   | -                  | 70 days pulled x quality                       |
 | `meat`       | `food`  | a kilo   | 1 kg   | 2 days             | -                                              |
-| `spears`     | `goods` | a spear  | 1.5 kg | -                  | 60 hunts x quality                             |
-| `hides`      | `goods` | a hide   | 2 kg   | 2 months           | - (spent in what is made)                      |
-| `clothes`    | `goods` | a suit   | 2 kg   | 8 months x quality | -                                              |
-| `waterskins` | `goods` | a skin   | 0.5 kg | 6 months x quality | -                                              |
+| `spears`     | `goods` | a spear  | 1.5 kg | -                  | 80 hunts x quality                             |
+| `hides`      | `goods` | a hide   | 2 kg   | 12 months          | - (spent in what is made)                      |
+| `clothes`    | `goods` | a suit   | 2 kg   | 12 months          | -                                              |
+| `waterskins` | `goods` | a skin   | 0.5 kg | 6 months           | -                                              |
 
 Stores are kept in lots, one per resource and day gathered. The oldest
 lot is eaten first, and a lot older than its time is thrown away in the
 phase `world` of the first tick of a day. A band holds at most five lots
 of water and three of forage, so the state stays small. A lot of goods
 with a quality is `[day, amount, quality]`, and serves that share of its
-uses or keeps that share of its time. A good held and not used does not
+uses; it spoils by its time whatever its quality. A good held and not used does not
 wear. The goods spoiled and worn out are told in whole units by the
 events `goods-spoiled` and `goods-worn`; the rest of a unit waits in the
 band's `spoiled` and `worn`. In a winter camp goods spoil at the pace
@@ -696,7 +700,7 @@ units:
       stores: {water: 15, forage: 15}
       biomes: [grass, forest, floodplain]
       stage: adult
-      oldest: {years: 15}
+      oldest: {years: 12}
     population:
       least: 5
       wellbeing: {food: 1.0, water: 1.0, safety: 1.0, rest: 1.0}
@@ -726,7 +730,7 @@ units:
           dies: {encounter: 1.0, frailty: 0.05, injury: 1.0}
           reserve: {food: 2.0, water: 2.0}
         elder:
-          gathers: 0.0
+          gathers: 0.4
           carries: 0.5
           eats: 0.7
           pace: 0.8

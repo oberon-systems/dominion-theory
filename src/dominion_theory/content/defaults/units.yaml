@@ -5,8 +5,8 @@ units:
       stores: {water: 15, forage: 15}
       biomes: [grass, forest, floodplain]
       stage: adult
-      # The oldest at the start becomes an elder as the third year begins.
-      oldest: {years: 15}
+      # The oldest at the start becomes an elder as the sixth year begins.
+      oldest: {years: 12}
     population:
       least: 5
       wellbeing: {food: 1.0, water: 1.0, safety: 1.0, rest: 1.0}
@@ -37,7 +37,7 @@ units:
           dies: {encounter: 1.0, frailty: 0.05, injury: 1.0}
           reserve: {food: 2.0, water: 2.0}
         elder:
-          gathers: 0.0
+          gathers: 0.4
           carries: 0.5
           eats: 0.7
           pace: 0.8

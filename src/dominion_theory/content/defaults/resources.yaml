@@ -8,7 +8,7 @@ resources:
     property: stone
     weight_kg: 0.5
     # The food a stone of quality 1 cuts; one of quality 0.5 cuts half of it.
-    wears: {eaten: 150}
+    wears: {eaten: 300}
     quality:
       mountain: {min: 0.8, max: 1.0}
       outcrops: {min: 0.65, max: 0.9}
@@ -23,7 +23,7 @@ resources:
     weight_kg: 1.0
     spoils: {years: 1}
     # The heads a stick keeps for a night in camp, and one stick broken by each attack there.
-    wears: {nights: 150, attacks: 1}
+    wears: {nights: 400, attacks: 1}
     keep: {per: head, amount: 0.3}
     gives:
       - {to: band, path: units.band.threat.camp, times: 0.8}
@@ -50,7 +50,7 @@ resources:
     held: personal
     weight_kg: 4.0
     # The days a litter of quality 1 is pulled on the march.
-    wears: {pulled: 40}
+    wears: {pulled: 70}
     keep: {per: puller, amount: 1.0}
     made: {sticks: 3.0, cords: 2.0}
     gives:
@@ -62,19 +62,19 @@ resources:
     held: personal
     weight_kg: 1.5
     # The ticks a spear of quality 1 hunts.
-    wears: {hunts: 60}
+    wears: {hunts: 80}
     keep: {per: hunter, amount: 1.0}
     made: {sticks: 1.0, stones: 1.0, cords: 1.0}
   hides:
     kind: goods
     weight_kg: 2.0
-    spoils: {months: 2}
+    spoils: {months: 12}
     keep: {per: head, amount: 0.2}
   clothes:
     kind: goods
     held: personal
     weight_kg: 2.0
-    spoils: {months: 8}
+    spoils: {months: 12}
     keep: {per: member, amount: 1.0}
     made: {hides: 1.0, cords: 1.0}
     gives:

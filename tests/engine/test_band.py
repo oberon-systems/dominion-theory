@@ -496,7 +496,7 @@ def test_a_created_band_is_of_adults_of_random_age_and_sex_the_first_the_player(
     assert [member.player for member in members] == [True] + [False] * 14
 
 
-def test_children_and_elders_gather_nothing_eat_less_and_walk_slower(params: Params) -> None:
+def test_children_gather_nothing_elders_little_both_eat_less_and_walk_slower(params: Params) -> None:
     members = [*bands.adults(2), bands.Member(0, 'male'), bands.Member(1800, 'female')]
     held = bands.Band(id=1, x=WEST, y=NORTH, members=members)
     held.members[1].wound = {'severity': 'heavy', 'left': 9.0}
@@ -504,7 +504,7 @@ def test_children_and_elders_gather_nothing_eat_less_and_walk_slower(params: Par
     counted = bands.census(params, held)
 
     assert counted.counts == {'child': 1, 'adult': 2, 'elder': 1}
-    assert (counted.gatherers, counted.eaters, counted.carriers) == pytest.approx((1.2, 3.2, 2.75))
+    assert (counted.gatherers, counted.eaters, counted.carriers) == pytest.approx((1.0 + 0.2 + 0.4, 3.2, 2.75))
     assert counted.pace == pytest.approx((1.0 + 0.4 + 0.7 + 0.8) / 4)
     assert (counted.voters, counted.injured, counted.pregnant) == (3, 1, 0)
     assert counted.wounds == {'light': 0, 'medium': 0, 'heavy': 1}
@@ -871,6 +871,22 @@ def test_a_nanny_cares_for_every_five_children_and_gathers_half(params: Params) 
     assert [member.role for member in held.members[:4]] == ['gatherer', 'gatherer', 'nanny', 'nanny']
     assert bands.roles(params, held) == {'gatherer': 8, 'nanny': 2, 'hunter': 0}
     assert bands.census(params, held).gatherers == pytest.approx(3.0)
+
+
+def test_the_first_nanny_is_a_woman_the_second_an_elder_and_elders_gather_but_do_not_pull(params: Params) -> None:
+    elder = bands.Member(bands.bounds(params, 'adult')[1] + 10, 'male')
+    women = [bands.Member(1000, 'female'), bands.Member(1200, 'female')]
+    children = [bands.Member(100, 'male') for _ in range(6)]
+    held = bands.Band(id=1, x=WEST, y=NORTH, members=[*bands.adults(1), elder, *women, *children])
+
+    bands.assign(params, held)
+
+    assert [member.role for member in held.members[:4]] == ['gatherer', 'nanny', 'gatherer', 'nanny']
+    assert bands.census(params, held).gatherers == pytest.approx(1.0 + 0.4 * 0.5 + 1.0 + 0.5)
+    working = bands.Band(id=1, x=WEST, y=NORTH, members=[*bands.adults(1), elder])
+    bands.assign(params, working)
+    assert bands.census(params, working).gatherers == pytest.approx(1.4)
+    assert bands.eligible(params, working, 'puller') == [0]
 
 
 def test_nannies_leave_the_children_one_a_day_while_someone_goes_short(params: Params) -> None:

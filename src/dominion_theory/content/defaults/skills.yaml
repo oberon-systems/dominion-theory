@@ -21,9 +21,9 @@ skills:
   herbs:
     learned:
       any:
-        - {counter: days_in, biome: forest, at_least: 90}
-        - {counter: days_in, biomes: [grass, floodplain], at_least: 90}
-        - {counter: days_in, biome: swamp, at_least: 30}
+        - {counter: days_in, biome: forest, at_least: 40}
+        - {counter: days_in, biomes: [grass, floodplain], at_least: 40}
+        - {counter: days_in, biome: swamp, at_least: 15}
     opens: {gathers: [herbs, cords]}
   spears:
     needs: [stone_tools, sticks, herbs]

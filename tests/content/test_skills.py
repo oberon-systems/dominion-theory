@@ -37,7 +37,7 @@ def test_the_skills_of_the_band_era_are_those_of_their_document() -> None:
     assert skills['wintering'].learned.at_least == 1
     assert (skills['litters'].needs, skills['litters'].opens.makes) == (('sticks', 'herbs'), ('litters',))
     assert skills['herbs'].opens.gathers == ('herbs', 'cords')
-    assert [held.at_least for held in skills['herbs'].learned.any] == [90, 90, 30]
+    assert [held.at_least for held in skills['herbs'].learned.any] == [40, 40, 15]
     spears = skills['spears']
     assert (spears.needs, spears.learned.holds) == (
         ('stone_tools', 'sticks', 'herbs'),

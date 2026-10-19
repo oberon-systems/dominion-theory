@@ -116,8 +116,8 @@ def test_stones_wear_by_the_food_they_cut_and_a_poor_one_cuts_less(params: Param
 
     eaten = 20.0 - held.held('forage')
     assert eaten > 0
-    assert held.held('stones') == pytest.approx(1.0 - eaten / 75)
-    assert held.worn == pytest.approx({'stones': eaten / 75})
+    assert held.held('stones') == pytest.approx(1.0 - eaten / 150)
+    assert held.worn == pytest.approx({'stones': eaten / 150})
 
 
 def test_stones_kept_in_the_stores_do_not_wear_while_nothing_is_eaten(params: Params) -> None:
@@ -133,7 +133,7 @@ def test_stones_kept_in_the_stores_do_not_wear_while_nothing_is_eaten(params: Pa
 def test_sticks_wear_by_the_heads_they_keep_at_night_and_break_in_attacks(params: Params) -> None:
     held = holding({'sticks': [[0.0, 3.0]]})
 
-    bands.wear(params, held, bands.NIGHTS, 15)
+    bands.wear(params, held, bands.NIGHTS, 40)
     assert held.held('sticks') == pytest.approx(2.9)
     bands.wear(params, held, bands.ATTACKS, 1)
     assert held.held('sticks') == pytest.approx(1.9)
@@ -364,9 +364,9 @@ def test_a_litter_wears_by_a_day_pulled_and_one_in_the_stores_does_not(params: P
 
     do(game, bands.moving('east'))
 
-    assert band(game).members[1].kit.held('litters') == pytest.approx(1.0 - 1 / 32)
+    assert band(game).members[1].kit.held('litters') == pytest.approx(1.0 - 1 / 56)
     assert band(game).held('litters') == 1.0
-    assert band(game).worn == pytest.approx({'litters': 1 / 32})
+    assert band(game).worn == pytest.approx({'litters': 1 / 56})
 
 
 class Sure:
@@ -415,7 +415,7 @@ def test_hunters_hunt_while_the_band_stands_and_not_while_it_walks(params: Param
     assert band(game).held('hides') == pytest.approx(meat * 0.05)
     # The stock grows back a tick of its 60 days in the same tick.
     assert game.cells.stock(GRASS, 'game') == pytest.approx(1 - meat / 60 + 1 / 300)
-    assert [member.kit.held('spears') for member in band(game).members[1:6:2]] == pytest.approx([1 - 1 / 60] * 3)
+    assert [member.kit.held('spears') for member in band(game).members[1:6:2]] == pytest.approx([1 - 1 / 80] * 3)
     do(game, bands.moving('west'))
     assert band(game).held('meat') == pytest.approx(meat)
 

@@ -501,11 +501,21 @@ def free(params: Params, band: Band) -> None:
 def cared(params: Params, band: Band) -> list[tuple[int, str]]:
     """
     The members the children call for, with the role that cares each takes: for every `cares` children, rounded
-    up, one woman of a stage that conceives, never the player - the pregnant and the resting first, then the oldest.
+    up, one carer, never the player. The first is a woman of a stage that conceives - the pregnant and the
+    resting first, then the oldest; the others are the elders first, the oldest first, then the women.
     """
     people = params.units.band.people
     named = census(params, band).stages
     children = sum(name == next(iter(people.stages)) for name in named)
+    last = list(people.stages)[-1]
+    elders = sorted(
+        (
+            at
+            for at, (member, name) in enumerate(zip(band.members, named, strict=True))
+            if name == last and not member.player
+        ),
+        key=lambda at: (-band.members[at].age_days, at),
+    )
     women = sorted(
         (
             at
@@ -524,23 +534,25 @@ def cared(params: Params, band: Band) -> list[tuple[int, str]]:
         if role.cares is not None
         for _ in range(math.ceil(children / role.cares))
     ]
-    return list(zip(women, wanted, strict=False))
+    return list(zip([*women[:1], *elders, *women[1:]], wanted, strict=False))
 
 
 def chosen(params: Params, band: Band, name: str) -> list[int]:
     """
-    The members a role with a share takes once the band knows it: adults of a stage that gathers who hold no role
-    that cares, never the player, men first and the youngest first, up to the share of the band rounded down.
+    The members a role with a share takes once the band knows it: members of a stage that gathers, but the last,
+    who hold no role that cares, never the player, men first and the youngest first, up to the share of the band
+    rounded down.
     """
     role = params.units.band.people.roles.get(name)
     if role is None or role.share is None or not lores.opened(params, band, lores.ROLES, name):
         return []
     stages = params.units.band.people.stages
+    last = list(stages)[-1]
     taken = (None, common(params), name)
     found = [
         at
         for at, (member, stage) in enumerate(zip(band.members, census(params, band).stages, strict=True))
-        if not member.player and stages[stage].gathers > 0 and member.role in taken
+        if not member.player and stage != last and stages[stage].gathers > 0 and member.role in taken
     ]
     found.sort(key=lambda at: (band.members[at].sex != MALE, band.members[at].age_days, at))
     return found[: math.floor(role.share * band.population + NOTHING)]
@@ -1581,7 +1593,7 @@ def eligible(params: Params, band: Band, per: str) -> list[int]:
         if per == ADULT:
             return name != first
         if per == PULLER:
-            return name != first and people.stages[name].gathers > 0 and member.role in (None, everyone)
+            return name not in (first, last) and people.stages[name].gathers > 0 and member.role in (None, everyone)
         return True
 
     def rank(at: int) -> tuple[int, int, int]:

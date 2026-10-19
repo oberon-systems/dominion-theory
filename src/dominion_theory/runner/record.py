@@ -22,6 +22,8 @@ TICK = 'tick'
 EVENT = 'event'
 FOOTER = 'footer'
 PERSON = 'person'
+BAND = 'band'
+MEMBERS = 'members'
 RECORD_UNREADABLE = 'error-record-unreadable'
 
 type Line = dict[str, Any]
@@ -48,7 +50,10 @@ def header_line(game_id: str, game: Game, kinds: dict[str, str] | None = None) -
     }
 
 
-def tick_lines(result: StepResult, judged: list[Judged]) -> list[Line]:
+def tick_lines(result: StepResult, judged: list[Judged], members: list[Line] | None = None) -> list[Line]:
+    """
+    The commands judged, the tick with the band as shown when it changed and the members when given, its events.
+    """
     lines: list[Line] = [
         {
             't': COMMAND,
@@ -60,16 +65,20 @@ def tick_lines(result: StepResult, judged: list[Judged]) -> list[Line]:
         }
         for seq, command, accepted in judged
     ]
-    lines.append(
-        {
-            't': TICK,
-            'tick': result.tick,
-            'parts': result.parts,
-            'hash': result.hash,
-            'counters': result.counters,
-            'units': result.units,
-        }
-    )
+    tick: Line = {
+        't': TICK,
+        'tick': result.tick,
+        'parts': result.parts,
+        'hash': result.hash,
+        'counters': result.counters,
+        'units': result.units,
+    }
+    shown = result.changes.get('units')
+    if shown:
+        tick[BAND] = shown[0]
+    if members is not None:
+        tick[MEMBERS] = members
+    lines.append(tick)
     lines.extend({'t': EVENT, 'tick': result.tick, **event.data()} for event in result.events)
     return lines
 

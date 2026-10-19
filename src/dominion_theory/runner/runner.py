@@ -14,6 +14,7 @@ from ..core import logger
 from ..core.errors import DominionError
 from ..core.settings import Settings
 from ..engine import Command, Game, StepResult
+from ..engine import band as bands
 from ..engine.commands import VOTE
 from ..engine.events import COMMAND_ACCEPTED, COMMAND_REFUSED
 from ..store import GameStore, Meta
@@ -181,9 +182,18 @@ class Runner:
             if event.key in VERDICTS:
                 seq, command = self._held.pop(event.values['id'])
                 judged.append((seq, command, event.key == COMMAND_ACCEPTED))
-        self._record.add(result.tick, tick_lines(result, judged))
+        self._record.add(result.tick, tick_lines(result, judged, self._members(result)))
         self.seq += 1
         return result
+
+    def _members(self, result: StepResult) -> list[dict[str, Any]] | None:
+        """
+        The members on the first tick and the last of every day, so a record tells who the band was.
+        """
+        band = self.game.band
+        if band is None or (result.tick > 1 and result.parts % self.game.params.time.parts_per_day):
+            return None
+        return bands.people(self.game.params, band)
 
     def _tick(self) -> Update:
         per_day = self.game.params.time.parts_per_day

@@ -1,5 +1,5 @@
 """
-The command line of the console client: play or watch a game, replay its record, or live one headless.
+The command line of the console client: play or watch a game, review the played ones, or live one headless.
 """
 
 import json
@@ -17,12 +17,14 @@ import httpx
 from websockets.exceptions import WebSocketException
 
 from ..core.errors import DominionError
+from ..core.settings import Settings
 from ..i18n import FALLBACK, LANGUAGES
-from ..runner import lives
+from ..runner import lives, record_path
 from ..runner import replay as replay_record
 from .api import SERVER, Api, Refused
 from .lines import words
 from .player import Player
+from .review import Review
 from .screen import PACE_S, Screen
 from .session import Session
 from .watcher import watch as lines_of
@@ -33,6 +35,16 @@ NOISY = ('httpx', 'httpcore', 'websockets', 'asyncio')
 POLL_S = 0.2
 
 server_option = click.option('--server', default=SERVER, show_default=True, help='Address of the server.')
+review_lang = click.option(
+    '--lang', type=click.Choice(LANGUAGES), default=FALLBACK, show_default=True, help='Language of the screen.'
+)
+records_option = click.option(
+    '--records',
+    type=click.Path(file_okay=False, path_type=Path),
+    default=lambda: Settings().records_dir,
+    show_default='DT_RECORDS_DIR',
+    help='Directory of the records of played games.',
+)
 
 
 @contextmanager
@@ -165,10 +177,40 @@ def play(
             click.echo(err=True)
 
 
-@cli.command()
+@cli.group()
+def replay() -> None:
+    """
+    Played games: list them, play one back on the screen, or check that its record replays.
+    """
+
+
+@replay.command('list')
+@records_option
+@review_lang
+def listed(records: Path, lang: str) -> None:
+    """
+    The played games of the records directory with a summary each; Enter plays one back.
+    """
+    Review(records, lang).run()
+
+
+@replay.command('play')
+@records_option
+@review_lang
+@click.argument('game_id')
+def played_back(records: Path, lang: str, game_id: str) -> None:
+    """
+    Play a game back from its record: the planet, the window and the trail, the panes, the log and charts.
+    """
+    if not record_path(records, game_id).exists():
+        raise click.ClickException(f'no record of {game_id} in {records}')
+    Review(records, lang, game_id).run()
+
+
+@replay.command('check')
 @server_option
 @click.argument('game_id')
-def replay(server: str, game_id: str) -> None:
+def check(server: str, game_id: str) -> None:
     """
     Download the record of a game and say whether it replays with every hash matching.
     """
@@ -179,6 +221,9 @@ def replay(server: str, game_id: str) -> None:
     if not played.matched:
         raise click.ClickException(f'the record of {game_id} diverges at tick {played.diverged_at}')
     click.echo(f'the record of {game_id} replays: {played.game.tick} ticks, every hash matches')
+
+
+cli.add_command(replay, 'replays')
 
 
 @cli.command()

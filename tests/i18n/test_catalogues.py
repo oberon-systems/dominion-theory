@@ -3,6 +3,7 @@ from fluent.syntax import FluentParser, ast
 from fluent.syntax.visitor import Visitor
 
 from dominion_theory.api.errors import UNIT_NOT_FOUND
+from dominion_theory.client import review
 from dominion_theory.client.lines import MESSAGES
 from dominion_theory.content import load_params
 from dominion_theory.content.loader import PRESET_NOT_FOUND
@@ -62,8 +63,11 @@ def in_use() -> set[str]:
     names |= {f'proposal-go-{land}' for land in goes}
     names.add(council.key(None))
     names |= {f'{council.OCCASION}{occasion}' for occasion in council.OCCASIONS}
+    people = params.units.band.people
+    names |= {f'{review.STAGE}{name}' for name in people.stages} | {f'{review.ROLE}{name}' for name in people.roles}
+    names |= {f'{review.WOUND}{name}' for name in people.injury.severities}
     errors = {*ERRORS, PRESET_NOT_FOUND, PARAMS_INVALID, LOCALE_UNKNOWN, PROFILE_NOT_FOUND, UNIT_NOT_FOUND}
-    return {*EVENTS, *REASONS, DATE, *MESSAGES} | errors | names | SPECIFIED
+    return {*EVENTS, *REASONS, DATE, *MESSAGES, *review.MESSAGES} | errors | names | SPECIFIED
 
 
 def test_languages_are_those_of_a_profile() -> None:

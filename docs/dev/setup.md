@@ -10,6 +10,7 @@ exists: the server, the console client, a game to play and the map tool.
 - [Check](#check)
 - [Run the server](#run-the-server)
 - [Run the client](#run-the-client)
+- [Review a game](#review-a-game)
 - [Play a band](#play-a-band)
 - [Settings](#settings)
 - [The data directory](#the-data-directory)
@@ -79,8 +80,37 @@ The tests need nothing installed or started: they use the in-process
 store, a SQLite file in a temporary directory, and the loopback address
 for the tests of the client.
 
-`make test` runs the tests of the code first and stops when one fails.
-After them it keeps the reference of the maps,
+`make test` runs only the tests a change reaches, and stops when one
+fails. The code is followed by
+[pytest-testmon](https://testmon.org/): it remembers which code every
+test ran and picks the tests the changed code reaches. Everything else
+the tests read - the defaults, the presets, the catalogues, the
+documents - is followed by `tests/datamon.py`: it remembers which files
+and folders each test module opened or listed, by their sha256, and
+`pytest --data-changed` runs the modules whose files moved, a new module,
+or every module when nothing is remembered yet. What both remember lies
+in `.testmondata` and `.datamon.json`, kept out of git.
+
+| A change of           | Runs                                              |
+|-----------------------|---------------------------------------------------|
+| Python code           | the tests that ran the code changed               |
+| a catalogue           | the modules that render text                      |
+| a default or a preset | every module that loads the parameters            |
+| a new data file       | the modules that listed its folder                |
+| a document only       | nothing                                           |
+
+A default reaches nearly every module, since loading the parameters
+reads and checks the whole tree. Run everything, and keep what every
+test reaches, with:
+
+```bash
+make test-all
+```
+
+Run it once after `make install`, after a change of the dependencies,
+and before a release.
+
+After the tests of the code both targets keep the reference of the maps,
 `tests/planet/maps.json`: for three seeds of the default planet and of
 every preset that shapes the planet, where the first window lies,
 how many rivers run, the share of every biome, how many square corners
@@ -202,11 +232,11 @@ make watch WATCH='--preset harsh-winter --set planet.window.width=128'
 | `--preset`   | the preset of a new game                                  |
 | `--set`      | overrides one parameter of a new game, as `PATH=VALUE`    |
 
-Replay the record of a game, from the subshell. The identifier is the
-first line `watch` printed.
+Check that the record of a game replays, from the subshell. The
+identifier is the first line `watch` printed.
 
 ```bash
-python -m dominion_theory.client replay 7f3a9c1e
+python -m dominion_theory.client replay check 7f3a9c1e
 ```
 
 Expected output:
@@ -214,6 +244,55 @@ Expected output:
 ```text
 the record of 7f3a9c1e replays: 500 ticks, every hash matches
 ```
+
+___
+
+## Review a game
+
+List the played games, the records of `DT_RECORDS_DIR`, the latest
+first. Nothing needs to be running: the records are read from the disk.
+
+```bash
+make replays
+```
+
+A game is a row: when its record was written, its seed, whether a
+player sat, how long it lasted, how it ended, the people at the start,
+at the end and at most, the births, the deaths, the skills learned and
+the standing at the end. A record that cannot be read says so. Enter
+plays the game under the cursor; q leaves.
+
+Play one game back by its identifier:
+
+```bash
+make replay GAME=7f3a9c1e
+make replay GAME=7f3a9c1e REPLAY='--lang ru'
+```
+
+The screen shows the planet, small, with the window framed in white and
+the band in magenta; the window around the band, open whole, with the
+trail walked so far as middle dots and the cells of a winter camp as `^`; the
+band; what happened; and a chart over the days with a line at the day
+shown. The game is read from its record and not played again, so a
+record of an older engine plays back as it was played.
+
+| Key          | Does                                                   |
+|--------------|--------------------------------------------------------|
+| space        | pauses and goes on                                     |
+| + and -      | plays faster or slower, from 1 to 500 ticks a second   |
+| left, right  | a tick back or on                                      |
+| down, up     | a day back or on; shift with left or right too         |
+| PgDn, PgUp   | a month back or on; [ and ] too                        |
+| Home, End    | the first tick or the last                             |
+| i, r, s      | the people, the skills, the stores; opening one pauses |
+| Tab          | the next chart: people, food and water, standing, deaths |
+| q            | back to the list, or leaves                            |
+
+The people pane lists every member: sex, age, stage, role, how it fares
+and what it holds. Records written before the band and its members were
+kept, on 2026-10-19, have the counters only, and the panes say so. A
+record whose tree is older than the rules is drawn by its planet over
+today's defaults, and the screen says that too.
 
 ___
 

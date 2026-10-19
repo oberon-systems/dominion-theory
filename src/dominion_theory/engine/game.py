@@ -11,7 +11,7 @@ import numpy as np
 from numpy.typing import NDArray
 
 from ..content import Params, Property
-from ..planet import Planet, biome_names, place
+from ..planet import Planet, Region, biome_names, place
 from . import band as bands
 from . import council, decisions, encounters, lore, routes
 from .band import Action, Band
@@ -107,6 +107,35 @@ class StepResult:
     counters: list[float]
     units: list[list[Any]]
     hash: str
+
+
+@dataclass(frozen=True)
+class Lands:
+    """
+    The land of a game drawn again from its seed and tree: the window it is played on, and the whole planet read
+    at a coarse cell. Biomes are positions in names.
+    """
+
+    names: tuple[str, ...]
+    window: Window
+    biomes: NDArray[np.uint8]
+    rivers: NDArray[np.bool_]
+    planet: Region
+    planet_km: int
+
+
+def lands(seed: int, params: Params, across: int) -> Lands:
+    """
+    The window of the first era as Game.create places it, and the planet across that many columns.
+    """
+    size = params.planet.window
+    x, y = place(seed, params)
+    planet = Planet(seed, params)
+    region = planet.read(x, y, size.width, size.height, params.eras[ERA].cell_km)
+    km = planet.circumference_km // across
+    whole = planet.read(0, 0, across, across // 2, km)
+    window = Window(0, x, y, size.width, size.height)
+    return Lands(biome_names(params), window, region.biomes, region.rivers, whole, km)
 
 
 @dataclass

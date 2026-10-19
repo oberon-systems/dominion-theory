@@ -59,13 +59,13 @@ ___
 Every line has a field `t` that names its kind. A reader skips kinds it
 does not know, so a new kind does not break an old reader.
 
-| `t`       | When                     | Holds                                         |
-|-----------|--------------------------|-----------------------------------------------|
-| `header`  | once, first              | versions, seed, parameters, seats, columns    |
-| `command` | when a command is judged | tick, seat, the command, accepted or refused  |
-| `tick`    | after every tick         | tick, clock, state hash, counters, units      |
-| `event`   | when the engine reports  | tick, message key, values                     |
-| `footer`  | once, last               | how the game ended, last tick, final hash     |
+| `t`       | When                     | Holds                                                              |
+|-----------|--------------------------|--------------------------------------------------------------------|
+| `header`  | once, first              | versions, seed, parameters, seats, columns                         |
+| `command` | when a command is judged | tick, seat, the command, accepted or refused                       |
+| `tick`    | after every tick         | tick, clock, state hash, counters, units; the band and its members |
+| `event`   | when the engine reports  | tick, message key, values                                          |
+| `footer`  | once, last               | how the game ended, last tick, final hash                          |
 
 The header carries the whole resolved tree of
 [parameters](parameters.md) and its hash, the version of the engine and of
@@ -116,6 +116,14 @@ state it is in, what it did and what it holds. The columns are named in
 the header, like the counters. Until stage 2 brings the band there are no
 units, so the list of columns and the rows are empty.
 
+A tick line carries the band as the API shows it, `band`, whenever it
+changed, and every member, `members`, on the first tick and the last of
+every day: age, stage, sex, role, whether pregnant, wounded or sick, how
+long hungry and thirsty, and the goods held. They are what a game is
+reviewed by: [Setup](../dev/setup.md#review-a-game) plays a record back
+from its lines alone, without a replay. Records written before them have
+the rows only.
+
 This is what heatmaps are drawn from. A map of where bands starve is every
 row whose state is `starvation`, counted by place; a map of where they
 camp is every row whose action is `camp`.
@@ -158,8 +166,8 @@ result.game            # the game, at the last tick of the record
 
 `replay` also takes other parameters than the header's, to play the same
 commands by other rules. The console client does the same from outside:
-`replay` downloads the record of a game over the API and reports whether
-every hash matched.
+`replay check` downloads the record of a game over the API and reports
+whether every hash matched.
 
 After every tick the state hash is compared with the one in the record.
 The first tick where they differ is reported: it is either a record made

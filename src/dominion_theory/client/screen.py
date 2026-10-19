@@ -95,6 +95,28 @@ LEARNED = '✓ '
 UNLEARNED = '· '
 
 
+def details(band: Mapping[str, Any], skills: list[str], pane: str, lang: str) -> Text:
+    """
+    A pane opened by its key: every skill of the game, those learned first marked; the stores and the goods;
+    the people by stage, condition and role.
+    """
+    if pane == RESEARCH:
+        known = band.get('lore', [])
+        lines = [] if known else [Part(Look.PLAIN, render(NO_SKILLS, lang=lang))]
+        for name in skills or known:
+            mark, look = (LEARNED, Look.BAND) if name in known else (UNLEARNED, Look.PLAIN)
+            lines.append(Part(look, mark + render(f'{SKILL}{name}', lang=lang)))
+    elif pane == STORES:
+        lines = held_parts(band, lang) or [Part(Look.PLAIN, render(NO_STORES, lang=lang))]
+    else:
+        lines = [Part(Look.BAND, render(PEOPLE, {'count': band['population']}, lang))]
+        lines += people_parts(band, lang, every=True)
+    told = Text()
+    for at, part in enumerate(lines):
+        told.append(('\n' if at else '') + part.text, LOOKS.get(part.look, 'dim'))
+    return told
+
+
 class Left(Exception):
     """
     The player left while the council waited.
@@ -421,28 +443,8 @@ class Screen(App[str | None]):
         return told
 
     def _details(self, pane: str) -> Text:
-        """
-        A pane opened by its key: every skill of the game, those learned first marked; the stores and the goods;
-        the people by stage, condition and role.
-        """
-        band, lang = self._session.band, self._lang
-        if band is None:
-            return Text()
-        if pane == RESEARCH:
-            known = band.get('lore', [])
-            lines = [] if known else [Part(Look.PLAIN, render(NO_SKILLS, lang=lang))]
-            for name in self._session.skills or known:
-                mark, look = (LEARNED, Look.BAND) if name in known else (UNLEARNED, Look.PLAIN)
-                lines.append(Part(look, mark + render(f'{SKILL}{name}', lang=lang)))
-        elif pane == STORES:
-            lines = held_parts(band, lang) or [Part(Look.PLAIN, render(NO_STORES, lang=lang))]
-        else:
-            lines = [Part(Look.BAND, render(PEOPLE, {'count': band['population']}, lang))]
-            lines += people_parts(band, lang, every=True)
-        told = Text()
-        for at, part in enumerate(lines):
-            told.append(('\n' if at else '') + part.text, LOOKS.get(part.look, 'dim'))
-        return told
+        band = self._session.band
+        return Text() if band is None else details(band, self._session.skills, pane, self._lang)
 
     def _cell(self) -> Text:
         session = self._session

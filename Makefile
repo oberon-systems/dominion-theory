@@ -13,6 +13,8 @@ MAPS_TEST := tests/planet/test_maps.py
 LIVES   ?= lives/$(STAMP)
 LIVED   := tests/runner/lives.json
 LIVES_TEST := tests/runner/test_lives.py
+UNIT    := --ignore=$(MAPS_TEST) --ignore=$(LIVES_TEST)
+SOME    = status=$$?; [ $$status -eq 0 ] || [ $$status -eq 5 ]
 PIP     := $(VENV)/bin/pip
 CZ      := $(VENV)/bin/cz
 
@@ -24,7 +26,7 @@ export PRE_COMMIT_HOME := $(CURDIR)/.pre-commit
 
 .DEFAULT_GOAL := shell
 
-.PHONY: help install lint test run play watch live lives map planet maps bump major release-rc release clean shell $(PRESETS:%=planet-%) $(PRESETS:%=map-%)
+.PHONY: help install lint test test-all references run play watch replays replay live lives map planet maps bump major release-rc release clean shell $(PRESETS:%=planet-%) $(PRESETS:%=map-%)
 
 help:  ## Show the available targets
 	@echo "$(PROJECT)"
@@ -54,11 +56,21 @@ lint:  ## Run the pre-commit hooks over every file
 	while IFS= read -r -d '' f; do [ -e "$$f" ] && printf '%s\0' "$$f"; done | \
 	xargs -0 $(VENV)/bin/pre-commit run --files
 
-# Code first: a failing test stops the run before any map is built. Then, if the planet
-# changed, its reference is rewritten and the maps are drawn; then, if the band changed,
-# its seeds are lived again. The tests of both references come last.
-test:  ## Run the tests of the code, then redo the maps and the lives of the band where they changed
-	$(VENV)/bin/pytest -q --ignore=$(MAPS_TEST) --ignore=$(LIVES_TEST)
+# Code first, only what the change reaches: the tests testmon picks for the code, then the
+# modules whose data files moved (tests/datamon.py); status 5 is a run with nothing to do.
+# A failing test stops the run before any map is built.
+test:  ## Run the tests a change reaches, then redo the maps and the lives of the band where they changed
+	@$(VENV)/bin/pytest -q --testmon $(UNIT); $(SOME)
+	@$(VENV)/bin/pytest -q --data-changed $(UNIT); $(SOME)
+	@$(MAKE) --no-print-directory references
+
+test-all:  ## Run every test of the code and keep what each reaches, then the references as make test does
+	$(VENV)/bin/pytest -q --testmon-noselect $(UNIT)
+	@$(MAKE) --no-print-directory references
+
+# If the planet changed, its reference is rewritten and the maps are drawn; then, if the
+# band changed, its seeds are lived again. The tests of both references come last.
+references:  ## Redo the maps and the lives of the band where they changed, then test both references
 	@$(VENV)/bin/python -m dominion_theory.planet.tools.reference $(MAPPED) \
 		|| $(MAKE) --no-print-directory maps
 	$(VENV)/bin/pytest -q $(MAPS_TEST)
@@ -82,6 +94,13 @@ play:  ## Play a band on a server of its own: lines in colour, a map and a vote 
 # WATCH carries options of the client: make watch WATCH='--lang ru --step --updates 50'
 watch:  ## Watch a new game on the running server, a line per update
 	$(VENV)/bin/python -m dominion_theory.client watch --server http://127.0.0.1:$(PORT) $(WATCH)
+
+# REPLAY carries options of both: make replay GAME=7f3a9c1e REPLAY='--lang ru'
+replays:  ## List the played games, a summary each; Enter plays one back
+	$(VENV)/bin/python -m dominion_theory.client replays list $(REPLAY)
+
+replay:  ## Play a game back from its record: make replay GAME=<id>
+	$(VENV)/bin/python -m dominion_theory.client replay play $(REPLAY) $(GAME)
 
 # LIVE carries options of the command: make live SEEDS='7 42' LIVE='--years 20 --set encounters.chance=0'
 live:  ## Live a game with no player for every seed of SEEDS, a row per year from its counters

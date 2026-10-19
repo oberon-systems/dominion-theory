@@ -447,6 +447,29 @@ def census(params: Params, band: Band) -> Census:
     return counted
 
 
+def people(params: Params, band: Band) -> list[dict[str, Any]]:
+    """
+    Every member as a record of the game keeps it: age, stage, sex, role, how it fares and the goods it holds.
+    """
+    everyone = common(params)
+    return [
+        {
+            'age_days': member.age_days,
+            'stage': name,
+            'sex': member.sex,
+            'player': member.player,
+            'role': member.role or everyone,
+            PREGNANT: member.pregnant_until is not None,
+            'wound': None if member.wound is None else member.wound['severity'],
+            SICK: member.sick > 0,
+            'hungry': member.hungry,
+            'thirsty': member.thirsty,
+            KIT: [name for name in member.kit if member.kit.held(name) > 0],
+        }
+        for member, name in zip(band.members, census(params, band).stages, strict=True)
+    ]
+
+
 def common(params: Params) -> str:
     """
     The role of everyone no other role takes.

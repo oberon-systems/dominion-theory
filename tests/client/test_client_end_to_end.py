@@ -87,7 +87,7 @@ def test_a_game_year_is_played_printed_and_replayed(server: str, lang: str) -> N
     )
     lines = watched.stdout.splitlines()
     game = watched.stderr.split()[1]
-    replayed = runner.invoke(cli, ['replay', '--server', server, game])
+    replayed = runner.invoke(cli, ['replay', 'check', '--server', server, game])
 
     assert watched.exit_code == 0
     assert len(lines) == YEAR

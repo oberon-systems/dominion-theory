@@ -309,3 +309,27 @@ def test_a_file_that_is_no_record_is_refused(tmp_path: Path, content: bytes) -> 
         replay(path)
 
     assert error.value.message() == {'key': RECORD_UNREADABLE, 'values': {'path': str(path)}}
+
+
+def test_a_tick_carries_the_band_when_it_changed_and_the_members_at_the_edges_of_a_day(service: Service) -> None:
+    runner = service.create(seed=1, overrides=SMALL, mode=STEP)
+    play(runner, 2 * DAY)
+    runner.end()
+
+    ticks = [line for line in read(runner.record_path) if line['t'] == 'tick']
+
+    assert ticks[0]['band']['population'] == 15
+    assert [line['tick'] for line in ticks if 'members' in line] == [1, DAY, 2 * DAY]
+    assert ticks[0]['members'][0] == {
+        'age_days': ticks[0]['members'][0]['age_days'],
+        'stage': 'adult',
+        'sex': ticks[0]['members'][0]['sex'],
+        'player': True,
+        'role': 'gatherer',
+        'pregnant': False,
+        'wound': None,
+        'sick': False,
+        'hungry': 0.0,
+        'thirsty': 0.0,
+        'kit': [],
+    }

@@ -38,9 +38,10 @@ from .band import (
     sheltered,
     short,
 )
-from .cells import Place
+from .cells import Place, valued
 
 HUNGER = 'hunger'
+FOOD = 'food'
 REST = 'rest'
 SHELTER = 'shelter'
 WANDER = 'wander'
@@ -113,7 +114,7 @@ def wellbeing(params: Params, band: Band, threat: float) -> float:
     return sum(weight * part for weight, part in parts) / sum(weight for weight, _ in parts)
 
 
-def seen(params: Params, band: Band, at: Place, era: str) -> dict[str, Any] | None:
+def seen(params: Params, band: Band, at: Place, era: str, ranged: bool = True) -> dict[str, Any] | None:
     """
     A known cell as the band sees it: its threat with the dread of what happened there and lowered by a winter
     camp built on it, and what a known shore beside it gives where that is more, since a band gathers from a
@@ -127,7 +128,12 @@ def seen(params: Params, band: Band, at: Place, era: str) -> dict[str, Any] | No
         for prop in _fed(params, shore, era):
             if shore.get(prop, 0.0) > held.get(prop, 0.0):
                 held = {**held, prop: shore[prop]}
-    if at == band.place and ranging(band):
+    beside = params.units.band.gathering_beside
+    for near in _beside(band, at):
+        for prop in _goods(params, near, era):
+            if near.get(prop, 0.0) * beside > held.get(prop, 0.0):
+                held = {**held, prop: near[prop] * beside}
+    if ranged and at == band.place and ranging(band):
         held = _ranged(params, band, held, era)
     if at in band.dread:
         held = {**held, THREAT: perceived(band, at, cell.get(THREAT, 0.0))}
@@ -156,9 +162,21 @@ def _ranged(params: Params, band: Band, held: dict[str, Any], era: str) -> dict[
     return held
 
 
-def _shores(params: Params, band: Band, at: Place, era: str) -> list[dict[str, Any]]:
+def _beside(band: Band, at: Place) -> list[dict[str, Any]]:
     around = (band.known.get((at[0] + dx, at[1] + dy)) for dx, dy in DIRECTIONS.values())
-    return [cell for cell in around if cell is not None and params.biomes[cell['biome']].eras[era].shore]
+    return [cell for cell in around if cell is not None]
+
+
+def _shores(params: Params, band: Band, at: Place, era: str) -> list[dict[str, Any]]:
+    return [cell for cell in _beside(band, at) if params.biomes[cell['biome']].eras[era].shore]
+
+
+def _goods(params: Params, cell: dict[str, Any], era: str) -> set[str]:
+    """
+    The properties the goods a known cell lists are gathered by, which a band beside it gathers too.
+    """
+    resources = params.resources
+    return {resources[name].land for name in _listed(params, cell, era) if resources[name].kind == GOODS}
 
 
 def _fed(params: Params, cell: dict[str, Any], era: str) -> set[str]:
@@ -175,13 +193,15 @@ def _listed(params: Params, cell: dict[str, Any], era: str) -> tuple[str, ...]:
 
 def gathers(params: Params, band: Band, at: Place, era: str) -> set[str]:
     """
-    The resources a band standing on a known cell can gather: those of the cell and of the shores beside it, and
-    of its reach while it ranges.
+    The resources a band standing on a known cell can gather: those of the cell and of the shores beside it, the
+    goods of every cell beside it, and the resources of its reach while it ranges.
     """
     cell = band.known.get(at)
     found = set() if cell is None else set(_listed(params, cell, era))
     for shore in _shores(params, band, at, era):
         found.update(_listed(params, shore, era))
+    for near in _beside(band, at):
+        found.update(name for name in _listed(params, near, era) if params.resources[name].kind == GOODS)
     if at == band.place and ranging(band):
         for near in _reach(params, band):
             found.update(_listed(params, near, era))
@@ -199,17 +219,101 @@ def here(params: Params, band: Band, wanted: dict[str, float], era: str, goods: 
 
 def wintering(params: Params, band: Band, era: str) -> float:
     """
-    What a winter camp on the cell the band stands on is worth: staying with its reach, under the threat a built
+    What a winter camp on the cell the band stands on is worth: staying with its reach as the season of the camp
+    will make them, its food by the share of that season the reach feeds every eater, under the threat a built
     camp leaves.
     """
-    own = seen(params, band, band.place, era)
+    camp = params.units.band.winter_camp
+    then = camp.offered.seasons[0]
+    own = seen(params, band, band.place, era, ranged=False)
     if own is None:
         return 0.0
-    if not ranging(band):
-        own = _ranged(params, band, own, era)
+    cells = [_as_in(params, band, cell, era, then) for cell in (own, *_reach(params, band))]
+    held = cells[0]
+    for cell in cells[1:]:
+        for prop in _fed(params, cell, era):
+            if cell.get(prop, 0.0) * camp.afar > held.get(prop, 0.0):
+                held = {**held, prop: cell[prop] * camp.afar}
+    held = {**held, FOOD: held.get(FOOD, 0.0) * fed(params, band, era, cells, then)}
     if not sheltered(band):
-        own = {**own, THREAT: own.get(THREAT, 0.0) * params.units.band.winter_camp.threat}
-    return worth(params, band, own, needs(params, band), band.unease)[0]
+        held = {**held, THREAT: held.get(THREAT, 0.0) * camp.threat}
+    return worth(params, band, held, needs(params, band), band.unease)[0]
+
+
+def fed(params: Params, band: Band, era: str, cells: list[dict[str, Any]], season: str) -> float:
+    """
+    The share of the days of a season a camp feeds every eater of the band: day by day the gatherers take the
+    best food of the camp's cell and its reach, as far as the day needs, and the stock of that cell falls.
+    """
+    camp = params.units.band.winter_camp
+    worked, eaten = _daily(params, band)
+    capacity = params.eras[era].capacity.get(FOOD)
+    days = next((held.months for held in params.time.seasons if held.name == season), 0) * params.time.days_per_month
+    if eaten <= 0 or days <= 0:
+        return 1.0
+    lands = []
+    for at, cell in enumerate(cells):
+        full = _full(params, cell, era, FOOD, season)
+        stock = min(cell.get(FOOD, 0.0) / full, 1.0) if full > 0 else 0.0
+        lands.append([full * (1.0 if at == 0 else camp.afar), stock])
+    met = 0.0
+    for _ in range(days):
+        best = max(lands, key=lambda held: held[0] * held[1])
+        got = min(worked * best[0] * best[1], eaten)
+        met += got / eaten
+        if capacity:
+            best[1] = max(best[1] - got / capacity, 0.0)
+    return met / days
+
+
+def stripped(params: Params, band: Band, era: str) -> bool:
+    """
+    Whether the gatherers would take less than a day's food of the band from the camp's cell and its reach as
+    the band now knows them.
+    """
+    own = seen(params, band, band.place, era, ranged=False)
+    if own is None:
+        return True
+    afar = params.units.band.winter_camp.afar
+    best: float = max([own.get(FOOD, 0.0), *(cell.get(FOOD, 0.0) * afar for cell in _reach(params, band))])
+    worked, eaten = _daily(params, band)
+    return worked * best < eaten
+
+
+def _daily(params: Params, band: Band) -> tuple[float, float]:
+    """
+    What the gatherers of a camp take in a day of food on land worth 1, and what the band eats of it in a camp.
+    """
+    rules = params.units.band
+    counted = census(params, band)
+    names = [name for name, held in params.resources.items() if held.property == FOOD and name in rules.gathering]
+    rate = max((rules.gathering[name] for name in names), default=0.0)
+    worked = (params.time.parts_per_day - len(rules.camp_parts)) * counted.gatherers * rate
+    rations = sum(rules.consumption_per_day.get(name, 0.0) for name in names)
+    return worked, counted.eaters * rules.winter_camp.consumption * rations
+
+
+def _as_in(params: Params, band: Band, cell: dict[str, Any], era: str, season: str) -> dict[str, Any]:
+    """
+    A known cell as the band expects it in a season: of each property, the share it saw of what the season it
+    remembers could give, laid over what the other season gives.
+    """
+    if not band.season or band.season == season:
+        return cell
+    found = dict(cell)
+    for prop in params.eras[era].properties:
+        full = _full(params, cell, era, prop, band.season)
+        share = min(cell.get(prop, 0.0) / full, 1.0) if full > 0 else 1.0
+        found[prop] = _full(params, cell, era, prop, season) * share
+    return found
+
+
+def _full(params: Params, cell: dict[str, Any], era: str, prop: str, season: str) -> float:
+    held = params.biomes[cell['biome']].eras[era].properties.get(prop)
+    if held is None:
+        return 0.0
+    river = params.planet.rivers.effects.get(era, {}).get(prop) if cell.get('river') else None
+    return valued(held.base, (held.seasons.get(season), river))
 
 
 def reachable(band: Band, at: Place) -> bool:
@@ -287,7 +391,7 @@ def options(
     staying = here(params, band, wanted, era)
     # An intent outweighs the land alone: the goods of the cell are weighed by its gathering already.
     settled = here(params, band, wanted, era, goods=False) if towards is not None else staying
-    unknown = dict(rules.decisions.unknown)
+    unknown = expected(params, band)
     found: list[Scored] = []
     if allowed is None or CAMP in allowed:
         found.append(Scored(camp(), 0.0, REST))
@@ -420,13 +524,22 @@ def _pull(
     return best or (0.0, REST, target)
 
 
+def expected(params: Params, band: Band) -> dict[str, float]:
+    """
+    What the band expects of land it does not know, in the season of what it remembers.
+    """
+    decided = params.units.band.decisions
+    factors = decided.unknown_seasons.get(band.season, {})
+    return {prop: min(value * factors.get(prop, 1.0), 1.0) for prop, value in decided.unknown.items()}
+
+
 def looks(params: Params, band: Band, era: str, at: Place) -> dict[str, Any] | None:
     """
     A cell as a route sees it: a known one the band believes it can enter, with its dread, or what it expects
     of land it does not know; None where it cannot step.
     """
     if at not in band.known:
-        return dict(params.units.band.decisions.unknown)
+        return expected(params, band)
     return seen(params, band, at, era) if reachable(band, at) else None
 
 

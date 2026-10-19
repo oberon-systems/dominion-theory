@@ -144,17 +144,31 @@ with the needs of [Decisions](decisions.md#needs):
 | Option            | Score                                                       |
 |-------------------|-------------------------------------------------------------|
 | `stay-and-gather` | `weights.move` times the worth of the own cell              |
-| `winter-camp`     | the same with the reach of the camp, under the threat a built camp leaves |
+| `winter-camp`     | the same with the reach of the camp as the winter will make it, its food by the share of the winter it feeds the band, under the threat a built camp leaves |
 | `go` to a place   | `weights.move` times the pull that way                      |
 
 A built camp the band stands in adds `winter_camp.kept`, 0.2, to the
-worth of both: staying in it is worth more than standing on its land.
+worth of both while its land still feeds the band a day: staying in it
+is worth more than standing on its land. Once its cell and its reach
+give the gatherers less than a day's food for the band, the camp is
+stripped, kept is gone, and a council of hunger calls the band on.
 
 ```text
 stay   = weights.move * (worth(own) + kept)
-winter = weights.move * (worth(own and its reach, threat * winter_camp.threat) + kept)
+winter = weights.move * (worth(own and its reach in winter, food * fed, threat * winter_camp.threat) + kept)
 go     = weights.move * pull
 ```
+
+A camp is valued by the winter it is for. Every cell of the camp and its
+reach is expected as the winter will make it: of each property, the
+share of the full value the band saw there, laid over what the winter
+gives the biome, so meadows seen at 0.96 in the autumn are 0.24 in the
+winter. `fed` is the share of the days of the winter the camp feeds
+every eater: day by day the gatherers take the best food of the camp and
+its reach, as far as the day needs, and the stock of that cell falls by
+what is taken over the units a full cell holds. A camp on the edge of a
+meadow that feeds the band ten days of thirty is worth a third of its
+food.
 
 A winter camp is offered in the seasons of
 `units.band.winter_camp.offered`, the winter, and in its `before` days

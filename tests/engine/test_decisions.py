@@ -370,3 +370,46 @@ def test_stores_last_for_days_and_for_ever_when_nobody_eats() -> None:
 
     assert held_days(load_params(overrides=SMALL), band, 'food') == 1.5
     assert held_days(fasting, band, 'food') == float('inf')
+
+
+def test_unknown_land_is_expected_in_the_season_the_band_remembers(params: Params) -> None:
+    band = held({}, 30.0, 30.0)
+    assert decisions.expected(params, band) == params.units.band.decisions.unknown
+
+    band.season = 'winter'
+    expected = decisions.expected(params, band)
+
+    assert (expected['food'], expected['water'], expected['passability']) == pytest.approx((0.2, 0.4, 0.49))
+    assert expected['threat'] == 0.4
+
+
+def test_a_band_beside_a_forest_sees_its_wood_at_a_share_and_gathers_sticks(params: Params) -> None:
+    band = held({HOME: GRASS, EAST: {**FOREST, 'wood': 0.8}}, 30.0, 30.0)
+    band.lore['known'].append('sticks')
+
+    seen = decisions.seen(params, band, HOME, ERA)
+
+    assert seen is not None and seen['wood'] == pytest.approx(0.8 * 0.3)
+    assert 'sticks' in decisions.gathers(params, band, HOME, ERA)
+    assert 'forage' not in decisions.gathers(params, held({EAST: FOREST}, 30.0, 30.0), HOME, ERA)
+
+
+def test_a_cell_seen_in_autumn_is_expected_as_the_winter_will_make_it(params: Params) -> None:
+    band = held({}, 30.0, 30.0, season='autumn')
+    autumn = {**GRASS, 'food': 0.8 * 1.2 * 0.5}
+
+    wintry = decisions._as_in(params, band, autumn, ERA, 'winter')
+
+    assert wintry['food'] == pytest.approx(0.8 * 0.3 * 0.5)
+    assert decisions._as_in(params, held({}, 30.0, 30.0), autumn, ERA, 'winter') is autumn
+
+
+def test_a_camp_feeds_its_winter_while_its_land_gives_a_day_and_a_stripped_one_does_not(params: Params) -> None:
+    wintry = {**GRASS, 'food': 0.24}
+    bare = {**GRASS, 'food': 0.024}
+    band = held(around(bare), 30.0, 30.0, season='winter')
+
+    assert decisions.fed(params, band, ERA, [wintry] * 9, 'winter') == pytest.approx(1.0)
+    assert decisions.fed(params, band, ERA, [bare] * 9, 'winter') < 0.3
+    assert decisions.stripped(params, band, ERA)
+    assert not decisions.stripped(params, held(around(wintry), 30.0, 30.0, season='winter'), ERA)

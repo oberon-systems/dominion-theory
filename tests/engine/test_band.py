@@ -209,7 +209,7 @@ def test_a_band_by_the_shallows_gathers_from_them_when_they_give_more(params: Pa
 
     do(game, gathering({'forage': 1.0}))
 
-    assert sources == (SHELF, HOME)
+    assert sources == ((SHELF, 1.0), (HOME, 1.0))
     assert game.cells.stock(SHELF, 'food') < 1.0
     assert game.cells.stock(MEADOW, 'food') == 1.0
     assert band(game).held('forage') == pytest.approx(15 + 15 * 3.0 * 0.5)
@@ -721,7 +721,7 @@ def test_a_restored_game_carries_the_band_in_the_middle_of_a_day(params: Params)
 def test_a_snapshot_of_the_format_before_the_band_is_refused(params: Params) -> None:
     snapshot = land(params).snapshot()
 
-    assert snapshot["format"] == 23
+    assert snapshot["format"] == 24
     with pytest.raises(ValueError, match='format 2'):
         Game.restore({**snapshot, 'format': 2})
 

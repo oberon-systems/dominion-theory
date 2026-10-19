@@ -215,6 +215,17 @@ A gathering of a good takes no more than is missing of its keep: one tick
 of a band of 15 in a forest would bring 12 sticks against a keep of 4.5,
 and the rest would only weigh and wear out.
 
+A good is gathered beside its biome too: a band by a forest or on the
+foot of hills takes a little wood or stone. Of the cell the band stands
+on and the eight around it, the one that gives most is gathered from,
+and a cell beside gives `units.band.gathering_beside`, 0.3, of what it
+would give the band standing on it; its stock falls by what is taken.
+Food and water are not gathered beside: they come from the own cell, a
+shore and the reach of a winter camp. A band of 15 on grass by a forest
+takes 15 x 1.0 x 0.8 x 0.3 = 3.6 sticks a tick. The decisions and the
+council see a cell so: its wood, stone and plants are the larger of its
+own and of its neighbours' at that share.
+
 The quality of a stone or a cord is drawn when it is gathered, from the
 range of the biome of the cell it came from, on a stream of its own,
 `goods`, and rounded to two places. The reed of a floodplain makes the

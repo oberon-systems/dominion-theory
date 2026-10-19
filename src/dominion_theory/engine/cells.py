@@ -11,6 +11,19 @@ Place = tuple[int, int]
 FULL = 1.0 - 1e-9
 
 
+def valued(base: float, modifiers: Iterable[Any], stock: float = 1.0) -> float:
+    """
+    A property of a cell: its base and every plus, times every times and the stock, held between 0 and 1.
+    """
+    plus, times = base, stock
+    for modifier in modifiers:
+        if modifier is not None and modifier.kind == 'plus':
+            plus += modifier.amount
+        elif modifier is not None:
+            times *= modifier.amount
+    return min(max(plus * times, 0.0), 1.0)
+
+
 class Cells:
     """
     Stocks by planet cell. A stock that is full is not kept, and a cell with none kept is forgotten.

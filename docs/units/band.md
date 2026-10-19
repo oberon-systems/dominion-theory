@@ -449,7 +449,8 @@ taken               = gatherers * share * rate * value(property, its cell)
 So a band with water for a day and food for two sends most of its
 gatherers for water and some for food, and a band with neither sends
 them for both. A need of 0 gets nobody. Every share takes its resource
-from its own cell - the cell the band stands on, a shore beside it, the
+from its own cell - the cell the band stands on, a shore beside it, for
+goods any cell beside it at `gathering_beside` of what it gives, the
 reach of a winter camp - and the same share of the free carrying weight,
 so a band can no longer fill its carry with food and leave no room for
 water. Before game b54a7608 a tick was spent on one resource: a band dying
@@ -765,6 +766,7 @@ units:
         mother_dies: 0.05
     carry_kg: 6.0
     carry_water_kg: 0.0
+    gathering_beside: 0.3
     gathering:
       forage: 3.0
       water: 4.0

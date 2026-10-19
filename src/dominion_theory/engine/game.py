@@ -15,7 +15,7 @@ from ..planet import Planet, Region, biome_names, place
 from . import band as bands
 from . import council, decisions, encounters, lore, routes
 from .band import Action, Band
-from .cells import Cells, Place
+from .cells import Cells, Place, valued
 from .clock import DAY_STARTED, SEASON_STARTED, Clock, Date
 from .commands import ABSTAIN, BUILT, GO, VOTE, WINTER, Command
 from .counters import Counters
@@ -65,7 +65,7 @@ from .events import (
 from .hashing import digest
 from .streams import Streams
 
-SNAPSHOT_FORMAT = 23
+SNAPSHOT_FORMAT = 24
 DIED = 'died'
 BANISHED = 'banished'
 VOTED = 'voted'
@@ -283,6 +283,10 @@ class Game:
         return self.clock.date
 
     @property
+    def season(self) -> str:
+        return self.clock.date.season
+
+    @property
     def seat(self) -> dict[str, Any]:
         """
         The seat as a client sees it: docs/game/01_bands.md, What the API shows.
@@ -355,13 +359,7 @@ class Game:
         modifiers = [held.seasons.get(self.date.season if season is None else season)]
         if self.rivers[row, column]:
             modifiers.append(self.params.planet.rivers.effects.get(self.era, {}).get(name))
-        plus, times = held.base, self.cells.stock((x, y), name) if stock is None else stock
-        for modifier in modifiers:
-            if modifier is not None and modifier.kind == 'plus':
-                plus += modifier.amount
-            elif modifier is not None:
-                times *= modifier.amount
-        return min(max(plus * times, 0.0), 1.0)
+        return valued(held.base, modifiers, self.cells.stock((x, y), name) if stock is None else stock)
 
     def deplete(self, x: int, y: int, name: str, amount: float) -> None:
         """

@@ -545,3 +545,16 @@ def test_a_day_of_raw_meat_sickens_and_herbs_cure_the_sick_that_evening() -> Non
     assert told == [('people-sickened', {'count': 15, 'cause': 'meat'}), ('people-cured', {'count': 2})]
     assert bands.census(params, band(game)).sick == 13
     assert band(game).held('herbs') == 0.0
+
+
+def test_a_band_beside_a_forest_gathers_a_share_of_its_sticks_and_its_food_from_its_own_cell(params: Params) -> None:
+    game = land(params, at=GRASS)
+    beside = (WEST + 2, NORTH)
+
+    assert bands.source(game, GRASS, 'sticks') == (beside, 0.3)
+    assert bands.source(game, GRASS, 'forage') == (GRASS, 1.0)
+    do(game, gathering({'sticks': 1.0}))
+
+    assert band(game).held('sticks') == pytest.approx(15 * 1.0 * 0.8 * 0.3)
+    # Wood grows back in 30 days, a 150th of the stock in the same tick.
+    assert game.cells.stock(beside, 'wood') == pytest.approx(1 - 15 * 1.0 * 0.8 * 0.3 / 100 + 1 / 150)

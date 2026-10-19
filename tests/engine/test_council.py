@@ -879,3 +879,17 @@ def test_the_council_says_whether_the_player_may_name_a_place_of_their_own(param
 
     assert lost.council is not None and oriented.council is not None
     assert (lost.council['place'], oriented.council['place']) == (False, True)
+
+
+def test_a_built_camp_whose_reach_is_stripped_is_worth_no_more_than_its_land() -> None:
+    even = {'units.band.winter_camp.threat': 1.0, 'units.band.winter_camp.consumption': 1.0}
+    params = load_params(overrides={**SMALL, **even})
+    game = land(params, stripped=STRIPPED, parts=WINTER + 2)
+    camp = {'x': HOME[0], 'y': HOME[1], 'built': 0.5}
+    band(game).camp = dict(camp)
+    building = council.score(params, band(game), ERA, game.inside, wintering=True)
+    band(game).camp = {**camp, 'built': 1.0}
+    built = council.score(params, band(game), ERA, game.inside, wintering=True)
+
+    assert decisions.stripped(params, band(game), ERA)
+    assert [held for _, held in built] == pytest.approx([held for _, held in building])

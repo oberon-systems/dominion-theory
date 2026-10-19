@@ -103,11 +103,12 @@ def score(
     What a day of every proposal is worth to the band, in the fixed order: staying on the land it stands on,
     a winter camp on it while one is offered, a go to the best land it knows each way clockwise from the north,
     a target named in the same way once, then every extra one it can reach. Staying in a built camp is worth
-    its kept more.
+    its kept more while its reach still feeds the band a day.
     """
     weights = params.units.band.decisions.weights
     here = decisions.here(params, band, decisions.needs(params, band), era)
-    kept = params.units.band.winter_camp.kept if bands.sheltered(band) else 0.0
+    sheltered = bands.sheltered(band) and not decisions.stripped(params, band, era)
+    kept = params.units.band.winter_camp.kept if sheltered else 0.0
     found: dict[Place | None, float] = {None: weights.move * (here + kept)}
     for held in decisions.options(params, band, era, allowed={bands.MOVE}, walking=True):
         to = held.pull

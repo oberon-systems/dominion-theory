@@ -811,6 +811,7 @@ class Decisions(Node):
     distance: Factor
     horizon: Span
     unknown: dict[Name, Share]
+    unknown_seasons: dict[Name, dict[Name, Factor]] = Field(default_factory=dict)
     idle: Factor
     wander: Duration
     weights: Weights
@@ -857,6 +858,7 @@ class Band(Node):
     carry_kg: Positive
     carry_water_kg: Factor
     gathering: dict[Name, Factor]
+    gathering_beside: Share
     consumption_per_day: dict[Name, Factor]
     speed: Speed
     roaming: Roaming
@@ -1243,6 +1245,13 @@ class Params(Node):
                 if prop not in held.properties:
                     expected = f'a property of the era {era}: {", ".join(held.properties)}'
                     raise _invalid('units.band.decisions.unknown', prop, expected)
+        for season, factors in band.decisions.unknown_seasons.items():
+            if season not in seasons:
+                raise _invalid('units.band.decisions.unknown_seasons', season, f'one of {", ".join(seasons)}')
+            for prop in factors:
+                if prop not in band.decisions.unknown:
+                    expected = f'one of {", ".join(band.decisions.unknown)}'
+                    raise _invalid(f'units.band.decisions.unknown_seasons.{season}', prop, expected)
         self._check_people()
 
     def _check_people(self) -> None:

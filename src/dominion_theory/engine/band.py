@@ -86,6 +86,9 @@ class Land(Protocol):
     era: str
     streams: Streams
 
+    @property
+    def season(self) -> str: ...
+
     def inside(self, x: int, y: int) -> bool: ...
 
     def biome(self, x: int, y: int) -> str: ...
@@ -179,6 +182,8 @@ class Band:
     work: dict[str, list[float]] = field(default_factory=dict)
     spoiled: dict[str, float] = field(default_factory=dict)
     worn: dict[str, float] = field(default_factory=dict)
+    # The season what the band remembers of the land is of.
+    season: str = ''
     counted: tuple[int, Census] | None = field(default=None, init=False, repr=False, compare=False)
     laid: dict[Any, Params] = field(default_factory=dict, init=False, repr=False, compare=False)
 
@@ -215,6 +220,7 @@ class Band:
             work={name: list(held) for name, held in plain['work'].items()},
             spoiled=dict(plain['spoiled']),
             worn=dict(plain['worn']),
+            season=plain['season'],
         )
 
     @property
@@ -273,6 +279,7 @@ class Band:
             'work': {name: list(held) for name, held in sorted(self.work.items())},
             'spoiled': dict(sorted(self.spoiled.items())),
             'worn': dict(sorted(self.worn.items())),
+            'season': self.season,
         }
 
     def shown(self, params: Params, scale: int) -> dict[str, Any]:
@@ -616,24 +623,27 @@ def _era(land: Land, x: int, y: int) -> Any:
     return land.params.biomes[land.biome(x, y)].eras[land.era]
 
 
-def source(land: Land, at: Place, name: str) -> Place | None:
+def source(land: Land, at: Place, name: str) -> tuple[Place, float] | None:
     """
-    The cell a band standing at a place gathers a resource from: the place itself or a shore beside it that
-    lists the resource, whichever gives more of it; the place first on a tie, then clockwise from the north.
+    The cell a band standing at a place gathers a resource from and the share of a gathering it gives: the place
+    itself or a shore beside it that lists the resource, whole, or for goods any cell beside that lists them,
+    `gathering_beside` of it; whichever gives most, the place first on a tie, then clockwise from the north.
     """
-    prop = land.params.resources[name].land
-    found: Place | None = None
+    resource = land.params.resources[name]
+    beside = land.params.units.band.gathering_beside if resource.kind == GOODS else 0.0
+    found: tuple[Place, float] | None = None
     best = -math.inf
     for dx, dy in [(0, 0), *DIRECTIONS.values()]:
         x, y = at[0] + dx, at[1] + dy
         if not land.inside(x, y):
             continue
         era = _era(land, x, y)
-        if ((dx or dy) and not era.shore) or name not in era.resources:
+        share = 1.0 if not (dx or dy) or era.shore else beside
+        if share <= 0 or name not in era.resources:
             continue
-        value = land.value(prop, x, y)
+        value = land.value(resource.land, x, y) * share
         if value > best:
-            found, best = (x, y), value
+            found, best = ((x, y), share), value
     return found
 
 
@@ -670,13 +680,12 @@ def reached(land: Land, band: Band, name: str) -> tuple[Place, float] | None:
     The cell a band gathers a resource from and the share of a gathering it gives: its source, or while it
     ranges an enterable cell within reach that lists the resource, worth afar of its own; the earlier on a tie.
     """
-    found = source(land, band.place, name)
-    held = None if found is None else (found, 1.0)
+    held = source(land, band.place, name)
     if not ranging(band):
         return held
     camp = land.params.units.band.winter_camp
     prop = land.params.resources[name].land
-    best = -math.inf if found is None else land.value(prop, *found)
+    best = -math.inf if held is None else land.value(prop, *held[0]) * held[1]
     for x, y in around(band.place, camp.reach):
         if not enterable(land, x, y) or name not in _era(land, x, y).resources:
             continue
@@ -1049,6 +1058,7 @@ def look(land: Land, band: Band, day: int) -> list[Place]:
     params = land.params
     rules = params.units.band
     names = params.eras[land.era].properties
+    band.season = land.season
     news: list[Place] = []
     for y in range(band.y - rules.sight, band.y + rules.sight + 1):
         for x in range(band.x - rules.sight, band.x + rules.sight + 1):
@@ -1072,6 +1082,7 @@ def reseason(land: Land, band: Band, was: str) -> list[Place]:
     of what the season before could give. Gives the cells whose memory changed.
     """
     names = land.params.eras[land.era].properties
+    band.season = land.season
     changed: list[Place] = []
     for (x, y), cell in band.known.items():
         if not land.inside(x, y):

@@ -175,8 +175,10 @@ roam = roaming.speed * weights.move * (pull - staying)
 - **The unknown** is one more of them: the cell `decisions.horizon`
   cells past the sight that way, when the band does not know it. It is
   worth what the band expects of land it has not seen,
-  `decisions.unknown`, and a worth of it below zero is not made worse by
-  distance. The band expects land as dangerous as a forest, so it is
+  `decisions.unknown`, in the season of what it remembers: the factors of
+  `decisions.unknown_seasons` are laid over it as the seasons of the
+  temperate land are, so winter promises 0.2 food, not 0.5. A worth of it
+  below zero is not made worse by distance. The band expects land as dangerous as a forest, so it is
   hope of food and water that sends it there, not fear: a band on
   stripped land leans out towards it, a band in a forest or on grass
   stays. A horizon of 0 turns it off.
@@ -294,6 +296,10 @@ units:
       distance: 0.25
       horizon: 2
       unknown: {food: 0.5, water: 0.5, threat: 0.4, passability: 0.7, stone: 0.1, wood: 0.2, plants: 0.3, game: 0.3}
+      unknown_seasons:
+        spring: {food: 0.7, water: 1.2, passability: 0.8}
+        autumn: {food: 1.2}
+        winter: {food: 0.4, water: 0.8, passability: 0.7}
       idle: 0.05
       wander: {days: 1}
       weights:

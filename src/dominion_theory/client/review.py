@@ -9,6 +9,7 @@ from collections.abc import Mapping
 from pathlib import Path
 from typing import Any
 
+import numpy as np
 from rich.style import Style
 from rich.text import Text
 from textual.app import App, ComposeResult
@@ -41,7 +42,7 @@ CAMP = '^'
 FRAME = (255, 255, 255)
 MARK = (255, 0, 255)
 # The most of the left column the planet may take.
-PLANET_SHARE = 0.4
+PLANET_SHARE = 0.5
 SKIPPED = ('command-accepted',)
 PLOT_S = 0.2
 NEVER = 1 << 62
@@ -227,6 +228,7 @@ class Playback(Screen[None]):
         self._colours = [rgb(game.params.biomes[name].colour) for name in game.lands.names]
         self._planet_at: tuple[Any, ...] | None = None
         self._planet_drawn = Text()
+        self._planet_grid: tuple[int, list[list[int]]] | None = None
         self._plotted = (-1, -1, 0.0)
 
     def compose(self) -> ComposeResult:
@@ -334,8 +336,7 @@ class Playback(Screen[None]):
         is resized.
         """
         lands = self._game.lands
-        biomes = lands.planet.biomes
-        height, width = biomes.shape
+        width = lands.planet.biomes.shape[1]
         pane = self.query_one('#planet')
         inside = pane.size.width - 2 if pane.size.width > 2 else width
         lines = max(min(inside // 4, int(self.query_one('#left').size.height * PLANET_SHARE)), 2)
@@ -352,20 +353,33 @@ class Playback(Screen[None]):
             int((window.x + window.width) * scale),
             int((window.y + window.height) * scale),
         )
+        grid = self._grid(columns, rows)
         paper = [
-            [
-                self._spot(column, row, box, band, biomes[row * height // rows, column * width // columns])
-                for column in range(columns)
-            ]
-            for row in range(rows)
+            [self._spot(column, row, box, band, grid[row][column]) for column in range(columns)] for row in range(rows)
         ]
         told = Text(no_wrap=True, overflow='crop')
         for line in range(0, rows - 1, 2):
+            if line:
+                told.append('\n')
             for column in range(columns):
                 told.append('▀', Style(color=f'rgb{paper[line][column]}', bgcolor=f'rgb{paper[line + 1][column]}'))
-            told.append('\n')
         self._planet_at, self._planet_drawn = (band, columns), told
         return told
+
+    def _grid(self, columns: int, rows: int) -> list[list[int]]:
+        """
+        The planet cut to that many cells, each the biome most of its block of the read planet holds.
+        """
+        if self._planet_grid is not None and self._planet_grid[0] == columns:
+            return self._planet_grid[1]
+        biomes = self._game.lands.planet.biomes
+        height, width = biomes.shape
+        grid = [
+            [int(np.bincount(biomes[down, across].ravel()).argmax()) for across in _spans(width, columns)]
+            for down in _spans(height, rows)
+        ]
+        self._planet_grid = (columns, grid)
+        return grid
 
     def _spot(self, column: int, row: int, box: tuple[int, int, int, int], band: Any, biome: int) -> Rgb:
         left, top, right, bottom = box
@@ -473,6 +487,14 @@ class Playback(Screen[None]):
         plt.vline(self._days[self._at], 'white')
         plt.xlabel('day')
         chart.refresh()
+
+
+def _spans(size: int, parts: int) -> list[slice]:
+    """
+    A length cut into that many slices as even as they come, none of them empty.
+    """
+    edges = [part * size // parts for part in range(parts + 1)]
+    return [slice(edges[part], max(edges[part + 1], edges[part] + 1)) for part in range(parts)]
 
 
 def _by(marks: list[int], at: int, step: int) -> int:

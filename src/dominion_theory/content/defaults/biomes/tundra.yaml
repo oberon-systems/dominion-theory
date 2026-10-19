@@ -27,4 +27,5 @@ biomes:
           stone: {base: 0.0}
           wood: {base: 0.0}
           plants: {base: 0.0}
+          game: {base: 0.4, recovery: {days: 60}}
         resources: [water, forage]

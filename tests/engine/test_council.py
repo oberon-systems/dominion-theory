@@ -549,6 +549,7 @@ def test_a_tired_band_rests_whatever_it_is_bound_to(params: Params, proposal: di
 
 def test_a_point_the_others_did_not_name_is_weighed_by_them_and_wins_some(params: Params) -> None:
     game = land(params, stripped=STRIPPED)
+    band(game).lore['known'] = ['orientation']
     game.status = 80.0
     sit(game, (STAY, 8), (NORTHWARD, 1), (EAST, 5))
     far = council.going((WEST + 5, NORTH + 1))

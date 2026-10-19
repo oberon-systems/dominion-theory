@@ -62,9 +62,10 @@ ___
 ## Population
 
 A band is its members, kept one by one. A member has an age in days, a
-sex and three marks: pregnant until a day, resting after a birth until
-a day, and a wound with its severity and the days of healing it still
-needs. The population is the number of members,
+sex and four marks: pregnant until a day, resting after a birth until
+a day, a wound with its severity and the days of healing it still
+needs, and the days of a sickness left; see
+[Sickness and herbs](../game/skills.md#sickness-and-herbs). The population is the number of members,
 and a band dies when fewer than 5 are left; the game ends with it.
 
 A band starts with 15 members: the player and 14 others, adults of a
@@ -93,16 +94,18 @@ member does against an adult, whose weights are all 1.
 
 A band sums its members where an amount grows with the people, and
 takes the mean where it is a pace. A wounded member gathers and walks
-at the shares of its severity, see [Injuries](#injuries), and a hungry
+at the shares of its severity, see [Injuries](#injuries), a hungry
 or thirsty one at `people.weakened`, 0.6, see
-[Hunger and thirst](#hunger-and-thirst).
+[Hunger and thirst](#hunger-and-thirst), and a sick one at
+`people.sickness`, 0.5 of its gathering and 0.7 of its pace.
 
 ```text
 gatherers = sum of gathers, times severity.gathers for the wounded, times weakened.gathers for the hungry,
-            times the gathers of the role
+            times sickness.gathers for the sick, times the gathers of the role
 eaters    = sum of eats
 carriers  = sum of carries
-pace      = mean of pace, times severity.pace for the wounded, times weakened.pace for the hungry
+pace      = mean of pace, times severity.pace for the wounded, times weakened.pace for the hungry,
+            times sickness.pace for the sick
 tires     = mean of tires
 ```
 
@@ -124,6 +127,7 @@ else is a gatherer. The roles are laid anew at the end of every day.
 |------------|---------|---------------|
 | `gatherer` | 1       | -             |
 | `nanny`    | 0.5     | 5 children    |
+| `hunter`   | 1       | 5 members, each holding a spear |
 
 A nanny that gathered nothing took a third of the hands of a band with
 more children than adults: the headless band of seed 7 had 16 children,
@@ -141,8 +145,9 @@ A band rarely holds more than 2 days at the end of a day, so a nanny
 sent out while the stores fed less than a day came back only once they
 fed 3 days, which meant she almost never came back.
 
-The role `hunter` opens with the skill of spears; who hunts and when is
-told in [Skills](../game/skills.md#hunting).
+The role `hunter` opens with the skill of spears and takes the men
+first, after the nannies; who hunts and when is told in
+[Skills](../game/skills.md#hunting).
 
 Children and elders are gatherers who gather nothing for their stage. A
 role is meant to grow with the doing - a member who fetches water for
@@ -226,7 +231,11 @@ Both are asked every day as a share of the year. A newborn at wellbeing
 0.85 dies of frailty at 0.18 a year and a child of three at 0.02, so
 about four in five reach four; at wellbeing 0.5 about half do, before
 hunger and predators take their share. A band in camp dies less of
-frailty, see [Shelter](#shelter). Death of age begins at 0.15 a year at 17 and doubles
+frailty, see [Shelter](#shelter). A sick member weighs
+`sickness.frailty`, twice, for frailty, and the goods of a member lower
+its weights by `people.exposure`, 1 for both causes without them:
+clothes leave 0.8 of an encounter and, in winter, 0.7 of frailty; see
+[Bonuses](../game/skills.md#bonuses). Death of age begins at 0.15 a year at 17 and doubles
 every two years: about half live to 20, and one in five to 22.
 
 ### Children grow safer
@@ -255,8 +264,9 @@ those who died each year.
 
 ### The order of a day
 
-A day ends in a fixed order: the meal and the states, then age,
-frailty, injuries, births and conceptions. The council answers for
+A day ends in a fixed order: the meal, the sick of raw meat and the
+states, the cures of herbs, then age, frailty, injuries, births and
+conceptions. The council answers for
 hunger, thirst and encounters only; see
 [Indirect control](../game/indirect_control.md#status).
 
@@ -284,7 +294,11 @@ healing the wound needs and the share of pace and gathering it leaves.
 A wound heals at the end of every day. A day on the move heals one
 day, a day wholly in camp `injury.heal_in_camp`, 2, and a day partly in
 camp by the share it camped. A wound kills nobody by itself. Every new
-wound is the event `people-injured`.
+wound is the event `people-injured`. A herb cuts the days left of a
+light wound to its `treated`, 0.5, once; a severity without it is not
+treated. See [Sickness and herbs](../game/skills.md#sickness-and-herbs).
+A member hurt on a day is drawn by `injury.per_day` with the bonuses of
+its own kit laid over: clothes leave 0.7 of it.
 
 ```text
 healed a day = 1 + (heal_in_camp - 1) * camped
@@ -319,8 +333,9 @@ a band that walks all day has none of it.
 `threat.camp` in the ticks it camps or builds, `threat.march` in the
 others, both 1.0. It multiplies the threat of the encounters and the
 threat in the safety of wellbeing, after `winter_camp.threat`. Goods
-held lower it: sticks lay `threat.camp` times 0.8, see
-[Bonuses](../game/skills.md#bonuses). What the band sees of the land,
+held lower it: sticks lay `threat.camp` times 0.8, clothes both times
+0.9 by the members holding them, and the hunters both times 0.8 by the
+share of their quota filled; see [Bonuses](../game/skills.md#bonuses). What the band sees of the land,
 its unease and its decisions are not changed.
 
 ___
@@ -384,6 +399,10 @@ it spoils and, for goods, the uses it wears out by.
 | `herbs`   | `goods` | a bunch  | 0.1 kg | 2 months           | 1 a cure                                       |
 | `cords`   | `goods` | a cord   | 0.1 kg | 6 months x quality | - (spent in what is made)                      |
 | `litters` | `goods` | a litter | 4 kg   | -                  | 40 days pulled x quality                       |
+| `meat`    | `food`  | a kilo   | 1 kg   | 2 days             | -                                              |
+| `spears`  | `goods` | a spear  | 1.5 kg | -                  | 60 hunts x quality                             |
+| `hides`   | `goods` | a hide   | 2 kg   | 2 months           | - (spent in what is made)                      |
+| `clothes` | `goods` | a suit   | 2 kg   | 8 months x quality | -                                              |
 
 Stores are kept in lots, one per resource and day gathered. The oldest
 lot is eaten first, and a lot older than its time is thrown away in the
@@ -398,7 +417,8 @@ food does there.
 
 An adult carries 6 kg, a child a quarter of it and an elder half. A
 member who pulls a litter carries more, a man twice and a woman half
-again, see [Bonuses](../game/skills.md#bonuses). A band never gathers
+again, net of the litter: its 4 kg weigh in the load and are carried
+on top, see [Bonuses](../game/skills.md#bonuses). A band never gathers
 more than it can carry: what does not fit is left on the cell and the
 stock is not lowered for it.
 
@@ -431,7 +451,9 @@ water. Before game b54a7608 a tick was spent on one resource: a band dying
 of thirst beside water gathered forage all day, since food weighed more,
 and died.
 
-`gatherers` counts the gatherers only; see [Roles](#roles). What the band
+`gatherers` counts the gatherers only; see [Roles](#roles). While the
+band stands the hunters hunt instead of gathering; see
+[Hunting](../game/skills.md#hunting). What the band
 takes is its rate times the property of the cell, as
 [Biomes](../biomes/overview.md#properties) defines it.
 
@@ -462,6 +484,7 @@ the band is pushed on.
 | `stone`  | 50 units          |
 | `wood`   | 100 units         |
 | `plants` | 50 units          |
+| `game`   | 60 units          |
 
 A band gathers on the cell it stands on and nowhere else, but for a
 roaming band, which forages the cell ahead as it walks into it. It
@@ -492,7 +515,9 @@ the day.
 | `water`  | 1.0                |
 
 The amounts are per adult, and a child eats half and an elder 0.7 of
-them. So 15 adults need 15 kg of food and 15 litres of water a day, 30 kg of
+them. The ration of `forage` is the ration of food: it is eaten of every
+resource of the kind `food` held, forage and meat, the oldest lot first
+across them. So 15 adults need 15 kg of food and 15 litres of water a day, 30 kg of
 the 90 kg they can carry: a band holds three days of supplies at most,
 and its food spoils on the third. One gathering tick in a summer forest
 brings 40 kg of food, in a winter forest 16, and in the desert no day is
@@ -651,6 +676,7 @@ asks.
 resources:
   water: {kind: water, property: water, weight_kg: 1.0, spoils: {days: 5}}
   forage: {kind: food, property: food, weight_kg: 1.0, spoils: {days: 3}}
+  meat: {kind: food, weight_kg: 1.0, spoils: {days: 2}, sickens: 0.03}
 ```
 
 The goods are in
@@ -708,14 +734,23 @@ units:
         per_day: 0.002
         heal_in_camp: 2.0
         severities:
-          light: {days: 10, pace: 0.8, gathers: 0.7}
+          light: {days: 10, pace: 0.8, gathers: 0.7, treated: 0.5}
           medium: {days: 15, pace: 0.6, gathers: 0.4}
           heavy: {days: 20, pace: 0.4, gathers: 0.2}
         drawn: {light: 0.5, medium: 0.3, heavy: 0.2}
       weakened: {pace: 0.6, gathers: 0.6}
+      sickness: {lasts: {days: 5}, pace: 0.7, gathers: 0.5, frailty: 2.0}
+      exposure: {encounter: 1.0, frailty: 1.0}
       roles:
         gatherer: {gathers: 1.0}
         nanny: {gathers: 0.5, cares: 5}
+        hunter:
+          gathers: 1.0
+          share: 0.2
+          needs: spears
+          gives:
+            - {to: band, path: units.band.threat.camp, times: 0.8}
+            - {to: band, path: units.band.threat.march, times: 0.8}
       birth:
         pregnancy: {months: 3}
         pause: {min: {months: 1}, max: {months: 2}}
@@ -748,6 +783,7 @@ units:
       slows: 0.5
     camp_parts: [evening, night]
     making: {per_part: 0.2}
+    hunting: {meat: 4.0, hides: 0.05}
     states:
       tiredness: {begins: 0.8, ends: 0.3}
     sight: 2
@@ -775,13 +811,15 @@ units:
 ```yaml
 eras:
   band:
-    capacity: {food: 100, water: 2000, stone: 50, wood: 100, plants: 50}
+    capacity: {food: 100, water: 2000, stone: 50, wood: 100, plants: 50, game: 60}
     recovery: {food: {winter: 0.25}, plants: {winter: 0.25}}
 ```
 
 `eras.band.recovery` slows the recovery of a stock in a season: food
 and plants grow back at a quarter of their pace in winter. `making` is
-told in [Making](../game/skills.md#making). Every number here is a
+told in [Making](../game/skills.md#making), `hunting`, `sickness` and
+`exposure` in [Hunting](../game/skills.md#hunting) and
+[Sickness and herbs](../game/skills.md#sickness-and-herbs). Every number here is a
 first guess; the lab of the roadmap is where they are tuned.
 
 ___
@@ -813,6 +851,9 @@ A game does not start from a band that does not add up.
 - Every season of `winter_camp.offered` is one of `time.seasons`, and
   `winter_camp.build` is not zero.
 - A share, a chance and a loss lie between 0 and 1.
+- Exactly one role cares for nobody and has no share; a role that needs
+  a good names a personal one, and lays its bonuses on the band.
+- The resources a hunt brings, `meat` and `hides`, exist.
 
 ___
 

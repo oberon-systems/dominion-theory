@@ -1,7 +1,11 @@
 resource-water = water
 resource-forage = forage
+resource-meat = meat
 resource-stones = stones
 resource-sticks = sticks
 resource-herbs = herbs
 resource-cords = cords
 resource-litters = litters
+resource-spears = spears
+resource-hides = hides
+resource-clothes = clothes

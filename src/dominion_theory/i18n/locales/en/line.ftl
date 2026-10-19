@@ -21,6 +21,7 @@ line-stage-elder =
 line-pregnant = { $count } with child
 line-injured = { $count } injured
 line-injured-badly = { $count } injured ({ $badly } badly)
+line-sick = { $count } sick
 line-store = { NAME("resource", $resource) } { NUMBER($amount, maximumFractionDigits: 1) }
 line-camp = in a winter camp
 line-skills = knows how { $skills }
@@ -38,6 +39,11 @@ line-role-nanny =
     { $count ->
         [one] { $count } nanny
        *[other] { $count } nannies
+    }
+line-role-hunter =
+    { $count ->
+        [one] { $count } hunter
+       *[other] { $count } hunters
     }
 line-action-move = walks { NAME("line-direction", $towards) }
 line-action-roam = roams { NAME("line-direction", $towards) }, foraging on the way
@@ -85,6 +91,7 @@ play-property-passability = passability
 play-property-stone = stone
 play-property-wood = wood
 play-property-plants = plants
+play-property-game = game
 play-title-band = The band
 play-title-cell = Its place
 play-title-target = The target

@@ -17,7 +17,7 @@ STAGES = ('child', 'adult', 'elder')
 STATE = 'state-'
 PEOPLE = 'line-people'
 STAGE = 'line-stage-'
-CONDITIONS = ('pregnant', 'injured')
+CONDITIONS = ('pregnant', 'injured', 'sick')
 CONDITION = 'line-'
 BADLY = 'line-injured-badly'
 WOUNDS = 'wounds'
@@ -29,7 +29,7 @@ SHARED = 'line-gathered-share'
 AND = 'line-and'
 ROLE = 'line-role-'
 # The roles told by their count: everyone else gathers.
-ROLES = ('nanny',)
+ROLES = ('nanny', 'hunter')
 SKILLS = 'line-skills'
 SKILL = 'skill-'
 STATUS = 'line-status'
@@ -66,7 +66,7 @@ NEXT = 'play-next'
 AGREED = 'council-agreed'
 UNKNOWN = 'play-unknown'
 PROPERTY = 'play-property-'
-PROPERTIES = ('water', 'food', 'threat', 'passability', 'stone', 'wood', 'plants')
+PROPERTIES = ('water', 'food', 'threat', 'passability', 'stone', 'wood', 'plants', 'game')
 TITLE = 'play-title-'
 PANES = ('band', 'cell', 'target', 'log', 'council', 'research', 'stores', 'people')
 KEYS = 'play-keys'
@@ -129,6 +129,7 @@ LOSSES = frozenset(
         'command-refused',
         'band-state-began',
         'people-lost',
+        'people-sickened',
         'band-died',
         'encounter',
         'council-outvoted',

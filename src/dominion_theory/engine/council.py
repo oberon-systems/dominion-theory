@@ -135,7 +135,7 @@ def _aimed(params: Params, band: Band, era: str, inside: Inside, to: Place) -> f
     way = routes.lay(params, band, to, inside, partial(decisions.looks, params, band, era), wanted)
     if cell is None or way is None:
         return None
-    value = decisions.worth(params, cell, wanted, band.unease)[0]
+    value = decisions.worth(params, band, cell, wanted, band.unease)[0]
     if value > 0:
         value = value / (1.0 + len(way) * rules.distance)
     elif to in band.known:
@@ -235,7 +235,7 @@ def worth(params: Params, band: Band, era: str, wanted: dict[str, float], unease
     What the cell the band stands on is worth to it, weighed by the needs and the unease given.
     """
     cell = decisions.seen(params, band, band.place, era)
-    return decisions.worth(params, cell, wanted, unease)[0] if cell else 0.0
+    return decisions.worth(params, band, cell, wanted, unease)[0] if cell else 0.0
 
 
 def expected(

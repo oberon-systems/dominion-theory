@@ -31,6 +31,7 @@ ROWS = (
     ('hills', 'grass', 'forest'),
 )
 HOME = (WEST, NORTH + 1)
+GRASS = (WEST + 1, NORTH + 1)
 SUMMER = 100
 DAY = 5
 SPEARS = {
@@ -219,7 +220,7 @@ def test_personal_goods_go_to_those_their_keep_counts_and_back_from_the_dead() -
     params = armed()
     held = holding({'spears': [[0.0, 2.0, 0.9]]}, [*bands.adults(3), Member(100, 'female')])
 
-    bands.hand_out(params, held)
+    bands.hand_out(params, held, 0)
 
     assert [member.kit.held('spears') for member in held.members] == [1.0, 1.0, 0.0, 0.0]
     assert held.members[0].kit['spears'] == [[0.0, 1.0, 0.9]]
@@ -227,7 +228,7 @@ def test_personal_goods_go_to_those_their_keep_counts_and_back_from_the_dead() -
     assert bands.shared(params, held, 'spears') == pytest.approx(2 / 3)
     assert bands.applied(params, held, held.members[0]).units.band.people.injury.per_day == pytest.approx(0.001)
     assert bands.applied(params, held, held.members[2]).units.band.people.injury.per_day == 0.002
-    bands.bury(held, [0])
+    bands.bury(params, held, [0], 0)
     assert held.held('spears') == 1.0
     assert bands.goods(params, held) == {'spears': 2.0}
 
@@ -289,7 +290,7 @@ def test_the_good_furthest_below_its_keep_is_made_first(params: Params) -> None:
     tree['resources']['spears'] = {**SPEARS, 'made': {'sticks': 1.0}}
     two = Params.model_validate(tree)
     held = holding({'sticks': [[0.0, 90.0]], 'cords': [[0.0, 60.0]]}, bands.adults(4))
-    held.lore['known'].append('litters')
+    held.lore['known'] += ['litters', 'spears']
     held.members[1].kit.add('litters', 0, 1.0)
 
     bands.make(two, held, 1)
@@ -319,12 +320,24 @@ def test_a_personal_good_is_handed_out_whole_and_a_worn_one_is_not_topped_up(par
     held = holding({'litters': [[0.0, 0.6]]}, bands.adults(4))
     held.members[3].kit.add('litters', 0, 0.7)
 
-    bands.hand_out(params, held)
+    bands.hand_out(params, held, 0)
     assert [member.kit.held('litters') for member in held.members] == [0.0, 0.0, 0.0, 0.7]
     held.stores.add('litters', 1, 1.0)
-    bands.hand_out(params, held)
+    bands.hand_out(params, held, 1)
     assert [member.kit.held('litters') for member in held.members] == [0.0, 1.0, 0.0, 0.7]
     assert held.held('litters') == pytest.approx(0.6)
+
+
+def test_a_worn_litter_back_in_the_stores_is_taken_apart_and_a_whole_one_is_kept(params: Params) -> None:
+    held = holding({}, bands.adults(3))
+    held.members[0].kit.add('litters', 0, 0.43, 0.92)
+    held.members[1].kit.add('litters', 0, 1.0, 0.9)
+
+    bands.bury(params, held, [0, 1], 7)
+
+    assert held.stores['litters'] == [[0.0, 1.0, 0.9]]
+    assert held.stores['sticks'][0] == pytest.approx([7.0, 0.43 * 3, 0.92])
+    assert held.stores['cords'][0] == pytest.approx([7.0, 0.43 * 2, 0.92])
 
 
 def test_a_puller_carries_more_by_the_sex_and_the_band_walks_slower(params: Params) -> None:
@@ -333,11 +346,13 @@ def test_a_puller_carries_more_by_the_sex_and_the_band_walks_slower(params: Para
 
     held.members[1].kit.add('litters', 0, 1.0)
     held.restocked()
-    assert bands.carry(params, held) == pytest.approx(18.0)
+    assert bands.carry(params, held) == pytest.approx(22.0)
+    assert bands.room(params, held) == pytest.approx(18.0)
     assert bands.applied(params, held).units.band.speed.base == pytest.approx(1.2 * (1 - 0.15 * 0.5))
     held.members[0].kit.add('litters', 0, 1.0)
     held.restocked()
-    assert bands.carry(params, held) == pytest.approx(21.0)
+    assert bands.carry(params, held) == pytest.approx(29.0)
+    assert bands.room(params, held) == pytest.approx(21.0)
     assert bands.applied(params, held).units.band.speed.base == pytest.approx(1.2 * 0.85)
 
 
@@ -352,3 +367,141 @@ def test_a_litter_wears_by_a_day_pulled_and_one_in_the_stores_does_not(params: P
     assert band(game).members[1].kit.held('litters') == pytest.approx(1.0 - 1 / 32)
     assert band(game).held('litters') == 1.0
     assert band(game).worn == pytest.approx({'litters': 1 / 32})
+
+
+class Sure:
+    """
+    A stream whose every draw comes up.
+    """
+
+    def random(self, size: int) -> np.ndarray:
+        return np.zeros(size)
+
+
+def hunting(params: Params, game: Game) -> None:
+    """
+    The band knows spears and its men the role would take hold one each, as they will by the evening.
+    """
+    held = band(game)
+    held.lore['known'] += ['stone_tools', 'sticks', 'herbs', 'spears']
+    for at in bands.chosen(params, held, 'hunter'):
+        held.members[at].kit.add('spears', 0, 1.0)
+    bands.assign(params, held)
+
+
+def test_the_men_holding_a_spear_hunt_up_to_one_in_five(params: Params) -> None:
+    held = holding({'spears': [[0.0, 1.0]]})
+
+    assert bands.eligible(params, held, 'hunter') == []
+    held.lore['known'].append('spears')
+    assert bands.eligible(params, held, 'hunter') == [1, 3]
+    assert bands.kept(params, held, 'spears') == 2.0
+    bands.hand_out(params, held, 0)
+    bands.assign(params, held)
+
+    assert [member.role for member in held.members[:4]] == ['gatherer', 'hunter', 'gatherer', 'gatherer']
+    assert bands.roles(params, held) == {'gatherer': 9, 'nanny': 0, 'hunter': 1}
+    guard = bands.applied(params, held).units.band.threat
+    assert (guard.camp, guard.march) == pytest.approx((0.9, 0.9))
+
+
+def test_hunters_hunt_while_the_band_stands_and_not_while_it_walks(params: Params) -> None:
+    game = land(params, at=GRASS)
+    hunting(params, game)
+
+    do(game, camp())
+    meat = 3 * 4.0 * 0.6
+    assert band(game).held('meat') == pytest.approx(meat)
+    assert band(game).held('hides') == pytest.approx(meat * 0.05)
+    # The stock grows back a tick of its 60 days in the same tick.
+    assert game.cells.stock(GRASS, 'game') == pytest.approx(1 - meat / 60 + 1 / 300)
+    assert [member.kit.held('spears') for member in band(game).members[1:6:2]] == pytest.approx([1 - 1 / 60] * 3)
+    do(game, bands.moving('west'))
+    assert band(game).held('meat') == pytest.approx(meat)
+
+
+def test_hunters_do_not_gather_while_the_band_stands(params: Params) -> None:
+    game = land(params, at=(WEST + 2, NORTH))
+    hunting(params, game)
+    band(game).stores = Stock()
+
+    do(game, gathering({'forage': 1.0}))
+
+    assert band(game).held('forage') == pytest.approx(12 * 3.0 * 0.9)
+
+
+def test_meat_is_eaten_with_forage_the_oldest_first_and_sickens_by_its_share(params: Params) -> None:
+    held = holding({'forage': [[1.0, 6.0]], 'meat': [[0.0, 6.0]], 'water': [[0.0, 20.0]]})
+
+    meal = bands.eat(params, held, Sure())  # type: ignore[arg-type]
+
+    assert (held.held('meat'), held.held('forage')) == (0.0, 2.0)
+    assert meal.met == {'forage': 1.0, 'water': 1.0}
+    assert meal.sickened == 10
+    assert [member.sick for member in held.members] == [5.0] * 10
+    assert bands.eat(params, holding({'forage': [[0.0, 20.0]]}), Sure()).sickened == 0  # type: ignore[arg-type]
+
+
+def test_a_sick_member_gathers_and_walks_less_and_dies_more_of_frailty() -> None:
+    params = load_params()
+    held = holding({}, bands.adults(2))
+    held.members[1].sick = 5.0
+    held.changed()
+
+    counted = bands.census(params, held)
+    assert (counted.gatherers, counted.pace, counted.sick) == pytest.approx((1.5, 0.85, 1))
+    assert bands.vulnerable(params, held, 'frailty') == pytest.approx([0.0, 0.1])
+
+
+def test_herbs_cure_the_sick_then_cut_a_light_wound_once() -> None:
+    params = load_params()
+    held = holding({'herbs': [[0.0, 2.5]]}, bands.adults(4))
+    held.members[1].sick = 5.0
+    held.members[2].wound = {'severity': 'heavy', 'left': 20.0}
+    held.members[3].wound = {'severity': 'light', 'left': 8.0}
+
+    assert bands.cure(params, held) == 2
+    assert held.members[1].sick == 0.0
+    assert held.members[2].wound == {'severity': 'heavy', 'left': 20.0}
+    assert held.members[3].wound == {'severity': 'light', 'left': 4.0, 'treated': True}
+    assert held.held('herbs') == pytest.approx(0.5)
+    held.stores.add('herbs', 1, 1.0)
+    assert bands.cure(params, held) == 0
+
+
+def test_poisoning_leaves_sick_instead_of_dead_while_herbs_last(params: Params) -> None:
+    held = holding({'herbs': [[0.0, 1.0]]}, bands.adults(3))
+
+    struck = bands.struck(params, held, 0, 1.0, 0.0, {}, np.random.default_rng(7), True)
+
+    assert struck == (1, 0, 1)
+    assert [member.sick for member in held.members] == [0.0, 5.0]
+    assert held.held('herbs') == 0.0
+
+
+def test_clothes_guard_their_holder_and_the_band_by_the_members_holding_them() -> None:
+    params = load_params()
+    held = holding({}, bands.adults(2))
+    held.members[1].kit.add('clothes', 0, 1.0)
+    held.restocked()
+
+    worn = bands.applied(params, held, held.members[1]).units.band.people
+    assert (worn.injury.per_day, worn.exposure.encounter, worn.exposure.frailty) == pytest.approx((0.0014, 0.8, 1.0))
+    assert bands.vulnerable(params, held, 'encounter') == pytest.approx([0.0, 0.8])
+    assert bands.vulnerable(params, held, 'frailty', 'winter') == pytest.approx([0.0, 0.05 * 0.7])
+    guard = bands.applied(params, held).units.band.threat
+    assert (guard.camp, guard.march) == pytest.approx((0.95, 0.95))
+
+
+def test_a_day_of_raw_meat_sickens_and_herbs_cure_the_sick_that_evening() -> None:
+    params = load_params(overrides={**SMALL, 'resources.meat.sickens': 1.0})
+    game = land(params)
+    band(game).stores = Stock({'meat': [[100.0, 30.0]], 'water': [[100.0, 30.0]], 'herbs': [[100.0, 2.0]]})
+    game.clock.parts = 101 * DAY - 1
+
+    result = do(game, camp())
+
+    told = [(event.key, event.values) for event in result.events if event.key.startswith('people-')]
+    assert told == [('people-sickened', {'count': 15, 'cause': 'meat'}), ('people-cured', {'count': 2})]
+    assert bands.census(params, band(game)).sick == 13
+    assert band(game).held('herbs') == 0.0

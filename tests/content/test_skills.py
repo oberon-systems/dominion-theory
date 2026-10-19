@@ -19,7 +19,7 @@ def refused(skill: dict[str, Any], name: str = 'wintering') -> dict[str, object]
 def test_the_skills_of_the_band_era_are_those_of_their_document() -> None:
     skills = load_params().skills
 
-    assert list(skills) == ['orientation', 'wintering', 'stone_tools', 'sticks', 'litters', 'herbs']
+    assert list(skills) == ['orientation', 'wintering', 'stone_tools', 'sticks', 'litters', 'herbs', 'spears']
     assert skills['stone_tools'].learned.biomes == ('hills', 'mountain', 'outcrops')
     assert (skills['stone_tools'].opens.gathers, skills['sticks'].opens.gathers) == (('stones',), ('sticks',))
     assert skills['sticks'].learned.biome == 'forest'
@@ -29,6 +29,12 @@ def test_the_skills_of_the_band_era_are_those_of_their_document() -> None:
     assert (skills['litters'].needs, skills['litters'].opens.makes) == (('sticks', 'herbs'), ('litters',))
     assert skills['herbs'].opens.gathers == ('herbs', 'cords')
     assert [held.at_least for held in skills['herbs'].learned.any] == [90, 90, 30]
+    spears = skills['spears']
+    assert (spears.needs, spears.learned.holds) == (
+        ('stone_tools', 'sticks', 'herbs'),
+        {'sticks': 1.0, 'stones': 1.0, 'cords': 1.0},
+    )
+    assert (spears.opens.makes, spears.opens.roles) == (('spears', 'clothes'), ('hunter',))
 
 
 def test_a_skill_needs_skills_that_exist_and_never_itself() -> None:

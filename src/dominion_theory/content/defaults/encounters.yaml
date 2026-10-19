@@ -22,3 +22,5 @@ encounters:
       biomes: [swamp, marsh]
       actions: [gather]
       resources: [water]
+      # Those it takes fall sick instead while a cure is held.
+      sickens: true

@@ -45,8 +45,14 @@ HUNTER = 'hunter'
 ADULT = 'adult'
 PULLER = 'puller'
 FOOD = KINDS[0]
-EATEN, NIGHTS, ATTACKS, CURES, PULLED = USES
+EATEN, NIGHTS, ATTACKS, CURES, PULLED, HUNTS = USES
 TO_BAND, TO_MEMBER = TO
+CARRY_KG = 'units.band.carry_kg'
+SICK = 'sick'
+KIT = 'kit'
+GAME = 'game'
+MEAT = 'meat'
+HIDES = 'hides'
 
 # Clockwise from the north; y grows to the south.
 DIRECTIONS: dict[str, Place] = {
@@ -106,6 +112,8 @@ class Member:
     role: str | None = None
     # The personal goods the member holds.
     kit: Stock = field(default_factory=Stock)
+    # The days of sickness left.
+    sick: float = 0.0
 
     @classmethod
     def read(cls, plain: dict[str, Any]) -> Member:
@@ -132,6 +140,9 @@ class Census:
     pregnant: int
     injured: int
     wounds: dict[str, int]
+    # What the hunters would gather, and the members sick.
+    hunting: float
+    sick: int
 
 
 @dataclass
@@ -278,8 +289,10 @@ class Band:
             PREGNANT: counted.pregnant,
             INJURED: counted.injured,
             WOUNDS: dict(counted.wounds),
+            SICK: counted.sick,
             'stores': self.stores.amounts(),
             'goods': goods(params, self),
+            KIT: kits(params, self),
             'fatigue': self.fatigue,
             'states': list(self.states),
             'action': dict(self.action),
@@ -294,9 +307,9 @@ class Band:
     def row(self, params: Params) -> list[Any]:
         totals = dict.fromkeys(SHORTAGES, 0.0)
         for name in self.stores:
-            prop = params.resources[name].property
-            if prop is not None and prop in totals:
-                totals[prop] += self.held(name)
+            kind = params.resources[name].kind
+            if kind in totals:
+                totals[kind] += self.held(name)
         state = '+'.join(self.states) or NORMAL
         return [self.id, self.x, self.y, state, self.action['kind'], self.population, totals['food'], totals['water']]
 
@@ -382,9 +395,10 @@ def census(params: Params, band: Band) -> Census:
     named = tuple(next(name for name, until in limits if member.age_days < until) for member in band.members)
     severities = people.injury.severities
     weakened = people.weakened
+    sickness = people.sickness
     jobs = people.roles
-    gatherers = eaters = carriers = pace = tires = 0.0
-    voters = pregnant = 0
+    gatherers = eaters = carriers = pace = tires = hunting = 0.0
+    voters = pregnant = sick = 0
     counts = dict.fromkeys(stages, 0)
     wounds = dict.fromkeys(severities, 0)
     for member, name in zip(band.members, named, strict=True):
@@ -394,19 +408,40 @@ def census(params: Params, band: Band) -> Census:
         counts[name] += 1
         job = 1.0 if member.role is None else jobs[member.role].gathers
         hurt = 1.0 if wound is None else severities[wound].gathers
-        gatherers += stage.gathers * hurt * (weakened.gathers if weak else 1.0) * job
+        ill = member.sick > 0
+        gathered = stage.gathers * hurt * (weakened.gathers if weak else 1.0) * (sickness.gathers if ill else 1.0) * job
+        gatherers += gathered
+        hunting += gathered if member.role == HUNTER else 0.0
         eaters += stage.eats
         carriers += stage.carries
-        pace += stage.pace * (1.0 if wound is None else severities[wound].pace) * (weakened.pace if weak else 1.0)
+        pace += (
+            stage.pace
+            * (1.0 if wound is None else severities[wound].pace)
+            * (weakened.pace if weak else 1.0)
+            * (sickness.pace if ill else 1.0)
+        )
         tires += stage.tires
         voters += stage.votes
         pregnant += member.pregnant_until is not None
+        sick += ill
         if wound is not None:
             wounds[wound] += 1
     many = max(len(named), 1)
     injured = sum(wounds.values())
     counted = Census(
-        named, counts, gatherers, eaters, carriers, pace / many, tires / many, voters, pregnant, injured, wounds
+        named,
+        counts,
+        gatherers,
+        eaters,
+        carriers,
+        pace / many,
+        tires / many,
+        voters,
+        pregnant,
+        injured,
+        wounds,
+        hunting,
+        sick,
     )
     band.counted = id(params), counted
     return counted
@@ -416,7 +451,9 @@ def common(params: Params) -> str:
     """
     The role of everyone no other role takes.
     """
-    return next(name for name, role in params.units.band.people.roles.items() if role.cares is None)
+    return next(
+        name for name, role in params.units.band.people.roles.items() if role.cares is None and role.share is None
+    )
 
 
 def free(params: Params, band: Band) -> None:
@@ -460,16 +497,40 @@ def cared(params: Params, band: Band) -> list[tuple[int, str]]:
     return list(zip(women, wanted, strict=False))
 
 
+def chosen(params: Params, band: Band, name: str) -> list[int]:
+    """
+    The members a role with a share takes once the band knows it: adults of a stage that gathers who hold no role
+    that cares, never the player, men first and the youngest first, up to the share of the band rounded down.
+    """
+    role = params.units.band.people.roles.get(name)
+    if role is None or role.share is None or not lores.opened(params, band, lores.ROLES, name):
+        return []
+    stages = params.units.band.people.stages
+    taken = (None, common(params), name)
+    found = [
+        at
+        for at, (member, stage) in enumerate(zip(band.members, census(params, band).stages, strict=True))
+        if not member.player and stages[stage].gathers > 0 and member.role in taken
+    ]
+    found.sort(key=lambda at: (band.members[at].sex != MALE, band.members[at].age_days, at))
+    return found[: math.floor(role.share * band.population + NOTHING)]
+
+
 def assign(params: Params, band: Band) -> None:
     """
     Lays the roles anew: the members the children call for take their roles that care, but for the freed, the
-    last of them; everyone else takes the role that cares for nobody.
+    last of them; then those a role with a share takes that hold the good it needs; everyone else takes the role
+    that cares for nobody.
     """
     taken = cared(params, band)
     for member in band.members:
         member.role = common(params)
     for at, name in taken[: max(len(taken) - band.freed, 0)]:
         band.members[at].role = name
+    for name, role in params.units.band.people.roles.items():
+        for at in chosen(params, band, name):
+            if role.needs is None or band.members[at].kit.held(role.needs) > 0:
+                band.members[at].role = name
     band.changed()
 
 
@@ -622,6 +683,17 @@ def weight(params: Params, band: Band) -> float:
     return band.stores.weight(params.resources) + sum(member.kit.weight(params.resources) for member in band.members)
 
 
+def kits(params: Params, band: Band) -> dict[str, int]:
+    """
+    The members holding each personal good.
+    """
+    return {
+        name: sum(member.kit.held(name) > 0 for member in band.members)
+        for name, resource in params.resources.items()
+        if resource.held == PERSONAL
+    }
+
+
 def goods(params: Params, band: Band) -> dict[str, float]:
     """
     The goods the band holds in its stores and its kits, per good.
@@ -651,9 +723,10 @@ def appetite(params: Params, band: Band) -> float:
 
 def held_days(params: Params, band: Band, prop: str) -> float:
     """
-    The days the stores of a property last the band; endless when nobody eats it.
+    The days the stores of what feeds a need last the band, every resource of the kind of the property; endless when
+    nobody eats it.
     """
-    resources = [name for name, held in params.resources.items() if held.property == prop]
+    resources = [name for name, held in params.resources.items() if held.kind == prop]
     rates = applied(params, band).units.band.consumption_per_day
     eaten = census(params, band).eaters * appetite(params, band) * sum(rates.get(name, 0.0) for name in resources)
     return sum(band.held(name) for name in resources) / eaten if eaten > 0 else math.inf
@@ -669,17 +742,30 @@ def short(params: Params, band: Band, name: str) -> bool:
 
 def carry(params: Params, band: Band) -> float:
     """
-    What the members carry by their stages, more for those whose kit lays a bonus on the carry.
+    What the members carry by their stages, more for those whose kit lays a bonus on the carry. The bonus is net: a
+    good that lays it, a litter, still weighs in the load and carries its own weight.
     """
     counted = census(params, band)
     stages = params.units.band.people.stages
     base = applied(params, band).units.band.carry_kg
     more = sum(
-        stages[name].carries * (applied(params, band, member).units.band.carry_kg - base)
+        stages[name].carries * (applied(params, band, member).units.band.carry_kg - base) + _carried(params, member)
         for member, name in zip(band.members, counted.stages, strict=True)
         if member.kit
     )
     return counted.carriers * base + more
+
+
+def _carried(params: Params, member: Member) -> float:
+    resources = params.resources
+    return sum(
+        member.kit.held(name) * resources[name].weight_kg
+        for name in member.kit
+        if any(
+            bonus.to == TO_MEMBER and bonus.path == CARRY_KG and _holds(bonus, member.sex, None)
+            for bonus in resources[name].gives
+        )
+    )
 
 
 def room(params: Params, band: Band) -> float:
@@ -750,14 +836,16 @@ def _roam(land: Land, band: Band, action: Action, rules: Rules, day: int) -> Act
 def _gather(land: Land, band: Band, action: Action, rules: Rules, day: int) -> Action:
     """
     The gatherers split by the shares of the action: every share takes its resource from its own source, with
-    the same share of the room.
+    the same share of the room. The hunters hunt instead.
     """
     free = room(land.params, band)
+    counted = census(land.params, band)
     done: dict[str, float] = {}
     for name, share in action['shares'].items():
         held = reached(land, band, name)
         if held is not None and share > 0:
-            _take(land, band, name, rules, day, share * held[1], held[0], free * share)
+            hands = counted.gatherers - counted.hunting
+            _take(land, band, name, rules, day, share * held[1], held[0], free * share, hands)
             done[name] = share
     return gathering(done) if done else camp()
 
@@ -779,11 +867,20 @@ def _build(land: Land, band: Band) -> Action:
 
 
 def _take(
-    land: Land, band: Band, name: str, rules: Rules, day: int, share: float, at: Place, free: float | None = None
+    land: Land,
+    band: Band,
+    name: str,
+    rules: Rules,
+    day: int,
+    share: float,
+    at: Place,
+    free: float | None = None,
+    hands: float | None = None,
 ) -> None:
     params = land.params
     resource = params.resources[name]
-    wanted = census(params, band).gatherers * rules.gathering.get(name, 0.0) * land.value(resource.land, *at)
+    gatherers = census(params, band).gatherers if hands is None else hands
+    wanted = gatherers * rules.gathering.get(name, 0.0) * land.value(resource.land, *at)
     space = room(params, band) if free is None else free
     taken = min(wanted * share * efficiency(rules, band), space / resource.weight_kg)
     if resource.keep is not None:
@@ -794,6 +891,55 @@ def _take(
         capacity = params.eras[land.era].capacity.get(resource.land)
         if capacity and _era(land, *at).properties[resource.land].recovery is not None:
             land.deplete(*at, resource.land, taken / capacity)
+
+
+def hunt(land: Land, band: Band, day: int) -> None:
+    """
+    A tick the band stands: the hunters bring meat by the game of the cell, or of the best cell in the reach of a
+    winter camp, and hides by the meat, as much as the room and the keep of the hides take; every hunter wears its
+    spear by a hunt.
+    """
+    params = land.params
+    rules = params.units.band
+    hunters = census(params, band).hunting
+    found = _hunted(land, band)
+    if hunters <= 0 or found is None:
+        return
+    at, value = found
+    resources = params.resources
+    per = rules.hunting.hides
+    meat = hunters * rules.hunting.meat * value * efficiency(rules, band)
+    meat = min(meat, room(params, band) / (resources[MEAT].weight_kg + per * resources[HIDES].weight_kg))
+    if meat <= NOTHING:
+        return
+    hides = meat * per
+    if resources[HIDES].keep is not None:
+        hides = min(hides, max(kept(params, band, HIDES) - band.held(HIDES), 0.0))
+    band.stores.add(MEAT, day, meat)
+    if hides > NOTHING:
+        band.stores.add(HIDES, day, hides)
+    for member in band.members:
+        if member.role == HUNTER:
+            wear(params, band, HUNTS, 1.0, (member.kit,))
+    band.restocked()
+    capacity = params.eras[land.era].capacity.get(GAME)
+    if capacity and _era(land, *at).properties[GAME].recovery is not None:
+        land.deplete(*at, GAME, meat / capacity)
+
+
+def _hunted(land: Land, band: Band) -> tuple[Place, float] | None:
+    """
+    The cell the hunters hunt on and the game it gives: the own cell, or while the band ranges an enterable cell
+    within reach worth afar of its own; the earlier on a tie, None without game.
+    """
+    found, best = band.place, land.value(GAME, *band.place)
+    if ranging(band):
+        camp = land.params.units.band.winter_camp
+        for x, y in around(band.place, camp.reach):
+            value = land.value(GAME, x, y) * camp.afar if enterable(land, x, y) else 0.0
+            if value > best:
+                found, best = (x, y), value
+    return (found, best) if best > 0 else None
 
 
 def _graded(land: Land, resource: Resource, at: Place) -> float | None:
@@ -950,11 +1096,22 @@ def told(lost: dict[str, float]) -> dict[str, int]:
     return whole
 
 
-def eat(params: Params, band: Band) -> dict[str, float]:
+@dataclass
+class Meal:
     """
-    The people eat and drink for a day, the oldest lots first. What there is goes first to whoever has the
-    least of that reserve left, children first on a tie; a full ration fills the reserve again, a part of it
-    spends what was missing. Gives the share of each need that was met.
+    What a day of eating did: the share of each need met and the members it made sick.
+    """
+
+    met: dict[str, float]
+    sickened: int = 0
+
+
+def eat(params: Params, band: Band, rng: np.random.Generator | None = None) -> Meal:
+    """
+    The people eat and drink for a day, the oldest lots first, a ration of food of every food held. What there is
+    goes first to whoever has the least of that reserve left, children first on a tie; a full ration fills the
+    reserve again, a part of it spends what was missing. With a stream given, a member who ate food that sickens
+    falls sick by its chance times the share of its ration that was of it.
     """
     rules = params.units.band
     stages = rules.people.stages
@@ -963,15 +1120,19 @@ def eat(params: Params, band: Band) -> dict[str, float]:
     eating = appetite(params, band)
     shares: dict[str, list[float]] = {}
     met: dict[str, float] = {}
-    eaten = 0.0
+    eaten = tainted = 0.0
     for name, rate in applied(params, band).units.band.consumption_per_day.items():
         prop = params.resources[name].property or ''
         rations = [stages[stage].eats * rate * eating for stage in named]
         need = sum(rations)
-        missing = band.stores.take(name, need)
-        met[name] = 1.0 if need <= 0 else (need - missing) / need
         if params.resources[name].kind == FOOD:
+            missing, foods = _feed(params, band, need)
             eaten += need - missing
+            sickens = sum(amount * (params.resources[food].sickens or 0.0) for food, amount in foods.items())
+            tainted = sickens / (need - missing) if need - missing > NOTHING else 0.0
+        else:
+            missing = band.stores.take(name, need)
+        met[name] = 1.0 if need <= 0 else (need - missing) / need
         if prop not in DEFICITS:
             continue
         given = need - missing
@@ -991,11 +1152,86 @@ def eat(params: Params, band: Band) -> dict[str, float]:
             gone = 0.0 if share >= 1.0 - NOTHING else getattr(member, DEFICITS[prop]) + 1.0 - share
             setattr(member, DEFICITS[prop], round(gone, 9))
     wear(params, band, EATEN, eaten)
+    sickened = 0
+    if rng is not None and tainted > 0:
+        fed = shares.get(FOOD, [1.0] * len(named))
+        chances = [0.0 if member.sick > 0 else tainted * share for member, share in zip(band.members, fed, strict=True)]
+        sickened = sicken(params, band, _chanced(rng, chances))
     band.changed()
-    return met
+    return Meal(met, sickened)
 
 
-def suffer(params: Params, band: Band) -> tuple[list[str], list[str], list[tuple[str, int]]]:
+def _feed(params: Params, band: Band, need: float) -> tuple[float, dict[str, float]]:
+    """
+    Takes a ration out of every food held, the oldest lots first across them; gives what is still missing and
+    what was taken of each.
+    """
+    foods = [name for name, resource in params.resources.items() if resource.kind == FOOD]
+    lots = sorted((lot[0], at, lot[1]) for at, name in enumerate(foods) for lot in band.stores.get(name, []))
+    missing = need
+    taken: dict[str, float] = {}
+    for _, at, amount in lots:
+        part = min(amount, missing)
+        if part <= 0:
+            break
+        band.stores.take(foods[at], part)
+        taken[foods[at]] = taken.get(foods[at], 0.0) + part
+        missing -= part
+    return max(missing, 0.0), taken
+
+
+def sicken(params: Params, band: Band, picked: list[int]) -> int:
+    """
+    The members picked fall sick for the days a sickness lasts.
+    """
+    lasts = float(params.days(params.units.band.people.sickness.lasts))
+    for at in picked:
+        band.members[at].sick = lasts
+    if picked:
+        band.changed()
+    return len(picked)
+
+
+def cure(params: Params, band: Band) -> int:
+    """
+    The end of a day: while a cure is held, one is spent on every sick member, whose sickness ends, then on every
+    wound a cure shortens not treated yet, whose days left it cuts. Gives the people cured.
+    """
+    severities = params.units.band.people.injury.severities
+    cured = 0
+    for member in band.members:
+        if member.sick > 0 and _spend(params, band):
+            member.sick = 0.0
+            cured += 1
+    for member in band.members:
+        wound = member.wound
+        if wound is None or wound.get('treated') or severities[wound['severity']].treated >= 1.0:
+            continue
+        if _spend(params, band):
+            wound['left'] = round(wound['left'] * severities[wound['severity']].treated, 9)
+            wound['treated'] = True
+            cured += 1
+    if cured:
+        band.changed()
+    return cured
+
+
+def _spend(params: Params, band: Band) -> bool:
+    """
+    Spends a cure of the stores, the oldest goods that serve one first; False when less than one is held.
+    """
+    held = 0.0
+    for name, resource in params.resources.items():
+        serves = resource.wears.get(CURES)
+        if serves is not None:
+            held += sum(lot[1] * serves * (lot[2] if len(lot) > 2 else 1.0) for lot in band.stores.get(name, []))
+    if held < 1.0 - NOTHING:
+        return False
+    wear(params, band, CURES, 1.0, (band.stores,))
+    return True
+
+
+def suffer(params: Params, band: Band, day: int) -> tuple[list[str], list[str], list[tuple[str, int]]]:
     """
     What a day of eating did: every member with nothing left of a reserve dies, but the player, and the band
     starves or thirsts while one of its members does. Gives the states that began, those that ended, and the
@@ -1010,7 +1246,7 @@ def suffer(params: Params, band: Band) -> tuple[list[str], list[str], list[tuple
             if not member.player and left(params, member, name, prop) <= NOTHING
         ]
         if dead:
-            lost.append((cause, bury(band, dead)))
+            lost.append((cause, bury(params, band, dead, day)))
     began: list[str] = []
     ended: list[str] = []
     named = census(params, band).stages
@@ -1024,15 +1260,21 @@ def suffer(params: Params, band: Band) -> tuple[list[str], list[str], list[tuple
     return began, ended, lost
 
 
-def vulnerable(params: Params, band: Band, cause: str) -> list[float]:
+def vulnerable(params: Params, band: Band, cause: str, season: str | None = None) -> list[float]:
     """
-    How much each member is exposed to a cause, by stage and age; the player never dies.
+    How much each member is exposed to a cause, by stage and age, by what its goods leave of it in the season and,
+    for frailty, more while it is sick; the player never dies.
     """
     named = census(params, band).stages
-    return [
-        0.0 if member.player else exposed(params, name, member.age_days, cause)
-        for member, name in zip(band.members, named, strict=True)
-    ]
+    sickness = params.units.band.people.sickness
+    found = []
+    for member, name in zip(band.members, named, strict=True):
+        held = 0.0 if member.player else exposed(params, name, member.age_days, cause)
+        if held > 0:
+            held *= getattr(applied(params, band, member, season).units.band.people.exposure, cause, 1.0)
+            held *= sickness.frailty if cause == FRAILTY and member.sick > 0 else 1.0
+        found.append(held)
+    return found
 
 
 def exposed(params: Params, name: str, age_days: int, cause: str) -> float:
@@ -1066,12 +1308,12 @@ def _drawn(rng: np.random.Generator, weights: list[float], count: int) -> list[i
     return sorted(exposed[int(at)] for at in picked)
 
 
-def bury(band: Band, picked: list[int]) -> int:
+def bury(params: Params, band: Band, picked: list[int], day: int) -> int:
     """
     The members picked die; their goods go back to the stores.
     """
     for at in sorted(picked, reverse=True):
-        band.stores.join(band.members[at].kit)
+        stow(params, band, band.members[at].kit, day)
         del band.members[at]
     if picked:
         band.changed()
@@ -1079,18 +1321,31 @@ def bury(band: Band, picked: list[int]) -> int:
 
 
 def struck(
-    params: Params, band: Band, taken: float, hurt: float, wounds: dict[str, float], rng: np.random.Generator
-) -> tuple[int, int]:
+    params: Params,
+    band: Band,
+    day: int,
+    taken: float,
+    hurt: float,
+    wounds: dict[str, float],
+    rng: np.random.Generator,
+    sickens: bool = False,
+) -> tuple[int, int, int]:
     """
-    What an encounter does: the share taken of the people, weighed by how exposed they are, die, and the share
-    hurt of those left is wounded by the weights of its kind, the usual ones when it has none. Gives the dead
-    and the injured.
+    What an encounter does: the share taken of the people, weighed by how exposed they are, die, but for one that
+    sickens, which leaves sick instead the first of them while a cure is held for each; the share hurt of those
+    left is wounded by the weights of its kind, the usual ones when it has none. Gives the dead, the injured and
+    the sick.
     """
     weights = vulnerable(params, band, ENCOUNTER)
-    dead = bury(band, _drawn(rng, weights, int(taken * sum(weights) + 0.5)))
+    picked = _drawn(rng, weights, int(taken * sum(weights) + 0.5))
+    saved: list[int] = []
+    while sickens and len(saved) < len(picked) and _spend(params, band):
+        saved.append(picked[len(saved)])
+    sickened = sicken(params, band, saved)
+    dead = bury(params, band, picked[len(saved) :], day)
     weights = _injurable(params, band)
     picked = _drawn(rng, weights, int(hurt * sum(weights) + 0.5))
-    return dead, _injure(params, band, picked, wounds or params.units.band.people.injury.drawn, rng)
+    return dead, _injure(params, band, picked, wounds or params.units.band.people.injury.drawn, rng), sickened
 
 
 def _injurable(params: Params, band: Band) -> list[float]:
@@ -1138,11 +1393,19 @@ class Lived:
 
 
 def live(
-    params: Params, band: Band, day: int, wellbeing: float, feeds: bool, camped: float, rng: np.random.Generator
+    params: Params,
+    band: Band,
+    day: int,
+    wellbeing: float,
+    feeds: bool,
+    camped: float,
+    rng: np.random.Generator,
+    season: str | None = None,
 ) -> Lived:
     """
-    The day of the members at its end: they age, die of age and frailty, heal or are hurt, give birth and conceive.
-    Camped is the share of the active parts of the day the band camped: it heals faster and dies less of frailty.
+    The day of the members at its end: they age, get better, die of age and frailty, heal or are hurt, give birth
+    and conceive. Camped is the share of the active parts of the day the band camped: it heals faster and dies
+    less of frailty. The goods of a member that guard it in a season do so in the season given.
     """
     rules = params.units.band
     people = rules.people
@@ -1158,6 +1421,8 @@ def live(
                 member.wound = None
         if member.rest_until is not None and member.rest_until <= day:
             member.rest_until = None
+        if member.sick > 0:
+            member.sick = max(member.sick - 1.0, 0.0)
     band.changed()
     begins = [params.days(applied(params, band, member).units.band.people.age.begins) for member in band.members]
     doubles = params.days(people.age.doubles)
@@ -1169,14 +1434,18 @@ def live(
         )
         for member, begun in zip(band.members, begins, strict=True)
     ]
-    lived.lost.append((AGE, bury(band, _chanced(rng, old))))
+    lived.lost.append((AGE, bury(params, band, _chanced(rng, old), day)))
     sheltered = 1.0 - (1.0 - rules.shelter.frailty) * camped
-    frail = [held * (1.0 - wellbeing) * sheltered / per_year for held in vulnerable(params, band, FRAILTY)]
-    lived.lost.append((FRAILTY, bury(band, _chanced(rng, frail))))
-    hurt = [held * people.injury.per_day for held in _injurable(params, band)]
+    weights = vulnerable(params, band, FRAILTY, season)
+    frail = [held * (1.0 - wellbeing) * sheltered / per_year for held in weights]
+    lived.lost.append((FRAILTY, bury(params, band, _chanced(rng, frail), day)))
+    hurt = [
+        held * applied(params, band, member).units.band.people.injury.per_day
+        for held, member in zip(_injurable(params, band), band.members, strict=True)
+    ]
     lived.injured = _injure(params, band, _chanced(rng, hurt), people.injury.drawn, rng)
     lived.born, mothers = _births(params, band, day, rng)
-    lived.lost.append((BIRTH, bury(band, mothers)))
+    lived.lost.append((BIRTH, bury(params, band, mothers, day)))
     if feeds:
         _conceive(params, band, day, rng)
     free(params, band)
@@ -1241,8 +1510,10 @@ def eligible(params: Params, band: Band, per: str) -> list[int]:
     """
     The members a keep counts, in the order goods are handed to them: every member and head the least protected
     first, children, elders, then adults; adults before elders; pullers, the adults of the common role who gather,
-    men first; hunters. The youngest first in each: docs/game/skills.md, Handing out.
+    men first; hunters, those the role would take. The youngest first in each: docs/game/skills.md, Handing out.
     """
+    if per == HUNTER:
+        return chosen(params, band, HUNTER)
     people = params.units.band.people
     names = list(people.stages)
     first, last = names[0], names[-1]
@@ -1254,7 +1525,7 @@ def eligible(params: Params, band: Band, per: str) -> list[int]:
             return name != first
         if per == PULLER:
             return name != first and people.stages[name].gathers > 0 and member.role in (None, everyone)
-        return member.role == HUNTER if per == HUNTER else True
+        return True
 
     def rank(at: int) -> tuple[int, int, int]:
         member, name = band.members[at], named[at]
@@ -1278,11 +1549,27 @@ def kept(params: Params, band: Band, name: str) -> float:
     return 0.0 if keep is None else keep.amount * len(eligible(params, band, keep.per))
 
 
-def hand_out(params: Params, band: Band) -> None:
+def stow(params: Params, band: Band, kit: Stock, day: int) -> None:
+    """
+    Puts a kit into the stores: what is left of a good less than whole is taken apart into the materials of its
+    recipe, by that share and at its quality, so the stores hold made goods whole only.
+    """
+    for name, lots in kit.items():
+        made = params.resources[name].made
+        for lot in lots:
+            piece = lot[1] - math.floor(lot[1] + NOTHING) if made else 0.0
+            if piece > NOTHING:
+                quality = lot[2] if len(lot) > 2 else None
+                for material, amount in made.items():
+                    band.stores.add(material, day, piece * amount, quality)
+            if lot[1] - piece > NOTHING:
+                band.stores.join(Stock({name: [[lot[0], lot[1] - piece, *lot[2:]]]}))
+
+
+def hand_out(params: Params, band: Band, day: int) -> None:
     """
     The evening: a personal good goes back to the stores from a holder who may no longer use it, then to those its
-    keep counts who lack it, in their order and whole only: a worn one counts as one, and less than one in the
-    stores is handed to nobody.
+    keep counts who lack it, in their order and whole only: a worn one counts as one and is not topped up.
     """
     for name, resource in params.resources.items():
         if resource.held != PERSONAL:
@@ -1291,7 +1578,7 @@ def hand_out(params: Params, band: Band) -> None:
         takers = [] if keep is None else eligible(params, band, keep.per)
         for at, member in enumerate(band.members):
             if at not in takers and member.kit.held(name) > 0:
-                band.stores.join(member.kit.part(name, member.kit.held(name)))
+                stow(params, band, member.kit.part(name, member.kit.held(name)), day)
         for at in takers:
             kit = band.members[at].kit
             wanted = 0.0 if keep is None else keep.amount - math.ceil(kit.held(name) - NOTHING)
@@ -1370,10 +1657,20 @@ def shared(params: Params, band: Band, name: str) -> float:
     return min(held / wanted, 1.0) if wanted > 0 else 0.0
 
 
+def filled(params: Params, band: Band, name: str) -> float:
+    """
+    The share of a role with a share its members fill: of the members it would take by the share of the band.
+    """
+    role = params.units.band.people.roles[name]
+    quota = 0 if role.share is None else math.floor(role.share * band.population + NOTHING)
+    return min(sum(member.role == name for member in band.members) / quota, 1.0) if quota > 0 else 0.0
+
+
 def applied(params: Params, band: Band, member: Member | None = None, season: str | None = None) -> Params:
     """
-    The tree with the bonuses of the goods held laid over it: those on the band by their share and, for a member,
-    those of its own kit; a bonus of a sex or of seasons only for them. Kept until the goods or the members change.
+    The tree with the bonuses of the goods held and the roles filled laid over it: those on the band by their
+    share and, for a member, those of its own kit; a bonus of a sex or of seasons only for them. Kept until the
+    goods or the members change.
     """
     worn = () if member is None else tuple(name for name in sorted(member.kit) if member.kit.held(name) > 0)
     key = (id(params), season, None if member is None or not worn else (member.sex, worn))
@@ -1393,6 +1690,12 @@ def applied(params: Params, band: Band, member: Member | None = None, season: st
             for name, resource in params.resources.items()
             for bonus in resource.gives
             if bonus.to == TO_BAND and _holds(bonus, None, season) and (share := shared(params, band, name)) > 0
+        ]
+        bonuses += [
+            (bonus, share)
+            for name, role in params.units.band.people.roles.items()
+            for bonus in role.gives
+            if _holds(bonus, None, season) and (share := filled(params, band, name)) > 0
         ]
         laid = _lay(params, params, bonuses)
     band.laid[key] = laid

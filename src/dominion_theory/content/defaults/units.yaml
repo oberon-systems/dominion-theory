@@ -51,15 +51,27 @@ units:
         per_day: 0.002
         heal_in_camp: 2.0
         severities:
-          light: {days: 10, pace: 0.8, gathers: 0.7}
+          # A herb leaves half of the days of a light wound to heal.
+          light: {days: 10, pace: 0.8, gathers: 0.7, treated: 0.5}
           medium: {days: 15, pace: 0.6, gathers: 0.4}
           heavy: {days: 20, pace: 0.4, gathers: 0.2}
         drawn: {light: 0.5, medium: 0.3, heavy: 0.2}
       weakened: {pace: 0.6, gathers: 0.6}
+      sickness: {lasts: {days: 5}, pace: 0.7, gathers: 0.5, frailty: 2.0}
+      # What the goods of a member leave of its weight for a cause of death.
+      exposure: {encounter: 1.0, frailty: 1.0}
       # A nanny for every five children, rounded up, gathers half by the camp; everyone else gathers.
       roles:
         gatherer: {gathers: 1.0}
         nanny: {gathers: 0.5, cares: 5}
+        # One member in five may hunt, men and the youngest first, while a spear is there for each.
+        hunter:
+          gathers: 1.0
+          share: 0.2
+          needs: spears
+          gives:
+            - {to: band, path: units.band.threat.camp, times: 0.8}
+            - {to: band, path: units.band.threat.march, times: 0.8}
       # One nanny a day goes to gather while someone goes short, and one comes back while the stores feed tomorrow.
       leaves: {back: {days: 1}}
       birth:
@@ -87,6 +99,8 @@ units:
     camp_parts: [evening, night]
     # What every adult makes of a good in a camp part.
     making: {per_part: 0.2}
+    # The meat a hunter brings in a tick of full game, and the hides of a kilo of it.
+    hunting: {meat: 4.0, hides: 0.05}
     states:
       tiredness: {begins: 0.8, ends: 0.3}
     sight: 2
@@ -117,7 +131,7 @@ units:
         hungry: {days: 0, need: 0.8}
       distance: 0.25
       horizon: 2
-      unknown: {food: 0.5, water: 0.5, threat: 0.4, passability: 0.7, stone: 0.1, wood: 0.2, plants: 0.3}
+      unknown: {food: 0.5, water: 0.5, threat: 0.4, passability: 0.7, stone: 0.1, wood: 0.2, plants: 0.3, game: 0.3}
       idle: 0.05
       wander: {days: 1}
       weights:

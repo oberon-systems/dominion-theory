@@ -86,8 +86,17 @@ A cell the band knows has a worth, the answer to "how good would it be
 to stand there now".
 
 ```text
-worth = hunger * food + thirst * water - weights.safety * calm * (1 + unease) * threat
+worth = hunger * food + thirst * water + sum(pull of a good lacking * its property)
+      - weights.safety * calm * (1 + unease) * guard * threat
 ```
+
+A good the band has learned to gather and lacks of its keep pulls the
+way it pulls the gatherers, `weights.goods` times the share missing, and
+none while the band is hungry: a forest of wood 0.8 is worth 0.32 more to
+a band with no sticks. The guard is what the goods held leave of the
+threat over a day on the cell, `units.band.threat.camp` in the camp parts
+and `march` in the others, so a band guarded by its sticks fears a forest
+less.
 
 The properties are the values the band remembers, stock and season
 included; a new season brings the memory to that season, as
@@ -216,7 +225,9 @@ tiredness ends.
 Under a `go` intent the moves and the roams are scored with the pull
 replaced by a fixed `weights.intent`, and a roam gets the whole of that
 gain, not `roaming.speed` of it: the intent names the way, not the pace.
-The band roams wherever the cell ahead feeds it, walks over bare land
+The cell it stands on is weighed against that without the goods it
+lacks, which its gathering weighs already, so a band short of herbs
+does not leave a go for every meadow. The band roams wherever the cell ahead feeds it, walks over bare land
 and stops to gather only where that is worth more than going on.
 
 ### The route

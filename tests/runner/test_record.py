@@ -55,6 +55,8 @@ COUNTERS = (
     'pregnant',
     'injured',
     'skills',
+    'hunters',
+    'sick',
 )
 COUNTED = {
     'commands_refused': 1,

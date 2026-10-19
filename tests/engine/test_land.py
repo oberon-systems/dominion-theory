@@ -9,8 +9,8 @@ from dominion_theory.engine import Game, Window
 from dominion_theory.engine.streams import Streams
 from dominion_theory.planet import biome_names
 
-# The stocks of stone, wood and plants no cell here has lost.
-FULL = {'stone': 1.0, 'wood': 1.0, 'plants': 1.0}
+# The stocks of stone, wood, plants and game no cell here has lost.
+FULL = {'stone': 1.0, 'wood': 1.0, 'plants': 1.0, 'game': 1.0}
 WEST = 100
 NORTH = 50
 ROWS = (('forest', 'forest', 'water', 'mountain'), ('grass', 'grass', 'grass', 'grass'))
@@ -136,7 +136,7 @@ def test_a_stripped_cell_is_full_after_exactly_its_recovery_time(game: Game) -> 
     kept = len(game.cells)
     last = game.step().changes['cells']
 
-    assert game.stocked == ('water', 'food', 'stone', 'wood', 'plants')
+    assert game.stocked == ('water', 'food', 'stone', 'wood', 'plants', 'game')
     for tick, cells in enumerate(seen, start=1):
         assert cells == [pytest.approx({'x': WEST, 'y': NORTH, 'water': tick / ticks, 'food': 1.0, **FULL})]
     assert kept == 1

@@ -89,7 +89,25 @@ def test_dread_raises_the_threat_seen_and_unease_sharpens_the_fear_of_it(params:
 
     assert decisions.seen(params, band, HOME, ERA) == {**FOREST, 'threat': pytest.approx(0.7)}
     assert decisions.here(params, band, wanted, ERA) == pytest.approx(
-        decisions.worth(params, {**FOREST, 'threat': 0.7}, wanted)[0] - 0.2 * fear
+        decisions.worth(params, band, {**FOREST, 'threat': 0.7}, wanted)[0] - 0.2 * fear
+    )
+
+
+def test_a_band_lacking_sticks_wants_a_forest_and_one_guarded_by_them_fears_it_less(params: Params) -> None:
+    wooded = {**FOREST, 'wood': 0.8}
+    plain, lacking, guarded = (held({}, forage=45.0, water=45.0) for _ in range(3))
+    for band in (lacking, guarded):
+        band.lore['known'].append('sticks')
+    guarded.stores.add('sticks', 0, 4.5)
+    wanted = decisions.needs(params, plain)
+    fed = 0.1 * 0.9 + 0.1 * 0.6
+
+    assert wanted == pytest.approx({'hunger': 0.1, 'thirst': 0.1})
+    assert decisions.worth(params, plain, wooded, wanted)[0] == pytest.approx(fed - 2.0 * 0.9 * 0.4)
+    assert decisions.worth(params, lacking, wooded, wanted)[0] == pytest.approx(fed - 2.0 * 0.9 * 0.4 + 0.4 * 0.8)
+    assert decisions.worth(params, lacking, wooded, wanted)[1] == 'goods'
+    assert decisions.worth(params, guarded, wooded, wanted)[0] == pytest.approx(
+        fed - 2.0 * 0.9 * 0.4 * (0.4 * 0.8 + 0.6)
     )
 
 

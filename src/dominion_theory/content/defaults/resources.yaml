@@ -1,6 +1,8 @@
 resources:
   water: {kind: water, property: water, weight_kg: 1.0, spoils: {days: 5}}
   forage: {kind: food, property: food, weight_kg: 1.0, spoils: {days: 3}}
+  # Hunted, not gathered; the chance a member falls sick of a ration of it.
+  meat: {kind: food, weight_kg: 1.0, spoils: {days: 2}, sickens: 0.03}
   stones:
     kind: goods
     property: stone
@@ -55,3 +57,29 @@ resources:
       - {to: member, sex: male, path: units.band.carry_kg, times: 2.0}
       - {to: member, sex: female, path: units.band.carry_kg, times: 1.5}
       - {to: band, path: units.band.speed.base, times: 0.85}
+  spears:
+    kind: goods
+    held: personal
+    weight_kg: 1.5
+    # The ticks a spear of quality 1 hunts.
+    wears: {hunts: 60}
+    keep: {per: hunter, amount: 1.0}
+    made: {sticks: 1.0, stones: 1.0, cords: 1.0}
+  hides:
+    kind: goods
+    weight_kg: 2.0
+    spoils: {months: 2}
+    keep: {per: head, amount: 0.2}
+  clothes:
+    kind: goods
+    held: personal
+    weight_kg: 2.0
+    spoils: {months: 8}
+    keep: {per: member, amount: 1.0}
+    made: {hides: 1.0, cords: 1.0}
+    gives:
+      - {to: member, path: units.band.people.injury.per_day, times: 0.7}
+      - {to: member, path: units.band.people.exposure.encounter, times: 0.8}
+      - {to: member, path: units.band.people.exposure.frailty, times: 0.7, seasons: [winter]}
+      - {to: band, path: units.band.threat.camp, times: 0.9}
+      - {to: band, path: units.band.threat.march, times: 0.9}

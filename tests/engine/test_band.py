@@ -376,6 +376,7 @@ def test_the_band_knows_what_lies_within_its_sight(params: Params) -> None:
         'stone': 0.0,
         'wood': pytest.approx(0.8),
         'plants': pytest.approx(0.5),
+        'game': pytest.approx(0.7),
         'seen': 20,
     }
 
@@ -411,7 +412,7 @@ def test_people_eat_the_oldest_lot_first(params: Params) -> None:
     stores = Stock({'forage': [[0.0, 4.0], [1.0, 9.0]], 'water': [[1.0, 5.0]]})
     held = bands.Band(id=1, x=WEST, y=NORTH, members=bands.adults(10), stores=stores)
 
-    met = bands.eat(params, held)
+    met = bands.eat(params, held).met
 
     assert held.stores == {'forage': [[1.0, 3.0]], 'water': []}
     assert met == {'forage': 1.0, 'water': 0.5}
@@ -458,7 +459,7 @@ def test_a_newborn_dies_after_a_day_without_and_an_adult_is_only_hungry(params: 
     held = bands.Band(id=1, x=WEST, y=NORTH, members=[*bands.adults(2), bands.Member(0, 'female')])
 
     bands.eat(params, held)
-    began, ended, lost = bands.suffer(params, held)
+    began, ended, lost = bands.suffer(params, held, 0)
 
     assert (began, ended, lost) == (['starvation', 'thirst'], [], [('hunger', 1)])
     assert held.population == 2
@@ -526,7 +527,7 @@ def test_a_wound_slows_and_keeps_from_gathering_by_its_severity(
 def test_the_dead_are_drawn_from_the_exposed_and_never_the_player(params: Params) -> None:
     held = bands.Band(id=1, x=WEST, y=NORTH, members=[*bands.adults(1), bands.Member(0, 'female')])
 
-    lost, injured = bands.struck(params, held, 1.0, 0.0, {}, np.random.default_rng(7))
+    lost, injured, _ = bands.struck(params, held, 0, 1.0, 0.0, {}, np.random.default_rng(7))
 
     assert (lost, injured, held.population, held.members[0].player) == (1, 0, 1, True)
     assert bands.vulnerable(params, held, 'encounter') == [0.0]
@@ -560,7 +561,7 @@ def test_the_severity_of_a_wound_is_drawn_by_the_weights_of_its_cause(weights: d
     params = load_params(overrides={**SMALL, **usual})
     held = bands.Band(id=1, x=WEST, y=NORTH, members=bands.adults(4))
 
-    _, injured = bands.struck(params, held, 0.0, 1.0, weights, np.random.default_rng(7))
+    _, injured, _ = bands.struck(params, held, 0, 0.0, 1.0, weights, np.random.default_rng(7))
 
     assert injured == 4
     assert {member.wound['severity'] for member in held.members if member.wound} == {severity}
@@ -695,6 +696,8 @@ def test_a_tick_carries_the_row_of_the_band(params: Params) -> None:
             'pregnant': 0,
             'injured': 0,
             'skills': 0,
+            'hunters': 0,
+            'sick': 0,
         }
     )
 
@@ -718,7 +721,7 @@ def test_a_restored_game_carries_the_band_in_the_middle_of_a_day(params: Params)
 def test_a_snapshot_of_the_format_before_the_band_is_refused(params: Params) -> None:
     snapshot = land(params).snapshot()
 
-    assert snapshot["format"] == 22
+    assert snapshot["format"] == 23
     with pytest.raises(ValueError, match='format 2'):
         Game.restore({**snapshot, 'format': 2})
 
@@ -866,7 +869,7 @@ def test_a_nanny_cares_for_every_five_children_and_gathers_half(params: Params) 
     bands.assign(params, held)
 
     assert [member.role for member in held.members[:4]] == ['gatherer', 'gatherer', 'nanny', 'nanny']
-    assert bands.roles(params, held) == {'gatherer': 8, 'nanny': 2}
+    assert bands.roles(params, held) == {'gatherer': 8, 'nanny': 2, 'hunter': 0}
     assert bands.census(params, held).gatherers == pytest.approx(3.0)
 
 

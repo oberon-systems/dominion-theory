@@ -39,8 +39,10 @@ from .events import (
     INTENT_ENDED,
     KIND,
     PEOPLE_BORN,
+    PEOPLE_CURED,
     PEOPLE_INJURED,
     PEOPLE_LOST,
+    PEOPLE_SICKENED,
     PROPOSAL_EVEN,
     PROPOSAL_FAILED,
     PROPOSAL_WORKED,
@@ -63,7 +65,7 @@ from .events import (
 from .hashing import digest
 from .streams import Streams
 
-SNAPSHOT_FORMAT = 22
+SNAPSHOT_FORMAT = 23
 DIED = 'died'
 BANISHED = 'banished'
 VOTED = 'voted'
@@ -199,6 +201,8 @@ class Game:
         for name in (bands.PREGNANT, bands.INJURED):
             self.counters.declare(name, partial(self._counted, name))
         self.counters.declare('skills', lambda: 0 if self.band is None else len(self.band.lore[lore.KNOWN]))
+        self.counters.declare('hunters', self._hunters)
+        self.counters.declare(bands.SICK, partial(self._counted, bands.SICK))
 
     @classmethod
     def create(cls, seed: int, params: Params, seated: bool = False) -> Self:
@@ -406,11 +410,14 @@ class Game:
         counted = bands.census(self.params, self.band)
         return float(counted.counts[name] if name in counted.counts else getattr(counted, name))
 
-    def _held(self, prop: str) -> float:
+    def _held(self, kind: str) -> float:
         if self.band is None:
             return 0.0
         resources = self.params.resources
-        return sum(self.band.held(name) for name in self.band.stores if resources[name].property == prop)
+        return sum(self.band.held(name) for name in self.band.stores if resources[name].kind == kind)
+
+    def _hunters(self) -> float:
+        return 0 if self.band is None else bands.roles(self.params, self.band).get(bands.HUNTER, 0)
 
     def _start(self) -> Place | None:
         """
@@ -684,10 +691,12 @@ class Game:
             lore.march(band)
         self._totals[f'{done["kind"]}s'] += 1
         camp_parts = self.params.units.band.camp_parts
+        if self.date.part not in camp_parts and done['kind'] in (bands.GATHER, bands.BUILD, bands.CAMP):
+            bands.hunt(self, band, self.day)
         if self.date.part in camp_parts:
             bands.make(self.params, band, self.day)
         if camp_parts and self.date.part == camp_parts[0]:
-            bands.hand_out(self.params, band)
+            bands.hand_out(self.params, band, self.day)
             bands.wear(self.params, band, bands.NIGHTS, band.population)
         if done['kind'] == bands.CAMP and self.date.part not in self.params.units.band.camp_parts:
             band.camped += 1
@@ -786,9 +795,12 @@ class Game:
         kind, taken, hurt = met
         if self._camped(band):
             bands.wear(self.params, band, bands.ATTACKS, 1.0)
-        wounds = self.params.encounters.kinds[kind].wounds
-        lost, injured = bands.struck(self.params, band, taken, hurt, wounds, self.streams['people'])
-        if lost or injured:
+        held = self.params.encounters.kinds[kind]
+        people = self.streams['people']
+        lost, injured, sickened = bands.struck(
+            self.params, band, self.day, taken, hurt, held.wounds, people, held.sickens
+        )
+        if lost or injured or sickened:
             bands.frighten(self.params, band)
         self._totals['encounters'] += 1
         tick.events.append(Event(ENCOUNTER, {'kind': f'{KIND}{kind}', 'lost': lost}))
@@ -796,21 +808,28 @@ class Game:
             self._lost(tick, bands.ENCOUNTER, lost)
         if injured:
             tick.events.append(Event(PEOPLE_INJURED, {'count': injured}))
+        if sickened:
+            tick.events.append(Event(PEOPLE_SICKENED, {'count': sickened, 'cause': kind}))
 
     def _day_ends(self, tick: _Tick, band: Band) -> None:
         people = self.streams['people']
         feeds = bands.fed(self.params, band)
-        bands.eat(self.params, band)
-        began, ended, lost = bands.suffer(self.params, band)
+        sickened = bands.eat(self.params, band, people).sickened
+        if sickened:
+            tick.events.append(Event(PEOPLE_SICKENED, {'count': sickened, 'cause': bands.MEAT}))
+        began, ended, lost = bands.suffer(self.params, band, self.day)
         self._states(tick, began, ended)
         for cause, count in lost:
             self._lost(tick, cause, count)
+        cured = bands.cure(self.params, band)
+        if cured:
+            tick.events.append(Event(PEOPLE_CURED, {'count': cured}))
         threat = self._threat(band)
         wellbeing = decisions.wellbeing(self.params, band, self._guarded(band))
         active = self.params.time.parts_per_day - len(self.params.units.band.camp_parts)
         camped = min(band.camped / active, 1.0) if active > 0 else 1.0
         band.camped = 0
-        lived = bands.live(self.params, band, self.day, wellbeing, feeds, camped, people)
+        lived = bands.live(self.params, band, self.day, wellbeing, feeds, camped, people, self.date.season)
         bands.unsettle(self.params, band, threat)
         for cause, count in lived.lost:
             self._lost(tick, cause, count)

@@ -203,8 +203,10 @@ class Unit(BaseModel):
     pregnant: int
     injured: int
     wounds: dict[str, int]
+    sick: int
     stores: dict[str, float]
     goods: dict[str, float]
+    kit: dict[str, int]
     fatigue: float
     states: list[str]
     action: Action

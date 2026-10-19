@@ -13,6 +13,7 @@ skill-stone_tools = to work stone
 skill-sticks = to cut sticks
 skill-litters = to make litters
 skill-herbs = to know herbs
+skill-spears = to make spears and hunt
 
 goods-made = Made: { NAME("resource", $resource) } { $count }.
 goods-spoiled = Spoiled: { NAME("resource", $resource) } { $count }.

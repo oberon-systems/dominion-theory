@@ -24,6 +24,7 @@ line-stage-elder =
 line-pregnant = беременных { $count }
 line-injured = раненых { $count }
 line-injured-badly = раненых { $count } (тяжело { $badly })
+line-sick = больных { $count }
 line-store = { NAME("resource", $resource) } { NUMBER($amount, maximumFractionDigits: 1) }
 line-camp = в зимнем лагере
 line-skills = умеет { $skills }
@@ -42,6 +43,12 @@ line-role-nanny =
         [one] { $count } нянька
         [few] { $count } няньки
        *[many] { $count } нянек
+    }
+line-role-hunter =
+    { $count ->
+        [one] { $count } охотник
+        [few] { $count } охотника
+       *[many] { $count } охотников
     }
 line-action-move = идёт { NAME("line-direction", $towards) }
 line-action-roam = кочует { NAME("line-direction", $towards) }, собирая по пути
@@ -89,6 +96,7 @@ play-property-passability = проходимость
 play-property-stone = камень
 play-property-wood = дерево
 play-property-plants = растения
+play-property-game = дичь
 play-title-band = Община
 play-title-cell = Её место
 play-title-target = Цель

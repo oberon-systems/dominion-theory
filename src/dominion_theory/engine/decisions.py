@@ -21,6 +21,7 @@ from .band import (
     THIRST,
     Action,
     Band,
+    applied,
     around,
     building,
     camp,
@@ -187,12 +188,13 @@ def gathers(params: Params, band: Band, at: Place, era: str) -> set[str]:
     return found
 
 
-def here(params: Params, band: Band, wanted: dict[str, float], era: str) -> float:
+def here(params: Params, band: Band, wanted: dict[str, float], era: str, goods: bool = True) -> float:
     """
-    What staying is worth: the cell the band stands on, its threat sharpened by unease.
+    What staying is worth: the cell the band stands on, its threat sharpened by unease, with or without the goods
+    it lacks.
     """
     own = seen(params, band, band.place, era)
-    return worth(params, own, wanted, band.unease)[0] if own else 0.0
+    return worth(params, band, own, wanted, band.unease, goods)[0] if own else 0.0
 
 
 def wintering(params: Params, band: Band, era: str) -> float:
@@ -207,7 +209,7 @@ def wintering(params: Params, band: Band, era: str) -> float:
         own = _ranged(params, band, own, era)
     if not sheltered(band):
         own = {**own, THREAT: own.get(THREAT, 0.0) * params.units.band.winter_camp.threat}
-    return worth(params, own, needs(params, band), band.unease)[0]
+    return worth(params, band, own, needs(params, band), band.unease)[0]
 
 
 def reachable(band: Band, at: Place) -> bool:
@@ -218,15 +220,47 @@ def reachable(band: Band, at: Place) -> bool:
     return cell is not None and cell[PASSABILITY] > 0
 
 
-def worth(params: Params, cell: dict[str, Any], wanted: dict[str, float], unease: float = 0.0) -> tuple[float, str]:
+def worth(
+    params: Params,
+    band: Band,
+    cell: dict[str, Any],
+    wanted: dict[str, float],
+    unease: float = 0.0,
+    goods: bool = True,
+) -> tuple[float, str]:
     """
-    How good it would be to stand on a known cell now, and the need that says so loudest; unease makes a calm
-    band fear its threat more.
+    How good it would be to stand on a known cell now, and the need that says so loudest: its food and water by
+    the needs, the goods it gives that the band lacks by their pull, less the threat its guard leaves, which
+    unease makes a calm band fear more.
     """
     parts = {need: wanted[need] * cell.get(prop, 0.0) for prop, (need, _) in NEEDS.items()}
+    lacked = lacking(params, band, wanted) if goods else {}
+    parts[GOODS] = sum(pull * cell.get(params.resources[name].land, 0.0) for name, pull in lacked.items())
     loudest = max(parts, key=lambda need: parts[need])
-    fear = params.units.band.decisions.weights.safety * calm(wanted) * (1.0 + unease) * cell.get(THREAT, 0.0)
-    return sum(parts.values()) - fear, loudest
+    feared = calm(wanted) * (1.0 + unease) * guarded(params, band) * cell.get(THREAT, 0.0)
+    return sum(parts.values()) - params.units.band.decisions.weights.safety * feared, loudest
+
+
+def lacking(params: Params, band: Band, wanted: dict[str, float]) -> dict[str, float]:
+    """
+    The goods the band has learned to gather and lacks of their keep, each by how hard it pulls.
+    """
+    found: dict[str, float] = {}
+    for name in params.units.band.gathering:
+        pulled = _pulled(params, band, name, wanted)
+        if pulled is not None and pulled[0] == GOODS and pulled[1] > 0:
+            found[name] = pulled[1]
+    return found
+
+
+def guarded(params: Params, band: Band) -> float:
+    """
+    The share of the threat of a cell the guard of the band leaves over a day standing on it: that of the camp
+    in the camp parts, that of the march in the others.
+    """
+    guard = applied(params, band).units.band.threat
+    camped = len(params.units.band.camp_parts) / params.time.parts_per_day
+    return camped * guard.camp + (1.0 - camped) * guard.march
 
 
 def _far(a: Place, b: Place) -> int:
@@ -251,6 +285,8 @@ def options(
     wanted = needs(params, band)
     own = seen(params, band, band.place, era)
     staying = here(params, band, wanted, era)
+    # An intent outweighs the land alone: the goods of the cell are weighed by its gathering already.
+    settled = here(params, band, wanted, era, goods=False) if towards is not None else staying
     unknown = dict(rules.decisions.unknown)
     found: list[Scored] = []
     if allowed is None or CAMP in allowed:
@@ -267,7 +303,7 @@ def options(
             if target not in enterable or (towards is not None and name not in towards):
                 continue
             if towards is not None:
-                gain, need, source, kept, pace = weights.intent - staying, REST, None, 0.0, 1.0
+                gain, need, source, kept, pace = weights.intent - settled, REST, None, 0.0, 1.0
             else:
                 pull, need, source = _pull(params, band, era, (dx, dy), enterable, wanted, unknown)
                 gain, kept = pull - staying, weights.momentum if band.target == target else 0.0
@@ -374,7 +410,7 @@ def _pull(
     best: tuple[float, str, Place] | None = None
     for at, cell in candidates:
         away = _far(band.place, at)
-        value, need = worth(params, cell or {}, wanted, band.unease)
+        value, need = worth(params, band, cell or {}, wanted, band.unease)
         # Distance makes good land less good and known bad land worse; the unknown is no worse for being far.
         if value > 0:
             value = value / (1.0 + away * distance)

@@ -41,6 +41,8 @@ LEVELS = {
     'water': 'water',
     'status': 'status',
     'skills': 'skills',
+    'hunters': 'hunters',
+    'sick': 'sick',
 }
 TOTALS = ('deaths', 'moves', 'roams', 'gathers', 'camps', 'builds', 'encounters')
 STATES = {'starvation': 'starving', 'thirst': 'thirsty', 'tiredness': 'tired'}
@@ -67,6 +69,8 @@ YEAR = (
     'encounters',
     'status',
     'skills',
+    'hunters',
+    'sick',
     'known',
     'snapshot',
 )

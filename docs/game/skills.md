@@ -150,7 +150,7 @@ quality, a keep and a recipe.
 | `cords`      | goods | common   | 0.1 kg | 6 months x quality | - (spent in what is made)                  | 0.5 to 1.0, by the place | 0.2 a head  | gathered                   |
 | `litters`    | goods | personal | 4 kg   | -                  | 40 days pulled                             | its materials'  | 1 a puller          | 3 sticks, 2 cords          |
 | `spears`     | goods | personal | 1.5 kg | -                  | 60 hunts                                   | its materials'  | 1 a hunter          | 1 stick, 1 stone, 1 cord   |
-| `hides`      | goods | common   | 2 kg   | 2 months           | - (spent in what is made)                  | 1               | -                   | hunted                     |
+| `hides`      | goods | common   | 2 kg   | 2 months           | - (spent in what is made)                  | 1               | 0.2 a head          | hunted                     |
 | `clothes`    | goods | personal | 2 kg   | 8 months x quality | -                                          | its materials'  | 1 a member          | 1 hide, 1 cord             |
 | `waterskins` | goods | personal | 0.5 kg | 6 months x quality | -                                          | its materials'  | 1 an adult or elder | 1 hide, 1 cord             |
 | `meat`       | food  | common   | 1 kg   | 2 days             | -                                          | -               | -                   | hunted                     |
@@ -170,8 +170,8 @@ What each gives is in [Bonuses](#bonuses).
   A good held and not used does not wear. The uses are `eaten` (a unit
   of food eaten), `nights` (a head that spends a night in camp),
   `attacks` (an encounter met in camp), `cures` (a herb spent on a sick
-  member or a wound) and `pulled` (a day its holder walked or roamed
-  with it); hunts come with spears. A litter wears in the kit of its
+  member or a wound), `pulled` (a day its holder walked or roamed
+  with it) and `hunts` (a tick its holder hunted with it). A litter wears in the kit of its
   holder only: those left in the stores are not pulled. A good has a
   time to spoil, uses, or both; food and water have only the time.
 - **Quality** - the third number of a lot, beside the day and the
@@ -193,7 +193,7 @@ properties are added to the band era; `game` is hunted, not gathered.
 | `stone`  | mountain 0.6, outcrops 0.8, hills 0.5               | 50 units          | 90 days     |
 | `wood`   | forest 0.8                                          | 100 units         | 30 days     |
 | `plants` | forest 0.5, grass 0.6, floodplain 0.7, swamp 0.8    | 50 units          | 30 days, a quarter in winter |
-| `game`   | grass 0.6, forest 0.5, floodplain 0.5, tundra 0.4, hills 0.3, swamp 0.3 | 60 units | 60 days |
+| `game`   | forest 0.7, grass 0.6, floodplain 0.5, tundra 0.4, hills 0.3, swamp 0.3 | 60 units | 60 days |
 
 | Resource | Property | Rate per person per tick |
 |----------|----------|--------------------------|
@@ -239,7 +239,7 @@ or spoiled is told in whole units: the rest waits for the next.
 Every biome that gives a new property lists the resource, and every
 property needs its value in `decisions.unknown`, what a band expects of
 land it does not know: `stone` 0.1 and `wood` 0.2, since few biomes give
-them, and `plants` 0.3. The biomes that do not give a property hold it at a base of 0.
+them, `plants` 0.3 and `game` 0.3. The biomes that do not give a property hold it at a base of 0.
 
 ___
 
@@ -256,7 +256,8 @@ hold one.
 
 A personal good weighs in the load of its holder, so the free carry of
 a band is what its members carry less its stores and their kits. The
-goods of the dead go back to the band's stores; taking them from a band
+goods of the dead go back to the band's stores, a worn one taken apart,
+see [Handing out](#handing-out); taking them from a band
 beaten is loot, stage 3.
 
 ___
@@ -268,8 +269,11 @@ personal goods to those who lack them, the way food is shared: the
 least protected first. A good its holder may no longer use goes back to
 the stores first. A good is handed out whole: a member takes one only
 while a whole one is in the stores, and a worn one in a kit counts as
-one, so it is not topped up. What is left of the goods of the dead, less
-than one, stays in the stores until more of it joins it.
+one, so it is not topped up. A worn good that comes back to the stores,
+from the dead or from a holder who may no longer use it, is taken
+apart: its materials go to the stores by the share left of it and at
+its quality, so 0.43 of a litter of quality 0.92 gives 1.29 sticks and
+0.86 cords of 0.92. The stores hold made goods whole only.
 
 | Good         | Goes to, in order                                        |
 |--------------|----------------------------------------------------------|
@@ -345,8 +349,8 @@ since YAML reads a key `on` as true.
 | `litters`    | member | `units.band.carry_kg`, of a woman       | times 1.5      | -                          |
 | `litters`    | band   | `units.band.speed.base`                 | times 0.85     | members pulling            |
 | `clothes`    | member | `units.band.people.injury.per_day`      | times 0.7      | -                          |
-| `clothes`    | member | the encounter weight, `dies.encounter`  | times 0.8      | -                          |
-| `clothes`    | member | the frailty weight, `dies.frailty`      | times 0.7      | in winter                  |
+| `clothes`    | member | `units.band.people.exposure.encounter`  | times 0.8      | -                          |
+| `clothes`    | member | `units.band.people.exposure.frailty`    | times 0.7      | in winter                  |
 | `clothes`    | band   | `units.band.threat.camp` and `.march`   | times 0.9      | members holding            |
 | `waterskins` | member | the carry, for water only               | plus 3 kg      | -                          |
 | `waterskins` | band   | `resources.water.spoils`                | times 1.5      | adults and elders holding  |
@@ -360,8 +364,8 @@ changed: the land is as dangerous as before, the band is better
 guarded.
 
 A litter in a band of 15 adults, 8 men and 7 women, all pulling, adds
-8 x 6 + 7 x 3 = 69 kg to the 90 kg the band carries, at 85% of its
-pace. There is no death of cold; the frailty of winter stands for it.
+8 x 6 + 7 x 3 = 69 kg free to the 90 kg the band carries, at 85% of
+its pace; the litters themselves are carried on top. There is no death of cold; the frailty of winter stands for it.
 
 The parameters with the bonuses laid over them are computed once and
 kept, like the census, until the goods, the members or the roles change:
@@ -371,12 +375,19 @@ The pluses of a path are added before its times multiply, and a plus of
 a span, like the year of `age.begins`, is laid in days. A bonus of
 seasons holds only where the code that reads it names the season.
 
-The bonuses of stones, sticks and litters are built so far: a band
+`units.band.people.exposure` is new: `{encounter: 1.0, frailty: 1.0}`,
+what the goods of a member leave of its weights for those causes of
+death, multiplied into the weights of its stage.
+
+The bonuses of stones, sticks, litters, clothes and the hunters are
+built so far: a band
 holding 0.3 stones a head eats 0.9 of its forage and dies of age a year
 later, one holding 0.3 sticks a head meets 0.8 of the threat in camp,
 and one whose pullers all pull a litter carries more at 0.85 of its
 base pace. The carry of a member is its stage's share of `carry_kg`
-with the bonuses of its own kit laid over.
+with the bonuses of its own kit laid over. A bonus on the carry is
+net: the good that lays it weighs in the load and adds its own weight
+to the carry, so a man pulling a litter has 12 kg free and a woman 9.
 
 ___
 
@@ -387,6 +398,15 @@ band, rounded down, may hunt; never more than there are spears, never
 the player and never a nanny. Men come first, the youngest adults
 first. The roles are laid at the end of the day, like the nanny's.
 
+The members the role would take, adults of a stage that gathers and of
+no role that cares, are those the keep of spears counts: the band makes
+a spear for each and hands it to them in the evening. One of them
+becomes a hunter at the end of a day while it holds a spear, so a band
+never has more hunters than spears, and one without a spear pulls a
+litter like any gatherer. A role with a `share` lays its bonuses on the
+band by the share of it filled, the hunters over the members it would
+take.
+
 A hunter hunts only while the band stands: in the active ticks it
 gathers, builds or camps. While the band walks or roams, a hunter
 gathers like a gatherer.
@@ -396,11 +416,25 @@ meat a tick  = hunters * hunting.meat * value(game, cell)
 hides a tick = meat * hunting.hides
 ```
 
-`hunting.meat` is 4.0 kg and `hunting.hides` 0.05, one hide for 20 kg
-of meat. A hide is a material, held in the stores until it is sewn
-into clothes or a waterskin, and rots in 2 months if it is not. The hunt pays the `game` of the cell, or of the best cell in
-the reach of a winter camp. Meat is food: it is eaten like forage and
-spoils in 2 days.
+`hunters` counts the hunters as `gatherers` counts the gatherers: a
+wounded, hungry or sick hunter brings its share, and the fatigue of the
+band lowers it the same way. `hunting.meat` is 4.0 kg and
+`hunting.hides` 0.05, one hide for 20 kg of meat. A hide is a material,
+held in the stores until it is sewn into clothes or a waterskin, and
+rots in 2 months if it is not. A hunt brings no more than the room
+holds, meat and hides together, and no more hides than are missing of
+their keep, 0.2 a head: three hunters bring about a hide a day, and the
+rest would only weigh. The hunt pays the `game` of the cell, or of the
+best cell in the reach of a winter camp, and lowers its stock by the
+meat over the 60 units a full cell holds. Every hunter wears its spear
+by a hunt a tick. Meat is food: it is eaten like forage and spoils in 2
+days.
+
+The game of a forest is the richest: more beasts live there, and cover lets
+the hunters near them, so one value stands for both. Three hunters on
+a cell of game 0.6 bring about 7 kg of meat a tick,
+some 20 kg a day the band stands: more than a band of 15 eats, and the
+cell is emptied in about three days.
 
 ___
 
@@ -411,16 +445,20 @@ at 0.7 for that time; its frailty weight is doubled. A member falls sick
 two ways.
 
 - **Raw meat** - at the end of a day, each member who ate meat that day
-  falls sick with the chance `sickness.raw_meat`, 0.03, times the share
-  of its ration that was meat.
+  and is not sick yet falls sick with the chance `sickens` of meat,
+  0.03, times the share of its ration that was meat.
 - **Bad water** - the encounter `poisoning`, in a swamp or a marsh, takes
-  its share as before; with herbs held, one member of that share is
-  sick instead of dead for every herb, and the herb is spent.
+  its share as before; it `sickens`, so with herbs held the first of
+  the members it takes are sick instead of dead, one for every herb, and
+  the herbs are spent.
 
 Herbs cure poisoning of any source and light wounds. At the end of a
-day, while herbs are held, one is spent on every sick member, whose
-sickness ends, then on every light wound not treated yet, whose days
-left are halved. The event `people-cured` counts them.
+day, while a whole herb is held, one is spent on every sick member,
+whose sickness ends, then on every wound not treated yet whose severity
+has a `treated` below 1, the light one, whose days left are cut to it,
+half. The event `people-cured` counts them. The sick of the day's meat
+are cured the same evening while herbs last, so herbs make meat safe at
+the cost of a herb a sickness.
 
 ___
 
@@ -454,6 +492,9 @@ update of the tick, a line of the client from the catalogues `en` and
 | `goods-spoiled`  | `resource`, `count`            | Spoiled: sticks 2.                     |
 | `goods-worn`     | `resource`, `count`            | Worn out: stones 3.                    |
 | `people-sickened`| `count`, `cause`               | 2 people are sick from raw meat.       |
+
+The `cause` of `people-sickened` is `meat`, or the kind of the
+encounter that sickened, `poisoning`.
 | `people-cured`   | `count`                        | Herbs helped 2 people.                 |
 
 The band line of the client shows the skills known and the kit: how
@@ -597,7 +638,7 @@ resources:
     wears: {hunts: 60}
     keep: {per: hunter, amount: 1}
     made: {sticks: 1, stones: 1, cords: 1}
-  hides: {kind: goods, weight_kg: 2.0, spoils: {months: 2}}
+  hides: {kind: goods, weight_kg: 2.0, spoils: {months: 2}, keep: {per: head, amount: 0.2}}
   clothes:
     kind: goods
     held: personal
@@ -607,8 +648,8 @@ resources:
     made: {hides: 1, cords: 1}
     gives:
       - {to: member, path: units.band.people.injury.per_day, times: 0.7}
-      - {to: member, path: dies.encounter, times: 0.8}
-      - {to: member, path: dies.frailty, times: 0.7, seasons: [winter]}
+      - {to: member, path: units.band.people.exposure.encounter, times: 0.8}
+      - {to: member, path: units.band.people.exposure.frailty, times: 0.7, seasons: [winter]}
       - {to: band, path: units.band.threat.camp, times: 0.9}
       - {to: band, path: units.band.threat.march, times: 0.9}
   waterskins:
@@ -629,7 +670,7 @@ units:
     threat: {camp: 1.0, march: 1.0}
     gathering: {stones: 0.5, sticks: 1.0, herbs: 0.2, cords: 0.3}
     decisions:
-      unknown: {stone: 0.1, wood: 0.2, plants: 0.3}
+      unknown: {stone: 0.1, wood: 0.2, plants: 0.3, game: 0.3}
       weights: {goods: 0.4}
     people:
       roles:
@@ -641,12 +682,19 @@ units:
             - {to: band, path: units.band.threat.camp, times: 0.8}
             - {to: band, path: units.band.threat.march, times: 0.8}
       sickness: {lasts: {days: 5}, pace: 0.7, gathers: 0.5, frailty: 2.0}
+      exposure: {encounter: 1.0, frailty: 1.0}
+      injury:
+        severities:
+          light: {days: 10, pace: 0.8, gathers: 0.7, treated: 0.5}
     making: {per_part: 0.2}
     hunting: {meat: 4.0, hides: 0.05}
 eras:
   band:
     capacity: {stone: 50, wood: 100, plants: 50, game: 60}
     recovery: {plants: {winter: 0.25}}
+encounters:
+  kinds:
+    poisoning: {sickens: true}
 ```
 
 The four new properties go into the biome files with a base and a
@@ -672,7 +720,9 @@ A game does not start from skills and goods that do not add up.
 - A bonus names a path of the tree that holds a number, and `to` is
   `band` or `member`.
 - A role that `needs` a good names a personal one; the share of a role
-  lies in 0 to 1.
+  lies in 0 to 1, and its bonuses go to the band. Exactly one role cares
+  for nobody and has no share: the common one.
+- The resources a hunt brings, `meat` and `hides`, exist.
 
 ___
 
@@ -694,6 +744,10 @@ ___
   its recipe, will be made only at a standing camp - the camp parts of a
   day the band did not walk or roam - or in a built winter camp. None is
   complex yet; the first is weighed with spears.
+- **Game in the decisions** - a band does not weigh the `game` of a cell
+  when it chooses where to go: the hunters take what the land the band
+  stands on gives. A pull of meat beside the pull of forage is weighed
+  in the lab.
 - **A card of a member** - a member will get a name and a card with its
   stats and its kit. Goods are handed out whole so that a card shows
   things, not shares of them.

@@ -73,7 +73,7 @@ def test_biome_gives_exactly_the_properties_of_its_era() -> None:
     assert values == {
         'path': f'{BAND}.properties',
         'found': ['food'],
-        'expected': 'the properties water, food, threat, passability, stone, wood, plants',
+        'expected': 'the properties water, food, threat, passability, stone, wood, plants, game',
     }
     assert refused({'eras.band.properties': ['water', 'food']})['path'] == 'biomes.desert.eras.band.properties'
 
@@ -149,7 +149,7 @@ def test_river_effects_name_properties_of_their_era() -> None:
     assert refused({'planet.rivers.effects.band': {'shade': {'plus': 0.1}}}) == {
         'path': 'planet.rivers.effects.band',
         'found': 'shade',
-        'expected': 'one of water, food, threat, passability, stone, wood, plants',
+        'expected': 'one of water, food, threat, passability, stone, wood, plants, game',
     }
     assert refused({'planet.rivers.effects': {'alpha': {}}})['path'] == 'planet.rivers.effects'
 

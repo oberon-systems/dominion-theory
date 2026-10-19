@@ -65,7 +65,7 @@ def test_spot_checks_of_the_other_biomes() -> None:
 def test_every_biome_gives_the_properties_of_the_era() -> None:
     params = load_params()
 
-    assert params.eras.band.properties == ('water', 'food', 'threat', 'passability', 'stone', 'wood', 'plants')
+    assert params.eras.band.properties == ('water', 'food', 'threat', 'passability', 'stone', 'wood', 'plants', 'game')
     assert params.eras.band.cell_km == 10
     for biome in params.biomes.values():
         assert set(biome.eras['band'].properties) == set(params.eras.band.properties)

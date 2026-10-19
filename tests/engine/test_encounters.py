@@ -86,7 +86,7 @@ def test_a_drowning_always_takes_somebody(params: Params) -> None:
     band = Band(id=1, x=0, y=0, members=adults(15))
 
     assert met == ('drowning', 0.05, 0.0)
-    assert bands.struck(params, band, met[1], met[2], {}, np.random.default_rng(7)) == (1, 0)
+    assert bands.struck(params, band, 0, met[1], met[2], {}, np.random.default_rng(7)) == (1, 0, 0)
     assert (band.population, band.members[0].player) == (14, True)
 
 

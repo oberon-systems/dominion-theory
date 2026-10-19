@@ -13,3 +13,16 @@ people-injured =
         [one] { $count } person is injured.
        *[other] { $count } people are injured.
     }
+people-sickened =
+    { $count ->
+        [one] { $count } person is sick
+       *[other] { $count } people are sick
+    } { $cause ->
+        [meat] from raw meat
+       *[other] from bad water
+    }.
+people-cured =
+    { $count ->
+        [one] Herbs helped { $count } person.
+       *[other] Herbs helped { $count } people.
+    }

@@ -30,6 +30,10 @@ def test_resources_are_those_of_their_documents() -> None:
         'herbs': ('goods', 'plants', 0.1, {'months': 2}, {'cures': 1}),
         'cords': ('goods', 'plants', 0.1, {'months': 6}, {}),
         'litters': ('goods', None, 4.0, None, {'pulled': 40}),
+        'meat': ('food', None, 1.0, {'days': 2}, {}),
+        'spears': ('goods', None, 1.5, None, {'hunts': 60}),
+        'hides': ('goods', None, 2.0, {'months': 2}, {}),
+        'clothes': ('goods', None, 2.0, {'months': 8}, {}),
     }
 
 
@@ -61,9 +65,27 @@ def test_band_is_the_one_of_its_document() -> None:
     assert band.roaming.model_dump() == {'speed': 0.75, 'share': 0.5, 'hunger': 0.8}
     assert band.people.weakened.model_dump() == {'pace': 0.6, 'gathers': 0.6}
     assert {name: role.model_dump() for name, role in band.people.roles.items()} == {
-        'gatherer': {'gathers': 1.0, 'cares': None},
-        'nanny': {'gathers': 0.5, 'cares': 5},
+        'gatherer': {'gathers': 1.0, 'cares': None, 'share': None, 'needs': None, 'gives': ()},
+        'nanny': {'gathers': 0.5, 'cares': 5, 'share': None, 'needs': None, 'gives': ()},
+        'hunter': {
+            'gathers': 1.0,
+            'cares': None,
+            'share': 0.2,
+            'needs': 'spears',
+            'gives': tuple(
+                {'to': 'band', 'path': path, 'plus': None, 'times': 0.8, 'sex': None, 'seasons': ()}
+                for path in ('units.band.threat.camp', 'units.band.threat.march')
+            ),
+        },
     }
+    assert band.people.sickness.model_dump(exclude_none=True) == {
+        'lasts': {'days': 5},
+        'pace': 0.7,
+        'gathers': 0.5,
+        'frailty': 2.0,
+    }
+    assert band.people.exposure.model_dump() == {'encounter': 1.0, 'frailty': 1.0}
+    assert band.hunting.model_dump() == {'meat': 4.0, 'hides': 0.05}
     assert band.people.leaves.model_dump(exclude_none=True) == {'back': {'days': 1}}
     assert {name: stage.reserve.model_dump() for name, stage in band.people.stages.items()} == {
         'child': {'food': 1.0, 'water': 1.0, 'grows': True},
@@ -90,9 +112,9 @@ def test_band_is_the_one_of_its_document() -> None:
     assert (injury.per_day, injury.heal_in_camp) == (0.002, 2.0)
     assert injury.drawn == {'light': 0.5, 'medium': 0.3, 'heavy': 0.2}
     assert {name: held.model_dump() for name, held in injury.severities.items()} == {
-        'light': {'days': 10, 'pace': 0.8, 'gathers': 0.7},
-        'medium': {'days': 15, 'pace': 0.6, 'gathers': 0.4},
-        'heavy': {'days': 20, 'pace': 0.4, 'gathers': 0.2},
+        'light': {'days': 10, 'pace': 0.8, 'gathers': 0.7, 'treated': 0.5},
+        'medium': {'days': 15, 'pace': 0.6, 'gathers': 0.4, 'treated': 1.0},
+        'heavy': {'days': 20, 'pace': 0.4, 'gathers': 0.2, 'treated': 1.0},
     }
     weights = band.decisions.weights
     assert (weights.hunger, weights.goods, weights.safety, weights.move) == (1.5, 0.4, 2.0, 3.0)
@@ -111,7 +133,7 @@ def test_unknown_unit_is_a_key_error() -> None:
 def test_era_holds_what_a_cell_gives_and_how_winter_slows_it() -> None:
     band = load_params().eras.band
 
-    assert band.capacity == {'food': 100.0, 'water': 2000.0, 'stone': 50.0, 'wood': 100.0, 'plants': 50.0}
+    assert band.capacity == {'food': 100.0, 'water': 2000.0, 'stone': 50.0, 'wood': 100.0, 'plants': 50.0, 'game': 60.0}
     assert band.recovery == {'food': {'winter': 0.25}, 'plants': {'winter': 0.25}}
 
 
@@ -199,7 +221,7 @@ def test_resource_names_a_property_of_the_era() -> None:
     assert refused({'resources.forage.property': 'soil'}) == {
         'path': 'resources.forage.property',
         'found': 'soil',
-        'expected': 'a property of the era band: water, food, threat, passability, stone, wood, plants',
+        'expected': 'a property of the era band: water, food, threat, passability, stone, wood, plants, game',
     }
 
 
@@ -213,7 +235,7 @@ def test_band_names_only_resources_that_exist(section: str) -> None:
     assert refused({f'{BAND}.{section}': {'stone': 1.0}}) == {
         'path': f'{BAND}.{section}',
         'found': 'stone',
-        'expected': 'one of water, forage, stones, sticks, herbs, cords, litters',
+        'expected': 'one of water, forage, meat, stones, sticks, herbs, cords, litters, spears, hides, clothes',
     }
 
 
@@ -263,6 +285,17 @@ def test_one_role_cares_for_nobody() -> None:
     roles = {'gatherer': {'gathers': 1.0}, 'nanny': {'gathers': 0.0}}
 
     assert refused({f'{BAND}.people.roles': roles})['path'] == f'{BAND}.people.roles'
+
+
+def test_a_role_needs_a_personal_good_and_lays_its_bonuses_on_the_band() -> None:
+    roles = f'{BAND}.people.roles.hunter'
+    member = [{'to': 'member', 'path': 'units.band.carry_kg', 'times': 2.0}]
+
+    assert refused({f'{roles}.needs': 'sticks'})['path'] == f'{roles}.needs'
+    assert refused({f'{roles}.gives': member})['path'] == f'{roles}.gives.to'
+    assert refused({f'{roles}.gives': [{'to': 'band', 'path': 'units.band', 'times': 0.8}]})['path'] == (
+        f'{roles}.gives.path'
+    )
 
 
 def test_the_last_stage_does_not_grow_its_reserve() -> None:
@@ -375,7 +408,11 @@ def test_status_starts_within_its_scale() -> None:
     [
         ('biomes', ['alpha'], None),
         ('actions', ['swim'], 'one of move, roam, gather, camp, build'),
-        ('resources', ['stone'], 'one of water, forage, stones, sticks, herbs, cords, litters'),
+        (
+            'resources',
+            ['stone'],
+            'one of water, forage, meat, stones, sticks, herbs, cords, litters, spears, hides, clothes',
+        ),
     ],
 )
 def test_encounter_names_what_exists(section: str, value: list[str], expected: str | None) -> None:
@@ -405,7 +442,7 @@ def test_era_names_its_own_properties(section: str) -> None:
     assert refused({f'eras.band.{section}': value}) == {
         'path': f'eras.band.{section}',
         'found': 'soil',
-        'expected': 'one of water, food, threat, passability, stone, wood, plants',
+        'expected': 'one of water, food, threat, passability, stone, wood, plants, game',
     }
 
 

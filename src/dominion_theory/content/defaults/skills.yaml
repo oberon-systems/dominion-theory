@@ -25,3 +25,7 @@ skills:
         - {counter: days_in, biomes: [grass, floodplain], at_least: 90}
         - {counter: days_in, biome: swamp, at_least: 30}
     opens: {gathers: [herbs, cords]}
+  spears:
+    needs: [stone_tools, sticks, herbs]
+    learned: {holds: {sticks: 1, stones: 1, cords: 1}}
+    opens: {makes: [spears, clothes], roles: [hunter]}

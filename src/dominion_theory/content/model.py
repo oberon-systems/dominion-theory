@@ -36,9 +36,11 @@ COMMON = 'common'
 PERSONAL = 'personal'
 HOLDERS = (COMMON, PERSONAL)
 PER = ('head', 'member', 'adult', 'puller', 'hunter')
-USES = ('eaten', 'nights', 'attacks', 'cures', 'pulled')
+USES = ('eaten', 'nights', 'attacks', 'cures', 'pulled', 'hunts')
 # A bonus goes `to`, not `on`: YAML reads a key on as true.
 TO = ('band', 'member')
+# What a hunt brings, by name.
+HUNTED = ('meat', 'hides')
 SEXES = ('female', 'male')
 
 Name = Annotated[str, Field(strict=True, pattern=r'^[a-z][a-z0-9_]*$')]
@@ -560,12 +562,14 @@ class Ageing(Node):
 
 class Severity(Node):
     """
-    How long a wound of a severity lasts in days of healing, and the share of pace and gathering it leaves.
+    How long a wound of a severity lasts in days of healing, the share of pace and gathering it leaves, and the
+    share of the days left a cure leaves; a wound a cure does not shorten is not treated.
     """
 
     days: Count
     pace: Annotated[float, Field(strict=True, gt=0, le=1)]
     gathers: Share
+    treated: Share = 1.0
 
 
 class Injury(Node):
@@ -676,11 +680,15 @@ class Route(Node):
 class Role(Node):
     """
     What a member does for the band: the share of a gathering it brings, and for a role that cares, one member
-    of it for every so many children.
+    of it for every so many children. A role with a share takes up to that share of the band, each member holding
+    the good it needs, and lays its bonuses on the band by the share of it filled.
     """
 
     gathers: Factor
     cares: Count | None = None
+    share: Share | None = None
+    needs: Name | None = None
+    gives: tuple[Bonus, ...] = ()
 
 
 class Leaves(Node):
@@ -701,6 +709,27 @@ class Weakened(Node):
     gathers: Share
 
 
+class Sickness(Node):
+    """
+    How long a sick member stays sick, the share of pace and gathering it keeps, and how much more it dies of
+    frailty.
+    """
+
+    lasts: Duration
+    pace: Annotated[float, Field(strict=True, gt=0, le=1)]
+    gathers: Share
+    frailty: Factor
+
+
+class Exposure(Node):
+    """
+    What the goods of a member leave of its weight for a cause of death; 1 without them.
+    """
+
+    encounter: Factor
+    frailty: Factor
+
+
 class People(Node):
     stages: dict[Name, LifeStage] = Field(min_length=1)
     age: Ageing
@@ -709,6 +738,8 @@ class People(Node):
     weakened: Weakened
     roles: dict[Name, Role] = Field(min_length=1)
     leaves: Leaves
+    sickness: Sickness
+    exposure: Exposure
 
 
 class Speed(Node):
@@ -810,6 +841,15 @@ class Making(Node):
     per_part: Factor
 
 
+class Hunting(Node):
+    """
+    The meat a hunter brings in a tick on a cell of full game, and the hides a kilo of meat gives.
+    """
+
+    meat: Factor
+    hides: Factor
+
+
 class Band(Node):
     start: Start
     population: Population
@@ -822,6 +862,7 @@ class Band(Node):
     fatigue: Fatigue
     camp_parts: tuple[Name, ...]
     making: Making
+    hunting: Hunting
     states: States
     sight: Span
     memory: Duration
@@ -902,7 +943,7 @@ class Encounter(Node):
     """
     A kind of encounter. It fits a cell of one of its biomes, or one with a river when rivers is set;
     with neither it fits anywhere. Actions and resources left empty fit any; wounds left empty are drawn as
-    units.band.people.injury.drawn.
+    units.band.people.injury.drawn. One that sickens leaves sick instead of dead those a cure held saves.
     """
 
     weight: Positive
@@ -913,6 +954,7 @@ class Encounter(Node):
     rivers: bool = Field(default=False, strict=True)
     actions: tuple[Name, ...] = ()
     resources: tuple[Name, ...] = ()
+    sickens: bool = Field(default=False, strict=True)
 
 
 class Encounters(Node):
@@ -1167,6 +1209,9 @@ class Params(Node):
         for resource in band.gathering:
             if self.resources[resource].property is None:
                 raise _invalid('units.band.gathering', resource, 'a resource gathered by a property of the land')
+        for resource in HUNTED:
+            if resource not in self.resources:
+                raise _invalid('resources', sorted(self.resources), f'the resources {", ".join(HUNTED)} a hunt brings')
         start = band.start
         if start.population < band.population.least:
             expected = f'at least the {band.population.least} people of population.least'
@@ -1233,9 +1278,20 @@ class Params(Node):
         if self.days(pause.min) > self.days(pause.max):
             raise _invalid(f'{path}.birth.pause', pause.model_dump(), 'min not above max')
         self._check_wounds(f'{path}.injury.drawn', people.injury.drawn)
-        common = [name for name, role in people.roles.items() if role.cares is None]
+        common = [name for name, role in people.roles.items() if role.cares is None and role.share is None]
         if len(common) != 1:
-            raise _invalid(f'{path}.roles', common, 'exactly one role that cares for nobody')
+            raise _invalid(f'{path}.roles', common, 'exactly one role that cares for nobody and has no share')
+        for name, role in people.roles.items():
+            needed = None if role.needs is None else self.resources.get(role.needs)
+            if role.needs is not None and (needed is None or needed.held != PERSONAL):
+                personal = [held for held, resource in self.resources.items() if resource.held == PERSONAL]
+                raise _invalid(f'{path}.roles.{name}.needs', role.needs, f'one of {", ".join(personal)}')
+            for bonus in role.gives:
+                if bonus.to != TO[0] or bonus.sex is not None:
+                    raise _invalid(f'{path}.roles.{name}.gives.to', bonus.to, f'{TO[0]}, of no sex')
+                if not self._holds_number(bonus):
+                    expected = 'a path of the tree that holds a number, or a span for a plus of a span'
+                    raise _invalid(f'{path}.roles.{name}.gives.path', bonus.path, expected)
 
     def _check_wounds(self, path: str, weights: dict[str, float]) -> None:
         severities = self.units.band.people.injury.severities

@@ -34,6 +34,8 @@ SAMPLES: dict[str, dict[str, Any]] = {
     'people-lost': {'count': 2, 'cause': 'encounter'},
     'people-born': {'count': 1},
     'people-injured': {'count': 2},
+    'people-sickened': {'count': 2, 'cause': 'meat'},
+    'people-cured': {'count': 2},
     'band-died': {},
     'encounter': {'kind': 'encounter-predator', 'lost': 1},
     'council-opened': {'leader': 'proposal-stay-and-gather', 'occasion': 'occasion-hunger'},
@@ -156,6 +158,16 @@ def test_a_line_without_events_is_the_date_alone() -> None:
             {**BAND, 'roles': {'gatherer': 13, 'nanny': 2}},
             'ru',
             '15 человек, 2 няньки, подножный корм 22,5, вода 30, стоит лагерем.',
+        ),
+        (
+            {**BAND, 'sick': 2, 'roles': {'gatherer': 12, 'nanny': 0, 'hunter': 3}},
+            'en',
+            '15 people, 2 sick, 3 hunters, forage 22.5, water 30, camps.',
+        ),
+        (
+            {**BAND, 'sick': 1, 'roles': {'gatherer': 13, 'nanny': 0, 'hunter': 2}},
+            'ru',
+            '15 человек, больных 1, 2 охотника, подножный корм 22,5, вода 30, стоит лагерем.',
         ),
         (
             {**BAND, 'camp': {'x': 2301, 'y': 744, 'built': 0.5}, 'action': {'kind': 'build'}},

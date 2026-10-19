@@ -13,8 +13,8 @@ documents it produces and what "done" means.
 - [Stage 0 - API and core](#stage-0---api-and-core)
 - [Stage 1 - biomes](#stage-1---biomes)
 - [Stage 2 - band](#stage-2---band)
+- [Stage lab - players and statistics](#stage-lab---players-and-statistics)
 - [Stage 3 - bots](#stage-3---bots)
-- [Stage lab - LLM players and statistics](#stage-lab---llm-players-and-statistics)
 - [Stage 4 - web](#stage-4---web)
 - [Stage 5 - era transition](#stage-5---era-transition)
 - [World scale](#world-scale)
@@ -138,13 +138,19 @@ What is already settled and binds every stage.
   2026-10-14: bands with encounters between them, skills, seasons,
   weather, and a seat an assistant can play through an MCP server. Until
   then the numbers stay first guesses, and the references only show that
-  they moved.
+  they moved. Changed by the user on 2026-10-19: the lab, placed before
+  stage 3, tunes the band alone in nightly runs, and the era is tuned
+  again once bands meet.
 - **Other peoples are simulated by a simplified model.** A map holds the
   player and five to ten other bands; when one of them dies, a new one is
   spawned. When the player becomes a tribe, some of the bands, chosen at
   random and preferably far from the player, are raised to tribes too.
 - **An LLM plays as a person does**: it takes the player's seat in the
   council. It does not replace the band's own decisions.
+- **The lab comes before stage 3**, decided by the user on 2026-10-19:
+  three players beside a person - a trained mind, a local model and
+  Claude - play the band era by the thousand, so its balance is tuned
+  before other bands come; the mind becomes the first voice of the bots.
 - **Weather and seasons are coming.** Nothing is built for them yet, but
   the calendar, the climate of the planet and the properties of a biome
   are shaped so that they can change through the year.
@@ -397,6 +403,59 @@ What follows the close:
 
 ___
 
+## Stage lab - players and statistics
+
+A bench where games are played by the thousand with nobody at the
+keyboard, a mind is trained to play them, a local model and Claude play
+them in words, and the numbers of the band era are measured. Placed
+before stage 3 by the user on 2026-10-19: the balance of the band era is
+tuned here, and the mind trained here is the first voice of the bots.
+
+**What:**
+
+- One seat, three players beside a person: a mind of a few weights
+  trained in process; a local language model on a GPU elsewhere, over
+  the chat API of OpenAI; and Claude through an MCP server. Scripted
+  players - backing the leader, silent, random, greedy - are the floor
+  they are measured against.
+- The observation of the seat as numbers, the features of every option
+  of the table, and as text in English or Russian, built from the same
+  data and showing nothing the seat does not see.
+- A game made of two numbers: the seed of its land and the draw of its
+  life, so one land is played many times.
+- Runs from a file: lands, draws, players, sets of parameters, played in
+  process by many workers through a night.
+- Training a mind by an evolution strategy, its weights kept as data of
+  the tree, so a game played by a mind replays.
+- What a run measures: whether the band reaches 150 people in 18 years
+  and how fast, its growth, how many bands die early, and whether the
+  seat's voice does better than backing the leader.
+- Heatmaps of every land - where bands walked, camped, starved and died -
+  and the same by biome across lands.
+- Two runs compared on the same lands, so a change of balance shows what
+  it did.
+
+**How:**
+
+- Nothing of a night needs Claude or a person; Claude reads what the
+  night left and writes the analysis in the morning.
+- A mind's score and its features live in the engine, so a band of
+  stage 3 can hear a mind inside a tick and stay deterministic.
+- Every answer is a command of the record, so a game is replayed without
+  the player that played it.
+- A run directory - its file, summary, report, heatmaps and analysis -
+  is kept in the repository with the change it measured.
+
+**Docs**: `docs/lab/players.md`, `docs/lab/runs.md` (SOP: describe a
+run, play it, read it), `docs/lab/metrics.md`.
+
+**Done**: a night of `make batch` leaves a report and heatmaps of
+thousands of games; `make train` leaves a mind that does better than
+backing the leader; the local model and Claude each play a game through
+the seat; `make compare` says what a change of balance did.
+
+___
+
 ## Stage 3 - bots
 
 Other bands on the same map: rivals or allies.
@@ -439,48 +498,6 @@ Other bands on the same map: rivals or allies.
 
 **Done**: a headless game with many bands runs a long session without
 errors, and a summary shows that temperaments give different outcomes.
-
-___
-
-## Stage lab - LLM players and statistics
-
-A bench where programs play the game and the numbers are measured, used to
-design and tune every later stage.
-
-**What:**
-
-- An LLM player: it takes a seat, receives the observation as text, and
-  answers with one of the commands on offer.
-- An MCP server over the API, so that an assistant such as Claude can sit
-  in the player's seat: read the band, the table of the council and the
-  map it knows, and vote. It is how the band era is played for balance.
-- A runner: many games in step mode from one description - seeds, player
-  kinds, parameter overrides.
-- Statistics over run records: survival time, population curves, how often
-  each state and action occurs, status over time, time to the era
-  transition.
-- Heatmaps over the map: where bands walk, gather, camp, starve and die.
-- A comparison of two parameter sets on the same seeds.
-
-**How:**
-
-- The LLM player is an ordinary API client and lives outside the engine.
-  It talks to a local model server over a chat endpoint, with the address
-  and the model name in its own settings.
-- An answer that is not a valid command is counted and replaced by "no
-  command", so a weak model cannot stall or break a run.
-- Runs are reproducible on the engine side: the record keeps the commands,
-  so a game is replayed without the model.
-- The LLM plays a council member, as a person would: it sees what a client
-  shows and raises its voice. The band's own decisions stay with the
-  engine.
-
-**Docs**: `docs/lab/llm_player.md`, `docs/lab/runs.md` (SOP: describe a
-batch, run it, read the result), `docs/lab/metrics.md`, `docs/lab/mcp.md`.
-
-**Done**: one command runs a batch of games with LLM and scripted players
-and prints a table that compares two parameter sets, and an assistant plays
-a game through the MCP server.
 
 ___
 
@@ -688,10 +705,9 @@ item of its own.
 
 ### Balance of the band era
 
-Once bands meet, skills, seasons, weather and the MCP seat are built,
-the numbers of the band era are tuned: by the references of lives, by
-the lab and by an assistant playing the seat. Until then nothing is
-tuned.
+The band alone is tuned in the lab: nightly runs, a morning's analysis,
+a change of the data, the same lands played again. Once bands meet and
+weather is built, the era is tuned again the same way.
 
 ___
 

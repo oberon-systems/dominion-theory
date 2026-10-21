@@ -39,6 +39,7 @@ ELDER = {
     'thirsty': 1.0,
     'kit': ['clothes'],
     'craft': {'spears': 0.67},
+    'meat': 0.42,
 }
 
 
@@ -65,10 +66,15 @@ def text(app: Review, name: str) -> str:
     return str(app.screen.query_one(f'#{name}', Static).content)
 
 
-def test_a_member_is_told_by_sex_age_stage_role_how_it_fares_and_what_it_holds() -> None:
+def test_a_member_is_told_by_sex_age_stage_role_how_it_fares_what_it_holds_and_eats() -> None:
     said = member(ELDER, 100, 'en')
+    lean = member({**ELDER, 'meat': 0.0}, 100, 'en')
 
-    assert said == '♀ 21.5 y., elder, gatherer, lightly wounded, sick, thirsty, clothes, spears mastery 0.67'
+    assert said == (
+        '♀ 21.5 y., elder, gatherer, lightly wounded, sick, thirsty, clothes, spears mastery 0.67, '
+        'meat 0.42 of the ration'
+    )
+    assert lean == '♀ 21.5 y., elder, gatherer, lightly wounded, sick, thirsty, clothes, spears mastery 0.67'
 
 
 def test_a_game_is_a_row_of_the_list_and_an_unreadable_one_says_so(tmp_path: Path) -> None:

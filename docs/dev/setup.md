@@ -288,8 +288,8 @@ record of an older engine plays back as it was played.
 | Tab          | the next chart: people, food and water, standing, deaths |
 | q            | back to the list, or leaves                            |
 
-The people pane lists every member: sex, age, stage, role, how it fares
-and what it holds. Records written before the band and its members were
+The people pane lists every member: sex, age, stage, role, how it fares,
+what it holds and makes, and the share of meat in its rations. Records written before the band and its members were
 kept, on 2026-10-19, have the counters only, and the panes say so. A
 record whose tree is older than the rules is drawn by its planet over
 today's defaults, and the screen says that too.

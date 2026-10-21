@@ -333,4 +333,5 @@ def test_a_tick_carries_the_band_when_it_changed_and_the_members_at_the_edges_of
         'thirsty': 0.0,
         'kit': [],
         'craft': {},
+        'meat': 0.0,
     }

@@ -61,6 +61,7 @@ STAGE = f'{REVIEW}stage-'
 ROLE = f'{REVIEW}role-'
 WOUND = f'{REVIEW}wound-'
 MASTERY = f'{REVIEW}mastery'
+MEAT = f'{REVIEW}meat'
 MESSAGES: tuple[str, ...] = (
     *(f'{TITLE}{name}' for name in TITLES),
     *(f'{COLUMN}{name}' for name in COLUMNS),
@@ -86,6 +87,7 @@ MESSAGES: tuple[str, ...] = (
             'you',
             'members-none',
             'mastery',
+            'meat',
         )
     ),
 )
@@ -129,7 +131,7 @@ def row(summary: Summary, lang: str) -> list[str]:
 
 def member(held: Mapping[str, Any], days_a_year: int, lang: str) -> str:
     """
-    One member in a line: sex, age, stage, role, how it fares and what it holds.
+    One member in a line: sex, age, stage, role, how it fares, what it holds and makes, and the meat it eats.
     """
     sex = '♀' if held['sex'] == 'female' else '♂'
     said = [
@@ -150,6 +152,8 @@ def member(held: Mapping[str, Any], days_a_year: int, lang: str) -> str:
     said += [
         render(MASTERY, {'resource': name, 'mastery': level}, lang) for name, level in held.get('craft', {}).items()
     ]
+    if held.get('meat'):
+        said.append(render(MEAT, {'share': held['meat']}, lang))
     return ', '.join(said)
 
 

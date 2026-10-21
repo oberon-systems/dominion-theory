@@ -299,3 +299,4 @@ review-thirsty = томится жаждой
 review-you = вы
 review-members-none = В этой записи нет участников.
 review-mastery = мастерство: { NAME("resource", $resource) } { NUMBER($mastery, maximumFractionDigits: 2) }
+review-meat = мясо в рационе: { NUMBER($share, maximumFractionDigits: 2) }

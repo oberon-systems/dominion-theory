@@ -1,0 +1,721 @@
+seed 1
+year  people  child  adult  elder  pregnant  injured  growth   rate  least  born  grown  child-deaths  deaths  of-hunger  of-thirst  of-encounter  of-age  of-frailty  of-birth  food  water  moves  roams  gathers  camps  builds  starving  thirsty  tired  encounters  status  skills  hunters  sick  known  snapshot
+   1      16      2     14      0         1        1       1    6.7     14     3      0             1       2          0          0             2       0           0         0  13.6   30.7     21     32      238    209       0         0        0      8           2      50       3        0     0     30      49.2
+   2      15      2     13      0         1        1      -1   -6.2     14     1      0             1       2          0          0             1       0           1         0  30.8  104.7      3      2      289    200       6         0        0      0           1      50       6        0     0     25        49
+   3      16      3     13      0         2        0       1    6.7     15     4      0             3       3          0          0             3       0           0         0  23.7  105.3      9      5      274    203       9        10        0      8           3      50       6        0     0     25      48.6
+   4      11      0     11      0         3        0      -5  -31.2     11     1      0             4       6          0          0             5       0           1         0    37   82.9     16     14      255    209       6         0        0     10           6      50       7        0     0     25      45.4
+   5      13      2     11      0         2        0       2   18.2     11     3      0             1       1          0          0             0       0           1         0  19.8   86.1     13     11      260    210       6         0        0      7           0      50       7        0     0     25      46.3
+   6      17      6     11      0         1        0       4   30.8     13     4      0             0       0          0          0             0       0           0         0  21.5   90.9      2      0      285    204       9         5        0      0           0      50       7        0     0     25      46.9
+   7      19      8     10      1         2        2       2   11.8     16     3      0             1       1          0          0             0       0           1         0  20.4   85.3      4      4      283    200       9         5        0      0           0      50       7        0     0     25      49.8
+   8      20      9      9      2         2        1       1    5.3     18     2      0             1       1          0          0             0       0           1         0  17.8   79.1      4      0      284    203       9         5        0      0           0      50       7        0     0     25      47.9
+   9      20      8      9      3         0        1       0      0     19     4      2             3       4          0          0             3       0           1         0  19.6     79      8      9      273    201       9         5        0      5           2      50       7        0     0     25      47.6
+  10      19      5     10      4         0        0      -1     -5     18     1      3             1       2          0          0             2       0           0         0  25.1   32.2      7     21      262    201       9         5        5      0           1      50      10        1     0     25        50
+  11      21      8      9      4         2        0       2   10.5     18     3      0             0       1          0          0             0       1           0         0  23.4   21.4      6     16      271    201       6         0        5      3           1      50      10        4     0     25      50.9
+  12      24      9      8      7         4        0       3   14.3     21     3      2             0       0          0          0             0       0           0         0  20.7   34.3      4     22      268    200       6         0        5      0           1      50      10        0     0     25      53.6
+  13      18      8      4      6         0        1      -6    -25     17     4      1             4      10          3          0             4       1           2         0   3.8   15.8      4     28      262    200       6        65       40      0           3      50      10        0     0     25      48.9
+  14      18      8      5      5         0        1       0      0     17     1      1             0       1          0          0             0       1           0         0   3.2     15      3     24      266    201       6         0       10      3           0      50      10        0     0     25      47.7
+  15      16      7      6      3         2        0      -2  -11.1     15     1      1             1       3          0          0             0       1           2         0  13.7   19.5      4     24      265    201       6        30        5      3           0      50      10        0     0     25      49.3
+  16      15      4      9      2         5        0      -1   -6.2     14     2      3             2       3          0          0             0       1           2         0  20.8   56.7     11     18      264    201       6         0        5      9           1      50      10        0     0     25      48.5
+  17      23     10     11      2         3        1       8   53.3     15     8      2             0       0          0          0             0       0           0         0  25.2   39.2     20     20      249    205       6         5        5     21           0      50      10        1     0     25      53.6
+  18      25     14      9      2         1        1       2    8.7     23     4      0             0       2          0          0             0       0           0         2  13.1     29      4     30      260    200       6         0        5      0           0      50      10        0     0     25      55.3
+learned: sticks on day 0, herbs on day 50, drying on day 50, wintering on day 100, litters on day 100, midwifery on day 134, orientation on day 302, stone_tools on day 905, spears on day 910, waterskins on day 984
+alive at tick 9000: grows 2.9% a year, 150 people in year 82, 15 of 38 children grew up
+took 62.5 s, 6.94 ms a tick, 3.0 ms a pack
+
+seed 2
+year  people  child  adult  elder  pregnant  injured  growth  rate  least  born  grown  child-deaths  deaths  of-hunger  of-thirst  of-encounter  of-age  of-frailty  of-birth  food  water  moves  roams  gathers  camps  builds  starving  thirsty  tired  encounters  status  skills  hunters  sick  known  snapshot
+   1      20      5     15      0         2        0       5  33.3     15     5      0             0       0          0          0             0       0           0         0  26.6   42.7     11     35      248    206       0         0        0      3           0      50       5        0     0     35      53.3
+   2      21      7     14      0         0        0       1     5     18     3      0             1       2          0          0             2       0           0         0  26.9   51.9     21     19      253    201       6         5        0      5           1      50       6        0     0     25      51.5
+   3      22      8     14      0         1        0       1   4.8     21     2      0             1       1          0          0             0       0           1         0  26.4   51.7     17     22      255    200       6         0        0     10           1      50       6        0     0     25      52.3
+   4      24     12     12      0         1        1       2   9.1     19     5      0             1       3          0          0             2       0           0         1  20.3   45.7     10      7      273    201       9        10        5      5           1      50       6        0     0     25      54.7
+   5      24     10     14      0         3        0       0     0     21     3      3             2       3          0          0             0       0           2         1    22   50.9      7     13      274    200       6         0        0      0           0      50       6        0     0     25      53.9
+   6      26     10     15      1         4        0       2   8.3     24     5      3             2       3          0          0             1       0           2         0  24.9   61.8     26     37      229    202       6         5        5     14           1      50       6        0     0     25      53.8
+   7      28     12     13      3         3        0       2   7.7     25     6      1             3       4          0          0             1       0           2         1  21.4   51.4     17     27      248    202       6         5        0      9           1      50       6        0     0     25      53.9
+   8      28     10     15      3         2        1       0     0     27     1      2             1       1          0          0             0       0           1         0  26.4   59.2     12     11      269    202       6        10        0      9           0      50       6        0     0     25      54.7
+   9      30     12     17      1         3        0       2   7.1     24     7      3             2       5          0          0             3       1           1         0  27.1     62     18     39      236    201       6         0        5      5           3      50       6        0     0     25      55.3
+  10      29     13     12      4         5        0      -1  -3.3     25     8      1             6       9          0          0             7       0           2         0  20.8     53     18     25      250    201       6         5        5      9           3      50       6        0     0     25      56.5
+  11      33     17     14      2         0        2       4  13.8     29     7      3             0       3          0          0             0       2           1         0     0   35.4      9     29      256    200       6         5        0      0           0      50       6        0     0     25      56.9
+  12      35     20     13      2         6        1       2   6.1     32     5      0             2       3          0          0             0       0           3         0     0   34.5      8     26      260    200       6         6        0      6           0      50       6        0     0     25      56.1
+  13      38     21     14      3         0        0       3   8.6     35     9      5             3       6          2          0             0       0           3         1     0     30      3     49      239    200       9        85        5      0           0      50       6        0     0     30      54.1
+  14      36     17     16      3         0        1      -2  -5.3     36     2      4             2       4          0          0             2       0           2         0     0   27.9      6     48      243    200       3       155        0      0           2      50       6        0     0     25      52.1
+  15      41     17     23      1         4        2       5  13.9     35     8      7             1       3          0          0             0       2           1         0     4   40.1     28     61      203    202       6        24        0     22           0      50       6        0     0     30      54.9
+  16      52     26     25      1         4        1      11  26.8     41    15      2             4       4          0          0             0       0           4         0     0   39.9     23     43      226    202       6        21        0     14           0      50       6        0     0     43        60
+  17      55     26     28      1         1        0       3   5.8     51    10      7             3       7          0          0             0       0           5         2   5.3     54     26     87      181    200       6        34        5     12           0      50       6        0     0     49      61.3
+  18      53     31     19      3         0        0      -2  -3.6     53     8      1             2      10          6          0             0       0           2         2    13   61.2     24    106      163    201       6        45        5     13           1      50       6        0     0     44      59.4
+learned: stone_tools on day 18, herbs on day 39, drying on day 39, orientation on day 68, midwifery on day 71, wintering on day 100
+alive at tick 9000: grows 7.3% a year, 150 people in year 33, 42 of 78 children grew up
+took 58.7 s, 6.52 ms a tick, 3.5 ms a pack
+
+seed 3
+year  people  child  adult  elder  pregnant  injured  growth  rate  least  born  grown  child-deaths  deaths  of-hunger  of-thirst  of-encounter  of-age  of-frailty  of-birth  food  water  moves  roams  gathers  camps  builds  starving  thirsty  tired  encounters  status  skills  hunters  sick  known  snapshot
+   1      15      1     14      0         1        0       0     0     14     2      0             1       2          0          0             1       0           1         0  14.8   37.5     32     90      165    213       0        20        0      2           1      50       5        0     0     56      51.1
+   2      14      1     13      0         2        0      -1  -6.7     13     1      0             1       2          0          0             2       0           0         0  21.6  105.8     45     28      212    209       6         0        0     19           3      50       7        0     0     25      47.3
+   3      16      3     13      0         4        0       2  14.3     14     2      0             0       0          0          0             0       0           0         0  21.3  107.2     37      2      246    206       9         5        0     20           0      50       7        0     0     25      48.4
+   4      21      8     13      0         0        0       5  31.2     16     5      0             0       0          0          0             0       0           0         0  21.6  100.7     39      7      239    206       9         5        0     20           0      50       7        0     0     25      48.8
+   5      24     11     13      0         2        0       3  14.3     21     4      0             1       1          0          0             0       0           1         0  18.6   96.5     31     20      235    205       9         5        0     27           0      50       7        0     0     25      51.8
+   6      26     12     12      2         2        1       2   8.3     24     3      1             1       1          0          0             0       0           1         0  13.9   81.4     29     25      230    207       9         5        0     30           0      50       7        0     0     25      52.4
+   7      25     10     12      3         3        0      -1  -3.8     25     2      2             2       3          0          0             1       0           2         0  22.2  100.6     18     48      223    202       9        15        5     14           1      50       7        0     0     25        51
+   8      21      7     10      4         1        1      -4   -16     20     3      2             4       7          0          0             7       0           0         0  21.2   81.2     28     51      211    204       6         0        0     22           3      50       7        0     0     25      51.1
+   9      22      7     10      5         2        1       1   4.8     21     2      2             0       1          0          0             0       0           1         0  17.7     75     23     25      240    203       9        10        0     25           0      50       7        0     0     25        51
+  10      23      7     10      6         2        0       1   4.5     21     4      2             2       3          0          0             0       1           2         0  22.3   84.9     33     58      197    206       6         0        0     35           1      50       7        0     0     25      49.1
+  11      24      9     11      4         2        1       1   4.3     21     4      1             1       3          0          0             2       1           0         0  18.1   81.9     33     33      219    206       9         5        0     36           2      50       7        0     0     25      52.7
+  12      22      8     12      2         1        0      -2  -8.3     18     5      2             4       7          0          0             6       1           0         0  21.6     99     33     19      235    204       9         5        0     24           2      50       7        0     0     25        51
+  13      23     10     10      3         2        0       1   4.5     22     3      0             1       2          0          0             0       0           2         0    20   75.8     37     43      207    204       9        10        0     32           0      50       7        0     0     25      50.2
+  14      21      9     10      2         1        1      -2  -8.7     20     3      1             3       5          0          0             3       0           2         0    19   70.9     29     56      204    205       6         5        0     29           1      50       7        0     0     25      51.2
+  15      24      9     13      2         3        0       3  14.3     20     4      3             1       1          0          0             1       0           0         0    24  101.1     31     46      215    202       6         0        0     35           1      50       7        0     0     25      51.6
+  16      25      7     17      1         2        0       1   4.2     23     2      4             0       1          0          0             0       1           0         0  27.5    130     47     63      174    207       9        10        5     47           0      50       7        0     0     25      51.3
+  17      31     13     17      1         4        0       6    24     25     7      0             1       1          0          0             0       0           1         0  21.4    118     49     54      186    205       6         5        0     32           1      50       7        0     0     25      51.5
+  18      35     18     16      1         1        0       4  12.9     31     8      1             2       4          0          0             0       0           3         1     0   27.5     15     85      194    200       6        26        0      8           0      50       7        0     0     25      52.1
+learned: sticks on day 30, herbs on day 39, litters on day 58, midwifery on day 74, orientation on day 78, wintering on day 100, drying on day 120
+alive at tick 9000: grows 4.8% a year, 150 people in year 49, 21 of 46 children grew up
+took 67.4 s, 7.49 ms a tick, 3.2 ms a pack
+
+seed 4
+year  people  child  adult  elder  pregnant  injured  growth   rate  least  born  grown  child-deaths  deaths  of-hunger  of-thirst  of-encounter  of-age  of-frailty  of-birth  food  water  moves  roams  gathers  camps  builds  starving  thirsty  tired  encounters  status  skills  hunters  sick  known  snapshot
+   1      18      6     12      0         2        0       3     20     15     6      0             0       3          0          0             3       0           0         0    22   29.2      8     12      270    210       0         0        0      8           1      50       4        0     0     35      50.6
+   2      21     10     11      0         4        0       3   16.7     18     6      0             2       3          0          0             2       0           1         0  22.4   36.8      0      0      294    200       6         5        0      0           1      50       5        0     0     25      53.7
+   3      24     14     10      0         1        1       3   14.3     21     7      0             3       4          0          0             3       0           1         0  21.6   64.5      1     12      281    200       6         5        0      0           2      50       6        0     0     25      53.2
+   4      20     10     10      0         1        2      -4  -16.7     20     0      0             4       4          0          0             2       0           2         0  21.4   72.2      0     31      263    200       6         5        0      0           3      50       6        0     0     25      52.4
+   5      20      8     12      0         2        1       0      0     18     4      5             1       4          0          0             3       0           1         0  25.3     84      3     24      267    200       6         0        0      0           2      50       7        0     0     25      49.6
+   6      27     12     13      2         2        1       7     35     20     7      3             0       0          0          0             0       0           0         0    30   99.6      5     10      278    201       6         0        0      7           1      50       7        0     0     25      51.5
+   7      30     16     12      2         4        0       3   11.1     27     7      1             2       4          0          0             4       0           0         0  25.6   80.1      0      0      291    200       9        10        0      0           1      50       7        0     0     25      55.1
+   8      27     16     10      1         2        3      -3    -10     25    10      0            10      13          0          0            11       0           2         0     0     18      8     36      248    202       6        31        5     10           5      50       7        0     0     25      48.8
+   9      30     18     10      2         2        1       3   11.1     25     7      2             3       4          0          0             2       1           1         0  10.7     27      2     14      278    200       6        24        0      2           2      50       7        0     0     25      49.5
+  10      28     15     12      1         2        1      -2   -6.7     24     6      3             6       8          0          0             8       0           0         0  20.2   75.6      8     44      241    201       6        20        0      7           3      50       7        0     0     25      49.6
+  11      29     16     12      1         3        1       1    3.6     26     6      1             4       5          0          0             2       0           3         0    19     68      6    100      188    200       6         5        5      2           1      50       7        0     0     25      51.7
+  12      33     17     14      2         1        0       4   13.8     28     6      4             1       2          0          0             0       0           1         1  10.8   82.5      4     52      238    200       6         5        0      0           2      50       7        0     0     25      52.1
+  13      25     11     12      2         4        0      -8  -24.2     24     3      2             7      11          0          0             9       1           1         0  24.4   83.5     11     47      235    201       6        65        0      9           5      50       7        0     0     25      50.8
+  14      29     13     14      2         2        0       4     16     24     6      3             1       2          0          0             0       0           1         1  26.3  100.9     12     15      261    203       9         5        0     10           0      50       7        0     0     25      52.3
+  15      28     11     15      2         3        0      -1   -3.4     27     3      2             3       4          0          0             1       0           2         1  27.6  114.3      2      0      286    200      12        10        0      0           2      50       7        0     0     25      49.7
+  16      33     13     18      2         5        0       5   17.9     28     5      3             0       0          0          0             0       0           0         0  26.7  131.1     30     24      237    203       6         5        0     25           1      50       7        0     0     25      52.4
+  17      35     15     18      2         4        1       2    6.1     30     6      0             4       4          0          0             4       0           0         0  14.6  130.2     34     32      223    205       6         0        0     30           2      50       7        0     0     25      51.9
+  18      40     17     19      4         3        1       5   14.3     35     9      4             3       4          0          0             4       0           0         0     0   68.9     27     33      228    203       9        11        0     17           1      50       7        0     0     25      53.9
+learned: sticks on day 0, herbs on day 39, drying on day 39, midwifery on day 42, wintering on day 100, litters on day 204, orientation on day 410
+alive at tick 9000: grows 5.6% a year, 150 people in year 43, 33 of 87 children grew up
+took 58.4 s, 6.49 ms a tick, 3.1 ms a pack
+
+seed 5
+year  people  child  adult  elder  pregnant  injured  growth   rate  least  born  grown  child-deaths  deaths  of-hunger  of-thirst  of-encounter  of-age  of-frailty  of-birth  food  water  moves  roams  gathers  camps  builds  starving  thirsty  tired  encounters  status  skills  hunters  sick  known  snapshot
+   1      19      6     13      0         0        1       4   26.7     14     6      0             0       2          0          0             1       0           1         0   2.7   23.2     13     47      239    201       0        20        0      4           3      50       2        0     0     47      52.3
+   2      12      2     10      0         0        0      -7  -36.8     12     1      0             5       8          0          0             6       0           2         0  15.3   25.3     10     31      247    206       6         0        5      4           5      50       4        0     0     25      49.4
+   3      12      3      9      0         1        0       0      0     12     1      0             0       1          0          0             0       0           0         1  15.7   20.4     11     19      260    204       6         0        5      7           4      50       8        0     0     25      48.3
+   4      13      4      9      0         0        0       1    8.3     12     1      0             0       0          0          0             0       0           0         0  17.8   12.2      7     20      251    216       6         0       60      0           1      50       9        2     0     25        47
+   5      12      3      9      0         2        1      -1   -7.7     12     0      1             0       1          0          0             1       0           0         0  74.2   21.5     16     13      263    202       6         0        5     12           1      50      10        2     0     25      50.3
+   6      13      3      8      2         1        0       1    8.3     12     1      1             0       0          0          0             0       0           0         0  48.8   25.5     11      4      278    201       6         0        0      4           0      50      10        2     0     25      50.9
+   7      15      4      8      3         1        0       2   15.4     13     2      1             0       0          0          0             0       0           0         0  31.6   19.2      4      4      282    201       9         0        0      2           2      50      10        3     0     25      48.7
+   8      12      3      6      3         1        0      -3    -20     11     1      1             1       4          0          0             2       1           0         1  24.9   13.7     18     20      252    204       6         0        5     20           3      50      10        2     0     25      47.5
+   9      12      4      5      3         0        0       0      0     10     3      0             2       3          0          0             2       0           1         0   7.4   10.6     10     13      269    202       6         0        5      5           2      50      10        2     0     25      48.7
+  10      10      3      6      1         1        0      -2  -16.7     10     1      1             1       3          0          0             2       1           0         0  25.4   14.5      6     12      273    200       9         0        5      0           4      50      10        2     0     25      48.1
+  11       8      2      5      1         2        0      -2    -20      8     0      0             1       2          0          0             1       0           1         0  32.7   12.7      6     14      273    201       6         0        0      3           2      50      10        1     0     25      49.7
+  12      10      4      4      2         0        0       2     25      8     3      0             1       1          0          0             1       0           0         0   7.9    7.1      6     17      271    200       6         0        5      2           2      50      10        1     0     25      46.1
+  13      10      3      5      2         1        0       0      0     10     1      1             1       1          0          0             0       0           1         0  17.8   10.6      6     17      271    200       6         0        5      4           2      50      10        2     0     25      48.1
+  14       9      2      5      2         1        1      -1    -10      9     0      0             1       1          0          0             1       0           0         0  29.7   16.7     10     18      265    201       6         0        5      7           3      50      10        1     0     25      49.8
+  15      10      3      5      2         1        0       1   11.1      9     1      0             0       0          0          0             0       0           0         0  12.8   11.8     17     16      257    204       6         0        5     18           1      50      10        2     0     25      47.9
+  16      12      3      7      2         2        0       2     20     10     3      2             1       1          0          0             1       0           0         0  29.5   19.2     17     26      248    203       6         0        0     15           1      50      10        2     0     25      49.1
+  17      12      4      7      1         1        0       0      0     12     3      0             2       3          0          0             1       1           1         0  30.6   16.5      6     15      270    200       9         0        5      2           2      50      10        1     0     25        49
+  18      12      5      5      2         1        0       0      0     11     2      0             1       2          0          0             2       0           0         0  13.3    7.8     18     21      250    205       6         0        5     20           5      50      10        2     1     25      47.2
+learned: stone_tools on day 0, sticks on day 0, wintering on day 100, orientation on day 137, herbs on day 263, drying on day 263, midwifery on day 263, spears on day 264, waterskins on day 382, litters on day 401
+alive at tick 9000: grows -1.2% a year, 150 people never, 8 of 25 children grew up
+took 63.8 s, 7.09 ms a tick, 3.0 ms a pack
+
+first year: 0 of 50 bands died, took 221.9 s
+
+tests/runner/lives.json is rewritten: 598 values moved
+  1.growth: 0.0514 -> 0.0288
+  1.hashes.1: f4eab11e1f4047fc61596030137523e03e58694eb92c6fb9814fb97331ea0ec2 -> 735dd1af84f72b48d80f2c0229f9966c776d355f2044ce1435c4043ba6ee64ab
+  1.hashes.10: 650b6c59b7b62e8fec06b54b67001d3a9545112eac2c7685ddb17700d924a361 -> 4c108a8db45f4b2bd626c7032352e84f27757adf132db2f666c923f6099c31f6
+  1.hashes.11: b426d897ec2f119bbf72ab6978720da894d5f4dbaefa261cbc4fe0fc467656b9 -> 3491c03203d288077533e307159ad77bc49a61fae85665389647154177a92909
+  1.hashes.12: 346534ce255622a167096a18dd410986f20da4c2c1350a128058929d4ac07917 -> d5f8da64a00181abc963d8d3f6f6cab76a45b78fe5b438b8a8dc8af92d7626f4
+  1.hashes.13: 05b945fb1503f184be262f99c57a24faf6351066b7a59d32350c98e1fb6ab58b -> 32a06547a10acfa2103a7518c3c7e3c66bc46e4e918186d93aeb38db5afad852
+  1.hashes.14: 550f276e592339527796105f14cdb7c0f9fead6704b7751a6cf30073437b6bfc -> 8cb46a01cbfcd3681600a41f459a8836725e9f7a9b0d85e9978a66f1a73b4771
+  1.hashes.15: 3c9d1454294b8ac54f54eca97f76e224000493e07e25d2ef099a9ff21d62daf9 -> fc9572689f56a03382989c4b333053f5a63d2c69854c90cc4cb3d79148565254
+  1.hashes.16: fbfc5f575150f45848298d04d49aaf39698d1d0639230814988949fd8436b953 -> e791be65c4719d9116fd182a04c53650a76109aefdf74591c1418f153be82e40
+  1.hashes.17: 7edbd8ead57c1dd171c1b0deaf4e42479f4ee7cbdab5e85082ac66dcbb15e358 -> b8d5f20fd633e81123fc1cdd10bb1af6e424afff8f413c4c9d24fba1016b4126
+  1.hashes.18: 9aa04c23de72d58d6c24d882738c707a89ae22e3d2b8e4d8b0834814de15182c -> 2634667f73a0cee537ea3f86869a77b309211b7ade2bd36929887f68df0ebfa3
+  1.hashes.2: d410f1e4d6ba39a7ee6fd59c42062ef7d6009f2343f0ecc8f5c072a3d5a47351 -> e78523d3230c28507ba546c0cc05c9682cf64ff88f4742ead2898ae544048c40
+  1.hashes.3: 90fc4f4fd9565d9849430ec19813c6e83bcfeb4fc0e3e614e0f3e0fda78ec8d3 -> 855361b0969480024d5f641819989189457272b000b3317d8d75183f2d4c02f5
+  1.hashes.4: 63b8419828b06bf17769bbecbf9589f999085f5fc89ba7b47d41a391e194d050 -> 8de28553905efed531344be14542a96e480d129f3678872f0068c8777c26388f
+  1.hashes.5: 27948c611599f847894e8b9f690ca556f42e7b42a5b6cef6a61c8829d8ed33ef -> 5b405a5d7306e61f02a64767db25f308fba2ef32f3c3aa51928c88082e2981a8
+  1.hashes.6: a01331491381cff993d399f852e0f6b695944ee042d6776acd300e5d7b714d9e -> a0ae4a093266ec2d88886127ae7661a8a86c7d1813cf88ed1be79ec9bf7f63ce
+  1.hashes.7: 7729e8382242c30970f2ffc6fd2a025cd25bb640dce6101a76278fd25bafec41 -> f41d9a995b2368c35c7318fd9cec6996e63742697bed6e5c185afb8982dfc14b
+  1.hashes.8: 09d2a1f69e706dad2769fb6d6565129fb7fc2010deea3ef81f97b15b5cddc9b4 -> 3bae2787dddd72f982f9af8b27a7dad30dcbb35f40e4eb7edc6b83c13cf545db
+  1.hashes.9: dc69ea78200f4a317dc8e5c92d499d69e5a4aa9f725a123bfd3a871561c3033a -> 000c4ce1415457ffbc33b6dbfc9263771a2ca81ee72ef0c6a091d3c05877600b
+  1.tribe: 45.9 -> 81.1
+  1.years.1.snapshot: 48.9 -> 49.2
+  1.years.10.camps: 203 -> 201
+  1.years.10.deaths: 4 -> 2
+  1.years.10.elder: 2.0 -> 4.0
+  1.years.10.food: 24.8 -> 25.1
+  1.years.10.gathers: 260 -> 262
+  1.years.10.growth: -3 -> -1
+  1.years.10.least: 16 -> 18
+  1.years.10.of-age: 2.0 -> 0.0
+  1.years.10.people: 17 -> 19
+  1.years.10.pregnant: 2.0 -> 0.0
+  1.years.10.rate: -15.0 -> -5.0
+  1.years.10.snapshot: 49.8 -> 50.0
+  1.years.10.thirsty: 10.0 -> 5.0
+  1.years.10.water: 30.5 -> 32.2
+  1.years.11.born: 5.0 -> 3.0
+  1.years.11.camps: 200 -> 201
+  1.years.11.child: 9.0 -> 8.0
+  1.years.11.child-deaths: 1.0 -> 0.0
+  1.years.11.deaths: 2 -> 1
+  1.years.11.elder: 2.0 -> 4.0
+  1.years.11.food: 9.4 -> 23.4
+  1.years.11.gathers: 275 -> 271
+  1.years.11.growth: 3 -> 2
+  1.years.11.least: 17 -> 18
+  1.years.11.of-frailty: 1.0 -> 0.0
+  1.years.11.people: 20 -> 21
+  1.years.11.rate: 17.6 -> 10.5
+  1.years.11.roams: 13 -> 16
+  1.years.11.sick: 1.0 -> 0.0
+  1.years.11.snapshot: 50.8 -> 50.9
+  1.years.11.starving: 5.0 -> 0.0
+  1.years.11.tired: 4.0 -> 3.0
+  1.years.11.water: 15.9 -> 21.4
+  1.years.12.child-deaths: 1.0 -> 0.0
+  1.years.12.deaths: 2 -> 0
+  1.years.12.elder: 4.0 -> 7.0
+  1.years.12.food: 12.6 -> 20.7
+  1.years.12.gathers: 274 -> 268
+  1.years.12.growth: 1 -> 3
+  1.years.12.hunters: 3 -> 0
+  1.years.12.least: 20 -> 21
+  1.years.12.moves: 2 -> 4
+  1.years.12.of-age: 1.0 -> 0.0
+  1.years.12.of-frailty: 1.0 -> 0.0
+  1.years.12.people: 21 -> 24
+  1.years.12.pregnant: 3.0 -> 4.0
+  1.years.12.rate: 5.0 -> 14.3
+  1.years.12.roams: 18 -> 22
+  1.years.12.snapshot: 49.6 -> 53.6
+  1.years.12.starving: 10.0 -> 0.0
+  1.years.12.thirsty: 10.0 -> 5.0
+  1.years.12.water: 13.6 -> 34.3
+  1.years.13.adult: 9.0 -> 4.0
+  1.years.13.born: 5.0 -> 4.0
+  1.years.13.deaths: 6 -> 10
+  1.years.13.elder: 3.0 -> 6.0
+  1.years.13.food: 11.0 -> 3.8
+  1.years.13.gathers: 280 -> 262
+  1.years.13.grown: 2.0 -> 1.0
+  1.years.13.growth: -1 -> -6
+  1.years.13.hunters: 4 -> 0
+  1.years.13.least: 18 -> 17
+  1.years.13.moves: 1 -> 4
+  1.years.13.of-frailty: 1.0 -> 2.0
+  1.years.13.of-hunger: 0.0 -> 3.0
+  1.years.13.people: 20 -> 18
+  1.years.13.pregnant: 2.0 -> 0.0
+  1.years.13.rate: -4.8 -> -25.0
+  1.years.13.roams: 13 -> 28
+  1.years.13.snapshot: 49.9 -> 48.9
+  1.years.13.starving: 5.0 -> 65.0
+  1.years.13.thirsty: 5.0 -> 40.0
+  1.years.13.water: 17.7 -> 15.8
+  1.years.14.adult: 10.0 -> 5.0
+  1.years.14.born: 5.0 -> 1.0
+  1.years.14.child: 12.0 -> 8.0
+  1.years.14.deaths: 0 -> 1
+  1.years.14.elder: 3.0 -> 5.0
+  1.years.14.food: 9.1 -> 3.2
+  1.years.14.gathers: 271 -> 266
+  1.years.14.growth: 5 -> 0
+  1.years.14.hunters: 5 -> 0
+  1.years.14.least: 20 -> 17
+  1.years.14.moves: 2 -> 3
+  1.years.14.of-age: 0.0 -> 1.0
+  1.years.14.people: 25 -> 18
+  1.years.14.pregnant: 1.0 -> 0.0
+  1.years.14.rate: 25.0 -> 0.0
+  1.years.14.roams: 20 -> 24
+  1.years.14.sick: 1.0 -> 0.0
+  1.years.14.snapshot: 50.8 -> 47.7
+  1.years.14.thirsty: 5.0 -> 10.0
+  1.years.14.tired: 0.0 -> 3.0
+  1.years.14.water: 14.9 -> 15.0
+  1.years.15.adult: 13.0 -> 6.0
+  1.years.15.born: 9.0 -> 1.0
+  1.years.15.builds: 9 -> 6
+  1.years.15.camps: 200 -> 201
+  1.years.15.child: 16.0 -> 7.0
+  1.years.15.child-deaths: 2.0 -> 1.0
+  1.years.15.deaths: 4 -> 3
+  1.years.15.elder: 1.0 -> 3.0
+  1.years.15.food: 0.9 -> 13.7
+  1.years.15.gathers: 277 -> 265
+  1.years.15.grown: 3.0 -> 1.0
+  1.years.15.growth: 5 -> -2
+  1.years.15.hunters: 6 -> 0
+  1.years.15.least: 23 -> 15
+  1.years.15.moves: 3 -> 4
+  1.years.15.of-age: 0.0 -> 1.0
+  1.years.15.of-frailty: 4.0 -> 2.0
+  1.years.15.people: 30 -> 16
+  1.years.15.pregnant: 4.0 -> 2.0
+  1.years.15.rate: 20.0 -> -11.1
+  1.years.15.roams: 11 -> 24
+  1.years.15.snapshot: 51.8 -> 49.3
+  1.years.15.starving: 10.0 -> 30.0
+  1.years.15.thirsty: 10.0 -> 5.0
+  1.years.15.tired: 0.0 -> 3.0
+  1.years.15.water: 7.4 -> 19.5
+  1.years.16.adult: 12.0 -> 9.0
+  1.years.16.born: 3.0 -> 2.0
+  1.years.16.camps: 200 -> 201
+  1.years.16.child: 15.0 -> 4.0
+  1.years.16.child-deaths: 3.0 -> 2.0
+  1.years.16.deaths: 5 -> 3
+  1.years.16.elder: 1.0 -> 2.0
+  1.years.16.food: 22.5 -> 20.8
+  1.years.16.gathers: 258 -> 264
+  1.years.16.grown: 1.0 -> 3.0
+  1.years.16.growth: -2 -> -1
+  1.years.16.hunters: 3 -> 0
+  1.years.16.least: 28 -> 14
+  1.years.16.moves: 1 -> 11
+  1.years.16.of-age: 0.0 -> 1.0
+  1.years.16.of-birth: 1.0 -> 0.0
+  1.years.16.of-encounter: 1.0 -> 0.0
+  1.years.16.of-frailty: 3.0 -> 2.0
+  1.years.16.people: 28 -> 15
+  1.years.16.pregnant: 9.0 -> 5.0
+  1.years.16.rate: -6.7 -> -6.2
+  1.years.16.roams: 35 -> 18
+  1.years.16.snapshot: 52.1 -> 48.5
+  1.years.16.starving: 15.0 -> 0.0
+  1.years.16.tired: 0.0 -> 9.0
+  1.years.16.water: 33.5 -> 56.7
+  1.years.17.adult: 13.0 -> 11.0
+  1.years.17.born: 11.0 -> 8.0
+  1.years.17.camps: 200 -> 205
+  1.years.17.child: 20.0 -> 10.0
+  1.years.17.child-deaths: 3.0 -> 0.0
+  1.years.17.deaths: 5 -> 0
+  1.years.17.elder: 1.0 -> 2.0
+  1.years.17.food: 10.6 -> 25.2
+  1.years.17.gathers: 240 -> 249
+  1.years.17.grown: 3.0 -> 2.0
+  1.years.17.growth: 6 -> 8
+  1.years.17.injured: 0.0 -> 1.0
+  1.years.17.least: 28 -> 15
+  1.years.17.moves: 7 -> 20
+  1.years.17.of-frailty: 5.0 -> 0.0
+  1.years.17.people: 34 -> 23
+  1.years.17.pregnant: 4.0 -> 3.0
+  1.years.17.rate: 21.4 -> 53.3
+  1.years.17.roams: 47 -> 20
+  1.years.17.snapshot: 51.2 -> 53.6
+  1.years.17.starving: 20.0 -> 5.0
+  1.years.17.tired: 0.0 -> 21.0
+  1.years.17.water: 24.6 -> 39.2
+  1.years.18.adult: 17.0 -> 9.0
+  1.years.18.born: 6.0 -> 4.0
+  1.years.18.child: 19.0 -> 14.0
+  1.years.18.child-deaths: 3.0 -> 0.0
+  1.years.18.deaths: 3 -> 2
+  1.years.18.elder: 1.0 -> 2.0
+  1.years.18.food: 19.2 -> 13.1
+  1.years.18.gathers: 219 -> 260
+  1.years.18.grown: 4.0 -> 0.0
+  1.years.18.growth: 3 -> 2
+  1.years.18.least: 33 -> 23
+  1.years.18.moves: 7 -> 4
+  1.years.18.of-birth: 0.0 -> 2.0
+  1.years.18.of-frailty: 3.0 -> 0.0
+  1.years.18.people: 37 -> 25
+  1.years.18.pregnant: 9.0 -> 1.0
+  1.years.18.rate: 8.8 -> 8.7
+  1.years.18.roams: 68 -> 30
+  1.years.18.snapshot: 55.4 -> 55.3
+  1.years.18.starving: 10.0 -> 0.0
+  1.years.18.water: 44.8 -> 29.0
+  1.years.2.snapshot: 48.7 -> 49.0
+  1.years.3.snapshot: 48.4 -> 48.6
+  1.years.4.camps: 211 -> 209
+  1.years.4.gathers: 253 -> 255
+  1.years.4.snapshot: 45.2 -> 45.4
+  1.years.5.snapshot: 46.0 -> 46.3
+  1.years.6.snapshot: 46.7 -> 46.9
+  1.years.7.snapshot: 49.5 -> 49.8
+  1.years.8.snapshot: 47.6 -> 47.9
+  1.years.9.snapshot: 47.3 -> 47.6
+  2.hashes.1: 3088ab3cf70c4bf7b6797c0c5fc432f26a78aec42cb51f95f91462b65699596f -> 6cae6bd0b69bf68feb8b27bea048d9f5aa31c5ffbc15e395aa79642ca43def14
+  2.hashes.10: e1cb2399a8546ea116f4339518262ad3f7c41c8b4f12f59991f2be666d4d0a06 -> 796a5ea6f60230637ba598706ba08c5e4aabe7c07cb5743f3d112e4c8cb460a7
+  2.hashes.11: 3cae838390619f1b3b9e5a9816ee593491fb12cc775fb9673ee99865ab1b0111 -> e2739871abf8e6d34c47cccd440a0ab47e1da0c5441e96e25d1a49faf5f69ffa
+  2.hashes.12: 14add783dc375d82653a679c99c2f191920e2a89433dec610e8de681cb45cc27 -> 1e88231a2f0c68b96e6e0f630cb09b5770d33e7531d11bec51a96dd32c8847d4
+  2.hashes.13: e710e096293894a6ada51cc01b5199c98a255cc0307f51618e1435d3febc6d5a -> 1ad2bf5f0ae4ea0569a782592aad8806704926c4dcb995736f36154941eef511
+  2.hashes.14: 04189ed0345a811a590b8a7ead6cdeea110778cc98193b03a1f2170db137c042 -> 66507627a986346cfecd951aecce0ac098baf161b79f2c772bc479ba85985b20
+  2.hashes.15: d858e0face1dd08fa87c807e7f015f37e1903a09556cb0e012e7c35cc66f04cd -> 80b6ed775103f914d2e4d0d93fd2a47afc2c494a7134bb39a51689578ce6243d
+  2.hashes.16: d5896d8f5add772e1ef7765d3142c339ec5250d4c25b1f91115c1f572c8d372f -> b1e1fd2c87e4611e43dbb416ff0d922e0ddef2ba4667d11aedfa433a177bd1f6
+  2.hashes.17: 4d98699de2d6591d05f517a9cd73d995bd7d8c51d1fa07a9b08dc784fd7584c9 -> deabc9b5b3aa22d50aa7c8c9e39ef9f0d41d78f8b203e7aa708d48f64ee22191
+  2.hashes.18: 8c612604a406f95b0fc2b25f0638469d9e2b7818402bf139b770a8e0ae68fa8d -> 9e96e099145ceaac194cbd3eee1df137b738dfd7d04a964b69baf9ef86f6c8d4
+  2.hashes.2: 3d37fddeaeaf4390547ba24c0cfb274fa3f0881a2d029291dedab705c77958e0 -> 7bea0ac504ef17e30b3662d17ae7c3e3bc474f2afcc37d4e5afc18bf953c6a09
+  2.hashes.3: e465110d519e94e7de5df43072b9feaa936bbcd7c7525ccb0d00bf6353fa4267 -> dda8e7b1921de51f8f12bd180eb32bdea5482f17c368ca809e4924b4757b0823
+  2.hashes.4: d0b4e4efd0e9e29f692f6e09a1708c3ac41b4a168d6747654a95603c092f3a02 -> 3c3c4eadbf87653f07cedf3faf2d95db6fc5a24b2bd53455c1de85d7d5b84056
+  2.hashes.5: d73c4bb0e8a8a465d01ef948c5f424e64bd9e0d8d0f7fbb09cf4d98a66c0fbf6 -> 99838c57673595a94a36edb91396ef9ad49b91fb7c7ee4ceed77484cf297cc67
+  2.hashes.6: 7951db6aaa1b84a9e637f975eecf6c1377120743401a1d54d7e4fd88824ebe6c -> d66739d3920ec7662bc5f2b67518d885136f595bee8c45af171b493821c3f3bc
+  2.hashes.7: 6cd8831dccf12e8b56aa082f62d2dc447588b72711c27556ca3ec532ed57a553 -> f0cf44c8a6c6b5dacc86cbf01baf3596546e9930d7eca5e357856f194027bd85
+  2.hashes.8: f2d2697ec5d0615408b9b5eae3dcf19adde08be12b50c875a939be27fd3fed7d -> d445ed8d8edffa9a1767ce6e65932d9206747bb3906f3349c6162bd5cf6aa3fa
+  2.hashes.9: 72aaf5442f610e3189407402b5ec359c0f0279cd03d7ae9d426149144bcd8450 -> c598bf511911b27f87b820e73c91c43e7f95ef8714a5d44dfbf1eeb9efc6e529
+  2.years.1.snapshot: 53.0 -> 53.3
+  2.years.10.snapshot: 56.1 -> 56.5
+  2.years.11.snapshot: 56.5 -> 56.9
+  2.years.12.snapshot: 55.6 -> 56.1
+  2.years.13.snapshot: 53.6 -> 54.1
+  2.years.14.snapshot: 51.6 -> 52.1
+  2.years.15.snapshot: 54.4 -> 54.9
+  2.years.16.snapshot: 59.4 -> 60.0
+  2.years.17.snapshot: 60.6 -> 61.3
+  2.years.18.snapshot: 58.8 -> 59.4
+  2.years.2.snapshot: 51.2 -> 51.5
+  2.years.3.snapshot: 52.0 -> 52.3
+  2.years.4.snapshot: 54.3 -> 54.7
+  2.years.5.snapshot: 53.6 -> 53.9
+  2.years.6.snapshot: 53.5 -> 53.8
+  2.years.7.snapshot: 53.5 -> 53.9
+  2.years.8.snapshot: 54.3 -> 54.7
+  2.years.9.snapshot: 54.9 -> 55.3
+  3.hashes.1: 3d12bf98d843a8eb49d348090ab90c5b678c195f9019641dc3ebb809f98bc9dc -> df1087095e36d1221b316f37b8d4b903a1686a67f401d67b56a87c450853338a
+  3.hashes.10: f4f4fc36232b1e1a094e80b3239508f76bb599a7c9ee249cb0ba3c2de4294be1 -> 9b6d43f3d01859c3e99c45eb9aa00edcbeb1c366a996c5b9b39ad7eee405c77a
+  3.hashes.11: 569dff4c7fc0a94a1555db80a8519b8222b6c24b95849f85351e1305cb74c597 -> 61fdf38b98dda0a941e79da0a72bcc6c1e6f2135c1e226448d528078cbcc4c6f
+  3.hashes.12: f9584cb6e847fe73f6d1c87fba06687126e534391865ee4d2d0c23c84f2849dc -> 136aa37a2f8c06d388493c288a12f64c83c038aaed8355719aea8c84d9213c18
+  3.hashes.13: 7b4e3971ef2d6b2948d3314cda95b5b8b5557ecba9d45b02f1f45670ff1a92c4 -> ba479247c16396719e766bde589e3457d6161e93157817e82ac6d4cdea0216d9
+  3.hashes.14: f92b34a3ea8a08e391e1cde4528af0a34de90585a1a09da8331d5f0e1144dfa1 -> d53716560535b61fd774cd814f5099733713aac194e4a862552a536d06cb25a1
+  3.hashes.15: 5a3d94d7874bf8a07e64f9d18e3a7b4791d0f619c60e4ba431c6229eebd3200e -> bd9f0818c74561bf83c15a8a2b600652a1ed91c51de7ca5ac5ee6e28aa3d543c
+  3.hashes.16: d79322aa348a3cd9f79a7fac7e0246f0d3fc295703383e4b8caeb5630076cdac -> f9f84ca605f92af729699717490556633a8df513d997586ce970dadefb8b4c17
+  3.hashes.17: 4cdb74a306e992539fdb1ade2a4c303c6a1a0e6ab2ee65e2ba700ed509cae2c1 -> 23f7b32d8ddbe5e293113ed73b8fe85148535d1fc6690257f727fe348e63daea
+  3.hashes.18: 061c5430d12a0e2557bee3a89831b6d4eaf3d2d829ec1d95125ab554b4e5ba18 -> c660381c041969781e094251d4f82a36e328f7d05a5258c6e78b96889ce454c0
+  3.hashes.2: 957905de829a551eda943ea1e4ddde9fd2ba7c706ab6c6578d6f4233eb13feb1 -> 58038bb3c421a1f5c2a139331dce73526ea368414fdbc7f7c2d4a96b7b26e229
+  3.hashes.3: 578fcbbc70898821dec3a2858382bd2b20521f42029b7af94d2324d674a47c61 -> 6d462da44cab0bb164e0f9cac350def04988470ed618b4785c5bd2d5582a08aa
+  3.hashes.4: 13b84fac3bd994d79ff5a702d5e4764f5b4b7a9852e2ed3604be6626145a9f30 -> 5ee00e8854c64301586094aa9c561ba135ccd8bd4640d7d5374cb8096f35aa7c
+  3.hashes.5: f323b1f17690544a785617eec0b4464614718e2a77c5f409d2af5ca7821a146f -> 0e12a770593d45e91a4a4dcd4e3326af0c98344849b8235dfc7b24da1261f5ed
+  3.hashes.6: 803b39b04327c1129cf246b32fd784c19b85b68d2e5a906246086960be1e88f1 -> 27927e432bc2e95583a83801a50f18976c2b7248756ba6b9f159e2372d77a29a
+  3.hashes.7: 1b2290eb66058f1ada5b85c905a30b3292547e0246dc6a7b8c026611d8c86ab5 -> cb088dfe95dea550ae58b03cecada19ee2658c0e8795853fed963c777c489c54
+  3.hashes.8: 94f641a73e6241fcbb270343c9346f10548e9427b37ae245046a704b1ea2cc66 -> a9ac675535d5fdd0f42f710e974dd4bc621e9fb6876cdd7fd56159291881d81b
+  3.hashes.9: 3cf89d7af5c3e8ee80449491c5c6d09627b9946ba2c1247da269fe24eef4e4e0 -> 21cb7f146cdac93a742fc4cb789ecfa16b1e1615bca6098c8e55c9adb5d6b5f6
+  3.years.1.snapshot: 50.8 -> 51.1
+  3.years.10.snapshot: 48.8 -> 49.1
+  3.years.11.snapshot: 52.3 -> 52.7
+  3.years.12.snapshot: 50.6 -> 51.0
+  3.years.13.snapshot: 49.9 -> 50.2
+  3.years.14.snapshot: 50.9 -> 51.2
+  3.years.15.snapshot: 51.3 -> 51.6
+  3.years.16.snapshot: 51.0 -> 51.3
+  3.years.17.snapshot: 51.1 -> 51.5
+  3.years.18.snapshot: 51.6 -> 52.1
+  3.years.2.camps: 211 -> 209
+  3.years.2.gathers: 210 -> 212
+  3.years.2.snapshot: 47.1 -> 47.3
+  3.years.3.snapshot: 48.1 -> 48.4
+  3.years.4.snapshot: 48.5 -> 48.8
+  3.years.5.snapshot: 51.4 -> 51.8
+  3.years.6.camps: 208 -> 207
+  3.years.6.gathers: 229 -> 230
+  3.years.6.snapshot: 52.0 -> 52.4
+  3.years.7.snapshot: 50.6 -> 51.0
+  3.years.8.snapshot: 50.8 -> 51.1
+  3.years.9.snapshot: 50.6 -> 51.0
+  4.hashes.1: 4539a913b1410829f42f2139a40d68da5dad15ff0710fbd0590b44944b2f5607 -> d10b01b218104d8a520b975573baa160605686e6013a379a2b73ef8243edc391
+  4.hashes.10: 854868781025742e790b1e027b26c40581c94f6da6ab1c394f47ad18065402b7 -> b0613e48fd2e92b39597e585a8befe8409ac3318f936bd7793ed88e349d90b0e
+  4.hashes.11: b18235e3f7b8be80f45abd92bfd3ae557baa98a7892918352a4d4cbead6b2e3c -> 0ef117a9ba81169503b7f5bc6818355a051f242351a7a22dffe00a0762fb4d39
+  4.hashes.12: 18d2912d36a72492f7a9eb013baff09b7fdddf67bd272ff3c15a0b93d74e55b8 -> 7e13300b426c5bb18e5e681b2d90a24fac08943e6abe224b32c74b56a5def910
+  4.hashes.13: 9d0579f10bab91a8bb84d0f1f499d7d0e957cb05618129b4ae8dcb455800c60e -> a435b2b1f7e4578f356bbd26f1020976428022eab04c39b07e69e46e1db8cf90
+  4.hashes.14: a44852f83d1aa8e0d0e6b46122cd011dd5e5a8b64ca245b3b08762b93d61b32d -> 271497619b948293465d619e4289a96faa0d466b7d2d54d4afc4e3ef04ac26c0
+  4.hashes.15: d02f23f520d207c9e6a31b5bb7a8c4d4d28e07d48b1052dd049528851667ae95 -> bdaead5fb4b4a8dec07c6d0faa1887d8f7f3c052baa49449f5de65b0e461bc66
+  4.hashes.16: 72812e8229168638a9e7eebc436ce0dfd2194fba8b850667e99f6830e2cda26e -> 1a0f0d4667d9c7feb023d4d7053fe916f328a64fb56b9965099ca97d0620632b
+  4.hashes.17: cd80a9a3b090cfebf6e576eb8d82312bbfdcf35a22b24387506b86b1fa08de9f -> b97da1dbe68633cc0ceb18264045c11b736753991b93c65555f73e1a0e7ba453
+  4.hashes.18: 851e83a8229125e9ba688cc5f0373fcb9dff1f2086e8553ea20153cf29d3576b -> 730d11d93e9d24bdc511515682f7654c5a481902d39dafb5a13868a2cb367ec2
+  4.hashes.2: 724ea4ecf9411b114f85e5c899ef19e24db54c0d41a93e4de59303ef9a007bbc -> 72d55fd32109ac241ee3d1dc040b6217992da401d93b630534468ccbf3d3dff5
+  4.hashes.3: 707bde9afd86fadb2a855200177a365d5b39d8da6f3f73e321856a74f9203780 -> 5d9fa7fca0ccb9b064de9b3a6aa61f58e27d5ace5a9020abbe5f1fa5b49c5878
+  4.hashes.4: 540c9360238929e219d60075e78a64ae46a6bb949efaf3cd209f38563953facc -> 28ccbac3abc1d43e7b1618909d5c5f5d784e27fae4f235ac008b59684defae07
+  4.hashes.5: d6bf92f7da5b448663bd46af77a7cde7cb6e26144f5994b1bc67d37aa02799e2 -> d5b61ff1487aeb327dac4d68742eef22170fc1142981e48deb136b3a5a44c968
+  4.hashes.6: 4d702fb4228f7b84b5679e71c3dfd39124d2e05bf6c9ed8e4a066c0e8ac89a2d -> f967385ada1ff10ffe7345d88b265cafedc415694f1b2871be4d2eac0d58ab41
+  4.hashes.7: eb32e54375f0ad5f3ae0b8e0aca7d70d5fcb2a13c5aa0a91d7e831627bc06338 -> fa143bc26e6c0f252bf79815a24b30cfcb785c428531e255dc534e2f167806b2
+  4.hashes.8: 3aa064d650e098bb5d49fb0bbb7d6667799c76e59e07791670ab385b409b82c0 -> 6875be555f106ccbf0d601c2bcd936e4a4fef3ac77263c39fbe2c66e931546c6
+  4.hashes.9: f08cb7a79ea484444656b4505758d52c8765c091be0d70b30d3e9c871ea30c72 -> 744833883f16d284600976d7bf9b1be81eeda33cfd004c4471ca66118ecf09fe
+  4.years.1.snapshot: 50.4 -> 50.6
+  4.years.10.snapshot: 49.2 -> 49.6
+  4.years.11.snapshot: 51.3 -> 51.7
+  4.years.12.snapshot: 51.6 -> 52.1
+  4.years.13.snapshot: 50.5 -> 50.8
+  4.years.14.snapshot: 51.9 -> 52.3
+  4.years.15.snapshot: 49.4 -> 49.7
+  4.years.16.snapshot: 52.0 -> 52.4
+  4.years.17.snapshot: 51.5 -> 51.9
+  4.years.18.snapshot: 53.4 -> 53.9
+  4.years.2.snapshot: 53.4 -> 53.7
+  4.years.3.snapshot: 52.9 -> 53.2
+  4.years.4.snapshot: 52.1 -> 52.4
+  4.years.5.snapshot: 49.3 -> 49.6
+  4.years.6.snapshot: 51.2 -> 51.5
+  4.years.7.snapshot: 54.7 -> 55.1
+  4.years.8.snapshot: 48.4 -> 48.8
+  4.years.9.snapshot: 49.0 -> 49.5
+  5.growth: None -> -0.0123
+  5.hashes.1: 6a608f453121ee052bc49263e3de94a3c892121f092197e19ee601fd6463f952 -> 0b319b7845223dfd370cc4a99af33cb253099f35ed909eda4bbd2edceb786cf2
+  5.hashes.10: 41b79ee1cc87dce4b34cd5cab78fef0f71149a7af5896a10900f2d2fd0a0696f -> 247de96b0fbeae25e343576aa27160d2709df84d2e1b3b9cf48483b2a8e7e03e
+  5.hashes.11: e3098bde10c88fc996f84d9ddff4aa2c889c16999208e1b950d6e184b7e913d1 -> 9b5aad16c2029d9a03d58077e12ae0820377af1ab2b70683f054227678294971
+  5.hashes.12: d8e1413c7e73b80c0b8369d7c0bc78b069bed340316b2771aeef40f0cfa7361f -> 1c5ed9649d322a75d84012b11e0ce3f191af938d55fc5d1907ed769a3ebb3095
+  5.hashes.13: ac74e4a837cd566eba80f9a5371e3e49dc67c387658ffd9a805485740dcaa05c -> 975b592e4f19684318a32d29ee810fe746fc54680df9852aa7933be3741499da
+  5.hashes.14: c95880edae7467bfe35026c2171685251c06cb67ef1836725ed418fec3fbe283 -> 70b889c5388e58ea319245762a0198c26a7eb70b4f5ac01e0deea4be0accfaba
+  5.hashes.15: None -> 9f19590758172bff40d77dee3955030f16c315226724191ce4f050d760c962f8
+  5.hashes.16: None -> d462083325d104272fa3ac520d2296d9219c6e445ea4251aa1c740257d73dfc6
+  5.hashes.17: None -> e8bed5424730d151d05c4a01a7ab644e82089eb4354ec206b034eecb8f69f72c
+  5.hashes.18: None -> 56da036f897ace0132ddbaccffe2ea069813df519963dcca19a3ca741406dbd4
+  5.hashes.2: 9536196a66b9bf2d33b8d0ee80ca7123fb30ee9f02cdb5362f4becba9d23cf63 -> f97b5c75a9589beff4dbba7527c539d20e04b211eb1b8b34ae5d0e41ca375840
+  5.hashes.3: df5b15b0a3f45076a55a2d394d9fa460e5a2c98d44d160218d97e09987968bc6 -> fcfd5484c30291b64608d6e699af18e2f3da5748e882faa9b540d1cd22623ac8
+  5.hashes.4: f4316e5d6c09150387e314f61d9b67d48d3f49ba148a9991189f72bf0193b213 -> 1e1aa2706416ad4878ed71fb797014c2d045d83b1a5f01e62f478d741b55a010
+  5.hashes.5: 338c3cb899e8ef757a1bcf82e0e8e3088cf3ef941bc31142343b8098fae53298 -> acb6dd2c469b26297ff1013ec9d2af3aa828b424da3d1f648b4a5f876c2a21c3
+  5.hashes.6: 8c4f3fd7c857ef4cca7c07cee9c4d21f762e7ede0483057bded8c9ee725d2d62 -> 98c08c2c314dd1cc6929370e45b64ee6246374db6826b7f9ad360709d3d4e510
+  5.hashes.7: da3c68106256476e9bfc83d2c65c4feccc0c4cda62a64e0cb07eeedac4c11518 -> 485c1a1cf2e3f7fb98407f4d7f136b0ed80d74d4ac5287bc280d6a9d44ef4565
+  5.hashes.8: 69106970d5cb587c3e8e685d116915bacb7d11ee5929545f4682f96de5d4b667 -> fd3f420efa1dcb61841f34347ec9a746b6c3c86509c2fb62c87d5ca2f3ec03b4
+  5.hashes.9: bcd1fb888098692a329613beed4c911956d4d086731cef31a7c87053a48193bd -> 596d3448b4a2b979dbbe6a76e1c6f8692ffe2030b140cf4f86baf40f80a1af04
+  5.learned.litters: 418 -> 401
+  5.learned.waterskins: 379 -> 382
+  5.outcome: died -> alive
+  5.tick: 6945 -> 9000
+  5.years.1.snapshot: 52.1 -> 52.3
+  5.years.10.adult: 10.0 -> 6.0
+  5.years.10.born: 3.0 -> 1.0
+  5.years.10.builds: 6 -> 9
+  5.years.10.camps: 201 -> 200
+  5.years.10.child: 9.0 -> 3.0
+  5.years.10.deaths: 1 -> 3
+  5.years.10.elder: 2.0 -> 1.0
+  5.years.10.encounters: 1 -> 4
+  5.years.10.food: 15.2 -> 25.4
+  5.years.10.gathers: 249 -> 273
+  5.years.10.growth: 2 -> -2
+  5.years.10.hunters: 4 -> 2
+  5.years.10.injured: 1.0 -> 0.0
+  5.years.10.least: 19 -> 10
+  5.years.10.moves: 16 -> 6
+  5.years.10.of-age: 0.0 -> 1.0
+  5.years.10.of-encounter: 1.0 -> 2.0
+  5.years.10.people: 21 -> 10
+  5.years.10.pregnant: 4.0 -> 1.0
+  5.years.10.rate: 10.5 -> -16.7
+  5.years.10.roams: 28 -> 12
+  5.years.10.snapshot: 50.9 -> 48.1
+  5.years.10.tired: 7.0 -> 0.0
+  5.years.10.water: 23.4 -> 14.5
+  5.years.11.adult: 9.0 -> 5.0
+  5.years.11.born: 5.0 -> 0.0
+  5.years.11.camps: 202 -> 201
+  5.years.11.child: 10.0 -> 2.0
+  5.years.11.child-deaths: 3.0 -> 1.0
+  5.years.11.deaths: 5 -> 2
+  5.years.11.elder: 2.0 -> 1.0
+  5.years.11.food: 8.2 -> 32.7
+  5.years.11.gathers: 264 -> 273
+  5.years.11.grown: 1.0 -> 0.0
+  5.years.11.growth: 0 -> -2
+  5.years.11.hunters: 4 -> 1
+  5.years.11.least: 20 -> 8
+  5.years.11.moves: 2 -> 6
+  5.years.11.of-encounter: 3.0 -> 1.0
+  5.years.11.of-frailty: 2.0 -> 1.0
+  5.years.11.people: 21 -> 8
+  5.years.11.pregnant: 3.0 -> 2.0
+  5.years.11.rate: 0.0 -> -20.0
+  5.years.11.roams: 26 -> 14
+  5.years.11.sick: 1.0 -> 0.0
+  5.years.11.snapshot: 49.5 -> 49.7
+  5.years.11.starving: 5.0 -> 0.0
+  5.years.11.thirsty: 5.0 -> 0.0
+  5.years.11.tired: 0.0 -> 3.0
+  5.years.11.water: 15.3 -> 12.7
+  5.years.12.adult: 10.0 -> 4.0
+  5.years.12.born: 5.0 -> 3.0
+  5.years.12.camps: 201 -> 200
+  5.years.12.child: 11.0 -> 4.0
+  5.years.12.child-deaths: 2.0 -> 1.0
+  5.years.12.deaths: 2 -> 1
+  5.years.12.elder: 3.0 -> 2.0
+  5.years.12.encounters: 1 -> 2
+  5.years.12.food: 19.2 -> 7.9
+  5.years.12.gathers: 219 -> 271
+  5.years.12.grown: 2.0 -> 0.0
+  5.years.12.growth: 3 -> 2
+  5.years.12.hunters: 4 -> 1
+  5.years.12.least: 21 -> 8
+  5.years.12.moves: 22 -> 6
+  5.years.12.of-frailty: 1.0 -> 0.0
+  5.years.12.people: 24 -> 10
+  5.years.12.pregnant: 4.0 -> 0.0
+  5.years.12.rate: 14.3 -> 25.0
+  5.years.12.roams: 52 -> 17
+  5.years.12.snapshot: 50.5 -> 46.1
+  5.years.12.tired: 7.0 -> 2.0
+  5.years.12.water: 22.5 -> 7.1
+  5.years.13.adult: 10.0 -> 5.0
+  5.years.13.born: 5.0 -> 1.0
+  5.years.13.child: 10.0 -> 3.0
+  5.years.13.child-deaths: 3.0 -> 1.0
+  5.years.13.deaths: 5 -> 1
+  5.years.13.elder: 4.0 -> 2.0
+  5.years.13.encounters: 1 -> 2
+  5.years.13.food: 8.7 -> 17.8
+  5.years.13.gathers: 265 -> 271
+  5.years.13.grown: 3.0 -> 1.0
+  5.years.13.hunters: 4 -> 2
+  5.years.13.least: 23 -> 10
+  5.years.13.moves: 5 -> 6
+  5.years.13.of-birth: 1.0 -> 0.0
+  5.years.13.of-encounter: 1.0 -> 0.0
+  5.years.13.of-frailty: 3.0 -> 1.0
+  5.years.13.people: 24 -> 10
+  5.years.13.roams: 24 -> 17
+  5.years.13.snapshot: 50.4 -> 48.1
+  5.years.13.starving: 5.0 -> 0.0
+  5.years.13.tired: 2.0 -> 4.0
+  5.years.13.water: 23.4 -> 10.6
+  5.years.14.adult: 0 -> 5.0
+  5.years.14.born: 5.0 -> 0.0
+  5.years.14.camps: 181 -> 201
+  5.years.14.child: 0 -> 2.0
+  5.years.14.child-deaths: 14.0 -> 1.0
+  5.years.14.deaths: 28 -> 1
+  5.years.14.elder: 0 -> 2.0
+  5.years.14.encounters: 2 -> 3
+  5.years.14.food: 0.0 -> 29.7
+  5.years.14.gathers: 220 -> 265
+  5.years.14.grown: 1.0 -> 0.0
+  5.years.14.growth: -24 -> -1
+  5.years.14.hunters: 0 -> 1
+  5.years.14.injured: 0 -> 1.0
+  5.years.14.known: 0 -> 25
+  5.years.14.least: 0 -> 9
+  5.years.14.of-age: 1.0 -> 0.0
+  5.years.14.of-encounter: 3.0 -> 1.0
+  5.years.14.of-frailty: 4.0 -> 0.0
+  5.years.14.of-hunger: 20.0 -> 0.0
+  5.years.14.people: 0 -> 9
+  5.years.14.pregnant: 0 -> 1.0
+  5.years.14.rate: -100.0 -> -10.0
+  5.years.14.roams: 28 -> 18
+  5.years.14.skills: 0 -> 10
+  5.years.14.snapshot: 35.8 -> 49.8
+  5.years.14.starving: 20.0 -> 0.0
+  5.years.14.water: 0.0 -> 16.7
+  5.years.15: None -> {'year': 15, 'people': 10, 'child': 3.0, 'adult': 5.0, 'elder': 2.0, 'pregnant': 1.0, 'injured': 0.0, 'growth': 1, 'rate': 11.1, 'least': 9, 'born': 1.0, 'grown': 0.0, 'child-deaths': 0.0, 'deaths': 0, 'of-hunger': 0.0, 'of-thirst': 0.0, 'of-encounter': 0.0, 'of-age': 0.0, 'of-frailty': 0.0, 'of-birth': 0.0, 'food': 12.8, 'water': 11.8, 'moves': 17, 'roams': 16, 'gathers': 257, 'camps': 204, 'builds': 6, 'starving': 0.0, 'thirsty': 5.0, 'tired': 18.0, 'encounters': 1, 'status': 50.0, 'skills': 10, 'hunters': 2, 'sick': 0.0, 'known': 25, 'snapshot': 47.9}
+  5.years.16: None -> {'year': 16, 'people': 12, 'child': 3.0, 'adult': 7.0, 'elder': 2.0, 'pregnant': 2.0, 'injured': 0.0, 'growth': 2, 'rate': 20.0, 'least': 10, 'born': 3.0, 'grown': 2.0, 'child-deaths': 1.0, 'deaths': 1, 'of-hunger': 0.0, 'of-thirst': 0.0, 'of-encounter': 1.0, 'of-age': 0.0, 'of-frailty': 0.0, 'of-birth': 0.0, 'food': 29.5, 'water': 19.2, 'moves': 17, 'roams': 26, 'gathers': 248, 'camps': 203, 'builds': 6, 'starving': 0.0, 'thirsty': 0.0, 'tired': 15.0, 'encounters': 1, 'status': 50.0, 'skills': 10, 'hunters': 2, 'sick': 0.0, 'known': 25, 'snapshot': 49.1}
+  5.years.17: None -> {'year': 17, 'people': 12, 'child': 4.0, 'adult': 7.0, 'elder': 1.0, 'pregnant': 1.0, 'injured': 0.0, 'growth': 0, 'rate': 0.0, 'least': 12, 'born': 3.0, 'grown': 0.0, 'child-deaths': 2.0, 'deaths': 3, 'of-hunger': 0.0, 'of-thirst': 0.0, 'of-encounter': 1.0, 'of-age': 1.0, 'of-frailty': 1.0, 'of-birth': 0.0, 'food': 30.6, 'water': 16.5, 'moves': 6, 'roams': 15, 'gathers': 270, 'camps': 200, 'builds': 9, 'starving': 0.0, 'thirsty': 5.0, 'tired': 2.0, 'encounters': 2, 'status': 50.0, 'skills': 10, 'hunters': 1, 'sick': 0.0, 'known': 25, 'snapshot': 49.0}
+  5.years.18: None -> {'year': 18, 'people': 12, 'child': 5.0, 'adult': 5.0, 'elder': 2.0, 'pregnant': 1.0, 'injured': 0.0, 'growth': 0, 'rate': 0.0, 'least': 11, 'born': 2.0, 'grown': 0.0, 'child-deaths': 1.0, 'deaths': 2, 'of-hunger': 0.0, 'of-thirst': 0.0, 'of-encounter': 2.0, 'of-age': 0.0, 'of-frailty': 0.0, 'of-birth': 0.0, 'food': 13.3, 'water': 7.8, 'moves': 18, 'roams': 21, 'gathers': 250, 'camps': 205, 'builds': 6, 'starving': 0.0, 'thirsty': 5.0, 'tired': 20.0, 'encounters': 5, 'status': 50.0, 'skills': 10, 'hunters': 2, 'sick': 1.0, 'known': 25, 'snapshot': 47.2}
+  5.years.2.snapshot: 49.2 -> 49.4
+  5.years.3.food: 16.4 -> 15.7
+  5.years.3.snapshot: 48.0 -> 48.3
+  5.years.3.water: 19.5 -> 20.4
+  5.years.4.born: 0.0 -> 1.0
+  5.years.4.camps: 222 -> 216
+  5.years.4.child: 3.0 -> 4.0
+  5.years.4.food: 16.6 -> 17.8
+  5.years.4.gathers: 246 -> 251
+  5.years.4.growth: 0 -> 1
+  5.years.4.moves: 5 -> 7
+  5.years.4.people: 12 -> 13
+  5.years.4.pregnant: 1.0 -> 0.0
+  5.years.4.rate: 0.0 -> 8.3
+  5.years.4.roams: 21 -> 20
+  5.years.4.snapshot: 46.4 -> 47.0
+  5.years.4.thirsty: 50.0 -> 60.0
+  5.years.4.water: 13.0 -> 12.2
+  5.years.5.born: 3.0 -> 0.0
+  5.years.5.camps: 203 -> 202
+  5.years.5.child: 5.0 -> 3.0
+  5.years.5.encounters: 0 -> 1
+  5.years.5.food: 32.8 -> 74.2
+  5.years.5.growth: 2 -> -1
+  5.years.5.hunters: 0 -> 2
+  5.years.5.of-encounter: 0.0 -> 1.0
+  5.years.5.of-frailty: 1.0 -> 0.0
+  5.years.5.people: 14 -> 12
+  5.years.5.pregnant: 1.0 -> 2.0
+  5.years.5.rate: 16.7 -> -7.7
+  5.years.5.roams: 12 -> 13
+  5.years.5.snapshot: 47.0 -> 50.3
+  5.years.5.water: 61.2 -> 21.5
+  5.years.6.adult: 9.0 -> 8.0
+  5.years.6.born: 2.0 -> 1.0
+  5.years.6.camps: 204 -> 201
+  5.years.6.child: 6.0 -> 3.0
+  5.years.6.elder: 1.0 -> 2.0
+  5.years.6.food: 19.8 -> 48.8
+  5.years.6.gathers: 237 -> 278
+  5.years.6.growth: 2 -> 1
+  5.years.6.hunters: 0 -> 2
+  5.years.6.least: 14 -> 12
+  5.years.6.moves: 24 -> 11
+  5.years.6.people: 16 -> 13
+  5.years.6.pregnant: 0.0 -> 1.0
+  5.years.6.rate: 14.3 -> 8.3
+  5.years.6.roams: 29 -> 4
+  5.years.6.snapshot: 47.3 -> 50.9
+  5.years.6.tired: 20.0 -> 4.0
+  5.years.6.water: 55.7 -> 25.5
+  5.years.7.adult: 9.0 -> 8.0
+  5.years.7.born: 3.0 -> 2.0
+  5.years.7.child: 8.0 -> 4.0
+  5.years.7.elder: 2.0 -> 3.0
+  5.years.7.encounters: 1 -> 2
+  5.years.7.food: 29.2 -> 31.6
+  5.years.7.gathers: 272 -> 282
+  5.years.7.growth: 3 -> 2
+  5.years.7.least: 16 -> 13
+  5.years.7.moves: 10 -> 4
+  5.years.7.people: 19 -> 15
+  5.years.7.rate: 18.8 -> 15.4
+  5.years.7.roams: 8 -> 4
+  5.years.7.snapshot: 49.4 -> 48.7
+  5.years.7.starving: 5.0 -> 0.0
+  5.years.7.tired: 9.0 -> 2.0
+  5.years.7.water: 23.8 -> 19.2
+  5.years.8.adult: 7.0 -> 6.0
+  5.years.8.born: 4.0 -> 1.0
+  5.years.8.builds: 9 -> 6
+  5.years.8.camps: 200 -> 204
+  5.years.8.child: 10.0 -> 3.0
+  5.years.8.child-deaths: 2.0 -> 1.0
+  5.years.8.elder: 2.0 -> 3.0
+  5.years.8.encounters: 1 -> 3
+  5.years.8.food: 0.1 -> 24.9
+  5.years.8.gathers: 267 -> 252
+  5.years.8.grown: 0.0 -> 1.0
+  5.years.8.growth: 0 -> -3
+  5.years.8.hunters: 3 -> 2
+  5.years.8.least: 18 -> 11
+  5.years.8.moves: 5 -> 18
+  5.years.8.of-birth: 0.0 -> 1.0
+  5.years.8.of-encounter: 1.0 -> 2.0
+  5.years.8.of-frailty: 2.0 -> 0.0
+  5.years.8.people: 19 -> 12
+  5.years.8.pregnant: 0.0 -> 1.0
+  5.years.8.rate: 0.0 -> -20.0
+  5.years.8.roams: 19 -> 20
+  5.years.8.snapshot: 47.6 -> 47.5
+  5.years.8.starving: 20.0 -> 0.0
+  5.years.8.tired: 0.0 -> 20.0
+  5.years.8.water: 12.8 -> 13.7
+  5.years.9.adult: 9.0 -> 5.0
+  5.years.9.camps: 200 -> 202
+  5.years.9.child: 8.0 -> 4.0
+  5.years.9.child-deaths: 3.0 -> 2.0
+  5.years.9.elder: 2.0 -> 3.0
+  5.years.9.encounters: 1 -> 2
+  5.years.9.food: 31.6 -> 7.4
+  5.years.9.gathers: 275 -> 269
+  5.years.9.grown: 2.0 -> 0.0
+  5.years.9.hunters: 3 -> 2
+  5.years.9.least: 16 -> 10
+  5.years.9.moves: 4 -> 10
+  5.years.9.of-encounter: 3.0 -> 2.0
+  5.years.9.of-frailty: 0.0 -> 1.0
+  5.years.9.people: 19 -> 12
+  5.years.9.pregnant: 1.0 -> 0.0
+  5.years.9.roams: 15 -> 13
+  5.years.9.snapshot: 50.1 -> 48.7
+  5.years.9.tired: 0.0 -> 5.0
+  5.years.9.water: 24.4 -> 10.6

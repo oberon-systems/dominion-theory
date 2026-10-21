@@ -60,6 +60,8 @@ units:
       sickness: {lasts: {days: 5}, pace: 0.7, gathers: 0.5, frailty: 2.0}
       # What the goods of a member leave of its weight for a cause of death.
       exposure: {encounter: 1.0, frailty: 1.0}
+      # The share of meat in a member's rations: a day keeps 0.8 of the past share; meat alone does `full`.
+      diet: {meat: meat, keeps: 0.8, full: {frailty: 0.85, heals: 1.25, carries: 1.1}}
       # A nanny for every five children, rounded up, gathers half by the camp; everyone else gathers.
       roles:
         gatherer: {gathers: 1.0}

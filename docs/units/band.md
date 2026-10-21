@@ -66,7 +66,8 @@ A band is its members, kept one by one. A member has an age in days, a
 sex and four marks: pregnant until a day, resting after a birth until
 a day, a wound with its severity and the days of healing it still
 needs, and the days of a sickness left; see
-[Sickness and herbs](../game/skills.md#sickness-and-herbs). The population is the number of members,
+[Sickness and herbs](../game/skills.md#sickness-and-herbs). It also
+keeps the share of meat in its rations, its [diet](#diet). The population is the number of members,
 and a band dies when fewer than 5 are left; the game ends with it.
 
 A band starts with 15 members: the player and 14 others, adults of a
@@ -175,6 +176,36 @@ Hunger and thirst are the levels of [Decisions](../game/decisions.md#needs):
 a band with two days of food in its stores is sated, one with less than
 a day is hungry.
 
+### Diet
+
+Every member keeps the share of meat in its rations, from 0 to 1. A day
+the band eats, the share of `diet.meat` in the food it ate that day
+comes into the share of every member, the same for all:
+
+```text
+meat = meat * diet.keeps + meat today * (1 - diet.keeps)
+```
+
+`diet.keeps` is 0.8, so a band that turns to meat alone has a share of
+0.5 after three days and 0.9 after ten; a day the band ate nothing
+leaves the share as it was. The share does `diet.full` in its measure:
+
+| Effect     | `full` | At a share of 0.5 | Of                                |
+|------------|--------|-------------------|-----------------------------------|
+| `frailty`  | 0.85   | 0.925             | the frailty weight, see [Deaths](#deaths) |
+| `heals`    | 1.25   | 1.125             | the days a wound heals a day, see [Injuries](#injuries) |
+| `carries`  | 1.1    | 1.05              | the carry of the member, see [Stores](#stores) |
+
+```text
+effect = 1 + (full - 1) * meat
+```
+
+Raw meat still sickens, see
+[Sickness and herbs](../game/skills.md#sickness-and-herbs): a band fed
+on meat is stronger and heals faster, and needs herbs to stay well. A
+record keeps the share of every member as `meat`, and the replay shows
+it.
+
 ___
 
 ## Births
@@ -250,7 +281,8 @@ frailty, see [Shelter](#shelter). A sick member weighs
 `sickness.frailty`, twice, for frailty, and the goods of a member lower
 its weights by `people.exposure`, 1 for both causes without them:
 clothes leave 0.8 of an encounter and, in winter, 0.7 of frailty; see
-[Bonuses](../game/skills.md#bonuses). Death of age begins at 0.15 a year at 17 and doubles
+[Bonuses](../game/skills.md#bonuses). Meat lowers the frailty weight by
+the [diet](#diet), to 0.85 on meat alone. Death of age begins at 0.15 a year at 17 and doubles
 every two years: about half live to 20, and one in five to 22.
 
 ### Children grow safer
@@ -309,14 +341,15 @@ healing the wound needs and the share of pace and gathering it leaves.
 A wound heals at the end of every day. A day on the move heals one
 day, a day wholly in camp `injury.heal_in_camp`, 2, and a day partly in
 camp by the share it camped. A wound kills nobody by itself. Every new
-wound is the event `people-injured`. A herb cuts the days left of a
+wound is the event `people-injured`. A member fed on meat heals faster by its [diet](#diet), 1.25 times on
+meat alone. A herb cuts the days left of a
 light wound to its `treated`, 0.5, once; a severity without it is not
 treated. See [Sickness and herbs](../game/skills.md#sickness-and-herbs).
 A member hurt on a day is drawn by `injury.per_day` with the bonuses of
 its own kit laid over: clothes leave 0.7 of it.
 
 ```text
-healed a day = 1 + (heal_in_camp - 1) * camped
+healed a day = (1 + (heal_in_camp - 1) * camped) * heals of the diet
 ```
 
 ___
@@ -431,7 +464,8 @@ events `goods-spoiled` and `goods-worn`; the rest of a unit waits in the
 band's `spoiled` and `worn`. In a winter camp goods spoil at the pace
 food does there.
 
-An adult carries 6 kg, a child a quarter of it and an elder half. A
+An adult carries 6 kg, a child a quarter of it and an elder half, and
+a member fed on meat more by its [diet](#diet), a tenth on meat alone. A
 member who pulls a litter carries more, a man twice and a woman half
 again, net of the litter: its 4 kg weigh in the load and are carried
 on top, see [Bonuses](../game/skills.md#bonuses). A member holding a
@@ -761,6 +795,7 @@ units:
       weakened: {pace: 0.6, gathers: 0.6}
       sickness: {lasts: {days: 5}, pace: 0.7, gathers: 0.5, frailty: 2.0}
       exposure: {encounter: 1.0, frailty: 1.0}
+      diet: {meat: meat, keeps: 0.8, full: {frailty: 0.85, heals: 1.25, carries: 1.1}}
       roles:
         gatherer: {gathers: 1.0}
         nanny: {gathers: 0.5, cares: 5}
@@ -880,6 +915,7 @@ A game does not start from a band that does not add up.
 - Exactly one role cares for nobody and has no share; a role that needs
   a good names a personal one, and lays its bonuses on the band.
 - The resources a hunt brings, `meat` and `hides`, exist.
+- `diet.meat` names a resource of the kind `food`.
 
 ___
 

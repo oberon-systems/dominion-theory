@@ -294,3 +294,4 @@ review-thirsty = thirsty
 review-you = you
 review-members-none = This record keeps no members.
 review-mastery = { NAME("resource", $resource) } mastery { NUMBER($mastery, maximumFractionDigits: 2) }
+review-meat = meat { NUMBER($share, maximumFractionDigits: 2) } of the ration

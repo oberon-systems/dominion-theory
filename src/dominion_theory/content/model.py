@@ -754,6 +754,27 @@ class Exposure(Node):
     frailty: Factor
 
 
+class Fed(Node):
+    """
+    What a ration of meat alone makes of a member: its weight for frailty, the pace its wounds heal and its carry.
+    """
+
+    frailty: Factor
+    heals: Factor
+    carries: Factor
+
+
+class Diet(Node):
+    """
+    The share of meat in the rations of a member: the food that is meat, the share of its past share a day keeps,
+    and what meat alone does; a share of meat does that share of it.
+    """
+
+    meat: Name
+    keeps: Share
+    full: Fed
+
+
 class People(Node):
     stages: dict[Name, LifeStage] = Field(min_length=1)
     age: Ageing
@@ -764,6 +785,7 @@ class People(Node):
     leaves: Leaves
     sickness: Sickness
     exposure: Exposure
+    diet: Diet
 
 
 class Speed(Node):
@@ -1329,6 +1351,10 @@ class Params(Node):
         common = [name for name, role in people.roles.items() if role.cares is None and role.share is None]
         if len(common) != 1:
             raise _invalid(f'{path}.roles', common, 'exactly one role that cares for nobody and has no share')
+        eaten = self.resources.get(people.diet.meat)
+        if eaten is None or eaten.kind != KINDS[0]:
+            foods = [name for name, resource in self.resources.items() if resource.kind == KINDS[0]]
+            raise _invalid(f'{path}.diet.meat', people.diet.meat, f'one of {", ".join(foods)}')
         for name, role in people.roles.items():
             needed = None if role.needs is None else self.resources.get(role.needs)
             if role.needs is not None and (needed is None or needed.held != PERSONAL):

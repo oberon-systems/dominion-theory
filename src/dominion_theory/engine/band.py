@@ -52,6 +52,8 @@ SICK = 'sick'
 KIT = 'kit'
 GAME = 'game'
 MEAT = 'meat'
+HEALS = 'heals'
+CARRIES = 'carries'
 HIDES = 'hides'
 
 # Clockwise from the north; y grows to the south.
@@ -119,6 +121,8 @@ class Member:
     sick: float = 0.0
     # The goods made by the member, by good: its experience of each.
     craft: dict[str, float] = field(default_factory=dict)
+    # The share of meat in its rations, carried over from day to day.
+    meat: float = 0.0
 
     @classmethod
     def read(cls, plain: dict[str, Any]) -> Member:
@@ -475,6 +479,7 @@ def people(params: Params, band: Band) -> list[dict[str, Any]]:
             'thirsty': member.thirsty,
             KIT: [name for name in member.kit if member.kit.held(name) > 0],
             'craft': {good: round(mastery(params, member, good), 2) for good in sorted(member.craft)},
+            MEAT: round(member.meat, 2),
         }
         for member, name in zip(band.members, census(params, band).stages, strict=True)
     ]
@@ -811,18 +816,26 @@ def short(params: Params, band: Band, name: str) -> bool:
 
 def carry(params: Params, band: Band) -> float:
     """
-    What the members carry by their stages, more for those whose kit lays a bonus on the carry. The bonus is net: a
-    good that lays it, a litter, still weighs in the load and carries its own weight.
+    What the members carry by their stages, more for those whose kit lays a bonus on the carry and for those fed on
+    meat. The bonus is net: a good that lays it, a litter, still weighs in the load and carries its own weight.
     """
     counted = census(params, band)
     stages = params.units.band.people.stages
     base = applied(params, band).units.band.carry_kg
-    more = sum(
-        stages[name].carries * (applied(params, band, member).units.band.carry_kg - base) + _carried(params, member)
-        for member, name in zip(band.members, counted.stages, strict=True)
-        if member.kit
-    )
-    return counted.carriers * base + more
+    total = 0.0
+    for member, name in zip(band.members, counted.stages, strict=True):
+        own = applied(params, band, member).units.band.carry_kg if member.kit else base
+        total += stages[name].carries * own * dieted(params, member, CARRIES)
+        total += _carried(params, member) if member.kit else 0.0
+    return total
+
+
+def dieted(params: Params, member: Member, effect: str) -> float:
+    """
+    What the meat of a member's rations makes of an effect: nothing of it without meat, all of it on meat alone.
+    """
+    full: float = getattr(params.units.band.people.diet.full, effect)
+    return 1.0 + (full - 1.0) * member.meat
 
 
 def _carried(params: Params, member: Member) -> float:
@@ -1182,8 +1195,9 @@ def eat(params: Params, band: Band, rng: np.random.Generator | None = None) -> M
     """
     The people eat and drink for a day, the oldest lots first, a ration of food of every food held. What there is
     goes first to whoever has the least of that reserve left, children first on a tie; a full ration fills the
-    reserve again, a part of it spends what was missing. With a stream given, a member who ate food that sickens
-    falls sick by its chance times the share of its ration that was of it.
+    reserve again, a part of it spends what was missing. The share of meat in what the band ate goes into the diet
+    of every member. With a stream given, a member who ate food that sickens falls sick by its chance times the
+    share of its ration that was of it.
     """
     rules = params.units.band
     stages = rules.people.stages
@@ -1192,7 +1206,7 @@ def eat(params: Params, band: Band, rng: np.random.Generator | None = None) -> M
     eating = appetite(params, band)
     shares: dict[str, list[float]] = {}
     met: dict[str, float] = {}
-    eaten = tainted = 0.0
+    eaten = tainted = meat = 0.0
     for name, rate in applied(params, band).units.band.consumption_per_day.items():
         prop = params.resources[name].property or ''
         rations = [stages[stage].eats * rate * eating for stage in named]
@@ -1200,6 +1214,7 @@ def eat(params: Params, band: Band, rng: np.random.Generator | None = None) -> M
         if params.resources[name].kind == FOOD:
             missing, foods = _feed(params, band, need)
             eaten += need - missing
+            meat += foods.get(rules.people.diet.meat, 0.0)
             sickens = sum(amount * (params.resources[food].sickens or 0.0) for food, amount in foods.items())
             tainted = sickens / (need - missing) if need - missing > NOTHING else 0.0
         else:
@@ -1223,6 +1238,8 @@ def eat(params: Params, band: Band, rng: np.random.Generator | None = None) -> M
         for member, share in zip(band.members, got, strict=True):
             gone = 0.0 if share >= 1.0 - NOTHING else getattr(member, DEFICITS[prop]) + 1.0 - share
             setattr(member, DEFICITS[prop], round(gone, 9))
+    if eaten > NOTHING:
+        _diet(params, band, meat / eaten)
     wear(params, band, EATEN, eaten)
     sickened = 0
     if rng is not None and tainted > 0:
@@ -1231,6 +1248,15 @@ def eat(params: Params, band: Band, rng: np.random.Generator | None = None) -> M
         sickened = sicken(params, band, _chanced(rng, chances))
     band.changed()
     return Meal(met, sickened)
+
+
+def _diet(params: Params, band: Band, today: float) -> None:
+    """
+    The share of meat in the rations of every member after a day the band ate that share of meat.
+    """
+    keeps = params.units.band.people.diet.keeps
+    for member in band.members:
+        member.meat = round(member.meat * keeps + today * (1.0 - keeps), 9)
 
 
 def _feed(params: Params, band: Band, need: float) -> tuple[float, dict[str, float]]:
@@ -1342,7 +1368,7 @@ def suffer(params: Params, band: Band, day: int) -> tuple[list[str], list[str], 
 def vulnerable(params: Params, band: Band, cause: str, season: str | None = None) -> list[float]:
     """
     How much each member is exposed to a cause, by stage and age, by what its goods leave of it in the season and,
-    for frailty, more while it is sick; the player never dies.
+    for frailty, more while it is sick and less by the meat it eats; the player never dies.
     """
     named = census(params, band).stages
     sickness = params.units.band.people.sickness
@@ -1352,6 +1378,7 @@ def vulnerable(params: Params, band: Band, cause: str, season: str | None = None
         if held > 0:
             held *= getattr(applied(params, band, member, season).units.band.people.exposure, cause, 1.0)
             held *= sickness.frailty if cause == FRAILTY and member.sick > 0 else 1.0
+            held *= dieted(params, member, FRAILTY) if cause == FRAILTY else 1.0
         found.append(held)
     return found
 
@@ -1484,7 +1511,7 @@ def live(
     """
     The day of the members at its end: they age, get better, die of age and frailty, heal or are hurt, give birth
     and conceive. Camped is the share of the active parts of the day the band camped: it heals faster and dies
-    less of frailty. The goods of a member that guard it in a season do so in the season given.
+    less of frailty; meat heals faster too. The goods of a member that guard it in a season do so in the season given.
     """
     rules = params.units.band
     people = rules.people
@@ -1495,7 +1522,7 @@ def live(
         member.age_days += 1
         if member.wound is not None:
             # Rounded so that shares of a day add up to the whole days of a wound.
-            member.wound['left'] = round(member.wound['left'] - heals, 9)
+            member.wound['left'] = round(member.wound['left'] - heals * dieted(params, member, HEALS), 9)
             if member.wound['left'] <= 0:
                 member.wound = None
         if member.rest_until is not None and member.rest_until <= day:

@@ -494,7 +494,9 @@ rest would only weigh. The hunt pays the `game` of the cell, or of the
 best cell in the reach of a winter camp, and lowers its stock by the
 meat over the 60 units a full cell holds. Every hunter wears its spear
 by a hunt a tick. Meat is food: it is eaten like forage and spoils in 2
-days.
+days. The share of meat in what the band eats makes its members die
+less of frailty, heal faster and carry more, see
+[Diet](../units/band.md#diet).
 
 The game of a forest is the richest: more beasts live there, and cover lets
 the hunters near them, so one value stands for both. Three hunters on

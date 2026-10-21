@@ -91,6 +91,11 @@ def test_band_is_the_one_of_its_document() -> None:
         'frailty': 2.0,
     }
     assert band.people.exposure.model_dump() == {'encounter': 1.0, 'frailty': 1.0}
+    assert band.people.diet.model_dump() == {
+        'meat': 'meat',
+        'keeps': 0.8,
+        'full': {'frailty': 0.85, 'heals': 1.25, 'carries': 1.1},
+    }
     assert band.hunting.model_dump() == {'meat': 4.0, 'hides': 0.05}
     assert band.people.leaves.model_dump(exclude_none=True) == {'back': {'days': 1}}
     assert {name: stage.reserve.model_dump() for name, stage in band.people.stages.items()} == {
@@ -302,6 +307,13 @@ def test_a_role_needs_a_personal_good_and_lays_its_bonuses_on_the_band() -> None
     assert refused({f'{roles}.gives': [{'to': 'band', 'path': 'units.band', 'times': 0.8}]})['path'] == (
         f'{roles}.gives.path'
     )
+
+
+def test_the_meat_of_a_diet_is_a_food() -> None:
+    path = f'{BAND}.people.diet.meat'
+
+    assert refused({path: 'hides'})['path'] == path
+    assert refused({path: 'venison'})['path'] == path
 
 
 def test_the_last_stage_does_not_grow_its_reserve() -> None:

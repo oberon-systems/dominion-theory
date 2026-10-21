@@ -581,6 +581,49 @@ def test_a_wound_heals_a_day_a_day_and_twice_as_fast_in_camp(params: Params, cam
     assert bands.census(params, held).injured == 0
 
 
+def test_every_member_keeps_most_of_its_share_of_meat_and_takes_the_rest_from_the_day(params: Params) -> None:
+    stores = Stock({'forage': [[0.0, 6.0]], 'meat': [[0.0, 4.0]], 'water': [[0.0, 10.0]]})
+    held = bands.Band(id=1, x=WEST, y=NORTH, members=bands.adults(10), stores=stores)
+    held.members[0].meat = 0.5
+
+    bands.eat(params, held)
+    shares = [member.meat for member in held.members]
+    held.stores = Stock({'water': [[0.0, 10.0]]})
+    bands.eat(params, held)
+
+    assert shares == pytest.approx([0.48] + [0.08] * 9)
+    assert [member.meat for member in held.members] == shares
+
+
+@pytest.mark.parametrize(('meat', 'days'), [(0.0, 20), (0.5, 18), (1.0, 16)])
+def test_meat_heals_a_wound_faster(params: Params, meat: float, days: int) -> None:
+    held = bands.Band(id=1, x=WEST, y=NORTH, members=bands.adults(2))
+    held.members[1].wound = {'severity': 'heavy', 'left': 20.0}
+    held.members[1].meat = meat
+
+    lasted = 0
+    while held.members[1].wound is not None:
+        bands.live(params, held, 10 + lasted, 1.0, False, 0.0, dice())
+        lasted += 1
+
+    assert lasted == days
+
+
+@pytest.mark.parametrize('meat', [0.5, 1.0])
+def test_meat_carries_more_and_dies_less_of_frailty(meat: float) -> None:
+    params = load_params()
+    held = bands.Band(id=1, x=WEST, y=NORTH, members=bands.adults(2))
+    carried, frail = bands.carry(params, held), bands.vulnerable(params, held, 'frailty')[1]
+
+    for member in held.members:
+        member.meat = meat
+    held.changed()
+
+    assert bands.carry(params, held) == pytest.approx(carried * (1.0 + 0.1 * meat))
+    assert bands.vulnerable(params, held, 'frailty')[1] == pytest.approx(frail * (1.0 - 0.15 * meat))
+    assert frail > 0
+
+
 @pytest.mark.parametrize(('camped', 'shelter', 'lost'), [(0.0, 0.5, 3), (1.0, 0.0, 0), (0.5, 0.0, 3)])
 def test_a_band_in_camp_dies_less_of_frailty(camped: float, shelter: float, lost: int) -> None:
     frail = {'units.band.people.stages.adult.dies.frailty': 200.0, 'units.band.shelter.frailty': shelter}
@@ -757,7 +800,7 @@ def test_a_restored_game_carries_the_band_in_the_middle_of_a_day(params: Params)
 def test_a_snapshot_of_the_format_before_the_band_is_refused(params: Params) -> None:
     snapshot = land(params).snapshot()
 
-    assert snapshot["format"] == 27
+    assert snapshot["format"] == 28
     with pytest.raises(ValueError, match='format 2'):
         Game.restore({**snapshot, 'format': 2})
 

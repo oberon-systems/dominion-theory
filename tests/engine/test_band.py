@@ -625,6 +625,42 @@ def test_a_fed_band_conceives_and_gives_birth_with_a_pause_after() -> None:
     assert (held.members[-1].age_days, held.members[0].rest_until) == (0, 21)
 
 
+class Drawn:
+    """
+    A stream that draws the numbers given, then the low end of every range.
+    """
+
+    def __init__(self, *numbers: float) -> None:
+        self.numbers = list(numbers)
+
+    def random(self) -> float:
+        return self.numbers.pop(0)
+
+    def integers(self, low: int, high: int | None = None) -> int:
+        return low if high is not None else 0
+
+
+@pytest.mark.parametrize(
+    ('known', 'herbs', 'born', 'mothers'),
+    [(False, 1.0, 0, [1]), (True, 0.0, 0, [1]), (True, 1.0, 1, [])],
+)
+def test_the_oldest_woman_attends_a_birth_once_midwifery_is_known_and_a_herb_helps_more(
+    params: Params, known: bool, herbs: float, born: int, mothers: list[int]
+) -> None:
+    members = [bands.Member(1000, 'male', player=True), bands.Member(1000, 'female'), bands.Member(1900, 'female')]
+    members[1].pregnant_until = 10
+    held = bands.Band(id=1, x=WEST, y=NORTH, members=members, stores=Stock({'herbs': [[0.0, herbs]]}))
+    if known:
+        held.lore['known'] += ['herbs', 'midwifery']
+
+    drawn: Any = Drawn(0.58, 0.03)
+    found = bands._births(params, held, 10, drawn)
+
+    assert found == (born, mothers)
+    assert held.held('herbs') == (0.0 if known else herbs)
+    assert held.lore['counts']['births'] == 1
+
+
 def test_an_encounter_leaves_dread_and_a_dangerous_day_unease_and_both_fade() -> None:
     params = load_params()
     held = bands.Band(id=1, x=WEST, y=NORTH, members=bands.adults(4))
@@ -721,7 +757,7 @@ def test_a_restored_game_carries_the_band_in_the_middle_of_a_day(params: Params)
 def test_a_snapshot_of_the_format_before_the_band_is_refused(params: Params) -> None:
     snapshot = land(params).snapshot()
 
-    assert snapshot["format"] == 25
+    assert snapshot["format"] == 27
     with pytest.raises(ValueError, match='format 2'):
         Game.restore({**snapshot, 'format': 2})
 

@@ -5,7 +5,7 @@ What a band learns by living: the counters it learns by and the skills they teac
 import copy
 from typing import TYPE_CHECKING, Any, Protocol
 
-from ..content import BY_BIOME, NEW, Condition, Params
+from ..content import BY_BIOME, BY_SEASON, NEW, Condition, Params
 from .cells import Place
 
 if TYPE_CHECKING:
@@ -19,7 +19,11 @@ CAMPED_BY = 'camped_by'
 DAYS_IN = 'days_in'
 WINTERS = 'winters'
 MARCHED = 'marched'
+BIRTHS = 'births'
+MIDWIFERY = 'midwifery'
 MARCHING = 'marching'
+FORAGED_IN = 'foraged_in'
+FORAGING = 'foraging'
 KNOWN = 'known'
 COUNTS = 'counts'
 SINCE = 'since'
@@ -32,6 +36,9 @@ ROLES = 'roles'
 
 
 class Land(Protocol):
+    @property
+    def season(self) -> str: ...
+
     def inside(self, x: int, y: int) -> bool: ...
 
     def biome(self, x: int, y: int) -> str: ...
@@ -41,8 +48,15 @@ def fresh() -> dict[str, Any]:
     """
     The lore of a band that has learned nothing and counted nothing.
     """
-    counts: dict[str, Any] = {SEEN: [], FIRST: [], WINTERS: 0, MARCHED: 0, **{name: {} for name in BY_BIOME}}
-    return {KNOWN: [], COUNTS: counts, SINCE: {}, MARCHING: False}
+    counts: dict[str, Any] = {
+        SEEN: [],
+        FIRST: [],
+        WINTERS: 0,
+        MARCHED: 0,
+        BIRTHS: 0,
+        **{name: {} for name in (*BY_BIOME, *BY_SEASON)},
+    }
+    return {KNOWN: [], COUNTS: counts, SINCE: {}, MARCHING: False, FORAGING: False}
 
 
 def beside(land: Land, at: Place) -> list[str]:
@@ -84,14 +98,17 @@ def entered(land: Land, band: Band) -> None:
 
 def day_ends(land: Land, band: Band) -> None:
     """
-    The counters of a day: the land seen, a day on the march, the day in the biome of the cell and the night
-    beside it.
+    The counters of a day: the land seen, a day on the march, a day of gathering food in its season, the day in
+    the biome of the cell and the night beside it.
     """
     counts = band.lore[COUNTS]
     _seen(counts, band, SEEN)
     if band.lore[MARCHING]:
         counts[MARCHED] += 1
     band.lore[MARCHING] = False
+    if band.lore[FORAGING]:
+        _add(counts, FORAGED_IN, [land.season])
+    band.lore[FORAGING] = False
     _add(counts, DAYS_IN, [land.biome(*band.place)])
     _add(counts, CAMPED_BY, beside(land, band.place))
 
@@ -101,6 +118,20 @@ def march(band: Band) -> None:
     The band walked today, plainly or roaming; standing, gathering and building are no march.
     """
     band.lore[MARCHING] = True
+
+
+def forage(band: Band) -> None:
+    """
+    The band gathered food today.
+    """
+    band.lore[FORAGING] = True
+
+
+def delivered(band: Band, count: int) -> None:
+    """
+    Births lived in the band, a child born alive or not.
+    """
+    band.lore[COUNTS][BIRTHS] += count
 
 
 def wintered(band: Band) -> None:
@@ -145,15 +176,22 @@ def holds(condition: Condition, band: Band, base: dict[str, Any] | None = None) 
         return all(holds(held, band, base) for held in condition.all)
     if condition.holds:
         return all(band.held(name) >= amount for name, amount in condition.holds.items())
+    if condition.knows:
+        return all(known(band, skill) for skill in condition.knows)
     return counted(condition, band.lore[COUNTS], base) >= (condition.at_least or 0.0)
 
 
 def counted(condition: Condition, counts: dict[str, Any], base: dict[str, Any] | None = None) -> float:
     """
-    What a counter reads: a set by its size, a tally as it is, a counter by biome summed over its biomes or, for
-    the biome new, the most of any biome not seen on the first day; less what it read at the base.
+    What a counter reads: a set by its size, a tally as it is, a counter by season for its season, a counter by
+    biome summed over its biomes or, for the biome new, the most of any biome not seen on the first day; less what
+    it read at the base.
     """
     counter = str(condition.counter)
+    if counter in BY_SEASON:
+        season = str(condition.season)
+        days: int = counts[counter].get(season, 0) - (0 if base is None else base[counter].get(season, 0))
+        return days
     if counter not in BY_BIOME:
         return _size(counts[counter]) - (0 if base is None else _size(base[counter]))
     held, before = counts[counter], {} if base is None else base[counter]

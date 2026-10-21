@@ -576,3 +576,22 @@ def test_a_band_beside_a_forest_gathers_a_share_of_its_sticks_and_its_food_from_
     assert band(game).held('sticks') == pytest.approx(15 * 1.0 * 0.8 * 0.3)
     # Wood grows back in 30 days, a 150th of the stock in the same tick.
     assert game.cells.stock(beside, 'wood') == pytest.approx(1 - 15 * 1.0 * 0.8 * 0.3 / 100 + 1 / 150)
+
+
+def test_dried_food_is_eaten_after_the_rest_and_a_unit_feeds_its_quality(params: Params) -> None:
+    held = holding({'dried': [[0.0, 20.0, 0.6]], 'forage': [[5.0, 4.0]], 'water': [[5.0, 20.0]]})
+
+    bands.eat(params, held)
+
+    assert held.held('forage') == 0.0
+    assert held.held('dried') == pytest.approx(20.0 - (10.0 - 4.0) / 0.6)
+
+
+def test_drying_takes_only_the_forage_over_a_day_of_the_band_and_makes_it_lighter(params: Params) -> None:
+    held = holding({'forage': [[0.0, 16.0]]})
+    held.lore['known'].append('drying')
+
+    bands.make(params, held, 1)
+
+    assert held.held('forage') == pytest.approx(10.0)
+    assert held.stores['dried'] == [[1.0, 3.0, 0.6]]

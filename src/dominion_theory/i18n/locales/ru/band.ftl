@@ -15,6 +15,8 @@ skill-litters = делать волокуши
 skill-herbs = разбираться в травах
 skill-spears = делать копья и охотиться
 skill-waterskins = делать бурдюки
+skill-drying = сушить запасы
+skill-midwifery = принимать роды
 
 goods-made = Сделаны: { NAME("resource", $resource) } { $count }.
 goods-spoiled = Испортились: { NAME("resource", $resource) } { $count }.

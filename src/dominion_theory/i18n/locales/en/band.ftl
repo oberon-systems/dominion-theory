@@ -15,6 +15,8 @@ skill-litters = to make litters
 skill-herbs = to know herbs
 skill-spears = to make spears and hunt
 skill-waterskins = to make waterskins
+skill-drying = to dry food
+skill-midwifery = to attend births
 
 goods-made = Made: { NAME("resource", $resource) } { $count }.
 goods-spoiled = Spoiled: { NAME("resource", $resource) } { $count }.

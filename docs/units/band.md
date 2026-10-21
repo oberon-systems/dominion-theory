@@ -197,6 +197,16 @@ for a random span from `birth.pause.min` to `birth.pause.max`, one to
 two months, and does not conceive. A child is born at age 0, of a
 random sex.
 
+Once the band knows `midwifery`, its oldest woman but the mother attends
+every birth. A herb held is spent on it; see
+[Skills](../game/skills.md#the-skills).
+
+| Birth                         | The child lives | The mother dies       |
+|-------------------------------|-----------------|-----------------------|
+| alone                         | 0.5             | 0.05                  |
+| attended                      | 0.55            | 0.05 x 0.75 = 0.0375  |
+| attended, a herb spent on it  | 0.6             | 0.05 x 0.5 = 0.025    |
+
 How many children grow up is no number of the tree. It follows from
 hunger, thirst, encounters and frailty, so a band that keeps to safe
 and fed land raises more of them: the reason a people seeks safety.
@@ -768,6 +778,7 @@ units:
         days: 2.0
         child_survives: 0.5
         mother_dies: 0.05
+        midwife: {survives: 0.55, mother: 0.75, herb: {survives: 0.6, mother: 0.5}}
     carry_kg: 6.0
     carry_water_kg: 0.0
     gathering_beside: 0.3

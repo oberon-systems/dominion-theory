@@ -10,3 +10,4 @@ resource-spears = spears
 resource-hides = hides
 resource-clothes = clothes
 resource-waterskins = waterskins
+resource-dried = dried food

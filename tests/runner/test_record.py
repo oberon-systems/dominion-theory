@@ -152,7 +152,7 @@ def test_a_tick_writes_its_commands_itself_and_its_events(service: Service) -> N
     }
     assert {'t': 'event', 'tick': 4, 'key': 'council-abstained', 'values': {'status': 48.0}} in lines
     assert [line['tick'] for line in lines if line['t'] == 'tick'] == [1, 2, 3, 4, 5]
-    assert [line['key'] for line in lines if line['t'] == 'event'][-3:] == [
+    assert [line['key'] for line in lines if line['t'] == 'event' and not line['key'].startswith('goods-')][-3:] == [
         'council-opened',
         'council-abstained',
         'day-started',

@@ -476,7 +476,7 @@ def test_a_birth_earns_five_only_on_a_day_the_player_voted_for(answered: str | N
     band(game).members[0].pregnant_until = game.day
     game.answered = {'today': answered, 'tomorrow': None}
 
-    born = said(steps(game, 2))
+    born = [(key, values) for key, values in said(steps(game, 2)) if key.startswith(('people-', 'seat-'))]
 
     praised = [('seat-praised', {'born': 1, 'status': status})] if answered == 'voted' else []
     assert born == [('people-born', {'count': 1}), *praised]

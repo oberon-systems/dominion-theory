@@ -33,3 +33,14 @@ skills:
     needs: [spears, herbs]
     learned: {holds: {hides: 1, cords: 1}}
     opens: {makes: [waterskins]}
+  drying:
+    learned:
+      all:
+        - {knows: [herbs]}
+        - {counter: foraged_in, season: summer, at_least: 15}
+    opens: {makes: [dried]}
+  midwifery:
+    learned:
+      all:
+        - {knows: [herbs]}
+        - {counter: births, at_least: 5}

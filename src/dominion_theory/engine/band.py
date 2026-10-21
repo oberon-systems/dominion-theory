@@ -1235,20 +1235,27 @@ def eat(params: Params, band: Band, rng: np.random.Generator | None = None) -> M
 
 def _feed(params: Params, band: Band, need: float) -> tuple[float, dict[str, float]]:
     """
-    Takes a ration out of every food held, the oldest lots first across them; gives what is still missing and
-    what was taken of each.
+    Takes a ration out of every food held, the oldest lots first across them and a reserve after every other; a
+    unit of a lot feeds its quality. Gives what is still missing and what each food fed.
     """
-    foods = [name for name, resource in params.resources.items() if resource.kind == FOOD]
-    lots = sorted((lot[0], at, lot[1]) for at, name in enumerate(foods) for lot in band.stores.get(name, []))
+    resources = params.resources
+    foods = [name for name, resource in resources.items() if resource.kind == FOOD]
+    lots = sorted(
+        (resources[name].reserve, lot[0], at, order, lot[1], lot[2] if len(lot) > 2 else 1.0)
+        for at, name in enumerate(foods)
+        for order, lot in enumerate(band.stores.get(name, []))
+    )
     missing = need
     taken: dict[str, float] = {}
-    for _, at, amount in lots:
-        part = min(amount, missing)
-        if part <= 0:
-            break
-        band.stores.take(foods[at], part)
+    for _, _, at, _, amount, quality in lots:
+        part = min(amount * quality, missing)
+        if part <= 0 or quality <= 0:
+            continue
+        band.stores.take(foods[at], part / quality)
         taken[foods[at]] = taken.get(foods[at], 0.0) + part
         missing -= part
+        if missing <= NOTHING:
+            break
     return max(missing, 0.0), taken
 
 
@@ -1536,22 +1543,35 @@ def _chanced(rng: np.random.Generator, chances: list[float]) -> list[int]:
 
 def _births(params: Params, band: Band, day: int, rng: np.random.Generator) -> tuple[int, list[int]]:
     """
-    The children born alive today and the mothers who died of it.
+    The children born alive today and the mothers who died of it. Once the band knows midwifery, the oldest woman
+    but the mother attends a birth, and a herb held is spent on it.
     """
     birth = params.units.band.people.birth
     low, high = params.days(birth.pause.min), params.days(birth.pause.max)
+    women = sorted(
+        (at for at, member in enumerate(band.members) if member.sex == FEMALE),
+        key=lambda at: (-band.members[at].age_days, at),
+    )
+    skilled = lores.known(band, lores.MIDWIFERY)
     born: list[Member] = []
     mothers: list[int] = []
+    delivered = 0
     for at, member in enumerate(band.members):
         if member.pregnant_until is None or member.pregnant_until > day:
             continue
         lives, dies, sex, pause = rng.random(), rng.random(), rng.integers(len(SEXES)), rng.integers(low, high + 1)
         member.pregnant_until, member.rest_until = None, day + int(pause)
-        if lives < birth.child_survives:
+        delivered += 1
+        survives, risk = birth.child_survives, birth.mother_dies
+        if skilled and any(woman != at for woman in women):
+            attended = birth.midwife.herb if _spend(params, band) else birth.midwife
+            survives, risk = attended.survives, risk * attended.mother
+        if lives < survives:
             born.append(Member(0, SEXES[int(sex)]))
-        if dies < birth.mother_dies and not member.player:
+        if dies < risk and not member.player:
             mothers.append(at)
     band.members.extend(born)
+    lores.delivered(band, delivered)
     band.changed()
     return len(born), mothers
 
@@ -1675,7 +1695,7 @@ def make(params: Params, band: Band, day: int) -> None:
             continue
         wants = kept(params, band, name)
         wanted = math.ceil(wants - whole(band, name) - NOTHING) - band.work.get(name, [0.0, 0.0])[0]
-        possible = min(band.held(material) / amount for material, amount in resource.made.items())
+        possible = min(_spare(params, band, material) / amount for material, amount in resource.made.items())
         if wanted > NOTHING and possible > NOTHING:
             missing = wanted / wants
             if found is None or missing > found[0]:
@@ -1710,6 +1730,17 @@ def make(params: Params, band: Band, day: int) -> None:
         band.restocked()
     if band.work[name][0] <= NOTHING:
         del band.work[name]
+
+
+def _spare(params: Params, band: Band, name: str) -> float:
+    """
+    What of a material making may take: all of a good, of a food what is over the band's ration of a day.
+    """
+    held = band.held(name)
+    if params.resources[name].kind != FOOD:
+        return held
+    rate = params.units.band.consumption_per_day.get(name, 0.0)
+    return max(held - census(params, band).eaters * rate * appetite(params, band), 0.0)
 
 
 def makers(params: Params, band: Band, name: str) -> list[int]:

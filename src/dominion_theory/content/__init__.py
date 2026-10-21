@@ -2,6 +2,7 @@ from .loader import diff, load_params, presets
 from .model import (
     ACTIONS,
     BY_BIOME,
+    BY_SEASON,
     CAUSES,
     COMMON,
     COUNTERS,
@@ -66,6 +67,7 @@ from .model import (
 __all__ = [
     'ACTIONS',
     'BY_BIOME',
+    'BY_SEASON',
     'COMMON',
     'CAUSES',
     'COUNTERS',

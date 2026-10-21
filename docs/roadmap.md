@@ -667,8 +667,9 @@ wear out. Skills, goods and bonuses are data.
 
 The first set, from the user's list, is built: orientation, wintering,
 stone tools, sticks, litters, herbs, stone spears with the role of the
-hunter, and waterskins. Fire and how to make it is left to the tribes
-of stage 5, and drying and smoking go with it.
+hunter, and waterskins; then drying in the sun. Fire and how to make it
+is left to the tribes of stage 5, and smoking and drying by the fire go
+with it.
 
 Raised for the band era and left for later; each is discussed when it
 is reached:

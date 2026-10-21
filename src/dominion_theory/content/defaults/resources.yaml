@@ -3,6 +3,14 @@ resources:
   forage: {kind: food, property: food, weight_kg: 1.0, spoils: {days: 3}}
   # Hunted, not gathered; the chance a member falls sick of a ration of it.
   meat: {kind: food, weight_kg: 1.0, spoils: {days: 2}, sickens: 0.03}
+  # Forage dried in the sun: eaten after every other food, a unit feeds its quality.
+  dried:
+    kind: food
+    weight_kg: 0.5
+    spoils: {months: 2}
+    reserve: true
+    keep: {per: head, amount: 5.0}
+    made: {forage: 2.0}
   stones:
     kind: goods
     property: stone

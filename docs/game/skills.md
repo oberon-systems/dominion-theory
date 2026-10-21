@@ -68,6 +68,8 @@ met, not from the start.
 | `herbs`       | 40 days in forest, or 40 in grass or floodplain, or 15 in swamp | -                        | gathering `herbs` and `cords` |
 | `spears`      | sticks, stones and cords held on the same day             | `stone_tools`, `sticks`, `herbs` | making `spears` and `clothes`, the role `hunter` |
 | `waterskins`  | hides and cords held on the same day                      | `spears`, `herbs`        | making `waterskins` |
+| `drying`      | `herbs` known and 15 days of gathering food in summer     | -                        | making `dried` |
+| `midwifery`   | `herbs` known and 5 births lived in the band              | -                        | the oldest woman attends births |
 
 `orientation` - a band without it backs the ways the others name, but
 the player cannot point the band at a place of their own. It is learned
@@ -91,6 +93,19 @@ evening, so the first night by the right land teaches it.
 `spears` and `waterskins` - learned by doing: the band holds the
 materials together and finds what they make.
 
+`midwifery` - the band has seen 5 births and knows its herbs. Its
+oldest woman, but the mother, attends every birth after: the child lives
+at 0.55 instead of 0.5 and the mother's risk falls to 0.75 of it; with a
+herb spent on the birth, 0.6 and 0.5. See
+[Births](../units/band.md#births).
+
+`drying` - drying mushrooms, berries, roots and herbs in the sun, with
+no fire. A band that knows its herbs and has gathered food on 15 days of
+a summer learns it, so a band that learned herbs by the autumn dries its
+first stores at the end of its first summer. Its herbs are a part of its
+condition, not a need: a need would count the summer days only from the
+day herbs were learned, and the first summer would be over.
+
 ___
 
 ## Counters
@@ -111,9 +126,12 @@ that biome.
 | `days_in`       | per biome, the days ended on a cell of that biome       |
 | `winters`       | the winters lived through                               |
 | `marched`       | the days the band walked or roamed at least once        |
+| `foraged_in`    | per season, the days the band gathered food at least once |
+| `births`        | the births lived in the band, a child born alive or not  |
 
-A condition reads one counter with `at_least`, or `holds`, the stores
-of the band; `any` and `all` join them. When a skill has needs, the
+A condition reads one counter with `at_least`, of a biome or a season
+where the counter is kept so; `holds`, the stores of the band; or
+`knows`, the skills the band knows; `any` and `all` join them. When a skill has needs, the
 counts of the day its needs were met are kept beside it, and the
 condition reads the counts gained since.
 
@@ -154,12 +172,16 @@ quality, a keep and a recipe.
 | `clothes`    | goods | personal | 2 kg   | 12 months          | -                                          | its materials'  | 1 a member          | 1 hide, 1 cord             |
 | `waterskins` | goods | personal | 0.5 kg | 6 months           | -                                          | its materials'  | 1 an adult or elder | 1 hide, 1 cord             |
 | `meat`       | food  | common   | 1 kg   | 2 days             | -                                          | -               | -                   | hunted                     |
+| `dried`      | food  | common   | 0.5 kg | 2 months           | -                                          | its makers'     | 5 a head            | 2 forage                   |
 
 What each gives is in [Bonuses](#bonuses).
 
 - **Kind** - `food`, `water` or `goods`. Every resource of the kind
   `food` is eaten, oldest lot first across them, and only `meat`
-  sickens.
+  sickens. A food marked `reserve`, `dried`, is eaten after every other,
+  so the stores dried for the winter are not eaten first for being
+  older, and a unit of a food with a quality feeds that share of a
+  ration: dried by novices feeds 0.6.
 - **Held** - `common` goods stay in the band's stores; `personal` goods
   are handed to a member, see [Handing out](#handing-out).
 - **Spoils** - a time, as for food and water: a lot is lost when it is
@@ -313,6 +335,9 @@ below its keep is made while the materials of its recipe are held.
   evening and 3 in the night. A maker is a member of a stage that
   gathers, an adult or an elder, whatever its role: the camp parts are
   no one's work, so a nanny or an elder makes as well.
+- A food is a material only above the band's ration of a day, so
+  drying never eats the supper: a band of 10 holding 16 forage dries 6
+  of it into 3 dried.
 - The materials are taken from the oldest lots. A made good takes the
   mean quality of its materials, 1 for those without one, times what the
   makers' mastery leaves of it; see [Mastery](#mastery). A spear of a
@@ -574,8 +599,9 @@ ___
 
 ## Left to the tribes
 
-Fire and how to make it is left to the tribes of stage 5, and drying
-and smoking go with it. The other skills raised for the band era are in
+Fire and how to make it is left to the tribes of stage 5, and smoking
+and drying by the fire go with it. Drying in the sun needs no fire and is
+the band's: see `drying` in [The skills](#the-skills). The other skills raised for the band era are in
 [the roadmap](../roadmap.md#skills-learned-by-doing) and get their
 design when they are reached.
 
@@ -623,6 +649,17 @@ skills:
     needs: [spears, herbs]
     learned: {holds: {hides: 1, cords: 1}}
     opens: {makes: [waterskins]}
+  drying:
+    learned:
+      all:
+        - {knows: [herbs]}
+        - {counter: foraged_in, season: summer, at_least: 15}
+    opens: {makes: [dried]}
+  midwifery:
+    learned:
+      all:
+        - {knows: [herbs]}
+        - {counter: births, at_least: 5}
 ```
 
 ```yaml
@@ -630,6 +667,7 @@ resources:
   water: {kind: water, property: water, weight_kg: 1.0, spoils: {days: 5}}
   forage: {kind: food, property: food, weight_kg: 1.0, spoils: {days: 3}}
   meat: {kind: food, weight_kg: 1.0, spoils: {days: 2}, sickens: 0.03}
+  dried: {kind: food, weight_kg: 0.5, spoils: {months: 2}, reserve: true, keep: {per: head, amount: 5.0}, made: {forage: 2.0}}
   stones:
     kind: goods
     property: stone

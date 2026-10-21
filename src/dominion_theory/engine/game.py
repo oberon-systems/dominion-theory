@@ -65,7 +65,7 @@ from .events import (
 from .hashing import digest
 from .streams import Streams
 
-SNAPSHOT_FORMAT = 25
+SNAPSHOT_FORMAT = 27
 DIED = 'died'
 BANISHED = 'banished'
 VOTED = 'voted'
@@ -716,6 +716,9 @@ class Game:
             lore.entered(self, band)
         if done['kind'] in (bands.MOVE, bands.ROAM):
             lore.march(band)
+        resources = self.params.resources
+        if done['kind'] == bands.GATHER and any(resources[name].kind == bands.FOOD for name in done['shares']):
+            lore.forage(band)
         self._totals[f'{done["kind"]}s'] += 1
         camp_parts = self.params.units.band.camp_parts
         if self.date.part not in camp_parts and done['kind'] in (bands.GATHER, bands.BUILD, bands.CAMP):

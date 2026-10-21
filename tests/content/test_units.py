@@ -6,7 +6,9 @@ from dominion_theory.core.errors import DominionError
 BAND = 'units.band'
 KINDS = 'encounters.kinds'
 STAGES = 'units.band.people.stages'
-RESOURCES = 'one of water, forage, meat, stones, sticks, herbs, cords, litters, spears, hides, clothes, waterskins'
+RESOURCES = (
+    'one of water, forage, meat, dried, stones, sticks, herbs, cords, litters, spears, hides, clothes, waterskins'
+)
 
 
 def refused(overrides: dict[str, object]) -> dict[str, object]:
@@ -32,6 +34,7 @@ def test_resources_are_those_of_their_documents() -> None:
         'cords': ('goods', 'plants', 0.1, {'months': 6}, {}),
         'litters': ('goods', None, 4.0, None, {'pulled': 70}),
         'meat': ('food', None, 1.0, {'days': 2}, {}),
+        'dried': ('food', None, 0.5, {'months': 2}, {}),
         'spears': ('goods', None, 1.5, None, {'hunts': 80}),
         'hides': ('goods', None, 2.0, {'months': 12}, {}),
         'clothes': ('goods', None, 2.0, {'months': 12}, {}),
@@ -352,7 +355,7 @@ def test_people_are_those_of_the_band_document() -> None:
     assert told == {
         'child': (Duration(years=4), Duration(months=7), 0.0, False, False),
         'adult': (Duration(years=17), None, 1.0, True, True),
-        'elder': (None, None, 0.0, False, True),
+        'elder': (None, None, 0.4, False, True),
     }
     assert (people.age.per_year, people.injury.per_day, people.birth.child_survives) == (0.15, 0.002, 0.5)
     assert load_params().council.blamed == ('hunger', 'thirst', 'encounter')

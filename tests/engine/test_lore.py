@@ -80,13 +80,16 @@ def test_a_band_starts_knowing_nothing_and_the_land_it_sees_is_its_first() -> No
             'first': ['forest', 'grass'],
             'winters': 0,
             'marched': 0,
+            'births': 0,
             'walked': {},
             'walked_by': {},
             'camped_by': {},
             'days_in': {},
+            'foraged_in': {},
         },
         'since': {},
         'marching': False,
+        'foraging': False,
     }
 
 
@@ -175,6 +178,20 @@ def test_a_day_counts_on_the_march_only_when_the_band_walked(params: Params) -> 
     lore.day_ends(game, band(game))
 
     assert (stood, counts(game)['marched'], band(game).lore['marching']) == (0, 1, False)
+
+
+def test_a_day_of_gathering_food_counts_in_its_season_and_a_skill_known_is_a_condition(params: Params) -> None:
+    game = land(params, NARROW)
+    lore.day_ends(game, band(game))
+    lore.forage(band(game))
+    lore.day_ends(game, band(game))
+    summer = condition(counter='foraged_in', season='summer', at_least=1)
+    herbs = condition(knows=['herbs'])
+
+    assert counts(game)['foraged_in'] == {'summer': 1}
+    assert lore.holds(summer, band(game)) and not lore.holds(herbs, band(game))
+    band(game).lore['known'].append('herbs')
+    assert lore.holds(condition(all=[summer, herbs]), band(game))
 
 
 def test_a_band_thirty_days_on_the_march_learns_orientation(params: Params) -> None:

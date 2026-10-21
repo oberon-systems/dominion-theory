@@ -22,10 +22,11 @@ CAUSES = ('hunger', 'thirst', 'encounter', 'age', 'frailty', 'birth')
 BAND = 'band'
 PASSABILITY = 'passability'
 ZOOM = 5
-# The counters a band learns by, docs/game/skills.md: those of a set or a sum, then those kept by biome.
-TALLIES = ('seen', 'first', 'winters', 'marched')
+# The counters a band learns by, docs/game/skills.md: those of a set or a sum, then those kept by biome or season.
+TALLIES = ('seen', 'first', 'winters', 'marched', 'births')
 BY_BIOME = ('walked', 'walked_by', 'camped_by', 'days_in')
-COUNTERS = TALLIES + BY_BIOME
+BY_SEASON = ('foraged_in',)
+COUNTERS = TALLIES + BY_BIOME + BY_SEASON
 NEW = 'new'
 OPENED = ('proposals', 'gathers', 'makes', 'roles')
 GATES = ('go_place', 'winter_camp')
@@ -446,6 +447,7 @@ class Resource(Node):
     keep: Keep | None = None
     made: dict[Name, Positive] = Field(default_factory=dict)
     sickens: Share | None = None
+    reserve: bool = False
     gives: tuple[Bonus, ...] = ()
 
     @model_validator(mode='after')
@@ -463,8 +465,12 @@ class Resource(Node):
                 raise ValueError(f'uses to wear by of {", ".join(USES)}')
         if self.held not in HOLDERS:
             raise ValueError(f'held as one of {", ".join(HOLDERS)}')
-        if self.kind != GOODS and (self.quality or self.keep or self.made or self.gives or self.held != COMMON):
-            raise ValueError('a holder, quality, keep, recipe and bonuses for goods only')
+        if self.kind != GOODS and (self.quality or self.gives or self.held != COMMON):
+            raise ValueError('a holder, quality and bonuses for goods only')
+        if self.kind not in (GOODS, KINDS[0]) and (self.keep or self.made):
+            raise ValueError('a keep and a recipe for goods and food only')
+        if self.reserve and self.kind != KINDS[0]:
+            raise ValueError('a reserve of food only')
         return self
 
     @builtins.property
@@ -632,6 +638,23 @@ class Pause(Node):
     max: Duration
 
 
+class Attended(Node):
+    """
+    A birth a midwife attends: the chance the child lives, and what is left of the mother's risk.
+    """
+
+    survives: Share
+    mother: Factor
+
+
+class Midwife(Attended):
+    """
+    The births the band's midwife attends, and those she attends with a herb spent on them.
+    """
+
+    herb: Attended
+
+
 class Birth(Node):
     pregnancy: Duration
     pause: Pause
@@ -639,6 +662,7 @@ class Birth(Node):
     days: Factor
     child_survives: Share
     mother_dies: Share
+    midwife: Midwife
 
 
 class Dread(Node):
@@ -988,22 +1012,24 @@ class Condition(Node):
     counter: Name | None = None
     biome: Name | None = None
     biomes: tuple[Name, ...] = ()
+    season: Name | None = None
     at_least: Positive | None = None
     holds: dict[Name, Positive] = Field(default_factory=dict)
+    knows: tuple[Name, ...] = ()
     any: tuple[Condition, ...] = ()
     all: tuple[Condition, ...] = ()
 
     @model_validator(mode='after')
     def _one_kind(self) -> Self:
-        kinds = [self.counter is not None, bool(self.holds), bool(self.any), bool(self.all)]
+        kinds = [self.counter is not None, bool(self.holds), bool(self.knows), bool(self.any), bool(self.all)]
         if sum(kinds) != 1:
-            raise ValueError('exactly one of counter, holds, any, all')
+            raise ValueError('exactly one of counter, holds, knows, any, all')
         if (self.counter is None) != (self.at_least is None):
             raise ValueError('at_least with a counter and only with one')
         if self.biome is not None and self.biomes:
             raise ValueError('biome or biomes, not both')
-        if self.counter is None and (self.biome is not None or self.biomes):
-            raise ValueError('biomes only with a counter')
+        if self.counter is None and (self.biome is not None or self.biomes or self.season is not None):
+            raise ValueError('biomes and a season only with a counter')
         return self
 
     def walk(self) -> list[Condition]:
@@ -1370,10 +1396,18 @@ class Params(Node):
         if counter is not None and counter not in COUNTERS:
             raise _invalid(f'{path}.counter', counter, f'one of {", ".join(COUNTERS)}')
         biomes = (*condition.biomes, *(() if condition.biome is None else (condition.biome,)))
-        if counter in TALLIES and biomes:
+        if counter in (*TALLIES, *BY_SEASON) and biomes:
             raise _invalid(f'{path}.biome', list(biomes), f'no biome for the counter {counter}')
         if counter in BY_BIOME and not biomes:
             raise _invalid(f'{path}.biome', None, f'a biome for the counter {counter}')
+        seasons = [season.name for season in self.time.seasons]
+        if counter in BY_SEASON and condition.season not in seasons:
+            raise _invalid(f'{path}.season', condition.season, f'one of {", ".join(seasons)}')
+        if counter not in BY_SEASON and condition.season is not None:
+            raise _invalid(f'{path}.season', condition.season, f'no season for the counter {counter}')
+        for skill in condition.knows:
+            if skill not in self.skills:
+                raise _invalid(f'{path}.knows', skill, f'one of {", ".join(self.skills)}')
         for biome in biomes:
             if biome not in self.biomes and (biome != NEW or condition.biomes):
                 raise _invalid(f'{path}.biome', biome, f'one of {", ".join(sorted(self.biomes))}, or {NEW} alone')

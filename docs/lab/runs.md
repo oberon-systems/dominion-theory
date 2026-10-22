@@ -71,7 +71,7 @@ run:
     - leader
     - greedy
     - random
-    - {mind: linear-v1}
+    - {mind: linear_v1}
     - {model: qwen2.5:7b, draws: 2, temperature: 0.3}
   params:
     default: {}
@@ -126,8 +126,8 @@ draws it plays, the horizon and the size of a generation:
 
 ```yaml
 train:
-  mind: linear-v2
-  from: linear-v1
+  mind: linear_v2
+  from: linear_v1
   features: [go, stay, winter, abstain, votes, leader, score, hunger_food, thirst_water, calm_threat]
   lands: {first: 1, count: 8}
   draws: 4

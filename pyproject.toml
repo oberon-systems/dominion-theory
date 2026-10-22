@@ -49,7 +49,7 @@ dependencies = [
 where = ["src"]
 
 [tool.setuptools.package-data]
-"dominion_theory.content" = ["defaults/*.yaml", "defaults/biomes/*.yaml", "presets/*.yaml"]
+"dominion_theory.content" = ["defaults/*.yaml", "defaults/biomes/*.yaml", "defaults/minds/*.yaml", "presets/*.yaml"]
 "dominion_theory.i18n" = ["locales/*/*.ftl"]
 
 [tool.black]

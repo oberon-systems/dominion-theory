@@ -42,6 +42,25 @@ USES = ('eaten', 'nights', 'attacks', 'cures', 'pulled', 'hunts', 'carried')
 TO = ('band', 'member')
 # What a hunt brings, by name.
 HUNTED = ('meat', 'hides')
+# What a mind may weigh of an option, each a function of the engine: docs/lab/players.md, What a seat sees.
+FEATURES = (
+    'go',
+    'stay',
+    'winter',
+    'abstain',
+    'votes',
+    'leader',
+    'score',
+    'hunger_food',
+    'thirst_water',
+    'calm_threat',
+    'river',
+    'unknown',
+    'distance',
+    'winter_short',
+    'short_stay',
+    'outvoted',
+)
 SEXES = ('female', 'male')
 
 Name = Annotated[str, Field(strict=True, pattern=r'^[a-z][a-z0-9_]*$')]
@@ -1079,6 +1098,25 @@ class Skill(Node):
     opens: Opens = Opens()
 
 
+class Mind(Node):
+    """
+    A player of the seat that scores every option by its weights times the features it names: docs/lab/players.md,
+    The mind. `trained` tells the reader how the weights were found.
+    """
+
+    features: tuple[Name, ...] = Field(min_length=1)
+    weights: tuple[Amount, ...]
+    trained: dict[Name, str | int | float] = Field(default_factory=dict)
+
+    @model_validator(mode='after')
+    def _weighed(self) -> Self:
+        if any(name not in FEATURES for name in self.features) or len(set(self.features)) < len(self.features):
+            raise ValueError(f'each of {", ".join(FEATURES)} at most once')
+        if len(self.weights) != len(self.features):
+            raise ValueError('as many weights as features')
+        return self
+
+
 class Params(Node):
     """
     The resolved tree. A new section is a field here and a file in defaults.
@@ -1093,6 +1131,8 @@ class Params(Node):
     council: Council
     encounters: Encounters
     skills: dict[Name, Skill]
+    # A tree written before the minds were has none.
+    minds: dict[Name, Mind] = Field(default_factory=dict)
 
     @model_validator(mode='after')
     def _agree(self) -> Self:

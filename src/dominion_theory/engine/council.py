@@ -180,14 +180,14 @@ def table(
     params: Params, band: Band, era: str, inside: Inside, extra: Sequence[Proposal] = (), wintering: bool = False
 ) -> Table:
     """
-    How the others' votes lie over the options the band can take, each with its words; options without a vote
-    are left out.
+    How the others' votes lie over the options the band can take, each with its words and the band's score of a
+    day of it; options without a vote are left out.
     """
     days = score(params, band, era, inside, extra, wintering)
     given = votes([held for _, held in days], voters(params, band) - 1, params.council.spread)
     laid = [
-        {'proposal': proposal, 'key': key(proposal, band), 'votes': held}
-        for (proposal, _), held in zip(days, given, strict=True)
+        {'proposal': proposal, 'key': key(proposal, band), 'votes': held, 'score': round(day, 4)}
+        for (proposal, day), held in zip(days, given, strict=True)
     ]
     return [entry for entry in laid if entry['votes']]
 

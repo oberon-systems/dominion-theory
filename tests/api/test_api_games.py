@@ -21,6 +21,7 @@ def test_a_game_is_created_with_a_preset_and_overrides(client: TestClient, new_g
     assert created == {
         'id': created['id'],
         'seed': 42,
+        'draw': 0,
         'params_hash': created['params_hash'],
         'mode': 'step',
         'running': False,

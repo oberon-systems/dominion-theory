@@ -69,19 +69,19 @@ packages by layer.
 | `core`    | settings, logging, errors                                | nothing of ours            |
 | `content` | the tree of parameters: schema, defaults, presets        | `core`                     |
 | `planet`  | world generation: the planet, windows, rivers            | `core`, `content`          |
-| `engine`  | game state, the tick, commands, events, clock, counters  | `core`, `content`, `planet`|
-| `players` | scripted players, from stage 3                           | `engine`                   |
+| `engine`  | game state, the tick, commands, events, clock, counters; what the seat sees, the features of its options, a mind's score | `core`, `content`, `planet`|
+| `players` | the seat's contract; the scripted players and a mind in the seat | `engine`, `content`  |
 | `i18n`    | message keys and the catalogues                          | `core`                     |
 | `store`   | the game store: fake by default, Valkey when configured  | `core`                     |
 | `db`      | tables, sessions, migrations                             | `core`                     |
 | `runner`  | live games, the two clocks, run records and replay       | `engine`, `store`, `content`|
 | `api`     | the application, routes, the update stream               | `runner`, `engine`, `db`, `i18n` |
-| `lab`     | the batch runner, the LLM player, statistics             | the API as a client        |
+| `lab`     | runs and training, summaries, heatmaps, the local model's player, the MCP server | `players`, `runner`, `i18n`, the API as a client |
 | `client`  | the console client: play, watch, step and replay a game  | `i18n`, `runner`           |
 
-Every package may import `core`. `players` and `lab` are not built yet, and
-the browser client will live in a top-level `web` directory, not in a
-Python package.
+Every package may import `core`. `lab` is not built yet, and the
+browser client will live in a top-level `web` directory, not in a Python
+package. The players and the lab are told in [Players](../lab/players.md).
 
 The console client talks to the game over the API alone and renders
 messages with `i18n`. It imports `runner` for one thing: a downloaded

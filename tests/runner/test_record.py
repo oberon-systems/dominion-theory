@@ -106,6 +106,7 @@ def test_the_header_names_the_game_and_its_columns(service: Service) -> None:
         'format': 2,
         'game': runner.id,
         'seed': 42,
+        'draw': 0,
         'params_hash': runner.game.params.hash,
         'params': runner.game.params.tree(),
         'seats': [{'seat': 'player', 'kind': 'scripted'}],
@@ -238,6 +239,17 @@ def test_a_band_that_dies_ends_its_record(service: Service) -> None:
     assert lines[-1] == {'t': 'footer', 'outcome': 'died', 'tick': 5, 'hash': runner.game.state_hash()}
     assert {'t': 'event', 'tick': 5, 'key': 'band-died', 'values': {}} in lines
     assert (result.matched, result.game.over, result.game.outcome) == (True, True, 'died')
+
+
+def test_a_game_of_another_draw_keeps_it_in_its_header_and_replays_with_it(service: Service) -> None:
+    runner = service.create(seed=7, overrides=PLANET, mode=STEP, draw=5)
+    hashes = play(runner, 2 * DAY)
+    runner.end()
+
+    result = replay(runner.record_path)
+
+    assert read(runner.record_path)[0]['draw'] == 5
+    assert (result.matched, result.game.state_hash()) == (True, hashes[-1])
 
 
 def test_a_record_cut_off_in_the_middle_of_a_day_replays_to_the_last_full_day(service: Service) -> None:

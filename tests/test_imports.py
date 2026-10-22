@@ -13,13 +13,13 @@ ALLOWED: dict[str, set[str]] = {
     'content': {'core'},
     'planet': {'core', 'content'},
     'engine': {'core', 'content', 'planet'},
-    'players': {'engine'},
+    'players': {'engine', 'content'},
     'i18n': {'core'},
     'store': {'core'},
     'db': {'core'},
     'runner': {'engine', 'store', 'content'},
     'api': {'runner', 'engine', 'db', 'i18n'},
-    'lab': set(),
+    'lab': {'players', 'runner', 'i18n'},
     'client': {'i18n', 'runner'},
 }
 

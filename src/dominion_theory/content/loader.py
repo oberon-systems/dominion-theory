@@ -16,7 +16,7 @@ from .model import PARAMS_INVALID, Params
 
 PRESET_NOT_FOUND = 'error-preset-not-found'
 DATA = files('dominion_theory.content')
-SPLIT = ('biomes',)
+SPLIT = ('biomes', 'minds')
 DIFF_STEP = re.compile(r"\['([^']*)'\]|\[(\d+)\]")
 
 type Keys = tuple[str | int, ...]

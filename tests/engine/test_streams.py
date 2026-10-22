@@ -42,6 +42,22 @@ def test_draw_in_one_stream_does_not_shift_another() -> None:
     assert streams['beta'].random() == Streams(5)['beta'].random()
 
 
+def test_draw_zero_is_the_seed_alone_and_another_draw_gives_other_numbers() -> None:
+    drawn = [Streams(5, draw=draw)['alpha'].random() for draw in (0, 1, 2)]
+
+    assert drawn[0] == Streams(5)['alpha'].random()
+    assert len(set(drawn)) == 3
+
+
+def test_a_stream_made_after_its_states_were_carried_keeps_the_draw() -> None:
+    streams = Streams(5, draw=3)
+    streams['alpha'].random(3)
+
+    carried = Streams(5, json.loads(json.dumps(streams.states())), draw=3)
+
+    assert carried['beta'].random() == Streams(5, draw=3)['beta'].random() != Streams(5)['beta'].random()
+
+
 def test_states_carry_a_stream_on() -> None:
     streams = Streams(5)
     streams['alpha'].random(3)

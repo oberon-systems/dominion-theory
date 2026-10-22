@@ -75,12 +75,14 @@ ___
 ## Starting a game
 
 A game is created from a seed, a set of parameters and a mode. All three
-may be left out: the seed is then drawn, the parameters are the defaults
-and the mode is real time.
+may be left out: the seed is then drawn, the draw is 0, the parameters
+are the defaults and the mode is real time. The draw picks another life
+on the land of the seed, see [Runs](../lab/runs.md#a-land-and-a-draw).
 
 ```json
 {
   "seed": 42,
+  "draw": 0,
   "preset": "harsh-winter",
   "overrides": {"planet.window.width": 256},
   "mode": "step"
@@ -93,6 +95,7 @@ The answer names the game and says where it stands.
 {
   "id": "7f3a9c1e",
   "seed": 42,
+  "draw": 0,
   "params_hash": "b41f",
   "mode": "step",
   "running": false,
@@ -161,9 +164,11 @@ not start at the origin; see
   seat has no council.
 - **`council`** - the council of the day while it sits, `null` otherwise:
   the `leader`, the option the others lean to or `null`, the `table`,
-  every option with its words, `key`, and its votes, as
+  every option with its words, `key`, its votes and the band's own
+  `score` of a day of it, as
   [Indirect control](../game/indirect_control.md#the-table-of-votes)
-  lays them out, the `voice`, the votes the player's word adds,
+  lays them out, the `occasion` that called it, the `voice`, the votes
+  the player's word adds,
   `winter`, whether a winter camp is offered, and `place`, whether the
   player may name a place no option names; see
   [Skills](../game/skills.md#the-council).
@@ -172,10 +177,11 @@ not start at the origin; see
 {
   "leader": {"kind": "stay-and-gather"},
   "table": [
-    {"proposal": {"kind": "stay-and-gather"}, "key": "proposal-stay-and-gather", "votes": 8},
-    {"proposal": {"kind": "go", "to": {"x": 2301, "y": 740}}, "key": "proposal-go-through-grass", "votes": 1},
-    {"proposal": {"kind": "go", "to": {"x": 2304, "y": 744}}, "key": "proposal-go-forest", "votes": 5}
+    {"proposal": {"kind": "stay-and-gather"}, "key": "proposal-stay-and-gather", "votes": 8, "score": 0.52},
+    {"proposal": {"kind": "go", "to": {"x": 2301, "y": 740}}, "key": "proposal-go-through-grass", "votes": 1, "score": 0.31},
+    {"proposal": {"kind": "go", "to": {"x": 2304, "y": 744}}, "key": "proposal-go-forest", "votes": 5, "score": 0.47}
   ],
+  "occasion": "river",
   "voice": 3.75,
   "winter": false,
   "place": true

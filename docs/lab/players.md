@@ -63,6 +63,14 @@ numbers for a mind, text for a language model. Both say the same.
 | the land   | the cells the band knows around it, as the map of the API gives them |
 | the story  | what happened since the last council, as the lines of the log  |
 
+The engine builds the numbers, `engine/observation.py`, while a council
+waits for the seat. The band's score of an option is the one its votes
+were laid by: the council keeps it in its table when it sits, beside the
+occasion, and the API shows both. A place is read as the band reads a
+go: a known cell with its shores and dread, land it does not know as it
+expects such land, and the route as the band would lay it. The land and
+the story are of the text, built in `lab`.
+
 The numbers of an option are its features, the same list for every
 option, and each feature is a name, so a mind says what it weighs:
 
@@ -77,10 +85,10 @@ option, and each feature is a name, so a mind says what it weighs:
 | `calm_threat`       | calm times the threat of its place                          |
 | `river`             | 1 when its place has a river                                |
 | `unknown`           | 1 when its place is land the band does not know             |
-| `distance`          | the cells of its route over the sight of the band           |
-| `winter_short`      | for a winter camp, the share of the season of winter left   |
+| `distance`          | the cells of its route over the sight of the band; 0 where it stands or knows no way |
+| `winter_short`      | for a winter camp, the share of the season of winter left, 1 before it begins |
 | `short_stay`        | for a stay, 1 when the days of food or water are below a day |
-| `outvoted`          | for an option not leading, the share of the leader's votes the seat's voice lacks |
+| `outvoted`          | for an option not leading, abstaining aside, the share of the leader's votes the seat's voice lacks |
 
 The features of the band alone, the same for every option, would change
 no choice, so they enter only through these products. A mind names the
@@ -106,7 +114,9 @@ ___
 ## The answer
 
 Every player answers with a number of the table: an option, or 0 for
-silence. The seat turns it into the command `vote`, so the game sees no
+silence. The options are numbered from 1 in the order of the council's
+table, and abstaining is the last of them, so a player may abstain as a
+person does. The seat turns it into the command `vote`, so the game sees no
 difference between the players and a person. A place of the player's
 own, which a person may point, is not offered to the players of the lab:
 it would let a model wander the whole window, and the options already
@@ -145,14 +155,17 @@ score of an option = sum of weight[feature] * feature, over the features of the 
 answer             = the option with the highest score; a tie goes to the order of the table
 ```
 
-A mind is data: a file of the defaults under `minds`, one per mind,
-holding its features and their weights. So a mind is part of the tree of
+A mind is data: a file of the defaults under `minds`,
+`content/defaults/minds/<mind>.yaml`, one per mind, holding its features
+and their weights; a mind's name is lower case with `_`. The first,
+`linear_v0`, is set by hand, not trained: it backs the band's own score,
+the leader on a near tie, and never abstains. So a mind is part of the tree of
 parameters, its hash is part of the record, and a game played by a mind
 replays exactly.
 
 ```yaml
 minds:
-  linear-v1:
+  linear_v1:
     features: [go, stay, winter, abstain, votes, leader, score, hunger_food, thirst_water, calm_threat]
     weights: [0.1, 0.2, 0.0, -1.0, 0.5, 0.3, 1.0, 0.8, 0.6, -0.7]
     trained: {run: 20261020-train, generations: 48, reward: 0.31}
@@ -253,7 +266,7 @@ ___
 
 ```yaml
 minds:
-  linear-v1:
+  linear_v1:
     features: [...]
     weights: [...]
     trained: {run: ..., generations: ..., reward: ...}

@@ -1,5 +1,5 @@
 {
-  "inputs": "94de5beadc36571f191f6231febbbd5127c8ae8cba579ac89ac94e53da19059a",
+  "inputs": "0dddc05b56971577942e246eb3c820264b9bf9faacb729f7cc78cc367461cdd8",
   "seeds": {
     "1": {
       "outcome": "alive",
@@ -44,7 +44,7 @@
           "hunters": 0,
           "sick": 0.0,
           "known": 30,
-          "snapshot": 49.8
+          "snapshot": 49.9
         },
         {
           "year": 2,
@@ -83,7 +83,7 @@
           "hunters": 0,
           "sick": 0.0,
           "known": 25,
-          "snapshot": 49.6
+          "snapshot": 49.7
         },
         {
           "year": 3,
@@ -122,7 +122,7 @@
           "hunters": 0,
           "sick": 0.0,
           "known": 25,
-          "snapshot": 49.2
+          "snapshot": 49.3
         },
         {
           "year": 4,
@@ -161,7 +161,7 @@
           "hunters": 0,
           "sick": 0.0,
           "known": 25,
-          "snapshot": 46.0
+          "snapshot": 46.1
         },
         {
           "year": 5,
@@ -200,7 +200,7 @@
           "hunters": 0,
           "sick": 0.0,
           "known": 25,
-          "snapshot": 46.8
+          "snapshot": 47.0
         },
         {
           "year": 6,
@@ -239,7 +239,7 @@
           "hunters": 0,
           "sick": 0.0,
           "known": 25,
-          "snapshot": 47.5
+          "snapshot": 47.6
         },
         {
           "year": 7,
@@ -278,7 +278,7 @@
           "hunters": 0,
           "sick": 0.0,
           "known": 25,
-          "snapshot": 50.4
+          "snapshot": 50.5
         },
         {
           "year": 8,
@@ -317,7 +317,7 @@
           "hunters": 0,
           "sick": 0.0,
           "known": 25,
-          "snapshot": 48.5
+          "snapshot": 48.6
         },
         {
           "year": 9,
@@ -356,7 +356,7 @@
           "hunters": 0,
           "sick": 0.0,
           "known": 25,
-          "snapshot": 48.2
+          "snapshot": 48.3
         },
         {
           "year": 10,
@@ -395,7 +395,7 @@
           "hunters": 1,
           "sick": 0.0,
           "known": 25,
-          "snapshot": 51.1
+          "snapshot": 51.2
         },
         {
           "year": 11,
@@ -434,7 +434,7 @@
           "hunters": 4,
           "sick": 0.0,
           "known": 25,
-          "snapshot": 52.0
+          "snapshot": 52.1
         },
         {
           "year": 12,
@@ -473,7 +473,7 @@
           "hunters": 0,
           "sick": 0.0,
           "known": 25,
-          "snapshot": 54.2
+          "snapshot": 54.3
         },
         {
           "year": 13,
@@ -512,7 +512,7 @@
           "hunters": 0,
           "sick": 0.0,
           "known": 25,
-          "snapshot": 50.3
+          "snapshot": 50.4
         },
         {
           "year": 14,
@@ -551,7 +551,7 @@
           "hunters": 0,
           "sick": 0.0,
           "known": 25,
-          "snapshot": 55.4
+          "snapshot": 55.5
         },
         {
           "year": 15,
@@ -590,7 +590,7 @@
           "hunters": 0,
           "sick": 0.0,
           "known": 25,
-          "snapshot": 52.2
+          "snapshot": 52.3
         },
         {
           "year": 16,
@@ -629,7 +629,7 @@
           "hunters": 0,
           "sick": 0.0,
           "known": 25,
-          "snapshot": 53.2
+          "snapshot": 53.3
         },
         {
           "year": 17,
@@ -668,7 +668,7 @@
           "hunters": 4,
           "sick": 2.0,
           "known": 25,
-          "snapshot": 53.4
+          "snapshot": 53.5
         },
         {
           "year": 18,
@@ -707,7 +707,7 @@
           "hunters": 0,
           "sick": 0.0,
           "known": 25,
-          "snapshot": 53.7
+          "snapshot": 53.8
         }
       ],
       "learned": {
@@ -724,24 +724,24 @@
         "slings": 1168
       },
       "hashes": [
-        "831d687438b1a5657eb77749ce6a1382f41287665ebb198cecf04311afb47353",
-        "3d40c7fc29d300d3eaec9563ecea5989088e8b00283558fefd492c785a71b5b6",
-        "43daf17b7698f13ab708714d0fe23d49c6d9a252de7dcda9b621dcfa120fb7bd",
-        "60d70fcc5304f6e61881a091439644e2b6a1f5cb20c78848a79f49c281170765",
-        "472c0cf9cf71d7f1fa655ca196915a817df30eb108f6a1b3ba233c007d454d4a",
-        "d90cec2cb369504d342e1660d609d85deac9a0056b866d9ad8e283e1cbdec016",
-        "7fafccd33cd4178d7dea0ddc1f35c6e72f0351516627ff45d41a0dd44eaac207",
-        "5a237ed3fd67fe8ad93720e777a9ff0249fef11ecbb79fdc4c3427b0db45acef",
-        "95c88fe00ef76376092b17eab4b5d35e1adab870038352b1130aa9ccf6fb5c1f",
-        "c14410fcb5d223fdc995676883c1d1aa5f59b578afc3572e8727356d97acfdb1",
-        "d2d5a1b739cc1cd090c5b567975e10f13fafc8ae59cee000ee5eba16c2c7f9b0",
-        "82f30ea960a12509bfa55f5e91dc42bcd41e75c1a282a97dd294607435e9a82e",
-        "713519d4d06361963feb4e8f874fbe82b53018cc779b34689d81bfa9e888fd1e",
-        "84829c2a82cf1e28f6e2ae3c1c4b28b83285b32c6eb5ae02b81a22820379098b",
-        "a8e3b54a882b0409549238c72a42b71e886c628e3089c0248eccf007a54460c6",
-        "e9483b327cb369a2b3da14d1002960f13ba42733b65ac0733a341dc515752176",
-        "b4aa7e5cc490e247d2acd4e669f496d7c39a1f4c947ec509d9fd1a917f2037c5",
-        "0458f7d6ee5cc5e53bade795fb5622b88181a5518871bcfbb0ffe4a55cfe539d"
+        "015118efe777645067af66fb34e9ff828dfe3d6b900f048931b350c3b3c66940",
+        "31de4553634918435d62cbeb1217c9ff9c0157c0f768ae3ab984e2b507499924",
+        "c8d26b2bdc96ce513f6e82bb599a9c26909b58fe5c4e845cfd42d06e5f123edc",
+        "14fddaa86032f72e8b0dd2e8a4a4b57eee33be1813d8816d326dd6508bc25920",
+        "8440f25b31768ae4d5ce189e82b88eb2654adbde2104df6d5216f6f592be16fc",
+        "d2162317cbc7e2eb3adac4d68c8607171718e5191808d2b4648f76236d75531b",
+        "e3853a7734ca861d7a93d8f448661ec25fc9a1b3cbbcc3de9f1f95b690487a95",
+        "4132e6097d9c0cb4447aa83146d8ed690732c8120a97b9be3ad7c743ce1115d4",
+        "7134384fca46398b834a3faf78561a382b949ca6e121bf99ca3ba31482b0776e",
+        "0200d1c7f3721aa471634dcb5dde105762af6c30cc55fa42961fcc703d001ea3",
+        "18dc514f47a86634b1e2020260bf193101ad289e210dba581df6010d058edef4",
+        "a3244f95aaf4301e36d8fcbe9c755816258b76d814cd1c3cada1cdafc1116ca7",
+        "8d58cfdde92580db8c35ae9735d46095eaa6b34cc70d8c6244c0adb4408e97ba",
+        "c57d9d4b41b42638e1db014cc796b2cd0be9db787913801491a9549dc5008f8c",
+        "a2e7bf1cf73a6ac4e97151f563eab4437518bb0a0ff3a53f75e7fc28e7119141",
+        "ef28184d1ddc00800958d876acfe54183a3af580837b3996a98f956ba9aa0e93",
+        "0191579c55800eeb4553f3f069d7da87e6d838e0f6334568d6027b33f5379a12",
+        "40440ac18fedb31a811d27dfabbc3cbebcb32bfd4141cc934e4de915d9f8a6c4"
       ]
     },
     "2": {
@@ -787,7 +787,7 @@
           "hunters": 0,
           "sick": 0.0,
           "known": 35,
-          "snapshot": 53.9
+          "snapshot": 54.0
         },
         {
           "year": 2,
@@ -826,7 +826,7 @@
           "hunters": 0,
           "sick": 0.0,
           "known": 25,
-          "snapshot": 52.1
+          "snapshot": 52.2
         },
         {
           "year": 3,
@@ -865,7 +865,7 @@
           "hunters": 0,
           "sick": 0.0,
           "known": 25,
-          "snapshot": 52.9
+          "snapshot": 53.0
         },
         {
           "year": 4,
@@ -904,7 +904,7 @@
           "hunters": 0,
           "sick": 0.0,
           "known": 25,
-          "snapshot": 55.2
+          "snapshot": 55.4
         },
         {
           "year": 5,
@@ -943,7 +943,7 @@
           "hunters": 0,
           "sick": 0.0,
           "known": 25,
-          "snapshot": 54.5
+          "snapshot": 54.6
         },
         {
           "year": 6,
@@ -982,7 +982,7 @@
           "hunters": 0,
           "sick": 0.0,
           "known": 25,
-          "snapshot": 54.4
+          "snapshot": 54.5
         },
         {
           "year": 7,
@@ -1021,7 +1021,7 @@
           "hunters": 0,
           "sick": 0.0,
           "known": 25,
-          "snapshot": 54.5
+          "snapshot": 54.6
         },
         {
           "year": 8,
@@ -1060,7 +1060,7 @@
           "hunters": 0,
           "sick": 0.0,
           "known": 25,
-          "snapshot": 55.2
+          "snapshot": 55.4
         },
         {
           "year": 9,
@@ -1099,7 +1099,7 @@
           "hunters": 0,
           "sick": 0.0,
           "known": 25,
-          "snapshot": 55.9
+          "snapshot": 56.0
         },
         {
           "year": 10,
@@ -1138,7 +1138,7 @@
           "hunters": 0,
           "sick": 0.0,
           "known": 25,
-          "snapshot": 57.0
+          "snapshot": 57.2
         },
         {
           "year": 11,
@@ -1177,7 +1177,7 @@
           "hunters": 0,
           "sick": 0.0,
           "known": 25,
-          "snapshot": 57.5
+          "snapshot": 57.6
         },
         {
           "year": 12,
@@ -1216,7 +1216,7 @@
           "hunters": 0,
           "sick": 0.0,
           "known": 25,
-          "snapshot": 56.7
+          "snapshot": 56.8
         },
         {
           "year": 13,
@@ -1255,7 +1255,7 @@
           "hunters": 0,
           "sick": 0.0,
           "known": 30,
-          "snapshot": 54.7
+          "snapshot": 54.8
         },
         {
           "year": 14,
@@ -1294,7 +1294,7 @@
           "hunters": 0,
           "sick": 0.0,
           "known": 25,
-          "snapshot": 52.7
+          "snapshot": 52.8
         },
         {
           "year": 15,
@@ -1333,7 +1333,7 @@
           "hunters": 0,
           "sick": 0.0,
           "known": 30,
-          "snapshot": 55.5
+          "snapshot": 55.6
         },
         {
           "year": 16,
@@ -1372,7 +1372,7 @@
           "hunters": 0,
           "sick": 0.0,
           "known": 43,
-          "snapshot": 60.6
+          "snapshot": 60.7
         },
         {
           "year": 17,
@@ -1411,7 +1411,7 @@
           "hunters": 0,
           "sick": 0.0,
           "known": 49,
-          "snapshot": 61.8
+          "snapshot": 62.0
         },
         {
           "year": 18,
@@ -1450,7 +1450,7 @@
           "hunters": 0,
           "sick": 0.0,
           "known": 44,
-          "snapshot": 60.0
+          "snapshot": 60.1
         }
       ],
       "learned": {
@@ -1462,24 +1462,24 @@
         "wintering": 100
       },
       "hashes": [
-        "9e9ad9c6aaab34467d7653da4374177149070013888dd148b7b4f5d85b9e2943",
-        "711820b98eef2c55a4348614f63d5a1d24dd30e4b6f4511b20f3b25a148be34e",
-        "b420c2d618b012d6c68f181144102d72c5046233e7f31c76b4a6a8f038fc0826",
-        "d70cb00b25888988cadff2410893f707484803d62e8e00079d515dad92e47a65",
-        "e7dfe707ea1fd4a93ec3a91c70323db2afde57260e52045695eb14a97a8e7848",
-        "eedd77550b47482405fa58ff9222c542cc4070dd5887a0e7d13efe5d0bd16f20",
-        "fe8a9db0de4ef1dc17378f258698822ac0e3cb204059ed59c546ec4c3ecbcc85",
-        "0bceac4e949ee7537102f4636f3aa2834816116ef6378ad0bc972658d40f7e3c",
-        "f558f7b722d420dd2d8610414fe25a1021a6ba1f745cde7cfc4c54b5eaba3f10",
-        "371bdca28972e6ee48f6c7690c20ecc884c333357a74af3cc4ec5fe156f0ac31",
-        "b77ebc8c502a78d49040964c110521631ce8323b919f5b44ba44759851101397",
-        "e156f3a92c78bdc2e655394bf1f8234da587717ed48404f6b053dae44adb98b1",
-        "b8f2894e22fbbba9313c077edfc5f7cc6187fab44b1da3ead7faffcec9b32827",
-        "30d028e4fd8ef5433ac1428c3fbad5c545e8f1dbb2c557771e868960d3a59ae6",
-        "46aaf86949c0df7b0ce8cb2ab3b75c791e0f5adc5545f5588402bf32daa6677f",
-        "b94ca62906c467e64b82f563376c61e4ec5d760a0524dc3878a5889d1c66b36a",
-        "86c58b201dea60baa1fd6206441de96c1b2983ddb4ac8b3f1ef6ce6841669e93",
-        "7aa9c4f4d01c69705118940a05b19dd2e0c6c9e60bcaf4cb7f317a8c285361c2"
+        "b6f5bffc1efff7f6b596dedf1fbc0e8d13df53407100c521768af07104accdf0",
+        "e0989acfa77d71c72e1bb97d2fa9a74a2969ba4755812528ecadd09f623811b3",
+        "2e3c1537cfc85590d74d88b61b6a9627f0c6495e2ccb15c121bb8cc4b06fa063",
+        "47c9ff27be9aa6cfab223189f59be1535bd309b990c09e57550892a506af90af",
+        "f42db3c8556ce4ffc6688f653255e622a21407ac26d5f059082dba5b1fe74192",
+        "7df0c98e21a2241cd3da742f2764299151d4a9e6e23ab2f147151cb191a817fe",
+        "21bceec8606536aed6893c1cbe8bed36f9a93b06b392eaa40fedfb131c3b46dd",
+        "56ab9b72f7e18d8e5976bc423193d723f309c6a3a1b4c2e603f566e0ea2b1567",
+        "f94e2bc06f267cfa682b3634960f364decdc2d2765ca888e273e0c1ab587228c",
+        "5446a8bd738e4cb532090866fe0863dfd8a1c1f8bd8fdadcda3f6f54ffc4f40e",
+        "eeb36f3978e1a937ad5de9ce553aa75b5ea9c9b18d8689d87489212359030b50",
+        "b0cdc4a6fcb7699151770d544ec557cbfe66bc0641adc1e8f0d84fc8d9caa429",
+        "1046678e364795914c9a9ebeb7edb37c377c594b2afff36ce1b0a45f0c30b17e",
+        "c5a7fa331425e425ec0fcc0bde8158b5927f039b6fdd15cb302433ce38e261e7",
+        "32721c77e677bf020d5b0d09d89b0a5e62fcc63f6672abe55c8afd6409b2cb24",
+        "4f274a137d27e30adb696bd62180dd3aaaa87c06dd86f13b338b56d570cac303",
+        "fe618178d6ed403d7f1aabb6fe6928afe4c05285ae30ef2a5e619bc5f05b0a14",
+        "d605c4ae2b1f89f85d5ca3b20a2dc06fefbe8a5fb0eda4ad9f4abd99cad6c394"
       ]
     },
     "3": {
@@ -1525,7 +1525,7 @@
           "hunters": 0,
           "sick": 0.0,
           "known": 56,
-          "snapshot": 51.6
+          "snapshot": 51.8
         },
         {
           "year": 2,
@@ -1564,7 +1564,7 @@
           "hunters": 0,
           "sick": 0.0,
           "known": 25,
-          "snapshot": 47.9
+          "snapshot": 48.0
         },
         {
           "year": 3,
@@ -1603,7 +1603,7 @@
           "hunters": 0,
           "sick": 0.0,
           "known": 25,
-          "snapshot": 49.0
+          "snapshot": 49.1
         },
         {
           "year": 4,
@@ -1642,7 +1642,7 @@
           "hunters": 0,
           "sick": 0.0,
           "known": 25,
-          "snapshot": 49.4
+          "snapshot": 49.5
         },
         {
           "year": 5,
@@ -1681,7 +1681,7 @@
           "hunters": 0,
           "sick": 0.0,
           "known": 25,
-          "snapshot": 52.3
+          "snapshot": 52.5
         },
         {
           "year": 6,
@@ -1720,7 +1720,7 @@
           "hunters": 0,
           "sick": 0.0,
           "known": 25,
-          "snapshot": 52.9
+          "snapshot": 53.1
         },
         {
           "year": 7,
@@ -1759,7 +1759,7 @@
           "hunters": 0,
           "sick": 0.0,
           "known": 25,
-          "snapshot": 51.6
+          "snapshot": 51.7
         },
         {
           "year": 8,
@@ -1798,7 +1798,7 @@
           "hunters": 0,
           "sick": 0.0,
           "known": 25,
-          "snapshot": 51.7
+          "snapshot": 51.8
         },
         {
           "year": 9,
@@ -1837,7 +1837,7 @@
           "hunters": 0,
           "sick": 0.0,
           "known": 25,
-          "snapshot": 51.5
+          "snapshot": 51.7
         },
         {
           "year": 10,
@@ -1876,7 +1876,7 @@
           "hunters": 0,
           "sick": 0.0,
           "known": 25,
-          "snapshot": 49.7
+          "snapshot": 49.8
         },
         {
           "year": 11,
@@ -1915,7 +1915,7 @@
           "hunters": 0,
           "sick": 0.0,
           "known": 25,
-          "snapshot": 53.3
+          "snapshot": 53.4
         },
         {
           "year": 12,
@@ -1954,7 +1954,7 @@
           "hunters": 0,
           "sick": 0.0,
           "known": 25,
-          "snapshot": 51.5
+          "snapshot": 51.7
         },
         {
           "year": 13,
@@ -1993,7 +1993,7 @@
           "hunters": 0,
           "sick": 0.0,
           "known": 25,
-          "snapshot": 50.8
+          "snapshot": 50.9
         },
         {
           "year": 14,
@@ -2032,7 +2032,7 @@
           "hunters": 0,
           "sick": 0.0,
           "known": 25,
-          "snapshot": 51.8
+          "snapshot": 51.9
         },
         {
           "year": 15,
@@ -2071,7 +2071,7 @@
           "hunters": 0,
           "sick": 0.0,
           "known": 25,
-          "snapshot": 52.2
+          "snapshot": 52.3
         },
         {
           "year": 16,
@@ -2110,7 +2110,7 @@
           "hunters": 0,
           "sick": 0.0,
           "known": 25,
-          "snapshot": 51.9
+          "snapshot": 52.1
         },
         {
           "year": 17,
@@ -2149,7 +2149,7 @@
           "hunters": 0,
           "sick": 0.0,
           "known": 25,
-          "snapshot": 52.1
+          "snapshot": 52.2
         },
         {
           "year": 18,
@@ -2188,7 +2188,7 @@
           "hunters": 0,
           "sick": 0.0,
           "known": 25,
-          "snapshot": 52.6
+          "snapshot": 52.8
         }
       ],
       "learned": {
@@ -2201,24 +2201,24 @@
         "drying": 120
       },
       "hashes": [
-        "d0a716c4335ca810c9905e56d8af30cb70d8b1a06e5ac1513c8ba812cfcb15fc",
-        "3f45fcb01f16b5aac8f7015a15dca8ad74dfde6b44b3211b4719e12ffebe4d63",
-        "acab9c29164ab7bd51259ba32b35094a14ac6af8ab0fe95b201ab51c5a0f9134",
-        "3cd2290a0650565bb8412c89c027ea10881a50f5bf58448b51536bf52ce4b384",
-        "aa995bd92727845b2c92caae4e49f1525dbcd03586b4919633ca4de51274ff10",
-        "cfbb745bb3ae802e0e679db51d357a37723692a0b8e07186ca7e64298415fc56",
-        "fb2b1499a76346bcc3b746d49baf19bfee6d2b9f45015c806731fdc381a3b2ea",
-        "fbe83313dcd25f59366ce6334db741e9dd627a246613c2f19b5bd0d274b7949a",
-        "92080dd0bb52bea07e7823d3565ef846635bd2cc3aee29a2396f01052e42f600",
-        "98ae8a2c1b280841e5b21675f48e92c587f71c2215c77f0535341d654cfec8d8",
-        "ef13d1aace55b704bff136a8d4993abb4fadd5eadc3202903b1532a92364e67c",
-        "1607de2e60b119dc7e1365e31238a9da2d2554665f96eca39cc5d97c574e64f5",
-        "929295256200669d1244a55f751dc28108f0a9ade5b2bca4e6870a36955db575",
-        "5d4737656ab7a6d3757601775c5bc6afc2dbd1bf59348663bac438cd212d66dc",
-        "5e70899f93738eeaf99345a569e11a2f39c8c64d836a33430cf152e7b685db9b",
-        "f505f7d207d3b2f898df9fa5d098ed67821829d98cce263d76eb56704b4e9b5d",
-        "9fce4ffbcbd2c6031cdddd21dab034ab0ab2ee1c1de64c1f0d69362b96da41e8",
-        "2401a0b4edf5ea691af712869b4415e4bb79f4882bbba2b72a0acf25a7817fad"
+        "0cc7b030b596db011aebc16ca12f1da2b7624b2a2771d63559e5e1eea36d37d1",
+        "516abaf10803cd3c6f60744f5a6b485fdf415a4e0d62e7179090eab5d8460f5b",
+        "900803cc87154bec438e940c29b760da7f9de31bef998da6a4481db779a7e4d2",
+        "eaabaf40ddbedf1675e9bbd24137913afae82c6c4c85f817eea8d1b80df5e535",
+        "80eb33d8769a39f33aea0e5fc2f931f76ec31529c4ee05f60bbc37487338565a",
+        "37b9721348dec9bba51e794f22bdf96f86744bf236d983f0a737888ee7004436",
+        "ada05e013c8813a98bb48c5a28ce4173b315db1431ecbef10c7185023c752324",
+        "74f5dbfe843946ba5c91cddb5798a19e2e340ada1f36791749989b46b3b4e426",
+        "41ee42583715d9b946630debee6f72fdcc2ff0c068af41d4efe07cbbe2e4e9b4",
+        "3ca9c53dc715576a61c8f2c5f6ee73d62599e4c5939e9410d2a5683e54e627bd",
+        "2dc750e7dc2a1f581128b78166ed7058b72c17bd25f0e555249288f212bc1819",
+        "9f543d4bd31908a5410607ae57b77fd9cebe67e641d9952e2bdbe65dee35b976",
+        "c4257d9b036847b1876cf79d6ce78db3de6260e075696f02fdfee4d1a271cc3b",
+        "0879df7dee3592c721db4ab0c8d86dcfd199ba38693f8a34b0b0fd59c0cc176e",
+        "3886364fd963fca70359570c4a1d52e21c8fa6b6ee9f28df42004a6ec49e3464",
+        "5e6301294c86f5a1ec8da6995cb7c503231093630b87495e90a898fa6f0a8bd6",
+        "1e200d67db7a2b62e5bab87f09eb8f55763999b1e0021c9527f21dfe6c936747",
+        "eee688cd69b75cd1be81e8f8bedb2b1d91977ac9587f4020894954ea01c70a34"
       ]
     },
     "4": {
@@ -2264,7 +2264,7 @@
           "hunters": 0,
           "sick": 0.0,
           "known": 35,
-          "snapshot": 51.2
+          "snapshot": 51.4
         },
         {
           "year": 2,
@@ -2303,7 +2303,7 @@
           "hunters": 0,
           "sick": 0.0,
           "known": 25,
-          "snapshot": 54.3
+          "snapshot": 54.4
         },
         {
           "year": 3,
@@ -2342,7 +2342,7 @@
           "hunters": 0,
           "sick": 0.0,
           "known": 25,
-          "snapshot": 53.8
+          "snapshot": 53.9
         },
         {
           "year": 4,
@@ -2381,7 +2381,7 @@
           "hunters": 0,
           "sick": 0.0,
           "known": 25,
-          "snapshot": 53.0
+          "snapshot": 53.1
         },
         {
           "year": 5,
@@ -2420,7 +2420,7 @@
           "hunters": 0,
           "sick": 0.0,
           "known": 25,
-          "snapshot": 50.2
+          "snapshot": 50.3
         },
         {
           "year": 6,
@@ -2459,7 +2459,7 @@
           "hunters": 0,
           "sick": 0.0,
           "known": 25,
-          "snapshot": 52.1
+          "snapshot": 52.2
         },
         {
           "year": 7,
@@ -2498,7 +2498,7 @@
           "hunters": 0,
           "sick": 0.0,
           "known": 25,
-          "snapshot": 55.7
+          "snapshot": 55.8
         },
         {
           "year": 8,
@@ -2537,7 +2537,7 @@
           "hunters": 0,
           "sick": 0.0,
           "known": 25,
-          "snapshot": 49.3
+          "snapshot": 49.5
         },
         {
           "year": 9,
@@ -2576,7 +2576,7 @@
           "hunters": 0,
           "sick": 0.0,
           "known": 25,
-          "snapshot": 50.0
+          "snapshot": 50.2
         },
         {
           "year": 10,
@@ -2615,7 +2615,7 @@
           "hunters": 0,
           "sick": 0.0,
           "known": 25,
-          "snapshot": 50.1
+          "snapshot": 50.3
         },
         {
           "year": 11,
@@ -2654,7 +2654,7 @@
           "hunters": 0,
           "sick": 0.0,
           "known": 25,
-          "snapshot": 52.3
+          "snapshot": 52.4
         },
         {
           "year": 12,
@@ -2693,7 +2693,7 @@
           "hunters": 0,
           "sick": 0.0,
           "known": 25,
-          "snapshot": 52.6
+          "snapshot": 52.8
         },
         {
           "year": 13,
@@ -2732,7 +2732,7 @@
           "hunters": 0,
           "sick": 0.0,
           "known": 25,
-          "snapshot": 51.4
+          "snapshot": 51.5
         },
         {
           "year": 14,
@@ -2771,7 +2771,7 @@
           "hunters": 0,
           "sick": 0.0,
           "known": 25,
-          "snapshot": 52.8
+          "snapshot": 53.0
         },
         {
           "year": 15,
@@ -2810,7 +2810,7 @@
           "hunters": 0,
           "sick": 0.0,
           "known": 25,
-          "snapshot": 50.3
+          "snapshot": 50.4
         },
         {
           "year": 16,
@@ -2849,7 +2849,7 @@
           "hunters": 0,
           "sick": 0.0,
           "known": 25,
-          "snapshot": 53.0
+          "snapshot": 53.1
         },
         {
           "year": 17,
@@ -2888,7 +2888,7 @@
           "hunters": 0,
           "sick": 0.0,
           "known": 25,
-          "snapshot": 52.5
+          "snapshot": 52.6
         },
         {
           "year": 18,
@@ -2927,7 +2927,7 @@
           "hunters": 0,
           "sick": 0.0,
           "known": 25,
-          "snapshot": 54.5
+          "snapshot": 54.6
         }
       ],
       "learned": {
@@ -2940,24 +2940,24 @@
         "orientation": 410
       },
       "hashes": [
-        "b6c9572e80032de3f70026028fcebffeed088fae6945ec86dac3f3008452f40c",
-        "224535db52de09b2162183a4109001ebf661e2070c0931050dde68c097d59b54",
-        "7862132531ad01d7e2a0d282fba77860a0cce942fc5ef9683232e952ee05a500",
-        "417c343baef1346459e0ada68137c79547494f24f13a3efacd9a0af04917c9a9",
-        "f51e2d25b5a786340cbaffbd26a827dec6a2829e0cde4250c162d6d6183d6533",
-        "ac15ae9fb9c78baad3d67ee71decbc14db18229f89ffe40f8a5d87c2df8da6c1",
-        "95a8303c1dd3a26863b746f95c34cc2265ec66cbdef9438945c4ffa687b285e5",
-        "b7de9b71240cd2e7db342fa6afe3f8fd94020b92f12c2b1ffdbc7357799f7ff5",
-        "3cb48e55941addbeff189e70a753ec58e057f6ca19bf05aa7e5c7056fddc6c28",
-        "ec7533c2248adf650e3e89d48fd6c0287b70c18f07f7c8350eeb2068a72115f4",
-        "fc477a028a454481dc712de2f82b9c919b40716679ff5f497a47cefcac91218a",
-        "749043a8a74dc1c9ce9b71881468441ffe7ba988af7ac8e060d354ee07cb3dfe",
-        "8924bef99cd110ed9aae843be06b97ff07a5baef1048b65959f335c5db641163",
-        "a55e7d899519bb8840b2ba5ccfcd6d40e80c7829f872ef4460f3de0b56eea0dc",
-        "c2590365c7d3d7882876e0fa00ea8ac1cc2ed1a660d4f8e8e9d0eec9b44938b6",
-        "ea0ee20e7f1e4f52cc487f89f4856c80d468b883669257936da913b40b573b8c",
-        "ca7da1194846afb5e46048aec68ec23367db2a0faa1b20dcd7a1423c0968a11b",
-        "52416b3f83e6497592f39c9f63811feaab42612933cf09094186a077ff9c5bbe"
+        "349423e887ff05a907c07459a4dc9e1ab08c58c264ee5035b348d36a6b8e5aae",
+        "f2f28855dcb90af729b6d6eb04501c67a5607f1f1405cef33aa6a1f9cdeabe5d",
+        "1f3363e9cbd53381d26294c99ca65ecda6e49422e92b446b23b756512708cc34",
+        "6c4660821921d43859b726a24c2735dde140500efdc70bc8e913316f98b770cb",
+        "1db34e74f64eaa274a9668a43a5070a17227c7ffbe2959485651456cd690c48d",
+        "2a8a163913ef51978626bd02d00e288015e267f8588c4e2c4dca3f46f46290f7",
+        "2e26da85e15c91ae17cd636ffa6302b79c3818b16c7f1b91bd035cc793238066",
+        "eb3498ecab8b0d71ac213a130e2f573d74f3e415f89be3eea90dcb19dc53d6cd",
+        "9626c77e39a0097d390eaab030db2506333b9e1c0cb20bf7b21e54e652b9fbbb",
+        "6def046d26b93b2724968ac1738f959a06de0f8089d121085922247d534147c7",
+        "2aaa81e6e79fd254cddb6263ef4b06b370effd3c1a4892ee9515c5fc3ccba394",
+        "704842580fc2e306681e3c094abdb99d900befc93eb4a359688ee00514bc5b11",
+        "d4bed78ce8cde9988db88e6b203fd067021b948f398bf7c0a9f6b9cefda15e90",
+        "797c64cf9bedf2a0e56c26da601f0797f742c13f05dd4ca04da17239c2c7222e",
+        "0933df8baae376f3f644ad19731e5c04e43898f4e8c9a7bfaf5b898664c5ebb4",
+        "a17112e95c6838a2cf07e58ff9255472a2dcc9647fa6a249470e434a7cb29813",
+        "b5896a486c994c4fbde71f3786ebfb26a32354fd372f9a175cbd643d33fba0e0",
+        "d5c7973045ba4392ba5d2f0ceb67889a4c86e403423aa5ba2e084ebb03b48ac5"
       ]
     },
     "5": {
@@ -3003,7 +3003,7 @@
           "hunters": 0,
           "sick": 0.0,
           "known": 47,
-          "snapshot": 52.9
+          "snapshot": 53.0
         },
         {
           "year": 2,
@@ -3042,7 +3042,7 @@
           "hunters": 0,
           "sick": 0.0,
           "known": 25,
-          "snapshot": 49.9
+          "snapshot": 50.1
         },
         {
           "year": 3,
@@ -3081,7 +3081,7 @@
           "hunters": 0,
           "sick": 0.0,
           "known": 25,
-          "snapshot": 49.2
+          "snapshot": 49.3
         },
         {
           "year": 4,
@@ -3120,7 +3120,7 @@
           "hunters": 2,
           "sick": 0.0,
           "known": 25,
-          "snapshot": 47.4
+          "snapshot": 47.5
         },
         {
           "year": 5,
@@ -3159,7 +3159,7 @@
           "hunters": 3,
           "sick": 0.0,
           "known": 25,
-          "snapshot": 50.5
+          "snapshot": 50.6
         },
         {
           "year": 6,
@@ -3198,7 +3198,7 @@
           "hunters": 3,
           "sick": 0.0,
           "known": 25,
-          "snapshot": 50.1
+          "snapshot": 50.2
         },
         {
           "year": 7,
@@ -3237,7 +3237,7 @@
           "hunters": 3,
           "sick": 0.0,
           "known": 25,
-          "snapshot": 50.2
+          "snapshot": 50.3
         },
         {
           "year": 8,
@@ -3276,7 +3276,7 @@
           "hunters": 3,
           "sick": 0.0,
           "known": 25,
-          "snapshot": 48.5
+          "snapshot": 48.6
         },
         {
           "year": 9,
@@ -3315,7 +3315,7 @@
           "hunters": 0,
           "sick": 0.0,
           "known": 25,
-          "snapshot": 47.4
+          "snapshot": 47.5
         },
         {
           "year": 10,
@@ -3354,7 +3354,7 @@
           "hunters": 1,
           "sick": 0.0,
           "known": 25,
-          "snapshot": 48.8
+          "snapshot": 49.0
         },
         {
           "year": 11,
@@ -3393,7 +3393,7 @@
           "hunters": 2,
           "sick": 0.0,
           "known": 25,
-          "snapshot": 48.7
+          "snapshot": 48.8
         },
         {
           "year": 12,
@@ -3432,7 +3432,7 @@
           "hunters": 2,
           "sick": 0.0,
           "known": 25,
-          "snapshot": 50.3
+          "snapshot": 50.5
         },
         {
           "year": 13,
@@ -3471,7 +3471,7 @@
           "hunters": 3,
           "sick": 0.0,
           "known": 25,
-          "snapshot": 49.0
+          "snapshot": 49.1
         },
         {
           "year": 14,
@@ -3510,7 +3510,7 @@
           "hunters": 2,
           "sick": 0.0,
           "known": 25,
-          "snapshot": 51.7
+          "snapshot": 51.8
         },
         {
           "year": 15,
@@ -3549,7 +3549,7 @@
           "hunters": 3,
           "sick": 2.0,
           "known": 25,
-          "snapshot": 48.9
+          "snapshot": 49.0
         },
         {
           "year": 16,
@@ -3588,7 +3588,7 @@
           "hunters": 0,
           "sick": 0.0,
           "known": 25,
-          "snapshot": 49.7
+          "snapshot": 49.8
         },
         {
           "year": 17,
@@ -3627,7 +3627,7 @@
           "hunters": 2,
           "sick": 0.0,
           "known": 25,
-          "snapshot": 49.6
+          "snapshot": 49.7
         },
         {
           "year": 18,
@@ -3666,7 +3666,7 @@
           "hunters": 1,
           "sick": 0.0,
           "known": 25,
-          "snapshot": 49.5
+          "snapshot": 49.7
         }
       ],
       "learned": {
@@ -3683,24 +3683,24 @@
         "litters": 401
       },
       "hashes": [
-        "31786b3b8ce62d7aadaa549e5d5666b0b4166e268a70181d225aca8c44cc66e6",
-        "81f1cb91ef42ba39bb394383f87943171a327964694f29485510b475276488c6",
-        "b37242c155afb3c43d181b4e07d23a9e839a0b553eab295f05f79f50a66cdd6f",
-        "03781f3f9884dc7b52f2ac61b0d13e4d611eef273e6420c9bea123eff45fe7e8",
-        "03001f4916bdf555618f1cb5b5716a94b71102fcde193c8e3edd7ed6e8fe4fcb",
-        "592695e00020d08b91ddb9b84bce0df97d778c0763d4e30272f5150b7b35d7ac",
-        "711dfe89d592bf2576b9fe2b3c03ce4cd8dc3c7c4a8daf6ba08e946ee4065f80",
-        "9f311cd96ac3b6d8b820b2fc7bdc5cf5bb90318d85a18bfaeaa69ba417eaab36",
-        "2e024f4c4f143d1f7330829963ebb6d5930f846184f7f5394cd75452979db30f",
-        "66867097c1c0e3c91af860ad7556aa1591345a1519e547170a5b43c6502f3ea7",
-        "428cbbb8239d200cc2c3ba7445293e88e2177f48cde480ac2f3214c7e9d058b9",
-        "af4b1116c3fe6e0364c686d6494379a29c524c9f8c0928d1ecd8f82742444de9",
-        "14341c25bfb10d58e6c16431ec51f4ea0950fb31c436d8bc809551518cceae6d",
-        "be2755dcbfd9f53f5b679fb001269369b1f3377bac3b7da233ce4d76893845d3",
-        "b4553760b42830ecb349bff0bde5a206d0e02127920905bdfcdc3de38a0a891d",
-        "2618840322ee11f9902785765978b6a98a9fc7b2bac4236527bc7d21ae4b3d9b",
-        "783019aed539c1e55e3231a6815c364c0bc494e4c49311b5e6e2491ceecdc413",
-        "64d5e5d3c0e444cf66c15aa4d151e2540e67590590dc0e4e3778b1ec3fda5aed"
+        "be629b87a576511f512e0efc564eea340ddf755bbf49a170a8a3f332e7053607",
+        "6669bb2b3e61eb1e4b184456dd59b97b147e0a9024ce969784fdcebe977cffda",
+        "cdad26c4c081d3fe92765cda783c425ec09d0a03b3c04c9eb09a4ceee4f2245f",
+        "9930c1fdfbce9ae6011748328ce8884626db532f9bb54478e956849f0994b545",
+        "10aa54569d8a86294a759e384ed91c01e76bac96316f8ff59b1ecaebfd3ead45",
+        "0b63b9c5d966934917a8963b546a4ea59ffcbbb0e7c22e93547ee13395b6db56",
+        "6c669333fa263ddf373f194f1cad8b04b15b219621167f9f7e06489e26a4295f",
+        "dfbff7f8bcdcf74432c827d652e016c3bf98c4ba5e0d6e8a44e14865d90b39a9",
+        "b3b786a70abb284ddc0365d35d5b5e1fcf60dd8c7614fa52770d845808aeb32c",
+        "0d6f682004b0395b9d57ecd5f8402fa1f8fd498a4255dac177fadfcf4308c2a4",
+        "22f569ab208f2b1a1779b160bbed4d374ac08f322f7c7965e6f7e234b7139666",
+        "b7b9c44b645d1a52c46b6597ba59933f96dd1acc10cdb8d9027261722daf41f1",
+        "3070955b379559078477de74eb23ffafaf8c7c0c9911d24efd41e61a93ac1386",
+        "e010707b00f4b168b6c91aa72523d583bfc9a2a1b83ecbb1f570954fd98488f6",
+        "1526514b1484a90c54e6e18debd407c82de7ca34dbbabc019da8dbd87e6a4868",
+        "f34707d377857b090c5700b3d60f12f4526928af9e07c06cc53eac00c82c9a52",
+        "78552c42a452360955b31d9f8d9f4d000402b7b3ee8b9d2aa432c96946e8a995",
+        "87191f6d99c33bb35de52f3b82957af6f839590f935645e0862a00344c999752"
       ]
     }
   },

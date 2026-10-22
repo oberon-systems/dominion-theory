@@ -118,7 +118,7 @@ def test_override_reaches_a_list_and_a_section() -> None:
         (
             'peoples.band.count',
             'peoples',
-            'one of biomes, council, encounters, eras, planet, resources, skills, time, units',
+            'one of biomes, council, encounters, eras, minds, planet, resources, skills, time, units',
         ),
         ('time.seasons.monsoon.months', 'monsoon', 'one of spring, summer, autumn, winter'),
         ('time.day_parts.9', '9', 'one of 0, 1, 2, 3, 4'),

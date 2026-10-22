@@ -29,6 +29,7 @@ def _described(runner: Runner) -> schemas.Game:
     return schemas.Game(
         id=runner.id,
         seed=runner.game.seed,
+        draw=runner.game.streams.draw,
         params_hash=runner.game.params.hash,
         mode=runner.mode,
         running=runner.running,
@@ -43,7 +44,7 @@ def _row(context: Context, game_id: str) -> schemas.Row:
 @router.post('', status_code=201)
 async def create(body: schemas.NewGame, context: Ctx) -> schemas.Game:
     service = context.service
-    runner = service.create(body.seed, body.preset, body.overrides, body.mode, seated=body.seated)
+    runner = service.create(body.seed, body.preset, body.overrides, body.mode, seated=body.seated, draw=body.draw)
     context.index.add(runner, body.preset)
     return _described(runner)
 

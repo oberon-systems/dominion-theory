@@ -80,6 +80,29 @@ def test_other_parameters_give_other_hashes(params: Params) -> None:
     assert Game.create(seed=7, params=params).state_hash() != Game.create(seed=7, params=other).state_hash()
 
 
+def test_a_draw_changes_the_life_and_not_the_land(params: Params) -> None:
+    today, other = Game.create(seed=7, params=params), Game.create(seed=7, params=params, draw=4)
+
+    assert (other.window, other.biomes.tolist(), other.rivers.tolist()) == (
+        today.window,
+        today.biomes.tolist(),
+        today.rivers.tolist(),
+    )
+    assert today.band is not None and other.band is not None
+    assert [member.age_days for member in today.band.members] != [member.age_days for member in other.band.members]
+    assert hashes(Game.create(seed=7, params=params, draw=0), 5) == hashes(Game.create(seed=7, params=params), 5)
+
+
+def test_a_restored_game_keeps_its_draw(params: Params) -> None:
+    game = Game.create(seed=11, params=params, draw=2)
+    hashes(game, 7)
+
+    copy = Game.restore(game.snapshot())
+
+    assert (copy.streams.draw, game.snapshot()['draw']) == (2, 2)
+    assert hashes(copy, 30) == hashes(game, 30)
+
+
 def test_restored_game_steps_as_the_original(params: Params) -> None:
     game = Game.create(seed=11, params=params)
     hashes(game, 23)
@@ -118,7 +141,7 @@ def test_snapshot_does_not_share_its_arrays(params: Params) -> None:
 def test_unreadable_snapshot_is_refused(params: Params) -> None:
     snapshot = Game.create(seed=11, params=params).snapshot()
 
-    assert snapshot["format"] == 29
+    assert snapshot["format"] == 30
     with pytest.raises(ValueError, match='format 1'):
         Game.restore({**snapshot, 'format': 1})
 

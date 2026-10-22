@@ -67,6 +67,7 @@ class Presets(BaseModel):
 
 class NewGame(Asked):
     seed: int | None = Field(default=None, ge=0, le=SEED_MAX)
+    draw: int = Field(default=0, ge=0, le=SEED_MAX)
     preset: str | None = None
     overrides: dict[str, Any] | None = None
     mode: Mode = 'real-time'
@@ -76,6 +77,7 @@ class NewGame(Asked):
 class Game(BaseModel):
     id: str
     seed: int
+    draw: int
     params_hash: str
     mode: str
     running: bool
@@ -220,22 +222,25 @@ class Unit(BaseModel):
 
 class Votes(BaseModel):
     """
-    One option of the table: the proposal, its words as the band says them where it stands, its votes.
+    One option of the table: the proposal, its words as the band says them where it stands, its votes and the
+    band's score of a day of it.
     """
 
     proposal: Proposal
     key: str
     votes: int
+    score: float | None = None
 
 
 class Council(BaseModel):
     """
-    The council of the day while it sits: the others' votes, the option they lead with, the player's voice,
-    whether a winter camp is offered and whether the player may name a place of their own.
+    The council of the day while it sits: the others' votes, the option they lead with, the occasion that called
+    it, the player's voice, whether a winter camp is offered and whether the player may name a place of their own.
     """
 
     leader: Proposal | None
     table: list[Votes]
+    occasion: str | None = None
     voice: float | None = None
     winter: bool = False
     place: bool = True

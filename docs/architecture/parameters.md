@@ -68,6 +68,7 @@ own: stage 0 defined the frame and `time`, stage 1 filled `planet` and
 | `council`    | when it sits, the voice, what a vote does to status    | stage 2       |
 | `encounters` | chance and cost of what a band may run into            | stage 2       |
 | `skills`     | what teaches a skill, what it needs and opens          | stage 2       |
+| `minds`      | one entry per mind of the seat: its features and weights, see [Players](../lab/players.md#the-mind) | stage lab |
 | `peoples`    | how many other bands, how they are spawned             | stage 3       |
 
 Content and balance are the same thing here. A biome is an entry in the

@@ -41,6 +41,7 @@ def header_line(game_id: str, game: Game, kinds: dict[str, str] | None = None) -
         'engine': version('dominion-theory'),
         'game': game_id,
         'seed': game.seed,
+        'draw': game.streams.draw,
         'params_hash': game.params.hash,
         'params': game.params.tree(),
         'seats': [{'seat': seat, 'kind': (kinds or {}).get(seat, PERSON)} for seat in game.seats],
@@ -161,7 +162,7 @@ def replay(path: str | Path, params: Params | None = None) -> Replay:
         raise DominionError(RECORD_UNREADABLE, path=str(path))
     header = lines[0]
     tree = params or Params.model_validate(header['params'])
-    game = Game.create(seed=header['seed'], params=tree, seated=header['seated'])
+    game = Game.create(seed=header['seed'], params=tree, seated=header['seated'], draw=header.get('draw', 0))
     diverged_at = None
     for line in lines[1:]:
         kind = line.get('t')

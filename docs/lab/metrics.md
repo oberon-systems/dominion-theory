@@ -76,7 +76,7 @@ numbers below show the shape of the table only; no run has made them.
 default          games  reached  time  growth  projected  early  lost  turned  worked
 leader             1000     0.0%     -   +4.2%       52    9.8%  31%      0%       -
 greedy             1000     0.4%  6120   +5.1%       44    9.1%  28%     23%     61%
-linear-v1          1000     2.1%  5480   +6.3%       37    8.7%  24%     18%     68%
+linear_v1          1000     2.1%  5480   +6.3%       37    8.7%  24%     18%     68%
 qwen2.5:7b           20     0.0%     -   +4.9%       46   10.0%  30%     27%     55%
 ```
 

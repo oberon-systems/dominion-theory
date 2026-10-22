@@ -1,0 +1,6 @@
+minds:
+  # Set by hand, not trained: backs the band's own score, the leader on a near tie, and never abstains.
+  linear_v0:
+    features: [score, leader, abstain]
+    weights: [1.0, 0.05, -10.0]
+    trained: {by: hand}

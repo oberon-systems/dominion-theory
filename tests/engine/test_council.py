@@ -144,6 +144,9 @@ def test_the_table_of_a_band_gives_every_other_one_vote_and_names_the_leader(par
     assert all(entry['votes'] > 0 for entry in laid)
     assert all(entry['key'] == council.key(entry['proposal'], band(game)) for entry in laid)
     assert council.leader(laid) == council.going(best.pull)
+    days = council.score(params, band(game), ERA, game.inside)
+    kept = [round(held, 4) for proposal, held in days if any(entry['proposal'] == proposal for entry in laid)]
+    assert [entry['score'] for entry in laid] == kept
     assert council.leader([]) is None
     assert council.key(None) == 'proposal-none'
 

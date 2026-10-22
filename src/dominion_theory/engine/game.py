@@ -65,7 +65,7 @@ from .events import (
 from .hashing import digest
 from .streams import Streams
 
-SNAPSHOT_FORMAT = 29
+SNAPSHOT_FORMAT = 30
 DIED = 'died'
 BANISHED = 'banished'
 VOTED = 'voted'
@@ -234,8 +234,8 @@ class Game:
         self.counters.declare(bands.SICK, partial(self._counted, bands.SICK))
 
     @classmethod
-    def create(cls, seed: int, params: Params, seated: bool = False) -> Self:
-        streams = Streams(seed)
+    def create(cls, seed: int, params: Params, seated: bool = False, draw: int = 0) -> Self:
+        streams = Streams(seed, draw=draw)
         size = params.planet.window
         x, y = place(seed, params)
         region = Planet(seed, params).read(x, y, size.width, size.height, params.eras[ERA].cell_km)
@@ -255,7 +255,7 @@ class Game:
         game = cls(
             snapshot['seed'],
             Params.model_validate(snapshot['params']),
-            Streams(snapshot['seed'], snapshot['streams']),
+            Streams(snapshot['seed'], snapshot['streams'], snapshot['draw']),
             Window(**snapshot['window']),
             np.array(snapshot['grids']['biomes'], dtype=np.uint8),
             np.array(snapshot['grids']['rivers'], dtype=np.bool_),
@@ -409,6 +409,7 @@ class Game:
         return {
             'format': SNAPSHOT_FORMAT,
             'seed': self.seed,
+            'draw': self.streams.draw,
             'era': self.era,
             'tick': self.tick,
             'parts': self.clock.parts,
@@ -578,6 +579,7 @@ class Game:
         self.council = tick.seat['council'] = {
             'leader': leader,
             'table': laid,
+            'occasion': occasion,
             'voice': spoken,
             'winter': self.wintering,
             'place': self._opened(lore.GO_PLACE),

@@ -88,8 +88,9 @@ the tests read - the defaults, the presets, the catalogues, the
 documents - is followed by `tests/datamon.py`: it remembers which files
 and folders each test module opened or listed, by their sha256, and
 `pytest --data-changed` runs the modules whose files moved, a new module,
-or every module when nothing is remembered yet. What both remember lies
-in `.testmondata` and `.datamon.json`, kept out of git.
+or every module when nothing is remembered yet. A module with a failed
+test is forgotten, so it runs again until it passes. What both remember
+lies in `.testmondata` and `.datamon.json`, kept out of git.
 
 | A change of           | Runs                                              |
 |-----------------------|---------------------------------------------------|

@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from datamon import ROOT, changed, digest, relative, selected
+from datamon import ROOT, changed, digest, kept, relative, selected
 
 
 def test_data_of_the_repository_is_kept_and_code_hidden_folders_and_runs_are_not() -> None:
@@ -41,3 +41,14 @@ def test_a_module_runs_when_what_it_read_changed_or_it_has_no_record_yet(tmp_pat
     assert changed(record, tmp_path) == {'tests/a.py'}
     assert selected(modules, record, tmp_path) == {'tests/a.py', 'tests/d.py'}
     assert selected(modules, None, tmp_path) == set(modules)
+
+
+def test_a_module_that_failed_is_forgotten_and_one_that_passed_keeps_what_it_read_now(tmp_path: Path) -> None:
+    (tmp_path / 'alpha.ftl').write_text('one')
+    record = {'tests/a.py': {'alpha.ftl': 'old'}, 'tests/b.py': {'alpha.ftl': 'old'}, 'tests/c.py': {}}
+    ran = {'tests/a.py': {'alpha.ftl'}, 'tests/b.py': {'alpha.ftl'}}
+
+    after = kept(record, ran, {'tests/b.py', 'tests/c.py'}, tmp_path)
+
+    assert after == {'tests/a.py': {'alpha.ftl': digest('alpha.ftl', tmp_path)}}
+    assert selected(('tests/a.py', 'tests/b.py', 'tests/c.py'), after, tmp_path) == {'tests/b.py', 'tests/c.py'}

@@ -8,7 +8,7 @@ import hashlib
 import json
 import os
 import sys
-from collections.abc import Iterable
+from collections.abc import Iterable, Mapping
 from pathlib import Path
 from typing import Any
 
@@ -99,6 +99,15 @@ def selected(modules: Iterable[str], record: Record | None, root: Path = ROOT) -
     return {module for module in wanted if module not in record or module in moved}
 
 
+def kept(record: Record, ran: Mapping[str, Iterable[str]], failed: set[str], root: Path = ROOT) -> Record:
+    """
+    The record after a run: a module that passed keeps what it read as it is now; one with a failed test is
+    forgotten, so it runs again until it passes.
+    """
+    after = {**record, **{module: {name: digest(name, root) for name in sorted(read)} for module, read in ran.items()}}
+    return {module: read for module, read in after.items() if module not in failed}
+
+
 def load(path: Path = KEPT) -> Record | None:
     try:
         kept: Record = json.loads(path.read_text(encoding='utf-8'))
@@ -118,6 +127,7 @@ def _clear() -> None:
 
 sys.addaudithook(_audit)
 _ran: Record = {}
+_failed: set[str] = set()
 
 
 def pytest_addoption(parser: pytest.Parser) -> None:
@@ -146,10 +156,14 @@ def pytest_runtest_protocol(item: pytest.Item, nextitem: pytest.Item | None) -> 
         _ran[module] = dict.fromkeys(Reading.touched, '')
 
 
+def pytest_runtest_logreport(report: pytest.TestReport) -> None:
+    if report.failed:
+        _failed.add(report.nodeid.split('::')[0])
+
+
 def pytest_sessionfinish(session: pytest.Session) -> None:
     Reading.module = None
     if not _ran:
         return
-    record = load() or {}
-    record.update({module: {name: digest(name) for name in sorted(read)} for module, read in _ran.items()})
+    record = kept(load() or {}, _ran, _failed)
     KEPT.write_text(json.dumps(record, indent=1, sort_keys=True) + '\n', encoding='utf-8')

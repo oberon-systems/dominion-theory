@@ -69,6 +69,7 @@ met, not from the start.
 | `spears`      | sticks, stones and cords held on the same day             | `stone_tools`, `sticks`, `herbs` | making `spears` and `clothes`, the role `hunter` |
 | `waterskins`  | hides and cords held on the same day                      | `spears`, `herbs`        | making `waterskins` |
 | `drying`      | `herbs` known and 15 days of gathering food in summer     | -                        | making `dried` |
+| `slings`      | 10 days the children outnumber what the nannies care for  | `spears`, `herbs`        | making `slings` |
 | `midwifery`   | `herbs` known and 5 births lived in the band              | -                        | the oldest woman attends births |
 
 `orientation` - a band without it backs the ways the others name, but
@@ -99,6 +100,13 @@ at 0.55 instead of 0.5 and the mother's risk falls to 0.75 of it; with a
 herb spent on the birth, 0.6 and 0.5. See
 [Births](../units/band.md#births).
 
+`slings` - a hide tied with cords on the body of a nanny, so she carries
+a child and keeps an eye on more. A band that knows spears and herbs
+learns it after 10 days its children outnumbered what its nannies care
+for: a nanny went out to gather, or no woman or elder was left to call.
+A nanny holding a sling cares for 8 children instead of 5, so fewer are
+taken from gathering; see [Roles](../units/band.md#roles).
+
 `drying` - drying mushrooms, berries, roots and herbs in the sun, with
 no fire. A band that knows its herbs and has gathered food on 15 days of
 a summer learns it, so a band that learned herbs by the autumn dries its
@@ -128,6 +136,7 @@ that biome.
 | `marched`       | the days the band walked or roamed at least once        |
 | `foraged_in`    | per season, the days the band gathered food at least once |
 | `births`        | the births lived in the band, a child born alive or not  |
+| `crowded`       | the days the children outnumbered what their carers care for, each carer by its own `cares` |
 
 A condition reads one counter with `at_least`, of a biome or a season
 where the counter is kept so; `holds`, the stores of the band; or
@@ -170,6 +179,7 @@ quality, a keep and a recipe.
 | `spears`     | goods | personal | 1.5 kg | -                  | 80 hunts                                   | its materials'  | 1 a hunter          | 1 stick, 1 stone, 1 cord   |
 | `hides`      | goods | common   | 2 kg   | 12 months          | - (spent in what is made)                  | 1               | 0.2 a head          | hunted                     |
 | `clothes`    | goods | personal | 2 kg   | 12 months          | -                                          | its materials'  | 1 a member          | 1 hide, 1 cord             |
+| `slings`     | goods | personal | 1 kg   | -                  | 100 days carried                           | its materials'  | 1 a nanny           | 1 hide, 2 cords            |
 | `waterskins` | goods | personal | 0.5 kg | 6 months           | -                                          | its materials'  | 1 an adult or elder | 1 hide, 1 cord             |
 | `meat`       | food  | common   | 1 kg   | 2 days             | -                                          | -               | -                   | hunted                     |
 | `dried`      | food  | common   | 0.5 kg | 2 months           | -                                          | its makers'     | 5 a head            | 2 forage                   |
@@ -193,7 +203,8 @@ What each gives is in [Bonuses](#bonuses).
   of food eaten), `nights` (a head that spends a night in camp),
   `attacks` (an encounter met in camp), `cures` (a herb spent on a sick
   member or a wound), `pulled` (a day its holder walked or roamed
-  with it) and `hunts` (a tick its holder hunted with it). A litter wears in the kit of its
+  with it), `hunts` (a tick its holder hunted with it) and `carried` (a
+  day its holder kept the children with it, a year for a sling). A litter wears in the kit of its
   holder only: those left in the stores are not pulled. A good has a
   time to spoil, uses, or both; food and water have only the time.
 - **Quality** - the third number of a lot, beside the day and the
@@ -284,7 +295,7 @@ hold one.
 | Holder | Field           | Holds                                                |
 |--------|-----------------|------------------------------------------------------|
 | band   | `stores`        | food, water, the common goods, personal goods no one holds |
-| member | `kit`           | one of each personal good: a spear, clothes, a litter, a waterskin |
+| member | `kit`           | one of each personal good: a spear, clothes, a litter, a waterskin, a sling |
 | place  | later           | a winter camp's cache, a settlement's store, a tribe's |
 
 A personal good weighs in the load of its holder, so the free carry of
@@ -314,6 +325,7 @@ its quality, so 0.43 of a litter of quality 0.92 gives 1.29 sticks and
 | `clothes`    | the children, then the elders, then the adults; the youngest first |
 | `litters`    | the pullers: men, then women                             |
 | `waterskins` | the adults, then the elders                              |
+| `slings`     | the nannies, in the order they are called                |
 
 A puller is an adult gatherer: children and elders do not pull, and nannies,
 hunters and the holders of any other role do not either. So a band
@@ -412,6 +424,7 @@ since YAML reads a key `on` as true.
 | `clothes`    | band   | `units.band.threat.camp` and `.march`   | times 0.9      | members holding            |
 | `waterskins` | member | `units.band.carry_water_kg`             | plus 3 kg      | -                          |
 | `waterskins` | band   | `resources.water.spoils`                | times 1.5      | adults and elders holding  |
+| `slings`     | member | `units.band.people.roles.nanny.cares`   | plus 3         | -                          |
 | `hunter`     | band   | `units.band.threat.camp` and `.march`   | times 0.8      | quota filled               |
 
 `units.band.threat` is new: `{camp: 1.0, march: 1.0}`, multiplied into
@@ -657,6 +670,10 @@ skills:
         - {knows: [herbs]}
         - {counter: foraged_in, season: summer, at_least: 15}
     opens: {makes: [dried]}
+  slings:
+    needs: [spears, herbs]
+    learned: {counter: crowded, at_least: 10}
+    opens: {makes: [slings]}
   midwifery:
     learned:
       all:
@@ -733,6 +750,15 @@ resources:
       - {to: member, path: units.band.people.exposure.frailty, times: 0.7, seasons: [winter]}
       - {to: band, path: units.band.threat.camp, times: 0.9}
       - {to: band, path: units.band.threat.march, times: 0.9}
+  slings:
+    kind: goods
+    held: personal
+    weight_kg: 1.0
+    wears: {carried: 100}
+    keep: {per: nanny, amount: 1.0}
+    made: {hides: 1.0, cords: 2.0}
+    gives:
+      - {to: member, path: units.band.people.roles.nanny.cares, plus: 3.0}
   waterskins:
     kind: goods
     held: personal

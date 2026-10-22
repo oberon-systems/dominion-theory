@@ -17,6 +17,7 @@ skill-spears = to make spears and hunt
 skill-waterskins = to make waterskins
 skill-drying = to dry food
 skill-midwifery = to attend births
+skill-slings = to carry children in slings
 
 goods-made = Made: { NAME("resource", $resource) } { $count }.
 goods-spoiled = Spoiled: { NAME("resource", $resource) } { $count }.

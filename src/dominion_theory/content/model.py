@@ -23,7 +23,7 @@ BAND = 'band'
 PASSABILITY = 'passability'
 ZOOM = 5
 # The counters a band learns by, docs/game/skills.md: those of a set or a sum, then those kept by biome or season.
-TALLIES = ('seen', 'first', 'winters', 'marched', 'births')
+TALLIES = ('seen', 'first', 'winters', 'marched', 'births', 'crowded')
 BY_BIOME = ('walked', 'walked_by', 'camped_by', 'days_in')
 BY_SEASON = ('foraged_in',)
 COUNTERS = TALLIES + BY_BIOME + BY_SEASON
@@ -36,8 +36,8 @@ GOODS = 'goods'
 COMMON = 'common'
 PERSONAL = 'personal'
 HOLDERS = (COMMON, PERSONAL)
-PER = ('head', 'member', 'adult', 'puller', 'hunter')
-USES = ('eaten', 'nights', 'attacks', 'cures', 'pulled', 'hunts')
+PER = ('head', 'member', 'adult', 'puller', 'hunter', 'nanny')
+USES = ('eaten', 'nights', 'attacks', 'cures', 'pulled', 'hunts', 'carried')
 # A bonus goes `to`, not `on`: YAML reads a key on as true.
 TO = ('band', 'member')
 # What a hunt brings, by name.
@@ -403,7 +403,7 @@ class Quality(Node):
 
 class Keep(Node):
     """
-    How much of a good the band wants to hold: an amount for every head, member, adult, puller or hunter.
+    How much of a good the band wants to hold: an amount for every head, member, adult, puller, hunter or nanny.
     """
 
     per: Name

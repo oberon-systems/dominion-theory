@@ -119,8 +119,10 @@ heads did. Only the stages that vote sit in the council; see
 
 ### Roles
 
-Every member has a role. For every `cares` children, rounded up, one
-carer, never the player, is a nanny. The first is a woman of a stage
+Every member has a role. Carers, never the player, are called as
+nannies until every child is cared for, each for the `cares` of the
+role, 5, or 8 while it holds a sling: 6 children call two nannies, or
+one with a sling. The first is a woman of a stage
 that conceives, the pregnant and the resting first, then the oldest;
 the second and the third are the elders first, either sex, the oldest
 first, then the women. So an elder keeps the children and an adult
@@ -131,7 +133,7 @@ else is a gatherer. The roles are laid anew at the end of every day.
 | Role       | Gathers | One for every |
 |------------|---------|---------------|
 | `gatherer` | 1       | -             |
-| `nanny`    | 0.5     | 5 children    |
+| `nanny`    | 0.5     | 5 children, 8 with a sling |
 | `hunter`   | 1       | 5 members, each holding a spear |
 
 A nanny that gathered nothing took a third of the hands of a band with

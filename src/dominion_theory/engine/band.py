@@ -44,8 +44,9 @@ WOUNDS = 'wounds'
 HUNTER = 'hunter'
 ADULT = 'adult'
 PULLER = 'puller'
+NANNY = 'nanny'
 FOOD, WATER = KINDS[:2]
-EATEN, NIGHTS, ATTACKS, CURES, PULLED, HUNTS = USES
+EATEN, NIGHTS, ATTACKS, CURES, PULLED, HUNTS, CARRIED = USES
 TO_BAND, TO_MEMBER = TO
 CARRY_KG = 'units.band.carry_kg'
 SICK = 'sick'
@@ -508,9 +509,10 @@ def free(params: Params, band: Band) -> None:
 
 def cared(params: Params, band: Band) -> list[tuple[int, str]]:
     """
-    The members the children call for, with the role that cares each takes: for every `cares` children, rounded
-    up, one carer, never the player. The first is a woman of a stage that conceives - the pregnant and the
-    resting first, then the oldest; the others are the elders first, the oldest first, then the women.
+    The members the children call for, with the role that cares each takes: carers until every child is cared
+    for, each for the `cares` of its role with the bonuses of its own kit, a sling, laid over; never the player.
+    The first is a woman of a stage that conceives - the pregnant and the resting first, then the oldest; the
+    others are the elders first, the oldest first, then the women.
     """
     people = params.units.band.people
     named = census(params, band).stages
@@ -536,13 +538,28 @@ def cared(params: Params, band: Band) -> list[tuple[int, str]]:
             at,
         ),
     )
-    wanted = [
-        name
-        for name, role in people.roles.items()
-        if role.cares is not None
-        for _ in range(math.ceil(children / role.cares))
-    ]
-    return list(zip([*women[:1], *elders, *women[1:]], wanted, strict=False))
+    carers = iter([*women[:1], *elders, *women[1:]])
+    taken: list[tuple[int, str]] = []
+    for name, role in people.roles.items():
+        left = float(children) if role.cares is not None else 0.0
+        while left > NOTHING and (at := next(carers, None)) is not None:
+            taken.append((at, name))
+            left -= applied(params, band, band.members[at]).units.band.people.roles[name].cares or 0
+    return taken
+
+
+def crowded(params: Params, band: Band) -> bool:
+    """
+    Whether the children outnumber what the members of the roles that care care for, each by its own `cares`.
+    """
+    people = params.units.band.people
+    children = census(params, band).counts[next(iter(people.stages))]
+    cares = sum(
+        applied(params, band, member).units.band.people.roles[member.role].cares or 0
+        for member in band.members
+        if member.role is not None and people.roles[member.role].cares is not None
+    )
+    return children > cares
 
 
 def chosen(params: Params, band: Band, name: str) -> list[int]:
@@ -1509,9 +1526,10 @@ def live(
     season: str | None = None,
 ) -> Lived:
     """
-    The day of the members at its end: they age, get better, die of age and frailty, heal or are hurt, give birth
-    and conceive. Camped is the share of the active parts of the day the band camped: it heals faster and dies
-    less of frailty; meat heals faster too. The goods of a member that guard it in a season do so in the season given.
+    The day of the members at its end: they age, get better, die of age and frailty, heal or are hurt, give birth,
+    conceive and are cared for. Camped is the share of the active parts of the day the band camped: it heals faster
+    and dies less of frailty; meat heals faster too. The goods of a member that guard it in a season do so in the
+    season given.
     """
     rules = params.units.band
     people = rules.people
@@ -1554,10 +1572,24 @@ def live(
     lived.lost.append((BIRTH, bury(params, band, mothers, day)))
     if feeds:
         _conceive(params, band, day, rng)
+    _nurse(params, band)
     free(params, band)
     assign(params, band)
     lived.lost = [(cause, count) for cause, count in lived.lost if count]
     return lived
+
+
+def _nurse(params: Params, band: Band) -> None:
+    """
+    A day of the carers: each wears what it carries the children in by a day, and a day the children outnumber
+    what the carers care for is counted.
+    """
+    roles = params.units.band.people.roles
+    for member in band.members:
+        if member.role is not None and roles[member.role].cares is not None:
+            wear(params, band, CARRIED, 1.0, (member.kit,))
+    if crowded(params, band):
+        lores.crowd(band)
 
 
 def _chanced(rng: np.random.Generator, chances: list[float]) -> list[int]:
@@ -1629,10 +1661,14 @@ def eligible(params: Params, band: Band, per: str) -> list[int]:
     """
     The members a keep counts, in the order goods are handed to them: every member and head the least protected
     first, children, elders, then adults; adults before elders; pullers, the adults of the common role who gather,
-    men first; hunters, those the role would take. The youngest first in each: docs/game/skills.md, Handing out.
+    men first; hunters, those the role would take; nannies, the carers in the order they are called. The youngest
+    first in each but the nannies: docs/game/skills.md, Handing out.
     """
     if per == HUNTER:
         return chosen(params, band, HUNTER)
+    if per == NANNY:
+        taken = cared(params, band)
+        return [at for at, _ in taken[: max(len(taken) - band.freed, 0)]]
     people = params.units.band.people
     names = list(people.stages)
     first, last = names[0], names[-1]

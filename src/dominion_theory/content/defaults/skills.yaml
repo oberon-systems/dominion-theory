@@ -39,6 +39,11 @@ skills:
         - {knows: [herbs]}
         - {counter: foraged_in, season: summer, at_least: 15}
     opens: {makes: [dried]}
+  # Learned on the days the children outnumber what the nannies care for.
+  slings:
+    needs: [spears, herbs]
+    learned: {counter: crowded, at_least: 10}
+    opens: {makes: [slings]}
   midwifery:
     learned:
       all:

@@ -800,7 +800,7 @@ def test_a_restored_game_carries_the_band_in_the_middle_of_a_day(params: Params)
 def test_a_snapshot_of_the_format_before_the_band_is_refused(params: Params) -> None:
     snapshot = land(params).snapshot()
 
-    assert snapshot["format"] == 28
+    assert snapshot["format"] == 29
     with pytest.raises(ValueError, match='format 2'):
         Game.restore({**snapshot, 'format': 2})
 
@@ -995,3 +995,40 @@ def test_nannies_leave_the_children_one_a_day_while_someone_goes_short(params: P
     assert stayed == 2
     assert held.freed == 1
     assert [member.role for member in held.members[1:4]] == ['gatherer', 'gatherer', 'nanny']
+
+
+def test_a_nanny_with_a_sling_cares_for_eight_and_the_slings_go_to_the_nannies(params: Params) -> None:
+    women = [bands.Member(1000, 'female'), bands.Member(1200, 'female'), bands.Member(900, 'female')]
+    women[2].pregnant_until = 50
+    women[2].kit.add('slings', 0, 1.0)
+    held = bands.Band(id=1, x=WEST, y=NORTH, members=[*bands.adults(1), *women])
+    held.members += [bands.Member(100, 'male') for _ in range(8)]
+
+    bands.assign(params, held)
+    eight = [member.role for member in held.members[1:4]]
+    held.members.append(bands.Member(100, 'female'))
+    held.changed()
+    bands.assign(params, held)
+    held.stores = Stock({'slings': [[0.0, 1.0]]})
+    bands.hand_out(params, held, 10)
+
+    assert eight == ['gatherer', 'gatherer', 'nanny']
+    assert [member.role for member in held.members[1:4]] == ['gatherer', 'nanny', 'nanny']
+    assert (bands.eligible(params, held, 'nanny'), bands.kept(params, held, 'slings')) == ([3, 2], 2.0)
+    assert [member.kit.held('slings') for member in held.members[1:4]] == [0.0, 1.0, 1.0]
+
+
+def test_a_day_the_children_outnumber_their_carers_is_counted_and_a_carer_wears_its_sling(params: Params) -> None:
+    women = [bands.Member(1000, 'female', role='nanny'), bands.Member(1200, 'female')]
+    women[0].kit.add('slings', 0, 1.0)
+    children = [bands.Member(100, 'male') for _ in range(9)]
+    held = bands.Band(id=1, x=WEST, y=NORTH, members=[*bands.adults(1), *women, *children])
+
+    bands.live(params, held, 10, 1.0, False, 0.0, dice())
+    crowded, worn = held.lore['counts']['crowded'], held.members[1].kit.held('slings')
+    bands.live(params, held, 11, 1.0, False, 0.0, dice())
+
+    assert crowded == 1
+    assert worn == pytest.approx(0.99)
+    assert held.lore['counts']['crowded'] == 1
+    assert held.members[1].kit.held('slings') == pytest.approx(0.98)

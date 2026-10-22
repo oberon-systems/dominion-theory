@@ -20,6 +20,7 @@ DAYS_IN = 'days_in'
 WINTERS = 'winters'
 MARCHED = 'marched'
 BIRTHS = 'births'
+CROWDED = 'crowded'
 MIDWIFERY = 'midwifery'
 MARCHING = 'marching'
 FORAGED_IN = 'foraged_in'
@@ -54,6 +55,7 @@ def fresh() -> dict[str, Any]:
         WINTERS: 0,
         MARCHED: 0,
         BIRTHS: 0,
+        CROWDED: 0,
         **{name: {} for name in (*BY_BIOME, *BY_SEASON)},
     }
     return {KNOWN: [], COUNTS: counts, SINCE: {}, MARCHING: False, FORAGING: False}
@@ -132,6 +134,13 @@ def delivered(band: Band, count: int) -> None:
     Births lived in the band, a child born alive or not.
     """
     band.lore[COUNTS][BIRTHS] += count
+
+
+def crowd(band: Band) -> None:
+    """
+    A day the children outnumbered what their carers care for.
+    """
+    band.lore[COUNTS][CROWDED] += 1
 
 
 def wintered(band: Band) -> None:

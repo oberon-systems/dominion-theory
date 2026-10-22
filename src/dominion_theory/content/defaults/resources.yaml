@@ -91,6 +91,16 @@ resources:
       - {to: member, path: units.band.people.exposure.frailty, times: 0.7, seasons: [winter]}
       - {to: band, path: units.band.threat.camp, times: 0.9}
       - {to: band, path: units.band.threat.march, times: 0.9}
+  # A nanny holding one carries a child on her and cares for 8; the days it is carried wear it.
+  slings:
+    kind: goods
+    held: personal
+    weight_kg: 1.0
+    wears: {carried: 100}
+    keep: {per: nanny, amount: 1.0}
+    made: {hides: 1.0, cords: 2.0}
+    gives:
+      - {to: member, path: units.band.people.roles.nanny.cares, plus: 3.0}
   waterskins:
     kind: goods
     held: personal

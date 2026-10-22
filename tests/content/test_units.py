@@ -7,7 +7,8 @@ BAND = 'units.band'
 KINDS = 'encounters.kinds'
 STAGES = 'units.band.people.stages'
 RESOURCES = (
-    'one of water, forage, meat, dried, stones, sticks, herbs, cords, litters, spears, hides, clothes, waterskins'
+    'one of water, forage, meat, dried, stones, sticks, herbs, cords, litters, spears, hides, clothes, slings, '
+    'waterskins'
 )
 
 
@@ -38,6 +39,7 @@ def test_resources_are_those_of_their_documents() -> None:
         'spears': ('goods', None, 1.5, None, {'hunts': 80}),
         'hides': ('goods', None, 2.0, {'months': 12}, {}),
         'clothes': ('goods', None, 2.0, {'months': 12}, {}),
+        'slings': ('goods', None, 1.0, None, {'carried': 100}),
         'waterskins': ('goods', None, 0.5, {'months': 6}, {}),
     }
 

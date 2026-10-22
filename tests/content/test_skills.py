@@ -29,6 +29,7 @@ def test_the_skills_of_the_band_era_are_those_of_their_document() -> None:
         'spears',
         'waterskins',
         'drying',
+        'slings',
         'midwifery',
     ]
     assert skills['stone_tools'].learned.biomes == ('hills', 'mountain', 'outcrops')
@@ -57,6 +58,13 @@ def test_the_skills_of_the_band_era_are_those_of_their_document() -> None:
         ('spears', 'herbs'),
         {'hides': 1.0, 'cords': 1.0},
         ('waterskins',),
+    )
+    slings = skills['slings']
+    assert (slings.needs, slings.learned.counter, slings.learned.at_least, slings.opens.makes) == (
+        ('spears', 'herbs'),
+        'crowded',
+        10.0,
+        ('slings',),
     )
 
 

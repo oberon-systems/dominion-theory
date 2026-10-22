@@ -81,6 +81,7 @@ def test_a_band_starts_knowing_nothing_and_the_land_it_sees_is_its_first() -> No
             'winters': 0,
             'marched': 0,
             'births': 0,
+            'crowded': 0,
             'walked': {},
             'walked_by': {},
             'camped_by': {},

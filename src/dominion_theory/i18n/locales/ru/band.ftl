@@ -17,6 +17,7 @@ skill-spears = делать копья и охотиться
 skill-waterskins = делать бурдюки
 skill-drying = сушить запасы
 skill-midwifery = принимать роды
+skill-slings = носить детей в перевязях
 
 goods-made = Сделаны: { NAME("resource", $resource) } { $count }.
 goods-spoiled = Испортились: { NAME("resource", $resource) } { $count }.

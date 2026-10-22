@@ -22,5 +22,7 @@ resource-clothes = одежда
     .accusative = одежду
 resource-waterskins = бурдюки
     .accusative = бурдюки
+resource-slings = перевязи
+    .accusative = перевязи
 resource-dried = сушёное
     .accusative = сушёное

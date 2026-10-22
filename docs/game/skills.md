@@ -836,9 +836,6 @@ ___
 
 ## Open points
 
-- **Knowledge that dies** - a skill stays with the band and a mastery
-  dies with its member, as [Mastery](#mastery) tells. Whether a skill
-  is lost when every member who used it is dead is not settled.
 - **A council on a new skill** - an occasion that calls the council
   when a skill is learned is a later bridge to the encounters between
   bands.

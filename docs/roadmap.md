@@ -391,6 +391,16 @@ occasions, routes, the winter camp, and the skills learned by doing with
 their goods. The numbers are first guesses: no reference band grows to
 150 people in eighteen years, and the best of them would in about fifty.
 
+Growth by research followed, decided by the user on 2026-10-19 after a
+band starved in its first winter: goods that last, a younger start,
+herbs by the autumn, elders at work, a mastery per member, drying in
+the sun, a midwife, the meat of the diet and slings for the children.
+The land gives what it gave. Every reference band now lives the
+eighteen years, against two of five before; four of them grow 4.8% to
+7.3% a year and the best reaches 150 in year 33. The first elder comes
+in year 6 instead of 3, and 9 members died of hunger in all five lives
+instead of 22. The rest of the way to 150 goes to the lab.
+
 What follows the close:
 
 - **What the player sees** - the days of the stores, what lies each way,
@@ -667,7 +677,8 @@ wear out. Skills, goods and bonuses are data.
 
 The first set, from the user's list, is built: orientation, wintering,
 stone tools, sticks, litters, herbs, stone spears with the role of the
-hunter, and waterskins; then drying in the sun. Fire and how to make it
+hunter, and waterskins; then drying in the sun, midwifery and slings for
+the children, with a mastery of every good per member. Fire and how to make it
 is left to the tribes of stage 5, and smoking and drying by the fire go
 with it.
 
@@ -694,7 +705,8 @@ is reached:
 - **Stars** - from long walks. A band remembers longer and keeps its
   way at night.
 
-Open: whether a skill is lost when the people who held it die, and
+A skill stays with the band when the people who used it die, and a
+mastery dies with its member, decided by the user on 2026-10-19. Open:
 whether a skill crosses to the tribe of stage 5.
 
 ### Weather

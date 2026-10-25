@@ -277,7 +277,8 @@ best cords, the bast of a forest the worst.
 A band of 15 eats about 13 food a day with stones held, so its 4.5
 stones of the hills last some 60 days and those of a mountain some 90.
 Its sticks keep 15 heads a night, under 0.04 of a stick, and lose one more to
-every attack in camp; on the march they do not wear. Whatever wore out
+every attack met by the camp, gathering included; on the march they do
+not wear. Whatever wore out
 or spoiled is told in whole units: the rest waits for the next.
 
 Every biome that gives a new property lists the resource, and every
@@ -418,6 +419,7 @@ since YAML reads a key `on` as true.
 | `litters`    | member | `units.band.carry_kg`, of a man         | times 2.0      | -                          |
 | `litters`    | member | `units.band.carry_kg`, of a woman       | times 1.5      | -                          |
 | `litters`    | band   | `units.band.speed.base`                 | times 0.85     | members pulling            |
+| `spears`     | member | `units.band.people.exposure.encounter`  | times 0.8      | -                          |
 | `clothes`    | member | `units.band.people.injury.per_day`      | times 0.7      | -                          |
 | `clothes`    | member | `units.band.people.exposure.encounter`  | times 0.8      | -                          |
 | `clothes`    | member | `units.band.people.exposure.frailty`    | times 0.7      | in winter                  |
@@ -429,8 +431,9 @@ since YAML reads a key `on` as true.
 
 `units.band.threat` is new: `{camp: 1.0, march: 1.0}`, multiplied into
 the threat of the encounters and of the safety of wellbeing, like
-`winter_camp.threat`. `camp` holds in the ticks the band camps or
-builds, `march` in the others. What the band sees of the land is not
+`winter_camp.threat`. `camp` holds in the ticks the band stands by its
+camp - it camps, builds or gathers - and `march` in the ticks it walks or
+roams. What the band sees of the land is not
 changed: the land is as dangerous as before, the band is better
 guarded.
 
@@ -736,6 +739,8 @@ resources:
     wears: {hunts: 80}
     keep: {per: hunter, amount: 1}
     made: {sticks: 1, stones: 1, cords: 1}
+    gives:
+      - {to: member, path: units.band.people.exposure.encounter, times: 0.8}
   hides: {kind: goods, weight_kg: 2.0, spoils: {months: 12}, keep: {per: head, amount: 0.2}}
   clothes:
     kind: goods

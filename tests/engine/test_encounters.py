@@ -73,8 +73,9 @@ def test_the_shares_lost_and_injured_are_drawn_between_the_bounds(params: Params
     assert met[1:] == pytest.approx((0.1 * share, 0.1 * share))
 
 
-def test_a_band_in_camp_loses_half_the_share_and_is_hurt_the_same(params: Params) -> None:
-    sheltered = encounters.strike(params, 'forest', False, 1.0, camp(), dice(0.0, 0.0, 0.5))
+@pytest.mark.parametrize('standing', [camp(), gathering({'forage': 1.0})])
+def test_a_band_by_its_camp_loses_half_the_share_and_is_hurt_the_same(params: Params, standing: Any) -> None:
+    sheltered = encounters.strike(params, 'forest', False, 1.0, standing, dice(0.0, 0.0, 0.5))
     walking = encounters.strike(params, 'forest', False, 1.0, moving('east'), dice(0.0, 0.0, 0.5))
 
     assert sheltered is not None and walking is not None

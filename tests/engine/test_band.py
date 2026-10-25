@@ -140,6 +140,19 @@ def test_the_band_starts_nearest_the_centre_with_the_smaller_y_then_x(params: Pa
     assert lone._start() == (WEST + 3, NORTH)
 
 
+def test_the_band_starts_in_a_forest_beside_a_meadow_and_rather_with_stone_near(params: Params) -> None:
+    edge = land(params, at=None, rows=(('forest',) * 5 + ('grass',) * 2,))
+    row = ('hills', 'forest', 'grass', 'grass', 'grass', 'grass', 'forest', 'grass', 'grass')
+    far = land(params, at=None, rows=(row,))
+    near = land(load_params(overrides={**SMALL, 'units.band.start.border.within': 1}), at=None, rows=(row,))
+    bare = land(params, at=None, rows=(('forest',) * 5,))
+
+    assert edge._start() == (WEST + 4, NORTH)
+    assert far._start() == (WEST + 6, NORTH)
+    assert near._start() == (WEST + 1, NORTH)
+    assert bare._start() == (WEST + 2, NORTH)
+
+
 def test_without_a_start_biome_the_band_takes_what_can_be_entered(params: Params) -> None:
     rocky = land(params, at=None, rows=(('water', 'shallows', 'outcrops', 'mountain'),))
     sea = land(params, at=None, rows=(('water', 'shallows'),))

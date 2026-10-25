@@ -632,7 +632,7 @@ def test_a_death_under_a_judgement_is_paid_once_and_only_on_the_day_voted_for(pa
     paid = {'proposal-worked': 3.0, 'proposal-even': 0.0, 'proposal-failed': -6.0}[found]
 
     assert said(results)[1][0] == 'council-turned'
-    assert (taken, blamed) == (4, 3)
+    assert (taken, blamed) == (3, 2)
     assert values == {'proposal': 'proposal-stay-and-gather', 'status': 50.0 - 5.0 * blamed + paid}
 
 

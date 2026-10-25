@@ -138,6 +138,23 @@ def lands(seed: int, params: Params, across: int) -> Lands:
     return Lands(biome_names(params), window, region.biomes, region.rivers, whole, km)
 
 
+def _near(found: NDArray[np.bool_], reach: int) -> NDArray[np.bool_]:
+    """
+    The cells within `reach` cells of a cell found, each way and on the diagonals, the cells found included.
+    """
+    rows, columns = found.shape
+    summed = np.pad(found.astype(np.int64), ((1, 0), (1, 0))).cumsum(0).cumsum(1)
+    top, bottom = np.clip(np.arange(rows) - reach, 0, rows), np.clip(np.arange(rows) + reach + 1, 0, rows)
+    left, right = np.clip(np.arange(columns) - reach, 0, columns), np.clip(np.arange(columns) + reach + 1, 0, columns)
+    boxed = (
+        summed[np.ix_(bottom, right)]
+        - summed[np.ix_(top, right)]
+        - summed[np.ix_(bottom, left)]
+        + summed[np.ix_(top, left)]
+    )
+    return np.asarray(boxed > 0)
+
+
 @dataclass
 class _Tick:
     events: list[Event] = field(default_factory=list)
@@ -449,16 +466,27 @@ class Game:
 
     def _start(self) -> Place | None:
         """
-        Where the band starts: the cell nearest the centre of the window among the start biomes,
-        among all that can be entered when there is none; the smaller y, then x, of two equally near.
+        Where the band starts, the cell nearest the centre of the window of the first kind there is: on the
+        border of the start, with stone near, then without it; then any start biome; then any that can be
+        entered. The smaller y, then x, of two equally near.
         """
         window, names = self.window, biome_names(self.params)
+        start = self.params.units.band.start
         eras = [self.params.biomes[name].eras[self.era] for name in names]
-        walked = np.array([not era.shore and era.properties[bands.PASSABILITY].base > 0 for era in eras])
-        wanted = walked & np.array([name in self.params.units.band.start.biomes for name in names])
+        walked = np.array([not era.shore and era.properties[bands.PASSABILITY].base > 0 for era in eras])[self.biomes]
+
+        def of(held: tuple[str, ...]) -> NDArray[np.bool_]:
+            return np.array([name in held for name in names])[self.biomes]
+
+        kinds = []
+        border = start.border
+        if border is not None:
+            edge = walked & of(border.cell) & _near(of(border.beside), 1)
+            kinds += [edge & _near(of(border.stone), border.within), edge]
+        kinds += [walked & of(start.biomes), walked]
         centre = (window.width - 1) / 2, (window.height - 1) / 2
-        for fits in (wanted, walked):
-            rows, columns = np.nonzero(fits[self.biomes])
+        for fits in kinds:
+            rows, columns = np.nonzero(fits)
             if rows.size:
                 far = (columns - centre[0]) ** 2 + (rows - centre[1]) ** 2
                 first = np.lexsort((columns, rows, far))[0]
@@ -807,15 +835,15 @@ class Game:
 
     def _guarded(self, band: Band) -> float:
         """
-        The threat the band meets: that of its cell, less what its guard keeps off in the ticks it camps or
-        builds, or on the march in the others.
+        The threat the band meets: that of its cell, less what its guard keeps off in the ticks it stands by its
+        camp - camps, builds or gathers - or on the march in the others.
         """
         guard = bands.applied(self.params, band).units.band.threat
         return self._threat(band) * (guard.camp if self._camped(band) else guard.march)
 
     @staticmethod
     def _camped(band: Band) -> bool:
-        return band.action['kind'] in (bands.CAMP, bands.BUILD)
+        return band.action['kind'] in bands.STANDING
 
     def _encounter(self, tick: _Tick, band: Band) -> None:
         threat = self._guarded(band)

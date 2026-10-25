@@ -278,6 +278,18 @@ def test_start_biome_exists_and_can_be_entered() -> None:
     assert refused({f'{BAND}.start.biomes': []})['path'] == f'{BAND}.start.biomes'
 
 
+def test_the_border_of_the_start_names_biomes_and_starts_on_a_start_biome() -> None:
+    border = f'{BAND}.start.border'
+
+    assert refused({f'{border}.beside': ['alpha']})['path'] == f'{border}.beside'
+    assert refused({f'{border}.stone': ['alpha']})['path'] == f'{border}.stone'
+    assert refused({f'{border}.cell': ['hills']}) == {
+        'path': f'{border}.cell',
+        'found': ['hills'],
+        'expected': 'biomes of units.band.start.biomes',
+    }
+
+
 @pytest.mark.parametrize('path', [f'{BAND}.people.injury.drawn', f'{KINDS}.accident.wounds'])
 def test_wounds_are_drawn_from_severities_that_exist_by_some_weight(path: str) -> None:
     tree = load_params().tree()

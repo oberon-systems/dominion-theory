@@ -502,12 +502,25 @@ class Resource(Node):
         return self.property
 
 
+class Border(Node):
+    """
+    Where a band would rather start: on a cell of a biome of `cell` beside one of `beside`, better with one of
+    `stone` within `within` cells. Not `on`: YAML reads a key on as true.
+    """
+
+    cell: tuple[Name, ...] = Field(min_length=1)
+    beside: tuple[Name, ...] = Field(min_length=1)
+    stone: tuple[Name, ...] = ()
+    within: Count = 1
+
+
 class Start(Node):
     population: Count
     stores: dict[Name, Factor]
     biomes: tuple[Name, ...] = Field(min_length=1)
     stage: Name
     oldest: Duration | None = None
+    border: Border | None = None
 
 
 class Wellbeing(Node):
@@ -1332,6 +1345,14 @@ class Params(Node):
             walked = self.biomes[name].eras[BAND].properties.get(PASSABILITY)
             if walked is not None and walked.base == 0:
                 raise _invalid('units.band.start.biomes', name, 'a biome that can be entered')
+        border = start.border
+        named = () if border is None else (('cell', border.cell), ('beside', border.beside), ('stone', border.stone))
+        for field, names in named:
+            for name in names:
+                if name not in self.biomes:
+                    raise _invalid(f'units.band.start.border.{field}', name, f'one of {", ".join(sorted(self.biomes))}')
+            if field == 'cell' and any(name not in start.biomes for name in names):
+                raise _invalid('units.band.start.border.cell', list(names), 'biomes of units.band.start.biomes')
         for part in band.camp_parts:
             if part not in self.time.day_parts:
                 expected = f'one of {", ".join(self.time.day_parts)}'

@@ -24,6 +24,8 @@ ROAM = 'roam'
 GATHER = 'gather'
 CAMP = 'camp'
 BUILD = 'build'
+# The actions of a band that stands by its camp: guarded and sheltered as in camp, though it works around it.
+STANDING = (CAMP, BUILD, GATHER)
 NORMAL = 'normal'
 STARVATION = 'starvation'
 THIRST = 'thirst'

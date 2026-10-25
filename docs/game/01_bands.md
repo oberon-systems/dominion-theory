@@ -25,10 +25,20 @@ ___
 ## The start
 
 A game starts with one band, the player's, on the first window of the
-planet. It stands on the cell nearest to the centre of the window whose
-biome is one of `units.band.start.biomes`: grass, forest or floodplain.
-Of two cells equally near, the one with the smaller y and then the
-smaller x is taken.
+planet, on the edge of a forest: a cell of the biomes of
+`units.band.start.border.cell`, a forest, beside a cell of its `beside`,
+a meadow, so the band is neither deep in the forest nor out in the open.
+Of such cells, those with a source of stone - hills, outcrops or a
+mountain - within `within`, 10 cells, come first. The band stands on the
+one nearest the centre of the window. A window with no such edge falls
+back to the cell nearest the centre whose biome is one of
+`units.band.start.biomes`: grass, forest or floodplain. Of two cells
+equally near, the one with the smaller y and then the smaller x is
+taken.
+
+A start deep in a forest was a trap: in game 934811c4 the nearest
+meadow lay 65 cells away, the band spent 98% of its time under the
+forest's threat and predators took 16 of its 24 dead.
 
 The band has 15 people, a day of food and a day of water, no fatigue and
 no state. The player's status is 50 of 100; see

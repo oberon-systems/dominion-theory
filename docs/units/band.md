@@ -282,7 +282,8 @@ hunger and predators take their share. A band in camp dies less of
 frailty, see [Shelter](#shelter). A sick member weighs
 `sickness.frailty`, twice, for frailty, and the goods of a member lower
 its weights by `people.exposure`, 1 for both causes without them:
-clothes leave 0.8 of an encounter and, in winter, 0.7 of frailty; see
+clothes leave 0.8 of an encounter and, in winter, 0.7 of frailty, and a
+spear 0.8 of an encounter, both together 0.64; see
 [Bonuses](../game/skills.md#bonuses). Meat lowers the frailty weight by
 the [diet](#diet), to 0.85 on meat alone. Death of age begins at 0.15 a year at 17 and doubles
 every two years: about half live to 20, and one in five to 22.
@@ -363,8 +364,13 @@ the camp action in any part of the day, the evening and the night
 included, not the council's stay. It counts in no decision: the
 decision function and the council do not read it.
 
-- An encounter met in camp takes `shelter.encounter`, 0.5, of the share
-  of the people it would take. It hurts as many.
+- An encounter met while the band stands by its camp - it camps, builds
+  or gathers on its cell - takes `shelter.encounter`, 0.5, of the share
+  of the people it would take. It hurts as many. The camp is there and
+  the gatherers work around it; only a band that walks or roams is out
+  in the open. A kind that names the actions it strikes in, as a
+  drowning or a poisoning, comes to the deed, not to the camp, and is
+  not sheltered.
 - Frailty at the end of a day is multiplied by `sheltered`.
 - Hunger, thirst, age and birth are untouched.
 
@@ -380,8 +386,8 @@ a band that walks all day has none of it.
 ### The guard
 
 `threat` is what the guard of the band leaves of the threat it meets:
-`threat.camp` in the ticks it camps or builds, `threat.march` in the
-others, both 1.0. It multiplies the threat of the encounters and the
+`threat.camp` in the ticks it stands by its camp - it camps, builds or
+gathers - and `threat.march` in the ticks it walks or roams, both 1.0. It multiplies the threat of the encounters and the
 threat in the safety of wellbeing, after `winter_camp.threat`. Goods
 held lower it: sticks lay `threat.camp` times 0.8, clothes both times
 0.9 by the members holding them, and the hunters both times 0.8 by the
@@ -745,6 +751,7 @@ units:
       population: 15
       stores: {water: 15, forage: 15}
       biomes: [grass, forest, floodplain]
+      border: {cell: [forest], beside: [grass], stone: [hills, outcrops, mountain], within: 10}
       stage: adult
       oldest: {years: 12}
     population:
@@ -908,6 +915,8 @@ A game does not start from a band that does not add up.
 - `injury.heal_in_camp` is not below 1.
 - The start stores fit what the start population carries.
 - A start biome exists and can be entered.
+- The biomes of `start.border` exist, and those of its `cell` are start
+  biomes.
 - `tiredness.ends` is below `tiredness.begins`, and both lie in 0 to 1.
 - Every name of `camp_parts` is one of `time.day_parts`.
 - A reserve is above 0, and the last stage does not grow.

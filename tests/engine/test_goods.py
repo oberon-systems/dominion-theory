@@ -6,7 +6,7 @@ import pytest
 from dominion_theory.content import Duration, Params, load_params
 from dominion_theory.engine import Game, StepResult, Window, decisions, encounters
 from dominion_theory.engine import band as bands
-from dominion_theory.engine.band import Action, Member, camp, gathering
+from dominion_theory.engine.band import Action, Member, camp, gathering, moving
 from dominion_theory.engine.stock import Stock
 from dominion_theory.engine.streams import Streams
 from dominion_theory.planet import biome_names
@@ -189,6 +189,22 @@ def test_sticks_held_lower_the_threat_the_band_meets_in_camp(params: Params) -> 
     guard = bands.applied(params, holding({'sticks': [[0.0, 3.0]]})).units.band.threat
 
     assert (guard.camp, guard.march) == pytest.approx((0.8, 1.0))
+
+
+@pytest.mark.parametrize(
+    ('action', 'guarded'), [(camp(), 0.8), (gathering({'forage': 1.0}), 0.8), (moving('east'), 1.0)]
+)
+def test_sticks_guard_a_band_that_gathers_by_its_camp_and_not_one_that_walks(
+    params: Params, action: Action, guarded: float
+) -> None:
+    game = land(params)
+    held = game.band
+    assert held is not None
+    held.stores.add('sticks', 0, 0.3 * held.population)
+    held.restocked()
+    held.action = action
+
+    assert game._guarded(held) == pytest.approx(game._threat(held) * guarded)
 
 
 def test_the_bonuses_are_kept_until_the_goods_change(params: Params) -> None:
@@ -509,6 +525,17 @@ def test_clothes_guard_their_holder_and_the_band_by_the_members_holding_them() -
     assert bands.vulnerable(params, held, 'frailty', 'winter') == pytest.approx([0.0, 0.05 * 0.7])
     guard = bands.applied(params, held).units.band.threat
     assert (guard.camp, guard.march) == pytest.approx((0.95, 0.95))
+
+
+def test_a_spear_guards_its_holder_against_encounters_and_with_clothes_more() -> None:
+    params = load_params()
+    held = holding({}, bands.adults(3))
+    held.members[1].kit.add('spears', 0, 1.0)
+    held.members[2].kit.add('spears', 0, 1.0)
+    held.members[2].kit.add('clothes', 0, 1.0)
+    held.restocked()
+
+    assert bands.vulnerable(params, held, 'encounter') == pytest.approx([0.0, 0.8, 0.64])
 
 
 def test_a_waterskin_carries_water_beside_the_load_of_its_holder(params: Params) -> None:

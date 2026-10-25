@@ -4,6 +4,8 @@ units:
       population: 15
       stores: {water: 15, forage: 15}
       biomes: [grass, forest, floodplain]
+      # A forest beside a meadow, better with stone within 10 cells; a window without one starts on `biomes`.
+      border: {cell: [forest], beside: [grass], stone: [hills, outcrops, mountain], within: 10}
       stage: adult
       # The oldest at the start becomes an elder as the sixth year begins.
       oldest: {years: 12}

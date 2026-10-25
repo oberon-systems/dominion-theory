@@ -83,15 +83,19 @@ run:
 |-----------|-----------------------------------------------------------------|
 | `lands`   | the seeds of the lands: a first and a count, or a list          |
 | `draws`   | the lives played on every land, by every player, under every set of parameters |
-| `until`   | a game ends at that many people, or after that many years, or with the band or the seat |
+| `until`   | a game ends at that many people, or after that many years - a fraction is allowed - or with the band or the seat |
 | `workers` | the processes that play                                         |
-| `players` | the players of [Players](players.md); a player may ask for fewer draws, as a slow model does |
+| `players` | the players of [Players](players.md), each once; a player written as a mapping may ask for fewer draws with `draws`, as a slow model does |
 | `params`  | the sets of parameters, each a preset and overrides over the defaults |
-| `records` | the full records kept per land, player and set, for `make replay` |
+| `records` | the full records kept per land, player and set - those of its first draws - for `make replay` |
 
 A deterministic player on one land and draw plays one game, so `draws`
 is what gives a mind many games. `random` draws its answers from a
-stream of the draw.
+stream of the draw. The file is checked whole before a game is played:
+every set of parameters is loaded and every player made under it, so a
+wrong path of an override or a mind that does not exist stops the run at
+once. `lab/runs/night.yaml` is the example; the local model of the
+example above is not built yet.
 
 ___
 
@@ -101,15 +105,27 @@ ___
 make batch RUN=lab/runs/night.yaml
 ```
 
-The run is played into `lab/<moment>-<name>/`. The report is written as
-games end, so a run cut short still says what it has. A run that is
-started again with `RESUME=lab/<moment>-<name>` plays only the games the
-summary does not hold yet.
+The run is played into `lab/<moment>-<name>/`, the run file copied
+there as `run.yaml`. The report is written as games end, so a run cut
+short still says what it has. A run that is started again with
+`make batch RESUME=lab/<moment>-<name>` plays its `run.yaml` again, only
+the games the summary does not hold yet.
 
-Expected output, a line per finished land and player:
+Every game is played by the runner of the server in step mode, with a
+store of its own that keeps nothing past the game. The seat is asked at
+every council and its answer is submitted as a vote; a tick with no
+council, or with the seat silent, is stepped. A game ends when the band
+reaches `until.people` (`reached`), when `until.years` have passed
+(`cap`), or when the band dies or the seat is banished. Its record is
+written to `DT_RECORDS_DIR` and kept for the first `records` draws; the
+header names the player as the kind of the seat, and the draw. The
+workers are processes started anew; a run of one worker plays in the
+process of the command.
+
+Expected output, a line per finished land, player and set:
 
 ```text
-night: 10 lands, 50 draws, 5 players, 2 sets: 4040 games, 10 workers
+night: 10 lands, 50 draws, 4 players, 2 sets: 4000 games, 4000 to play, 10 workers
 land 1, leader, default: 50 games, 0 reached 150, growth +4.1%, 5 died in the first year
 ```
 

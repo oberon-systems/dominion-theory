@@ -26,7 +26,7 @@ export PRE_COMMIT_HOME := $(CURDIR)/.pre-commit
 
 .DEFAULT_GOAL := shell
 
-.PHONY: help install lint test test-all references run play watch replays replay live lives map planet maps bump major release-rc release clean shell $(PRESETS:%=planet-%) $(PRESETS:%=map-%)
+.PHONY: help install lint test test-all references run play watch replays replay live lives batch map planet maps bump major release-rc release clean shell $(PRESETS:%=planet-%) $(PRESETS:%=map-%)
 
 help:  ## Show the available targets
 	@echo "$(PROJECT)"
@@ -110,6 +110,10 @@ live:  ## Live a game with no player for every seed of SEEDS, a row per year fro
 
 lives:  ## Live the reference seeds of the band anew, rewrite their reference, the tables into LIVES/report.txt
 	$(VENV)/bin/python -m dominion_theory.runner.lives $(LIVED) --out $(LIVES)
+
+# make batch RUN=lab/runs/night.yaml; RESUME=lab/<moment>-<name> plays only what a run cut short lacks
+batch:  ## Play the games of a run file into lab/<moment>-<name>: run.yaml, summary.jsonl and report.txt
+	$(VENV)/bin/python -m dominion_theory.lab.batch $(if $(RESUME),--resume $(RESUME),$(RUN))
 
 # MAP carries options of the tool: make map MAP='--seed 42 --planet --out ../alpha.png'
 map:  ## Draw the first window of a seed, in a window or into a file

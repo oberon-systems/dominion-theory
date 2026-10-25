@@ -253,10 +253,13 @@ ___
 |-----------|--------------------------------------------------------------|--------------------------------|
 | `engine`  | the observation as numbers, the features, a mind's score     | as before                      |
 | `players` | the seat's contract; `leader`, `silent`, `random`, `greedy`; the mind as a player | `engine`, `content` |
-| `lab`     | runs and training in process, summaries, reports, heatmaps, compare; the local model's player; the MCP server | `players`, `runner`, `i18n`, the API as a client |
+| `lab`     | runs and training in process, summaries, reports, heatmaps, compare; the local model's player; the MCP server | `players`, `runner`, `content`, `i18n`, the API as a client |
 
 The text of an observation is built from the numbers with the catalogues,
-in `lab`, so the engine still produces no words. The table of
+in `lab`, so the engine still produces no words. `lab` reads `content`
+to check the sets of parameters of a run file before a game is played,
+and the tally of a game, which counts events of the engine, lives in
+`runner`. The table of
 [the overview](../architecture/overview.md#packages) and the test of the
 imports follow it.
 

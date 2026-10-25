@@ -74,12 +74,13 @@ packages by layer.
 | `i18n`    | message keys and the catalogues                          | `core`                     |
 | `store`   | the game store: fake by default, Valkey when configured  | `core`                     |
 | `db`      | tables, sessions, migrations                             | `core`                     |
-| `runner`  | live games, the two clocks, run records and replay       | `engine`, `store`, `content`|
+| `runner`  | live games, the two clocks, run records and replay; the tally of a game played from the seat | `engine`, `store`, `content`|
 | `api`     | the application, routes, the update stream               | `runner`, `engine`, `db`, `i18n` |
-| `lab`     | runs and training, summaries, heatmaps, the local model's player, the MCP server | `players`, `runner`, `i18n`, the API as a client |
+| `lab`     | runs and training, summaries, heatmaps, the local model's player, the MCP server | `players`, `runner`, `content`, `i18n`, the API as a client |
 | `client`  | the console client: play, watch, step and replay a game  | `i18n`, `runner`           |
 
-Every package may import `core`. `lab` is not built yet, and the
+Every package may import `core`. `lab` plays runs so far; training,
+heatmaps, the local model and the MCP server come in later steps. The
 browser client will live in a top-level `web` directory, not in a Python
 package. The players and the lab are told in [Players](../lab/players.md).
 

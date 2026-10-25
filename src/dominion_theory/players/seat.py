@@ -9,7 +9,7 @@ from typing import Any, Protocol
 import numpy as np
 
 from ..content import Mind, Params
-from ..engine import Game, Observation, Vote, observe
+from ..engine import Command, Game, Observation, Vote, observe
 from ..engine.observation import SEAT, choose
 from ..engine.streams import Streams
 
@@ -115,10 +115,10 @@ def vote(seen: Observation, number: int, seat: str = SEAT) -> Vote | None:
     return None if option is None else Vote(seat, dict(option.proposal))
 
 
-def sit(game: Game, player: Player) -> tuple[int, Vote | None] | None:
+def sit(game: Game, player: Player, submit: Callable[[Command], None] | None = None) -> tuple[int, Vote | None] | None:
     """
-    Asks the player while the council of the day waits for the seat and submits its vote: the answer and the vote,
-    None when no council waits.
+    Asks the player while the council of the day waits for the seat and submits its vote, to the game or by the
+    submit given, as a runner does: the answer and the vote, None when no council waits.
     """
     seen = observe(game)
     if seen is None:
@@ -126,5 +126,5 @@ def sit(game: Game, player: Player) -> tuple[int, Vote | None] | None:
     number = player.answer(seen)
     given = vote(seen, number)
     if given is not None:
-        game.submit(given)
+        (submit or game.submit)(given)
     return number, given

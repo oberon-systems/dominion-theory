@@ -29,8 +29,8 @@ leads to that one.
 |----------------|-----------------------------------------------------------------|
 | `reached`      | the share of games that reached 150 within the run's years      |
 | `time`         | the median day those games reached it                           |
-| `growth`       | the yearly growth of the others, compounded, as the lives do    |
-| `projected`    | the year 150 would be reached at that growth                    |
+| `growth`       | the yearly growth of the others still living, compounded over the years each lived, as the lives do; the median of the games |
+| `projected`    | the year 150 would be reached at that growth from the median start |
 | `early`        | the share of bands dead in their first year                     |
 | `lost`         | the share of games that ended with the band dead or the seat banished |
 
@@ -56,13 +56,19 @@ Every game is a line of `summary.jsonl`, written when it ends.
 | `outcome`    | `reached`, `died`, `banished` or `cap`                         |
 | `day`        | the day it ended                                               |
 | `people`     | at the start, at the end and at most                           |
-| `born`, `died` | in all, and the deaths by cause                              |
-| `councils`   | that sat, settled, backed, turned, outvoted, abstained         |
+| `born`, `died` | in all                                                       |
+| `causes`     | the deaths by cause                                            |
+| `councils`   | that sat - waited for the seat -, settled without it, backed the leader, turned, outvoted, abstained |
+| `occasions`  | the councils that sat or settled, by what called them          |
 | `verdicts`   | worked, even, failed                                           |
 | `status`     | at the end and at its lowest                                   |
 | `skills`     | the day each skill was learned                                 |
-| `why`        | for the local model, its answers in words, by council          |
+| `why`        | for the local model, its answers in words, by council; not built yet |
+| `record`     | the name of its record when it was kept, else null             |
 | `seconds`    | how long the game took                                         |
+
+The counts are the tally of the game, `runner/tally.py`, which listens to
+the updates of its runner.
 
 ___
 
@@ -73,15 +79,22 @@ the same per land, so a land that kills every player stands out. The
 numbers below show the shape of the table only; no run has made them.
 
 ```text
-default          games  reached  time  growth  projected  early  lost  turned  worked
-leader             1000     0.0%     -   +4.2%       52    9.8%  31%      0%       -
-greedy             1000     0.4%  6120   +5.1%       44    9.1%  28%     23%     61%
-linear_v1          1000     2.1%  5480   +6.3%       37    8.7%  24%     18%     68%
-qwen2.5:7b           20     0.0%     -   +4.9%       46   10.0%  30%     27%     55%
+default    games  reached  time  growth  projected  early   lost  turned  worked   gain  gain-growth
+leader      1000     0.0%     -   +4.2%         52   9.8%  31.0%    0.0%       -      -            -
+greedy      1000     0.4%  6120   +5.1%         44   9.1%  28.0%   23.0%   61.0%  +0.4%        +0.9%
+linear_v1   1000     2.1%  5480   +6.3%         37   8.7%  24.0%   18.0%   68.0%  +2.1%        +2.1%
 ```
 
-The skills learned, the causes of death and the occasions of the
-councils follow as tables of their own, a share of the games each.
+`time` is a day of the game, `projected` a year. `turned` is a share of
+the councils that sat, `worked` a share of the verdicts. `gain` and
+`gain-growth` are those of [Does the voice matter](#does-the-voice-matter),
+taken on the lands and draws `leader` played too; `-` where there is
+nothing to measure.
+
+The same table follows by land, a row per land and player. Then three
+tables with a column per player: the skills learned, as a share of the
+games; the deaths by cause and the councils by occasion, as the mean of
+a game.
 
 ___
 

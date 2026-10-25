@@ -1,0 +1,14 @@
+run:
+  lands: {first: 1, count: 10}
+  draws: 50
+  until: {people: 150, years: 18}
+  workers: 10
+  players:
+    - leader
+    - greedy
+    - random
+    - {mind: linear_v0}
+  params:
+    default: {}
+    richer-forest: {overrides: {biomes.forest.eras.band.properties.food.base: 1.0}}
+  records: 2

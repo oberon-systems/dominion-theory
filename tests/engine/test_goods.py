@@ -614,11 +614,39 @@ def test_dried_food_is_eaten_after_the_rest_and_a_unit_feeds_its_quality(params:
     assert held.held('dried') == pytest.approx(20.0 - (10.0 - 4.0) / 0.6)
 
 
-def test_drying_takes_only_the_forage_over_a_day_of_the_band_and_makes_it_lighter(params: Params) -> None:
-    held = holding({'forage': [[0.0, 16.0]]})
-    held.lore['known'].append('drying')
+@pytest.mark.parametrize(
+    ('season', 'known', 'dried'), [('summer', True, 6.0), ('winter', True, 0.0), ('summer', False, 0.0)]
+)
+def test_forage_over_tomorrows_ration_dries_by_itself_in_the_warm_seasons_of_a_band_that_knows_how(
+    params: Params, season: str, known: bool, dried: float
+) -> None:
+    held = holding({'forage': [[0.0, 6.0], [1.0, 10.0]]})
+    held.season = season
+    if known:
+        held.lore['known'].append('drying')
 
-    bands.make(params, held, 1)
+    bands.dry(params, held, 2)
 
-    assert held.held('forage') == pytest.approx(10.0)
-    assert held.stores['dried'] == [[1.0, 3.0, 0.6]]
+    assert (held.held('dried'), held.held('forage')) == pytest.approx((dried, 16.0 - dried))
+    assert held.stores.get('dried', []) == ([[2.0, 6.0, params.units.band.drying.keeps]] if dried else [])
+
+
+def test_nothing_kept_in_a_built_winter_camp_weighs_and_a_band_leaving_it_drops_spare_goods_before_food(
+    params: Params,
+) -> None:
+    held = holding({'dried': [[0.0, 40.0], [5.0, 40.0]], 'forage': [[5.0, 10.0]], 'sticks': [[0.0, 2.0]]})
+    held.members[0].kit.add('spears', 0, 1.0)
+    held.camp = {'x': held.x, 'y': held.y, 'built': 1.0}
+    rations = sum(
+        10 * rate * params.resources[name].weight_kg for name, rate in params.units.band.consumption_per_day.items()
+    )
+
+    camped = bands.weight(params, held)
+    bands.leave(params, held)
+
+    assert camped == 0.0
+    assert held.camp is None
+    assert (held.held('sticks'), held.members[0].kit.held('spears')) == (0.0, 1.0)
+    assert held.held('forage') < 10.0
+    assert held.stores['dried'][-1] == [5.0, 40.0]
+    assert bands.weight(params, held) + rations == pytest.approx(bands.carry(params, held))

@@ -25,15 +25,20 @@ def test_taking_empties_the_oldest_lots_first_and_gives_what_is_missing() -> Non
     assert stock == {'forage': [], 'water': []}
 
 
-def test_lots_older_than_their_resource_keeps_spoil_and_age_slower_at_a_lower_pace() -> None:
+def test_lots_older_than_their_resource_keeps_spoil_and_a_slower_pace_counts_only_its_days() -> None:
+    keeps = {'forage': 3, 'water': 5}
     stock = Stock({'forage': [[0.0, 1.0], [2.0, 1.0]], 'water': [[0.0, 1.0]]})
     slow = Stock.read(stock.plain())
 
-    stock.spoil(4, {'forage': 3, 'water': 5})
-    slow.spoil(4, {'forage': 3, 'water': 5}, 0.5)
+    stock.spoil(4, keeps)
+    for day in (1, 2, 3, 4):
+        slow.spoil(day, keeps, 0.5)
+    halved = slow.plain()
+    slow.spoil(5, keeps)
 
     assert stock.plain() == {'forage': [[2.0, 1.0]], 'water': [[0.0, 1.0]]}
-    assert slow.plain() == {'forage': [[0.0, 1.0], [2.0, 1.0]], 'water': [[0.0, 1.0]]}
+    assert halved == {'forage': [[2.0, 1.0], [4.0, 1.0]], 'water': [[2.0, 1.0]]}
+    assert slow.plain() == {'forage': [[4.0, 1.0]], 'water': [[2.0, 1.0]]}
 
 
 def test_weight_and_amounts_go_by_the_resource() -> None:

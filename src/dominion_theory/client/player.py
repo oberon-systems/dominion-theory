@@ -177,7 +177,7 @@ class Player:
             return
         known = session.known()
         if known is not None and session.place is not None:
-            yield from pictured(known, session.colours, session.place)
+            yield from pictured(known, session.colours, session.place, camps=session.camps)
             if self._debug and session.band is not None:
                 session.stocked()
                 yield click.style(session.watched.said(session.band), dim=True)

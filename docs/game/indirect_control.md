@@ -159,6 +159,37 @@ winter = weights.move * (worth(own and its reach in winter, food * fed, threat *
 go     = weights.move * pull
 ```
 
+A winter camp is never offered on land too dangerous for it: when the
+threat of the band's cell, with the dread of the band, times what its
+guard leaves over a day, reaches `winter_camp.unsafe`, 0.5. Mountains,
+swamps and shallows are never a camp; a forest is, until encounters that
+hurt the band there make it one no more. A player who names a camp there
+is refused with `refused-unsafe-land`.
+
+### Survival before the votes
+
+Before the votes are laid, hunger and thirst take options off the table,
+and no score, bonus or distance outweighs them. Three games, the last
+1d862e91, starved beside fresher land because a weight always lost to
+another.
+
+When the food or the water of the band ran out and its people go short -
+starvation or thirst holds - staying and the winter camp go off the
+table. Of the ways off
+its land, those to the land that gives the most food and water by the
+needs stay, the nearest of them; the threat is not weighed. A band whose
+own land gives as much as any of them stays on it to gather. A band that
+ranges from a winter camp gathers its reach already, so it takes only
+the ways beyond the reach; where it knows nothing there, the unknown.
+
+```text
+gives = hunger * food + thirst * water, of the land of the option
+```
+
+The votes are laid over what is left. A place the player names is
+weighed the same way, so a place the rule took off gets no vote of the
+others.
+
 A camp is valued by the winter it is for. Every cell of the camp and its
 reach is expected as the winter will make it: of each property, the
 share of the full value the band saw there, laid over what the winter
@@ -170,10 +201,17 @@ what is taken over the units a full cell holds. A camp on the edge of a
 meadow that feeds the band ten days of thirty is worth a third of its
 food.
 
-A winter camp is offered in the seasons of
-`units.band.winter_camp.offered`, the winter, and in its `before` days
-ahead of them, the last 5 days of the autumn, to a band that knows the
-skill `wintering`: from its second winter on. The camp is worth the best
+A winter camp is offered on any day to a band that knows the skill
+`wintering`: from its second winter on. It wins only in its season, the
+seasons of `units.band.winter_camp.offered`, the winter, and the
+`before` days ahead of them, the last 10 days of the autumn: only then
+does a built camp add its keep to staying, and only in the winter does
+the band see the threat of its camp halved. Out of its season the camp
+is scored by the winter its reach would feed, which loses to the land
+of the summer. In its season the old camp nearest the band, one it built
+before and remembers, is named as a place to go; a band bound to winter
+on such a camp puts it in order in an evening instead of building it
+anew. The camp is worth the best
 food and water within its reach, so the others want to leave only once
 the cells around are stripped too. Its other effects - less eaten,
 slower spoiling, a deeper rest - are no part of the worth of a cell, so
@@ -252,8 +290,8 @@ A refused `vote` costs nothing. It is refused for one of six reasons.
 | `refused-already-voted`     | the seat has answered this council                 |
 | `refused-no-such-place`     | the place is the band's own, lies outside the window, cannot be entered, or no route leads there |
 | `refused-seat-banished`     | the player is no longer in the band                |
-| `refused-out-of-season`     | a winter camp is named while none is offered       |
 | `refused-not-learned`       | the band has not learned what the answer asks: a place no option names without `orientation`, a winter camp without `wintering` |
+| `refused-unsafe-land`       | a winter camp is named on land too dangerous for it, see [The table of votes](#the-table-of-votes) |
 
 Two skills gate the answer, as [Skills](skills.md#the-council) tells: a
 band that has not learned `orientation` is sent only where the others

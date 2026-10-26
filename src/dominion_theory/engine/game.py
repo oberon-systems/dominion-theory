@@ -50,10 +50,10 @@ from .events import (
     REFUSED_NO_COUNCIL,
     REFUSED_NO_SUCH_PLACE,
     REFUSED_NOT_LEARNED,
-    REFUSED_OUT_OF_SEASON,
     REFUSED_SEAT_BANISHED,
     REFUSED_UNKNOWN_COMMAND,
     REFUSED_UNKNOWN_SEAT,
+    REFUSED_UNSAFE,
     SEAT_BANISHED,
     SEAT_BLAMED,
     SEAT_PRAISED,
@@ -65,7 +65,7 @@ from .events import (
 from .hashing import digest
 from .streams import Streams
 
-SNAPSHOT_FORMAT = 30
+SNAPSHOT_FORMAT = 31
 DIED = 'died'
 BANISHED = 'banished'
 VOTED = 'voted'
@@ -345,11 +345,19 @@ class Game:
         return self.clock.parts // self.params.time.parts_per_day
 
     @property
+    def camping(self) -> bool:
+        """
+        Whether the band knows how to winter, and so may make a winter camp on any day.
+        """
+        return self._opened(lore.WINTER_CAMP)
+
+    @property
     def wintering(self) -> bool:
         """
-        Whether a winter camp is offered today: in its season, to a band that knows how to winter.
+        Whether today is of the season of a winter camp, for a band that knows how to winter: only then do the
+        others vote for a camp, and a built one is worth its keep to them.
         """
-        return council.offered(self.params, self.day) and self._opened(lore.WINTER_CAMP)
+        return council.offered(self.params, self.day) and self.camping
 
     def _opened(self, gate: str) -> bool:
         return self.band is not None and lore.opened(self.params, self.band, lore.PROPOSALS, gate)
@@ -543,10 +551,10 @@ class Game:
         named = any(entry['proposal'] == answer for entry in self.council['table'])
         if answer['kind'] == GO and not named and not self._opened(lore.GO_PLACE):
             return REFUSED_NOT_LEARNED
-        if answer['kind'] == WINTER and not council.offered(self.params, self.day):
-            return REFUSED_OUT_OF_SEASON
-        if answer['kind'] == WINTER and not self.wintering:
+        if answer['kind'] == WINTER and not self.camping:
             return REFUSED_NOT_LEARNED
+        if answer['kind'] == WINTER and council.unsafe(self.params, self.band):
+            return REFUSED_UNSAFE
         return None
 
     def _way(self, band: Band, to: Place) -> list[list[int]] | None:
@@ -582,8 +590,12 @@ class Game:
         if band is None or self.over:
             return
         standing = None if band.intent is None else band.intent['proposal']
-        extra = () if standing is None else (standing,)
-        laid = council.table(self.params, band, self.era, self.inside, extra, self.wintering)
+        extra: tuple[dict[str, Any], ...] = () if standing is None else (standing,)
+        old = [at for at in band.camps if at != band.place and self.inside(*at)]
+        if self.wintering and old:
+            # In the season of the camp the band names the old camp nearest it as a place to go.
+            extra += (council.going(min(old, key=lambda at: (decisions.far(band.place, at), at))),)
+        laid = council.table(self.params, band, self.era, self.inside, extra, self.wintering, self.wintering)
         occasion = self._occasion(band, laid)
         if occasion is None:
             return
@@ -609,7 +621,7 @@ class Game:
             'table': laid,
             'occasion': occasion,
             'voice': spoken,
-            'winter': self.wintering,
+            'winter': self.camping,
             'place': self._opened(lore.GO_PLACE),
         }
         self._totals['councils'] += 1
@@ -661,7 +673,7 @@ class Game:
         laid = sitting['table']
         if all(entry['proposal'] != answer for entry in laid):
             # A point the others did not name is weighed by them like their own, and the votes are laid again.
-            laid = council.table(self.params, band, self.era, self.inside, (answer,), self.wintering)
+            laid = council.table(self.params, band, self.era, self.inside, (answer,), self.wintering, self.wintering)
         winner, yes = council.decide(laid, answer, spoken)
         self.answered['tomorrow'] = VOTED if winner == answer else None
         self._bind(band, winner)
@@ -681,7 +693,7 @@ class Game:
                 'key': said,
                 'needs': decisions.needs(self.params, band),
                 'expected': council.expected(
-                    self.params, band, self.era, self.inside, sitting['leader'], self.wintering
+                    self.params, band, self.era, self.inside, sitting['leader'], self.wintering, self.wintering
                 ),
                 'before': council.reached(self.params, band, self.era, decisions.needs(self.params, band), band.unease),
                 'unease': band.unease,
@@ -697,6 +709,7 @@ class Game:
         if band is None:
             return
         if tick.sat or self.date.part in self.params.units.band.camp_parts:
+            bands.mend(band)
             camped = decisions.Scored(bands.camp(), 0.0, decisions.REST)
             band.wander, band.reason = None, decisions.reason(camped)
             tick.action = camped.action
@@ -875,6 +888,7 @@ class Game:
         people = self.streams['people']
         feeds = bands.fed(self.params, band)
         sickened = bands.eat(self.params, band, people).sickened
+        bands.dry(self.params, band, self.day)
         if sickened:
             tick.events.append(Event(PEOPLE_SICKENED, {'count': sickened, 'cause': bands.MEAT}))
         began, ended, lost = bands.suffer(self.params, band, self.day)
@@ -936,10 +950,14 @@ class Game:
 
     def _thaw(self) -> None:
         """
-        A winter camp is left with the first season that does not offer it.
+        The decision to winter ends with the first season that does not offer a camp; the camp itself stands
+        until the band leaves its cell.
         """
-        if self.band is not None and self.band.camp is not None and not self.wintering:
-            self.band.camp = None
+        band = self.band
+        if band is None or self.wintering:
+            return
+        if band.intent is not None and band.intent['proposal']['kind'] == WINTER:
+            band.intent = None
 
     def _reseason(self, tick: _Tick, was: str) -> None:
         band = self.band

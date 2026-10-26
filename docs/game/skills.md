@@ -68,7 +68,7 @@ met, not from the start.
 | `herbs`       | 40 days in forest, or 40 in grass or floodplain, or 15 in swamp | -                        | gathering `herbs` and `cords` |
 | `spears`      | sticks, stones and cords held on the same day             | `stone_tools`, `sticks`, `herbs` | making `spears` and `clothes`, the role `hunter` |
 | `waterskins`  | hides and cords held on the same day                      | `spears`, `herbs`        | making `waterskins` |
-| `drying`      | `herbs` known and 15 days of gathering food in summer     | -                        | making `dried` |
+| `drying`      | `herbs` known and 15 days of gathering food in summer     | -                        | `dried` of the forage left over |
 | `slings`      | 10 days the children outnumber what the nannies care for  | `spears`, `herbs`        | making `slings` |
 | `midwifery`   | `herbs` known and 5 births lived in the band              | -                        | the oldest woman attends births |
 
@@ -182,7 +182,7 @@ quality, a keep and a recipe.
 | `slings`     | goods | personal | 1 kg   | -                  | 100 days carried                           | its materials'  | 1 a nanny           | 1 hide, 2 cords            |
 | `waterskins` | goods | personal | 0.5 kg | 6 months           | -                                          | its materials'  | 1 an adult or elder | 1 hide, 1 cord             |
 | `meat`       | food  | common   | 1 kg   | 2 days             | -                                          | -               | -                   | hunted                     |
-| `dried`      | food  | common   | 0.5 kg | 2 months           | -                                          | its makers'     | 5 a head            | 2 forage                   |
+| `dried`      | food  | common   | 0.5 kg | 4 months           | -                                          | 0.7             | -                   | dries of forage            |
 
 What each gives is in [Bonuses](#bonuses).
 
@@ -191,7 +191,7 @@ What each gives is in [Bonuses](#bonuses).
   sickens. A food marked `reserve`, `dried`, is eaten after every other,
   so the stores dried for the winter are not eaten first for being
   older, and a unit of a food with a quality feeds that share of a
-  ration: dried by novices feeds 0.6.
+  ration: dried forage feeds 0.7.
 - **Held** - `common` goods stay in the band's stores; `personal` goods
   are handed to a member, see [Handing out](#handing-out).
 - **Spoils** - a time, as for food and water: a lot is lost when it is
@@ -348,9 +348,10 @@ below its keep is made while the materials of its recipe are held.
   evening and 3 in the night. A maker is a member of a stage that
   gathers, an adult or an elder, whatever its role: the camp parts are
   no one's work, so a nanny or an elder makes as well.
-- A food is a material only above the band's ration of a day, so
-  drying never eats the supper: a band of 10 holding 16 forage dries 6
-  of it into 3 dried.
+- A food is a material only above the band's ration of a day.
+- `dried` is not made: the forage left over tomorrow's ration dries by
+  itself at the end of a day out of the winter, for a band that knows
+  `drying`; see [Band](../units/band.md#the-reserve-for-the-winter).
 - The materials are taken from the oldest lots. A made good takes the
   mean quality of its materials, 1 for those without one, times what the
   makers' mastery leaves of it; see [Mastery](#mastery). A spear of a
@@ -689,7 +690,7 @@ resources:
   water: {kind: water, property: water, weight_kg: 1.0, spoils: {days: 5}}
   forage: {kind: food, property: food, weight_kg: 1.0, spoils: {days: 3}}
   meat: {kind: food, weight_kg: 1.0, spoils: {days: 2}, sickens: 0.03}
-  dried: {kind: food, weight_kg: 0.5, spoils: {months: 2}, reserve: true, keep: {per: head, amount: 5.0}, made: {forage: 2.0}}
+  dried: {kind: food, weight_kg: 0.5, spoils: {months: 4}, reserve: true}
   stones:
     kind: goods
     property: stone

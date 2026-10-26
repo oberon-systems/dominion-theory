@@ -137,8 +137,8 @@ Reasons a vote may be refused, checked in this order:
 | `refused-no-council`         | no council sits now, or the seat is empty    |
 | `refused-already-voted`      | the seat has answered this council           |
 | `refused-no-such-place`      | the place is the band's own, outside the window, cannot be entered, or has no route |
-| `refused-out-of-season`      | a winter camp is named while none is offered |
 | `refused-not-learned`        | a place no option names, without the skill `orientation`, or a winter camp without `wintering` |
+| `refused-unsafe-land`        | a winter camp is named on land whose threat, with the band's dread and guard, reaches `winter_camp.unsafe` |
 
 The rules behind them are in
 [Indirect control](../game/indirect_control.md#the-players-answer).

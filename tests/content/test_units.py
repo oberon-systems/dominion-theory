@@ -35,7 +35,7 @@ def test_resources_are_those_of_their_documents() -> None:
         'cords': ('goods', 'plants', 0.1, {'months': 6}, {}),
         'litters': ('goods', None, 4.0, None, {'pulled': 70}),
         'meat': ('food', None, 1.0, {'days': 2}, {}),
-        'dried': ('food', None, 0.5, {'months': 2}, {}),
+        'dried': ('food', None, 0.5, {'months': 4}, {}),
         'spears': ('goods', None, 1.5, None, {'hunts': 80}),
         'hides': ('goods', None, 2.0, {'months': 12}, {}),
         'clothes': ('goods', None, 2.0, {'months': 12}, {}),
@@ -106,12 +106,13 @@ def test_band_is_the_one_of_its_document() -> None:
         'elder': {'food': 1.5, 'water': 1.5, 'grows': False},
     }
     assert (band.states.tiredness.begins, band.states.tiredness.ends) == (0.8, 0.3)
-    assert (band.sight, band.memory.model_dump()) == (2, {'days': 20})
+    assert (band.sight, band.memory is not None and band.memory.model_dump()) == (2, {'years': 1})
     assert band.camp_parts == ('evening', 'night')
     assert band.making.model_dump() == {'per_part': 1.0, 'hands': 3, 'mastery': {'half': 10.0, 'floor': 0.6}}
     assert band.shelter.model_dump() == {'encounter': 0.5, 'frailty': 0.5}
     assert band.winter_camp.model_dump() == {
-        'offered': {'seasons': ('winter',), 'before': {'days': 5}},
+        'offered': {'seasons': ('winter',), 'before': {'days': 10}},
+        'unsafe': 0.5,
         'build': {'days': 2},
         'reach': 1,
         'afar': 1.0,
@@ -479,6 +480,12 @@ def test_a_winter_camp_is_offered_in_seasons_of_the_year_and_takes_some_time_to_
         'path': f'{BAND}.winter_camp.offered.seasons',
         'found': 'monsoon',
         'expected': 'one of spring, summer, autumn, winter',
+    }
+    assert refused({f'{BAND}.drying.seasons': ['monsoon']})['path'] == f'{BAND}.drying.seasons'
+    assert refused({f'{BAND}.drying.into': 'forage'}) == {
+        'path': f'{BAND}.drying.into',
+        'found': 'forage',
+        'expected': 'a reserve of food',
     }
     assert refused({f'{BAND}.winter_camp.build': {'days': 0}})['path'] == f'{BAND}.winter_camp'
 

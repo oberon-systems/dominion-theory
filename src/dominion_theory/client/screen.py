@@ -412,7 +412,9 @@ class Screen(App[str | None]):
         if session.date is not None:
             self.query_one('#date', Static).update(Text(render(DATE, session.date, self._lang), 'bold'))
         if self._known is not None and session.place is not None:
-            drawn = '\n'.join(pictured(self._known, session.colours, session.place, self._lit, self._cursor))
+            drawn = '\n'.join(
+                pictured(self._known, session.colours, session.place, self._lit, self._cursor, session.camps)
+            )
             self.query_one('#map', Static).update(Text.from_ansi(drawn))
         self.query_one('#band', Static).update(self._band())
         detail = self.query_one('#detail', Static)

@@ -81,8 +81,9 @@ units:
       birth:
         pregnancy: {months: 3}
         pause: {min: {months: 1}, max: {months: 2}}
+        # Conceived at the full chance with food in the stores for a winter, and less by the share short of it.
         conceive_per_day: 0.05
-        days: 2.0
+        stores: {months: 3}
         child_survives: 0.5
         mother_dies: 0.05
         # Once the band knows midwifery its oldest woman attends a birth, better with a herb spent on it.
@@ -118,7 +119,7 @@ units:
     states:
       tiredness: {begins: 0.8, ends: 0.3}
     sight: 2
-    memory: {days: 20}
+    memory: {years: 1}
     dread: {encounter: 0.3, lasts: {days: 20}}
     unease: {gain: 0.1, fade: 0.2}
     route: {margin: 4, threat: 2.0, hunger: 1.0, thirst: 1.0}
@@ -126,8 +127,10 @@ units:
     # What the guard of the band leaves of the threat it meets, in camp and on the march.
     threat: {camp: 1.0, march: 1.0}
     winter_camp:
-      # Offered through the winter and the last five days of the autumn, enough to build before it.
-      offered: {seasons: [winter], before: {days: 5}}
+      # Offered through the winter and the second half of the autumn, so a camp can be stocked before the cold.
+      offered: {seasons: [winter], before: {days: 10}}
+      # The threat, with dread and the guard, at which a camp is not offered: no camp in the mountains.
+      unsafe: 0.5
       build: {days: 2}
       # Gathered from the own cell and the cells around it, a cell away giving afar of a gathering.
       reach: 1
@@ -138,6 +141,8 @@ units:
       spoil: 0.5
       consumption: 0.8
       rest: 1.5
+    # Forage left over tomorrow's ration dries by itself at the end of a day, a unit of it feeding 0.7 of a ration.
+    drying: {of: forage, into: dried, keeps: 0.7, seasons: [spring, summer, autumn]}
     decisions:
       levels:
         sated: {days: 2, need: 0.1}

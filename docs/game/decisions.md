@@ -77,7 +77,10 @@ calm = 1 - max(hunger, thirst)
 ```
 
 A calm band thinks of growth: of land that is safe to raise children on.
-A hungry one thinks of food and fears nothing.
+A hungry one thinks of food and fears nothing: once hunger or thirst
+reaches `roaming.hunger`, less than a day in the stores, the threat is
+no part of the worth of any cell. Before game 1d862e91 the fear only
+shrank with hunger, so a band still weighed a fifth of it at that level.
 
 ___
 
@@ -88,7 +91,7 @@ to stand there now".
 
 ```text
 worth = hunger * food + thirst * water + sum(pull of a good lacking * its property)
-      - weights.safety * calm * (1 + unease) * guard * threat
+      - weights.safety * calm * (1 + unease) * guard * threat     (0 when hunger or thirst reaches roaming.hunger)
 ```
 
 A good the band has learned to gather and lacks of its keep pulls the
@@ -223,7 +226,7 @@ tiredness ends.
 
 | Intent            | Options left                                              |
 |-------------------|-----------------------------------------------------------|
-| `go` to a place   | a move or a roam to the next cell of the route, a gathering, or a camp |
+| `go` to a place   | a move or a roam to the next cell of the route, a gathering, or a camp; a starving or thirsting band only moves or roams |
 | `stay-and-gather` | gathering of any resource, or a camp                      |
 | `winter-camp`     | a build until the camp stands, then as `stay-and-gather`; a starving or thirsting band gathers first |
 
@@ -233,7 +236,9 @@ gain, not `roaming.speed` of it: the intent names the way, not the pace.
 The cell it stands on is weighed against that without the goods it
 lacks, which its gathering weighs already, so a band short of herbs
 does not leave a go for every meadow. The band roams wherever the cell ahead feeds it, walks over bare land
-and stops to gather only where that is worth more than going on.
+and stops to gather only where that is worth more than going on. A band that starves or thirsts does not stop:
+it goes for food or water and forages only on the way. Before this, the band of seed 4 in the lives sat on a
+stripped winter cell for 25 days, gathering it again every day instead of walking two cells.
 
 ### The route
 
@@ -315,6 +320,8 @@ units:
     route: {margin: 4, threat: 2.0, hunger: 1.0, thirst: 1.0}
 ```
 
+A band short of food or water leaves its land whatever the scores say:
+see [Survival before the votes](indirect_control.md#survival-before-the-votes).
 `levels` are read from
 the most days down; their days must differ, one of them must be 0, and
 every need lies between 0 and 1. Every name of `unknown` is a property

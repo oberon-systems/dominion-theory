@@ -97,17 +97,23 @@ def key(proposal: Proposal | None, band: Band | None = None) -> str:
 
 
 def score(
-    params: Params, band: Band, era: str, inside: Inside, extra: Sequence[Proposal] = (), wintering: bool = False
+    params: Params,
+    band: Band,
+    era: str,
+    inside: Inside,
+    extra: Sequence[Proposal] = (),
+    wintering: bool = False,
+    cold: bool = True,
 ) -> list[tuple[Proposal, float]]:
     """
     What a day of every proposal is worth to the band, in the fixed order: staying on the land it stands on,
-    a winter camp on it while one is offered, a go to the best land it knows each way clockwise from the north,
-    a target named in the same way once, then every extra one it can reach. Staying in a built camp is worth
-    its kept more while its reach still feeds the band a day.
+    a winter camp on it to a band that knows how, a go to the best land it knows each way clockwise from the
+    north, a target named in the same way once, then every extra one it can reach. In the season of the camp,
+    cold, staying in a built camp is worth its kept more while its reach still feeds the band a day.
     """
     weights = params.units.band.decisions.weights
     here = decisions.here(params, band, decisions.needs(params, band), era)
-    sheltered = bands.sheltered(band) and not decisions.stripped(params, band, era)
+    sheltered = cold and bands.sheltered(band) and not decisions.stripped(params, band, era)
     kept = params.units.band.winter_camp.kept if sheltered else 0.0
     found: dict[Place | None, float] = {None: weights.move * (here + kept)}
     for held in decisions.options(params, band, era, allowed={bands.MOVE}, walking=True):
@@ -120,9 +126,50 @@ def score(
             if aimed is not None:
                 found[target(proposal)] = aimed
     days = [(STAYING if to is None else going(to), held) for to, held in found.items()]
-    if wintering:
+    if wintering and not unsafe(params, band):
         days.insert(1, (WINTERING, weights.move * (decisions.wintering(params, band, era) + kept)))
     return days
+
+
+def place(proposal: Proposal, band: Band) -> Place:
+    """
+    The land a proposal keeps the band on: the target of a go, else where it stands.
+    """
+    return target(proposal) if proposal['kind'] == GO else band.place
+
+
+def unsafe(params: Params, band: Band) -> bool:
+    """
+    Whether the land the band stands on is too dangerous for a winter camp: its threat with the dread of the band,
+    times what the guard of the band leaves of it over a day, reaches `winter_camp.unsafe`.
+    """
+    cell = band.known.get(band.place)
+    threat = 0.0 if cell is None else bands.perceived(band, band.place, cell.get(decisions.THREAT, 0.0))
+    return threat * decisions.guarded(params, band) >= params.units.band.winter_camp.unsafe
+
+
+def survived(params: Params, band: Band, era: str, days: list[tuple[Proposal, float]]) -> list[tuple[Proposal, float]]:
+    """
+    What survival leaves of the days, before any score is weighed: a band whose food or water ran out and whose
+    people go short keeps only the ways off its land - off the reach of a winter camp it ranges from, where it
+    gathers already - to the land that gives most of what it lacks, the nearest of them; on land that gives as
+    much as any of them it stays to gather.
+    """
+    if bands.STARVATION not in band.states and bands.THIRST not in band.states:
+        return days
+    wanted = decisions.needs(params, band)
+    reach = params.units.band.winter_camp.reach if bands.ranging(band) else 0
+    away = [held for held in days if decisions.far(band.place, place(held[0], band)) > reach]
+    if not away:
+        return days
+    lands = [decisions.looks(params, band, era, place(proposal, band)) or {} for proposal, _ in away]
+    gives = [decisions.feeds(land, wanted) for land in lands]
+    own = decisions.feeds(decisions.seen(params, band, band.place, era) or {}, wanted)
+    if own >= max(gives) - bands.NOTHING:
+        return days
+    fed = [held for held, given in zip(away, gives, strict=True) if given >= max(gives) - bands.NOTHING]
+    far = [decisions.far(band.place, place(proposal, band)) for proposal, _ in fed]
+    return [held for held, cells in zip(fed, far, strict=True) if cells == min(far)]
 
 
 def _aimed(params: Params, band: Band, era: str, inside: Inside, to: Place) -> float | None:
@@ -177,13 +224,19 @@ def votes(scores: list[float], members: int, spread: float) -> list[int]:
 
 
 def table(
-    params: Params, band: Band, era: str, inside: Inside, extra: Sequence[Proposal] = (), wintering: bool = False
+    params: Params,
+    band: Band,
+    era: str,
+    inside: Inside,
+    extra: Sequence[Proposal] = (),
+    wintering: bool = False,
+    cold: bool = True,
 ) -> Table:
     """
-    How the others' votes lie over the options the band can take, each with its words and the band's score of a
-    day of it; options without a vote are left out.
+    How the others' votes lie over the options survival leaves the band, each with its words and the band's score
+    of a day of it; options without a vote are left out.
     """
-    days = score(params, band, era, inside, extra, wintering)
+    days = survived(params, band, era, score(params, band, era, inside, extra, wintering, cold))
     given = votes([held for _, held in days], voters(params, band) - 1, params.council.spread)
     laid = [
         {'proposal': proposal, 'key': key(proposal, band), 'votes': held, 'score': round(day, 4)}
@@ -240,12 +293,18 @@ def worth(params: Params, band: Band, era: str, wanted: dict[str, float], unease
 
 
 def expected(
-    params: Params, band: Band, era: str, inside: Inside, leader: Proposal | None, wintering: bool = False
+    params: Params,
+    band: Band,
+    era: str,
+    inside: Inside,
+    leader: Proposal | None,
+    wintering: bool = False,
+    cold: bool = True,
 ) -> float:
     """
     The day the leader promised, or staying when nobody voted.
     """
-    days = score(params, band, era, inside, () if leader is None else (leader,), wintering)
+    days = score(params, band, era, inside, () if leader is None else (leader,), wintering, cold)
     return next((held for proposal, held in days if proposal == leader), days[0][1])
 
 

@@ -216,6 +216,7 @@ class Unit(BaseModel):
     route: list[Spot]
     roles: dict[str, int]
     camp: Site | None
+    camps: list[Spot]
     reason: Reason | None
     lore: list[str]
 

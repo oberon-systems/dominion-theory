@@ -117,8 +117,8 @@ def wellbeing(params: Params, band: Band, threat: float) -> float:
 def seen(params: Params, band: Band, at: Place, era: str, ranged: bool = True) -> dict[str, Any] | None:
     """
     A known cell as the band sees it: its threat with the dread of what happened there and lowered by a winter
-    camp built on it, and what a known shore beside it gives where that is more, since a band gathers from a
-    shore it stands by; the cell of a band that ranges gives what its reach does.
+    camp built on it in the seasons of the camp, and what a known shore beside it gives where that is more, since
+    a band gathers from a shore it stands by; the cell of a band that ranges gives what its reach does.
     """
     cell = band.known.get(at)
     if cell is None:
@@ -137,8 +137,9 @@ def seen(params: Params, band: Band, at: Place, era: str, ranged: bool = True) -
         held = _ranged(params, band, held, era)
     if at in band.dread:
         held = {**held, THREAT: perceived(band, at, cell.get(THREAT, 0.0))}
-    if at == band.place and sheltered(band):
-        held = {**held, THREAT: held.get(THREAT, 0.0) * params.units.band.winter_camp.threat}
+    camp = params.units.band.winter_camp
+    if at == band.place and sheltered(band) and band.season in camp.offered.seasons:
+        held = {**held, THREAT: held.get(THREAT, 0.0) * camp.threat}
     return held
 
 
@@ -335,14 +336,22 @@ def worth(
     """
     How good it would be to stand on a known cell now, and the need that says so loudest: its food and water by
     the needs, the goods it gives that the band lacks by their pull, less the threat its guard leaves, which
-    unease makes a calm band fear more.
+    unease makes a calm band fear more. A band that hunger or thirst press fears nothing.
     """
     parts = {need: wanted[need] * cell.get(prop, 0.0) for prop, (need, _) in NEEDS.items()}
     lacked = lacking(params, band, wanted) if goods else {}
     parts[GOODS] = sum(pull * cell.get(params.resources[name].land, 0.0) for name, pull in lacked.items())
     loudest = max(parts, key=lambda need: parts[need])
-    feared = calm(wanted) * (1.0 + unease) * guarded(params, band) * cell.get(THREAT, 0.0)
+    hungry = max(wanted.values()) >= params.units.band.roaming.hunger
+    feared = 0.0 if hungry else calm(wanted) * (1.0 + unease) * guarded(params, band) * cell.get(THREAT, 0.0)
     return sum(parts.values()) - params.units.band.decisions.weights.safety * feared, loudest
+
+
+def feeds(cell: dict[str, Any], wanted: dict[str, float]) -> float:
+    """
+    What a cell gives of food and water by the needs, all else aside.
+    """
+    return float(sum(wanted[need] * cell.get(prop, 0.0) for prop, (need, _) in NEEDS.items()))
 
 
 def lacking(params: Params, band: Band, wanted: dict[str, float]) -> dict[str, float]:
@@ -367,7 +376,7 @@ def guarded(params: Params, band: Band) -> float:
     return camped * guard.camp + (1.0 - camped) * guard.march
 
 
-def _far(a: Place, b: Place) -> int:
+def far(a: Place, b: Place) -> int:
     return max(abs(a[0] - b[0]), abs(a[1] - b[1]))
 
 
@@ -506,13 +515,13 @@ def _pull(
     target = band.x + step[0], band.y + step[1]
     beyond = rules.sight + rules.decisions.horizon
     past = band.x + step[0] * beyond, band.y + step[1] * beyond
-    nearer = [at for at in sorted(enterable) if at == target or _far(target, at) < _far(band.place, at)]
+    nearer = [at for at in sorted(enterable) if at == target or far(target, at) < far(band.place, at)]
     candidates = [(at, seen(params, band, at, era)) for at in nearer]
     if rules.decisions.horizon and past not in band.known:
         candidates.append((past, unknown))
     best: tuple[float, str, Place] | None = None
     for at, cell in candidates:
-        away = _far(band.place, at)
+        away = far(band.place, at)
         value, need = worth(params, band, cell or {}, wanted, band.unease)
         # Distance makes good land less good and known bad land worse; the unknown is no worse for being far.
         if value > 0:
@@ -545,13 +554,18 @@ def looks(params: Params, band: Band, era: str, at: Place) -> dict[str, Any] | N
 
 def intended(params: Params, band: Band, proposal: dict[str, Any], era: str, towards: str | None) -> Scored:
     """
-    The best of what an intent leaves the band, a go narrowed to the direction of the next cell of its route;
-    a winter camp is built before anything else unless the band starves or thirsts.
+    The best of what an intent leaves the band, a go narrowed to the direction of the next cell of its route,
+    walked without stopping to gather while the band starves or thirsts; a winter camp is built before anything
+    else unless the band starves or thirsts, or stands on a camp of its own it puts in order in the evening.
     """
     suffering = STARVATION in band.states or THIRST in band.states
-    if proposal['kind'] == commands.WINTER and not sheltered(band) and not suffering:
+    if proposal['kind'] == commands.WINTER and not sheltered(band) and not suffering and band.place not in band.camps:
         return Scored(building(), 0.0, SHELTER)
-    found = options(params, band, era, NARROWED[proposal['kind']], None if towards is None else {towards})
+    ways = None if towards is None else {towards}
+    found = options(params, band, era, NARROWED[proposal['kind']], ways)
+    if proposal['kind'] == commands.GO and suffering:
+        # A band that goes for food or water walks there: it forages only on the way.
+        found = [held for held in found if held.action['kind'] in (MOVE, ROAM)] or found
     return max(found, key=lambda held: held.score)
 
 

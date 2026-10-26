@@ -394,8 +394,22 @@ def test_the_band_knows_what_lies_within_its_sight(params: Params) -> None:
     }
 
 
-def test_news_of_the_land_come_with_the_tick_and_old_memories_go(params: Params) -> None:
-    game = land(params)
+def test_a_band_remembers_the_land_it_has_seen_for_a_year() -> None:
+    held = load_params(overrides=SMALL)
+    game = land(held)
+    kept, gone = (WEST + 4, NORTH), (WEST + 4, NORTH + 1)
+    nothing = {'biome': 'water', 'river': False, **dict.fromkeys(held.eras.band.properties, 0.0)}
+    band(game).known[kept] = {**nothing, 'seen': game.day - 90}
+    band(game).known[gone] = {**nothing, 'seen': game.day - 110}
+
+    do(game, camp())
+
+    assert kept in band(game).known
+    assert gone not in band(game).known
+
+
+def test_news_of_the_land_come_with_the_tick_and_old_memories_go_where_a_memory_is_set() -> None:
+    game = land(load_params(overrides={**SMALL, 'units.band.memory': {'days': 20}}))
     band(game).known[WEST + 4, NORTH] = {'biome': 'water', 'river': False, 'seen': -1}
 
     quiet = do(game, camp())
@@ -731,6 +745,37 @@ def test_an_encounter_leaves_dread_and_a_dangerous_day_unease_and_both_fade() ->
     assert held.dread[held.place] == pytest.approx(0.3 - 0.03)
 
 
+class Even(Dice):
+    """
+    A stream on which every chance draws 0.6.
+    """
+
+    def random(self, count: int | None = None) -> Any:
+        return 0.6 if count is None else np.full(count, 0.6)
+
+
+def even() -> Any:
+    return Even()
+
+
+def test_the_chance_to_conceive_follows_the_food_in_the_stores_up_to_a_winter() -> None:
+    params = load_params(overrides={**SMALL, 'units.band.people.birth.conceive_per_day': 1.0})
+    days = params.days(params.units.band.people.birth.stores)
+    stocked, short, starving = (
+        bands.Band(id=1, x=WEST, y=NORTH, members=bands.adults(4), stores=Stock({'forage': [[0.0, amount * days]]}))
+        for amount in (8.0, 2.0, 8.0)
+    )
+    starving.states.append(bands.STARVATION)
+    full, half = (bands.Band(id=1, x=WEST, y=NORTH, members=bands.adults(4)) for _ in range(2))
+
+    bands.live(params, full, 10, 1.0, 1.0, 0.0, even())
+    bands.live(params, half, 10, 1.0, 0.5, 0.0, even())
+
+    assert [bands.fed(params, held) for held in (stocked, short, starving)] == pytest.approx([1.0, 0.5, 0.0])
+    assert [member.pregnant_until for member in full.members] == [40, None, 40, None]
+    assert [member.pregnant_until for member in half.members] == [None] * 4
+
+
 def test_nobody_conceives_in_a_hungry_band_or_one_without_a_man() -> None:
     params = load_params(overrides={**SMALL, 'units.band.people.birth.conceive_per_day': 1.0})
     women = bands.Band(id=1, x=WEST, y=NORTH, members=bands.adults(3)[0::2])
@@ -813,7 +858,7 @@ def test_a_restored_game_carries_the_band_in_the_middle_of_a_day(params: Params)
 def test_a_snapshot_of_the_format_before_the_band_is_refused(params: Params) -> None:
     snapshot = land(params).snapshot()
 
-    assert snapshot["format"] == 30
+    assert snapshot["format"] == 31
     with pytest.raises(ValueError, match='format 2'):
         Game.restore({**snapshot, 'format': 2})
 
@@ -856,12 +901,13 @@ def test_a_band_in_its_winter_camp_eats_less_and_its_stores_spoil_slower(params:
 
     bands.eat(params, held)
     days = bands.held_days(params, held, 'food')
-    bands.spoil(params, held, 5)
+    for day in range(1, 6):
+        bands.spoil(params, held, day)
     kept = held.plain()['stores']
     bands.spoil(params, held, 6)
 
-    assert kept == {'forage': [[0.0, 12.0]], 'water': [[0.0, 12.0]]}
-    assert held.plain()['stores'] == {'forage': [], 'water': [[0.0, 12.0]]}
+    assert kept == {'forage': [[2.5, 12.0]], 'water': [[2.5, 12.0]]}
+    assert held.plain()['stores'] == {'forage': [], 'water': [[3.0, 12.0]]}
     assert days == pytest.approx(12.0 / 8.0)
 
 

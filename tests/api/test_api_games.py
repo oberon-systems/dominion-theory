@@ -149,6 +149,7 @@ def test_the_snapshot_is_what_the_caller_may_see(client: TestClient, new_game: N
         'route': [],
         'roles': {'gatherer': 15, 'nanny': 0, 'hunter': 0},
         'camp': None,
+        'camps': [],
         'reason': None,
         'lore': [],
     }

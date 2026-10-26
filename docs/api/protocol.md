@@ -209,6 +209,7 @@ A unit is a band in stage 2, as
 | `route`      | the cells still ahead to the place of a go, each `{"x", "y"}` |
 | `roles`      | the people by role: `gatherer`, `nanny`                     |
 | `camp`       | its winter camp, `{"x", "y", "built"}` with the share built, or `null` |
+| `camps`      | the winter camps it has built, each `{"x", "y"}`            |
 | `reason`     | why it took that action; see [Decisions](../game/decisions.md#the-reason) |
 | `lore`       | the skills it knows, in the order learned; see [Skills](../game/skills.md#the-skills) |
 

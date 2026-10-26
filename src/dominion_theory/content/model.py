@@ -640,15 +640,29 @@ class Offered(Node):
     before: Duration
 
 
+class Drying(Node):
+    """
+    The food left over a day's ration that dries by itself at the end of a day of these seasons into a reserve, a
+    unit of it feeding keeps of a ration, for a band that knows how to make that reserve.
+    """
+
+    of: Name
+    into: Name
+    keeps: Share
+    seasons: tuple[Name, ...] = Field(min_length=1)
+
+
 class WinterCamp(Node):
     """
     A camp built for the cold in days of work without gathering, gathered around within reach, a cell away
     giving afar of a gathering. Once built, while the band stands on its cell staying in it is worth kept more
     to the others, the threat, the spoiling and the eating are multiplied by their factors, and so is what a
-    camp takes off fatigue.
+    camp takes off fatigue; nothing kept in it weighs. It is never offered on land whose threat, with the dread
+    of the band and what its guard leaves, reaches unsafe.
     """
 
     offered: Offered
+    unsafe: Share
     build: Duration
     reach: Span
     afar: Share
@@ -691,7 +705,7 @@ class Birth(Node):
     pregnancy: Duration
     pause: Pause
     conceive_per_day: Share
-    days: Factor
+    stores: Duration
     child_survives: Share
     mother_dies: Share
     midwife: Midwife
@@ -958,13 +972,14 @@ class Band(Node):
     hunting: Hunting
     states: States
     sight: Span
-    memory: Duration
+    memory: Duration | None = None
     decisions: Decisions
     dread: Dread
     unease: Unease
     route: Route
     shelter: Shelter
     winter_camp: WinterCamp
+    drying: Drying
     threat: Threat
 
 
@@ -1358,9 +1373,19 @@ class Params(Node):
                 expected = f'one of {", ".join(self.time.day_parts)}'
                 raise _invalid('units.band.camp_parts', part, expected)
         seasons = [season.name for season in self.time.seasons]
-        for season in band.winter_camp.offered.seasons:
-            if season not in seasons:
-                raise _invalid('units.band.winter_camp.offered.seasons', season, f'one of {", ".join(seasons)}')
+        for path, listed in (
+            ('units.band.winter_camp.offered.seasons', band.winter_camp.offered.seasons),
+            ('units.band.drying.seasons', band.drying.seasons),
+        ):
+            for wanted in listed:
+                if wanted not in seasons:
+                    raise _invalid(path, wanted, f'one of {", ".join(seasons)}')
+        drying = band.drying
+        for field, name in (('of', drying.of), ('into', drying.into)):
+            if name not in self.resources:
+                raise _invalid(f'units.band.drying.{field}', name, f'one of {", ".join(self.resources)}')
+        if not self.resources[drying.into].reserve:
+            raise _invalid('units.band.drying.into', drying.into, 'a reserve of food')
         for prop in band.decisions.unknown:
             for era, held in self.eras:
                 if prop not in held.properties:

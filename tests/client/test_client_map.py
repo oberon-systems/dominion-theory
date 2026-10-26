@@ -35,6 +35,12 @@ def test_the_map_is_cut_to_the_known_cells_with_the_band_and_the_rivers() -> Non
     assert '\x1b[48;2;0;100;0m' in rows[0]
 
 
+def test_a_winter_camp_the_band_built_is_marked_on_its_cell() -> None:
+    rows = list(pictured(KNOWN, COLOURS, (11, 21), camps=[(12, 20)]))
+
+    assert [click.unstyle(row) for row in rows] == ['♣~Λ ', '@   ']
+
+
 def test_a_band_that_knows_nothing_draws_no_map() -> None:
     assert not list(pictured({**KNOWN, 'cells': [None] * 6}, COLOURS, (11, 21)))
 

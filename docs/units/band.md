@@ -213,15 +213,19 @@ ___
 ## Births
 
 A woman of a stage that conceives, an adult, may conceive on a day when
-she is neither pregnant nor resting, with the chance
-`birth.conceive_per_day`. There are no pairs: a band is nearly a herd,
-and one adult man in it is enough. Nobody conceives on a day when the
-band cannot feed more children:
+she is neither pregnant nor resting. There are no pairs: a band is
+nearly a herd, and one adult man in it is enough. The chance follows the
+food the band holds, the whole year round:
 
-- the food in its stores, counted before the meal of the day, lasts
-  fewer than `birth.days`, 2;
-- starvation or thirst holds;
-- there is no adult man.
+```text
+chance = birth.conceive_per_day * min(days the food in the stores lasts / birth.stores, 1)
+```
+
+`birth.stores` is 3 months, a winter: a band that could live through a
+winter on its stores conceives at the full chance, one with half of that
+at half, one with nothing in store not at all. The food is counted
+before the meal of the day, the dried reserve with it. Nobody conceives
+while starvation or thirst holds, or with no adult man.
 
 A pregnancy lasts `birth.pregnancy`, 3 months. At its end the child
 lives with the chance `birth.child_survives`, 0.5, and the mother dies
@@ -398,9 +402,12 @@ ___
 
 ## Winter camp
 
-A winter camp is the council's answer `winter-camp`, offered through the
-winter and the last 5 days of the autumn, time enough to build it before
-the cold. The band builds it on the cell
+A winter camp is the council's answer `winter-camp`, offered on any day
+to a band that knows how to winter and never on land whose threat with
+the band's dread and guard reaches `winter_camp.unsafe`, 0.5. It wins
+the vote only in its season, the winter and the second half of the
+autumn, `before` 10 days; see
+[Indirect control](../game/indirect_control.md#the-table-of-votes). The band builds it on the cell
 it stands on with the action `build`: `winter_camp.build`, 2 days of the
 active parts, 6 ticks, with no gathering; while it starves or thirsts
 it gathers instead, and the share built waits for it. Before game
@@ -413,16 +420,56 @@ Once built, while the band stands on that cell, whatever its intent:
 | Effect                               | Factor                     |
 |--------------------------------------|----------------------------|
 | the threat of encounters and of wellbeing, and the threat the band sees | `winter_camp.threat`, 0.5 |
-| the age of a lot against its time to spoil | `winter_camp.spoil`, 0.5 |
+| the days a lot ages, a day in the camp counting as half | `winter_camp.spoil`, 0.5 |
 | what the people eat and drink, and so the days the stores last | `winter_camp.consumption`, 0.8 |
 | what a camp takes off fatigue        | `winter_camp.rest`, 1.5    |
 | what staying in it is worth to the others, added | `winter_camp.kept`, 0.2 |
 
 Gathering goes on, and the shelter of a camp holds as it does anywhere.
+A lot ages slower only for the days it spends in the camp: a lot dried
+in the autumn and kept in the camp through the winter is as old in the
+spring as those days make it, not older. Before game 1d862e91 the factor
+was laid over the whole age of a lot, so the spring that ended the camp
+spoiled the reserve left in one day.
+
 A band that steps into another cell loses the camp, built or not, and a
-band that builds on another cell starts anew. The camp is left with the
-first season that does not offer it, the spring: its effects and its
-reach end there, so a camp never becomes a home for the whole year.
+band that builds on another cell starts anew. The camp stands while the
+band stays on it, and its effects above hold in any season; its keep in
+the vote and the lower threat the band sees in it count only in its
+season, so in the spring the band leaves the land it ate bare over the
+winter. The decision to winter ends with the first season that does not
+offer a camp, so the spring calls the council.
+
+The band remembers every camp it built, `camps`, and the map marks them.
+In the season of the camp the council names the nearest of them as a
+place to go. A band bound to winter on a camp of its own does not build:
+it puts the camp in order in the evening, a camp part it spends in camp
+anyway, and the camp stands from that evening on.
+
+### The reserve for the winter
+
+A band that knows `drying` stocks without work. At the end of every day
+of the spring, the summer and the autumn, `drying.seasons`, the forage
+left over tomorrow's ration dries by itself into `dried`, a food marked
+`reserve`: a unit of forage gives a unit of dried at half the weight,
+which feeds `drying.keeps`, 0.7, of a ration, since nobody in the band
+is a master of it. Nothing is dried in the winter. There is no keep: all
+that is left over piles up, held back only by the carry outside a camp
+and by its time to spoil, 4 months. The reserve is eaten after every
+other food.
+
+Nothing kept in a built winter camp the band stands on weighs: the
+stores and the kits lie in the camp, so the band gathers as much as its
+land gives. When the band leaves its camp its members wear their clothes
+and carry their weapons, and the litters carry the food and the water.
+Of the stores it leaves behind first the spare goods - sticks, stones,
+hides and the rest - then fresh food, then the reserve, then water, the
+oldest lots first, until a day's ration still fits on the carry; what is
+left stays in the camp and is lost to the band. In seed 4 of the lives a
+band that carried all its spare goods out of a camp had no room to
+gather and starved in a forest. Before game 1d862e91 a band went into the winter with two
+days of food; a band that came out of a stocked camp with all its
+reserve on its back could carry no water and died of thirst in spring.
 
 ### The reach of a camp
 
@@ -711,9 +758,11 @@ ___
 A band sees the cells within 2 cells of its own, 25 in all. For each it
 knows the biome, the river mark and the current value of every property.
 
-It remembers what it saw for 20 days, as it was when last seen: a cell
-that was stripped bare stays bare in its memory until it is seen again.
-Older memories are dropped.
+It remembers what it saw for a year, `memory`, as it was when last
+seen: a cell that was stripped bare stays bare in its memory until it is
+seen again. Older memories are dropped. Before game 1d862e91 a band
+forgot what it had not seen for 20 days, so a band that wintered in one
+camp knew only the 25 cells around it by the end of the winter.
 
 A band knows what the seasons do to its land. When a season starts, every
 remembered cell is expected as the new season makes it: the share of its
@@ -723,8 +772,9 @@ remembered as a winter meadow once winter comes, not as a summer one. The
 cells whose memory changed go out in `known` of that update. The decision function reads nothing but what
 is known, and so does the observation of the seat.
 
-In the reference runs a band remembers 25 to 50 cells, up to 7 KB of the
-snapshot; `known` and `snapshot` in `tests/runner/lives.json` follow it.
+The cells a band knows grow with the land it walks, and so does the
+snapshot; `known` and `snapshot` in `tests/runner/lives.json` follow
+them.
 
 ___
 
@@ -819,7 +869,7 @@ units:
         pregnancy: {months: 3}
         pause: {min: {months: 1}, max: {months: 2}}
         conceive_per_day: 0.05
-        days: 2.0
+        stores: {months: 3}
         child_survives: 0.5
         mother_dies: 0.05
         midwife: {survives: 0.55, mother: 0.75, herb: {survives: 0.6, mother: 0.5}}
@@ -857,14 +907,16 @@ units:
     states:
       tiredness: {begins: 0.8, ends: 0.3}
     sight: 2
-    memory: {days: 20}
+    memory: {years: 1}
     dread: {encounter: 0.3, lasts: {days: 20}}
     unease: {gain: 0.1, fade: 0.2}
     route: {margin: 4, threat: 2.0, hunger: 1.0, thirst: 1.0}
     shelter: {encounter: 0.5, frailty: 0.5}
     threat: {camp: 1.0, march: 1.0}
+    drying: {of: forage, into: dried, keeps: 0.7, seasons: [spring, summer, autumn]}
     winter_camp:
-      offered: {seasons: [winter], before: {days: 5}}
+      offered: {seasons: [winter], before: {days: 10}}
+      unsafe: 0.5
       build: {days: 2}
       reach: 1
       afar: 1.0
@@ -920,8 +972,10 @@ A game does not start from a band that does not add up.
 - `tiredness.ends` is below `tiredness.begins`, and both lie in 0 to 1.
 - Every name of `camp_parts` is one of `time.day_parts`.
 - A reserve is above 0, and the last stage does not grow.
-- Every season of `winter_camp.offered` is one of `time.seasons`, and
-  `winter_camp.build` is not zero.
+- Every season of `winter_camp.offered` and of `drying` is one of
+  `time.seasons`, and `winter_camp.build` is not zero.
+- `drying.of` and `drying.into` are resources, and `drying.into` is a
+  reserve of food.
 - A share, a chance and a loss lie between 0 and 1.
 - Exactly one role cares for nobody and has no share; a role that needs
   a good names a personal one, and lays its bonuses on the band.

@@ -44,7 +44,7 @@ REFUSED_NO_COUNCIL = 'refused-no-council'
 REFUSED_ALREADY_VOTED = 'refused-already-voted'
 REFUSED_NO_SUCH_PLACE = 'refused-no-such-place'
 REFUSED_SEAT_BANISHED = 'refused-seat-banished'
-REFUSED_OUT_OF_SEASON = 'refused-out-of-season'
+REFUSED_UNSAFE = 'refused-unsafe-land'
 REFUSED_NOT_LEARNED = 'refused-not-learned'
 
 EVENTS: dict[str, tuple[str, ...]] = {
@@ -90,8 +90,8 @@ REASONS: tuple[str, ...] = (
     REFUSED_ALREADY_VOTED,
     REFUSED_NO_SUCH_PLACE,
     REFUSED_SEAT_BANISHED,
-    REFUSED_OUT_OF_SEASON,
     REFUSED_NOT_LEARNED,
+    REFUSED_UNSAFE,
 )
 STATE = 'state-'
 KIND = 'encounter-'

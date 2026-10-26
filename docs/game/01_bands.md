@@ -350,7 +350,8 @@ band is not on its way. `roles` counts the members by role.
 members, per good, and `kit` the members holding each personal good;
 see [Skills](skills.md#what-the-api-shows).
 `camp` is the winter camp, `{x, y, built}` with `built` the share done,
-or null.
+or null; `camps` the cells of the winter camps the band has built, each
+`{x, y}`, which the map marks.
 `council` is the table of the council of the day while it sits; see
 [The snapshot](../api/protocol.md#the-seat). What the band knows is read as a map: the rectangle of the map address
 takes `known=1` and answers only with the cells that band knows, as

@@ -181,6 +181,8 @@ class Band:
     camped: int = 0
     # The cell of a winter camp and the share of its building done.
     camp: dict[str, Any] | None = None
+    # The cells of the winter camps the band has built, to come back to.
+    camps: list[Place] = field(default_factory=list)
     # The members of roles that care sent to gather while the band goes short.
     freed: int = 0
     # The skills known and the counters they are learned by.
@@ -223,6 +225,7 @@ class Band:
             route=plain['route'],
             camped=plain['camped'],
             camp=plain['camp'],
+            camps=[(held['x'], held['y']) for held in plain['camps']],
             freed=plain['freed'],
             lore=copy.deepcopy(plain['lore']),
             made=dict(plain['made']),
@@ -282,6 +285,7 @@ class Band:
             'route': self.route,
             'camped': self.camped,
             'camp': self.camp,
+            'camps': [{'x': x, 'y': y} for x, y in self.camps],
             'freed': self.freed,
             'lore': copy.deepcopy(self.lore),
             'made': dict(sorted(self.made.items())),
@@ -316,6 +320,7 @@ class Band:
             'route': [] if self.route is None else [{'x': x, 'y': y} for x, y in self.route['cells']],
             'roles': roles(params, self),
             'camp': self.camp,
+            'camps': [{'x': x, 'y': y} for x, y in self.camps],
             'reason': self.reason,
             'lore': list(self.lore[lores.KNOWN]),
         }
@@ -749,8 +754,11 @@ def efficiency(rules: Rules, band: Band) -> float:
 
 def weight(params: Params, band: Band) -> float:
     """
-    What the stores and the kits of the members weigh on the carry: the water the waterskins hold does not.
+    What the stores and the kits of the members weigh on the carry: the water the waterskins hold does not, and
+    nothing kept in a built winter camp the band stands on does.
     """
+    if sheltered(band):
+        return 0.0
     held = band.stores.weight(params.resources) + sum(member.kit.weight(params.resources) for member in band.members)
     return held - min(_water(params, band), skins(params, band))
 
@@ -915,9 +923,38 @@ def _move(land: Land, band: Band, action: Action, rules: Rules, pace: float) -> 
         band.progress, band.target = 0.0, target
     band.progress += speed(land.params, band) * pace * land.value(PASSABILITY, *target)
     if band.progress >= 1.0:
+        leave(land.params, band)
         band.x, band.y = target
-        band.progress, band.target, band.camp = 0.0, None, None
+        band.progress, band.target = 0.0, None
     return {'kind': action['kind'], 'towards': action['towards']}
+
+
+def leave(params: Params, band: Band) -> None:
+    """
+    The band leaves its winter camp. What its members wear and carry, clothes, weapons and litters, goes with
+    them, and the litters carry the food and the water: of the stores it leaves behind first the spare goods,
+    then fresh food, then the reserve, then water, the oldest lots first, until a day of what it eats and drinks
+    still fits on the carry; what is left stays in the camp.
+    """
+    stocked = sheltered(band)
+    band.camp = None
+    if not stocked:
+        return
+    eaters = census(params, band).eaters
+    rates = params.units.band.consumption_per_day
+    rations = sum(eaters * rate * params.resources[name].weight_kg for name, rate in rates.items())
+    over = weight(params, band) + rations - carry(params, band)
+    resources = params.resources
+
+    def last(name: str) -> int:
+        held = resources[name]
+        return 0 if held.kind == GOODS else 3 if held.kind == WATER else 2 if held.reserve else 1
+
+    for name in sorted(band.stores, key=last):
+        if over > 0 and band.held(name) > 0:
+            left = band.stores.part(name, min(band.held(name), over / resources[name].weight_kg))
+            over -= left.weight(resources)
+    band.restocked()
 
 
 def _roam(land: Land, band: Band, action: Action, rules: Rules, day: int) -> Action:
@@ -966,7 +1003,18 @@ def _build(land: Land, band: Band) -> Action:
     working = params.parts(rules.winter_camp.build) * (per_day - len(rules.camp_parts)) / per_day
     share = params.eras[land.era].parts_per_tick / working if working > 0 else 1.0
     band.camp['built'] = min(round(band.camp['built'] + share, 9), 1.0)
+    if band.camp['built'] >= 1.0 and band.place not in band.camps:
+        band.camps.append(band.place)
     return building()
+
+
+def mend(band: Band) -> None:
+    """
+    A camp part of a band bound to winter on a camp it built before: the old camp is put in order over it, not
+    built anew.
+    """
+    if band.intent is not None and band.intent['proposal']['kind'] == WINTER and band.place in band.camps:
+        band.camp = {'x': band.x, 'y': band.y, 'built': 1.0}
 
 
 def _take(
@@ -1100,7 +1148,8 @@ def unsettle(params: Params, band: Band, threat: float) -> None:
 
 def look(land: Land, band: Band, day: int) -> list[Place]:
     """
-    Stores what the band sees around it and drops what it saw too long ago; gives the cells that are news.
+    Stores what the band sees around it and, when it forgets, drops what it saw too long ago; gives the cells
+    that are news.
     """
     params = land.params
     rules = params.units.band
@@ -1117,9 +1166,10 @@ def look(land: Land, band: Band, day: int) -> list[Place]:
             if before is None or any(before[name] != value for name, value in seen.items()):
                 news.append((x, y))
             band.known[x, y] = {**seen, 'seen': day}
-    oldest = day - params.parts(rules.memory) // params.time.parts_per_day
-    for at in [at for at, cell in band.known.items() if cell['seen'] < oldest]:
-        del band.known[at]
+    if rules.memory is not None:
+        oldest = day - params.parts(rules.memory) // params.time.parts_per_day
+        for at in [at for at, cell in band.known.items() if cell['seen'] < oldest]:
+            del band.known[at]
     return news
 
 
@@ -1147,8 +1197,8 @@ def reseason(land: Land, band: Band, was: str) -> list[Place]:
 
 def spoil(params: Params, band: Band, day: int) -> None:
     """
-    Drops the lots older than their resource keeps, by the bonuses held, of the stores and the kits; in a winter
-    camp they age slower. The goods spoiled wait in the band's spoiled to be told.
+    The day's end of the stores and the kits: drops the lots older than their resource keeps, by the bonuses
+    held; a day in a winter camp ages them slower. The goods spoiled wait in the band's spoiled to be told.
     """
     per_day = params.time.parts_per_day
     ages = params.units.band.winter_camp.spoil if sheltered(band) else 1.0
@@ -1497,13 +1547,31 @@ def _injure(params: Params, band: Band, picked: list[int], weights: dict[str, fl
     return len(picked)
 
 
-def fed(params: Params, band: Band) -> bool:
+def fed(params: Params, band: Band) -> float:
     """
-    Whether the band can feed more children: food in the stores for the days birth asks and no hunger or thirst.
+    How well the band can feed more children: the share of `birth.stores` its food in the stores lasts, up to
+    whole; nothing while it starves or thirsts.
     """
     if STARVATION in band.states or THIRST in band.states:
-        return False
-    return held_days(params, band, 'food') >= params.units.band.people.birth.days
+        return 0.0
+    days = max(params.days(params.units.band.people.birth.stores), 1)
+    return min(held_days(params, band, 'food') / days, 1.0)
+
+
+def dry(params: Params, band: Band, day: int) -> None:
+    """
+    The end of a day of a season of drying, for a band that knows how to make the reserve: the food left over
+    tomorrow's ration dries by itself into it, a unit of it feeding `drying.keeps` of a ration.
+    """
+    drying = params.units.band.drying
+    if band.season not in drying.seasons or not lores.opened(params, band, lores.MAKES, drying.into):
+        return
+    left = _spare(params, band, drying.of)
+    if left <= NOTHING:
+        return
+    band.stores.part(drying.of, left)
+    band.stores.add(drying.into, day, left, drying.keeps)
+    band.restocked()
 
 
 @dataclass
@@ -1522,7 +1590,7 @@ def live(
     band: Band,
     day: int,
     wellbeing: float,
-    feeds: bool,
+    feeds: float,
     camped: float,
     rng: np.random.Generator,
     season: str | None = None,
@@ -1572,8 +1640,8 @@ def live(
     lived.injured = _injure(params, band, _chanced(rng, hurt), people.injury.drawn, rng)
     lived.born, mothers = _births(params, band, day, rng)
     lived.lost.append((BIRTH, bury(params, band, mothers, day)))
-    if feeds:
-        _conceive(params, band, day, rng)
+    if feeds > 0:
+        _conceive(params, band, day, rng, feeds)
     _nurse(params, band)
     free(params, band)
     assign(params, band)
@@ -1637,10 +1705,10 @@ def _births(params: Params, band: Band, day: int, rng: np.random.Generator) -> t
     return len(born), mothers
 
 
-def _conceive(params: Params, band: Band, day: int, rng: np.random.Generator) -> None:
+def _conceive(params: Params, band: Band, day: int, rng: np.random.Generator, stored: float = 1.0) -> None:
     """
     Every woman of a stage that conceives, neither pregnant, resting, hungry nor thirsty, may conceive while such
-    a man lives.
+    a man lives, at the chance of a day times the share of the stores fed.
     """
     people = params.units.band.people
     named = census(params, band).stages
@@ -1654,7 +1722,7 @@ def _conceive(params: Params, band: Band, day: int, rng: np.random.Generator) ->
     pregnancy = max(params.days(people.birth.pregnancy), 1)
     for at, (member, can) in enumerate(zip(band.members, able, strict=True)):
         ready = can and member.sex == FEMALE and member.pregnant_until is None and member.rest_until is None
-        if ready and drawn[at] < people.birth.conceive_per_day:
+        if ready and drawn[at] < people.birth.conceive_per_day * stored:
             member.pregnant_until = day + pregnancy
     band.changed()
 
@@ -1748,7 +1816,7 @@ def hand_out(params: Params, band: Band, day: int) -> None:
 def make(params: Params, band: Band, day: int) -> None:
     """
     A camp part: of the goods the band knows how to make, the one furthest below its keep whose materials are held
-    is worked on by its `making.hands` most experienced makers, members of a stage that gathers, each at
+    is worked on by its most experienced makers, members of a stage that gathers, each at
     `making.per_part`, of the oldest lots of the materials; each gains the experience of its work. A good goes into
     the stores whole, at the mean quality of the materials spent on it times what the makers' mastery leaves of
     it; the rest of the work waits in the band's work. What was made waits in the band's made to be told.

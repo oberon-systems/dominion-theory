@@ -156,11 +156,13 @@ def test_a_hungry_band_that_may_only_roam_still_weighs_every_way(params: Params)
     band(game).stores['forage'] = []
 
     kinds = {held.action['kind'] for held in decisions.options(params, band(game), ERA)}
+    walks = decisions.options(params, band(game), ERA, allowed={'move'}, walking=True)
     scored = [proposal for proposal, _ in council.score(params, band(game), ERA, game.inside)]
 
     assert 'move' not in kinds
     assert scored[0] == STAY
-    assert {council.target(proposal) for proposal in scored[1:]} == {(WEST, NORTH), (WEST, NORTH + 2), *MEADOWS}
+    assert len(walks) == 5
+    assert {council.target(proposal) for proposal in scored[1:]} == {held.pull for held in walks}
 
 
 def test_the_decisions_of_the_example() -> None:
@@ -711,9 +713,9 @@ def test_a_year_of_votes_gives_the_same_hashes_twice(params: Params) -> None:
 
 @pytest.mark.parametrize(
     ('day', 'offered'),
-    [(20, False), (64, False), (65, True), (70, True), (99, True), (100, False), (160, False), (165, True)],
+    [(20, False), (59, False), (60, True), (70, True), (99, True), (100, False), (159, False), (160, True)],
 )
-def test_a_winter_camp_is_offered_in_the_winter_and_the_five_days_before_it(
+def test_a_winter_camp_is_offered_in_the_winter_and_the_ten_days_before_it(
     params: Params, day: int, offered: bool
 ) -> None:
     assert council.offered(params, day) is offered
@@ -732,15 +734,33 @@ def test_a_winter_camp_is_scored_as_staying_under_less_threat_and_only_while_off
     assert council.key(WINTERING) == 'proposal-winter-camp'
 
 
-def test_a_winter_camp_named_out_of_its_season_is_refused(params: Params) -> None:
+def test_a_winter_camp_is_made_in_any_season_by_a_band_that_knows_how(params: Params) -> None:
     summer, winter = land(params), land(params, parts=WINTER + 3)
     for game in (summer, winter):
         sit(game, (STAY, 14))
 
-    refused, taken = vote(summer, WINTERING), vote(winter, WINTERING)
+    taken = [vote(game, WINTERING) for game in (summer, winter)]
 
-    assert told(refused)[0] == ('command-refused', {'id': 'c-1', 'reason': 'refused-out-of-season'})
-    assert told(taken)[0] == ('command-accepted', {'id': 'c-1'})
+    assert [told(held)[0] for held in taken] == [('command-accepted', {'id': 'c-1'})] * 2
+    assert (summer.camping, summer.wintering, winter.wintering) == (True, False, True)
+
+
+def test_a_built_camp_is_worth_its_keep_and_less_threat_only_in_its_season(params: Params) -> None:
+    game = land(params, parts=WINTER + 2)
+    held = band(game)
+    held.camp = {'x': held.x, 'y': held.y, 'built': 1.0}
+    rules = params.units.band
+
+    cold, warm = (
+        council.score(params, held, ERA, game.inside, wintering=True, cold=flag)[0][1] for flag in (True, False)
+    )
+    held.season = 'winter'
+    winter = (decisions.seen(params, held, held.place, ERA) or {})['threat']
+    held.season = 'summer'
+    summer = (decisions.seen(params, held, held.place, ERA) or {})['threat']
+
+    assert cold - warm == pytest.approx(rules.decisions.weights.move * rules.winter_camp.kept)
+    assert winter == pytest.approx(summer * rules.winter_camp.threat)
 
 
 def test_a_band_bound_to_a_winter_camp_builds_it_for_two_days_and_then_stays(params: Params) -> None:
@@ -816,10 +836,8 @@ def test_a_hungry_band_bound_to_a_winter_camp_gathers_its_reach(params: Params) 
     assert any(game.cells.stock(at, 'food') < 1.0 for at in near)
 
 
-@pytest.mark.parametrize(('parts', 'kept'), [(SPRING - 1, False), (70 * DAY - 1, True)])
-def test_a_winter_camp_is_left_with_the_first_season_that_does_not_offer_it(
-    params: Params, parts: int, kept: bool
-) -> None:
+@pytest.mark.parametrize('parts', [SPRING - 1, 70 * DAY - 1])
+def test_a_winter_camp_stands_through_a_new_season_while_the_band_stays_on_it(params: Params, parts: int) -> None:
     game = land(params, parts=parts)
     camp = {'x': WEST, 'y': NORTH + 1, 'built': 1.0}
     band(game).camp = dict(camp)
@@ -827,7 +845,7 @@ def test_a_winter_camp_is_left_with_the_first_season_that_does_not_offer_it(
     game.step()
 
     assert game.date.part == 'morning'
-    assert band(game).camp == (camp if kept else None)
+    assert band(game).camp == camp
 
 
 def test_staying_in_a_built_camp_is_worth_kept_more_to_the_others() -> None:
@@ -896,3 +914,138 @@ def test_a_built_camp_whose_reach_is_stripped_is_worth_no_more_than_its_land() -
 
     assert decisions.stripped(params, band(game), ERA)
     assert [held for _, held in built] == pytest.approx([held for _, held in building])
+
+
+def starving(game: Game) -> bands.Band:
+    held = band(game)
+    held.stores = Stock()
+    held.restocked()
+    held.states.append(bands.STARVATION)
+    return held
+
+
+def test_a_band_short_of_food_on_stripped_land_keeps_only_the_best_land_nearest(params: Params) -> None:
+    game = land(params, stripped=STRIPPED)
+    held = starving(game)
+
+    days = council.score(params, held, ERA, game.inside)
+    found = council.survived(params, held, ERA, days)
+
+    assert any(proposal == STAY for proposal, _ in days)
+    assert found and all(proposal['kind'] == 'go' for proposal, _ in found)
+    assert {council.target(proposal)[0] for proposal, _ in found} == {WEST + 2}
+
+
+def test_a_starving_band_on_the_best_land_it_knows_stays_to_gather(params: Params) -> None:
+    around = [(x, y) for x in range(WEST, WEST + 6) for y in range(NORTH, NORTH + 3) if (x, y) != HOME]
+    game = land(params, stripped=around)
+    held = starving(game)
+    days = council.score(params, held, ERA, game.inside)
+
+    assert council.survived(params, held, ERA, days) == days
+
+
+def test_a_band_that_hunger_presses_fears_nothing(params: Params) -> None:
+    held = band(land(params))
+    cell = {'food': 0.5, 'water': 0.5, 'threat': 0.9}
+    safe = {**cell, 'threat': 0.0}
+    hungry, fed = {'hunger': 0.8, 'thirst': 0.1}, {'hunger': 0.1, 'thirst': 0.1}
+
+    def worth(wanted: dict[str, float], land: dict[str, float]) -> float:
+        return decisions.worth(params, held, land, wanted, goods=False)[0]
+
+    assert worth(hungry, cell) == worth(hungry, safe)
+    assert worth(fed, cell) < worth(fed, safe)
+
+
+def test_a_band_remembers_the_camps_it_built_and_puts_an_old_one_in_order_in_an_evening(params: Params) -> None:
+    game = land(params, parts=WINTER + 2)
+    held = band(game)
+    held.camp = {'x': held.x, 'y': held.y, 'built': 0.9}
+    held.intent = {'proposal': WINTERING}
+    quiet(game)
+    held.intent = {'proposal': WINTERING}
+    game.step()
+    built = list(held.camps)
+    held.camp = None
+    quiet(game)
+    held.intent = {'proposal': WINTERING}
+
+    game.step()
+
+    assert built == [HOME]
+    assert held.camp == {'x': HOME[0], 'y': HOME[1], 'built': 1.0}
+
+
+def test_a_band_short_of_food_in_a_winter_camp_leaves_beyond_its_reach(params: Params) -> None:
+    game = land(params, stripped=STRIPPED, parts=WINTER + 2)
+    held = starving(game)
+    held.camp = {'x': held.x, 'y': held.y, 'built': 1.0}
+    held.intent = {'proposal': WINTERING}
+    days = council.score(params, held, ERA, game.inside, wintering=True)
+
+    found = council.survived(params, held, ERA, days)
+
+    reach = params.units.band.winter_camp.reach
+    assert found and all(decisions.far(held.place, council.place(proposal, held)) > reach for proposal, _ in found)
+
+
+def test_a_band_short_of_food_keeps_every_option_until_its_stores_run_out(params: Params) -> None:
+    game = land(params, stripped=STRIPPED)
+    held = band(game)
+    held.stores = Stock()
+    held.restocked()
+    days = council.score(params, held, ERA, game.inside)
+
+    assert council.survived(params, held, ERA, days) == days
+
+
+def test_a_starving_band_bound_to_go_walks_and_does_not_stop_to_gather(params: Params) -> None:
+    game = land(params, stripped=STRIPPED, parts=AFTERNOON)
+    starving(game)
+    band(game).intent = {'proposal': EAST}
+
+    game.step()
+
+    assert band(game).action['kind'] in ('move', 'roam')
+
+
+def test_a_fed_band_keeps_every_option(params: Params) -> None:
+    game = land(params)
+    days = council.score(params, band(game), ERA, game.inside)
+
+    assert council.survived(params, band(game), ERA, days) == days
+
+
+def test_a_winter_camp_is_not_offered_on_land_too_dangerous_for_it(params: Params) -> None:
+    game = land(params, parts=WINTER + 2)
+    safe = council.score(params, band(game), ERA, game.inside, wintering=True)
+    band(game).dread[band(game).place] = 0.8
+
+    unsafe = council.score(params, band(game), ERA, game.inside, wintering=True)
+
+    assert WINTERING in [proposal for proposal, _ in safe]
+    assert WINTERING not in [proposal for proposal, _ in unsafe]
+
+
+def test_a_winter_camp_named_on_land_too_dangerous_for_it_is_refused(params: Params) -> None:
+    game = land(params, parts=WINTER + 3)
+    band(game).dread[band(game).place] = 0.8
+    sit(game, (STAY, 14))
+
+    refused = vote(game, WINTERING)
+
+    assert told(refused)[0] == ('command-refused', {'id': 'c-1', 'reason': 'refused-unsafe-land'})
+
+
+def test_the_spring_ends_the_decision_to_winter_and_the_camp_stands(params: Params) -> None:
+    game = land(params)
+    game.clock.parts = SPRING
+    held = band(game)
+    camp = {'x': held.x, 'y': held.y, 'built': 1.0}
+    held.camp = dict(camp)
+    held.intent = {'proposal': WINTERING}
+
+    game._thaw()
+
+    assert (band(game).camp, band(game).intent) == (camp, None)

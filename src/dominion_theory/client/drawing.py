@@ -3,7 +3,7 @@ What a band knows of the land around it, drawn as text: a cell is two characters
 The cells seen in updates are kept too, so a debug line can tell the band's cell and what moved in it.
 """
 
-from collections.abc import Iterator, Mapping
+from collections.abc import Collection, Iterator, Mapping
 from typing import Any, NamedTuple
 
 import click
@@ -27,6 +27,7 @@ GLYPHS = {
 }
 RIVER = '~'
 BAND = '@'
+CAMP = 'Λ'
 UNKNOWN = '  '
 UNSEEN = '? '
 LIT = (255, 0, 255)
@@ -72,10 +73,11 @@ def pictured(
     band: tuple[int, int],
     lit: tuple[int, int] | None = None,
     cursor: tuple[int, int] | None = None,
+    camps: Collection[tuple[int, int]] = (),
 ) -> Iterator[str]:
     """
     The rows of a map of what a band knows, cut to the cells it knows and those marked, each on its biome's
-    colour; the band is @, the lit target and the cursor stand on colours of their own.
+    colour; the band is @, a winter camp it built Λ, the lit target and the cursor stand on colours of their own.
     """
     width, height = known['width'], known['height']
     marks = {at: paper for at, paper in ((lit, LIT), (cursor, CURSOR)) if at is not None}
@@ -100,7 +102,8 @@ def pictured(
                 continue
             biome = known['biomes'][cell]
             here = at == band
-            text = (BAND if here else glyph(biome)) + (RIVER if known['rivers'][index] else ' ')
+            sign = BAND if here else CAMP if at in camps else glyph(biome)
+            text = sign + (RIVER if known['rivers'][index] else ' ')
             paper = mark if mark is not None else rgb(colours[biome]) if biome in colours else None
             ink = None if paper is None else _ink(paper)
             drawn.append(click.style(text, bg=paper, fg=ink, bold=here or mark is not None))

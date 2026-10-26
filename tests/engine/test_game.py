@@ -141,7 +141,7 @@ def test_snapshot_does_not_share_its_arrays(params: Params) -> None:
 def test_unreadable_snapshot_is_refused(params: Params) -> None:
     snapshot = Game.create(seed=11, params=params).snapshot()
 
-    assert snapshot["format"] == 30
+    assert snapshot["format"] == 31
     with pytest.raises(ValueError, match='format 1'):
         Game.restore({**snapshot, 'format': 1})
 

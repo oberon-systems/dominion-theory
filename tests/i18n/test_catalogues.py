@@ -15,6 +15,7 @@ from dominion_theory.engine.band import STATES
 from dominion_theory.engine.commands import GO, PROPOSALS
 from dominion_theory.engine.events import SKILL, STATE
 from dominion_theory.i18n import DATE, LANGUAGES, catalogue
+from dominion_theory.lab import sitting
 from dominion_theory.runner import ERRORS
 
 # Stated by docs/api/commands.md and docs/api/protocol.md, declared by no code yet.
@@ -67,7 +68,7 @@ def in_use() -> set[str]:
     names |= {f'{review.STAGE}{name}' for name in people.stages} | {f'{review.ROLE}{name}' for name in people.roles}
     names |= {f'{review.WOUND}{name}' for name in people.injury.severities}
     errors = {*ERRORS, PRESET_NOT_FOUND, PARAMS_INVALID, LOCALE_UNKNOWN, PROFILE_NOT_FOUND, UNIT_NOT_FOUND}
-    return {*EVENTS, *REASONS, DATE, *MESSAGES, *review.MESSAGES} | errors | names | SPECIFIED
+    return {*EVENTS, *REASONS, DATE, *MESSAGES, *review.MESSAGES, *sitting.MESSAGES} | errors | names | SPECIFIED
 
 
 def test_languages_are_those_of_a_profile() -> None:

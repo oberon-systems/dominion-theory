@@ -32,6 +32,7 @@ dependencies = [
     "fastapi>=0.143",
     "fluent.runtime>=0.4",
     "httpx>=0.28",
+    "mcp>=2.3",
     "numpy>=2.5",
     "pydantic>=2.14",
     "pydantic-settings>=2.15",

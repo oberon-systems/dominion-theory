@@ -76,11 +76,13 @@ packages by layer.
 | `db`      | tables, sessions, migrations                             | `core`                     |
 | `runner`  | live games, the two clocks, run records and replay; the tally of a game played from the seat | `engine`, `store`, `content`|
 | `api`     | the application, routes, the update stream               | `runner`, `engine`, `db`, `i18n` |
-| `lab`     | runs and training, summaries, heatmaps, the local model's player, the MCP server | `players`, `runner`, `content`, `i18n`, the API as a client |
+| `lab`     | runs and training, summaries, heatmaps, the local model's player, the MCP server | `players`, `runner`, `content`, `i18n`, `client` |
 | `client`  | the console client: play, watch, step and replay a game  | `i18n`, `runner`           |
 
-Every package may import `core`. `lab` plays runs so far; training,
-heatmaps, the local model and the MCP server come in later steps. The
+Every package may import `core`. `lab` plays runs and serves the MCP
+server; training, heatmaps and the local model come in later steps. The
+MCP server reaches the game as the console client does, through the API,
+so `lab` imports `client` for its calls, its session and its lines. The
 browser client will live in a top-level `web` directory, not in a Python
 package. The players and the lab are told in [Players](../lab/players.md).
 

@@ -12,6 +12,7 @@ exists: the server, the console client, a game to play and the map tool.
 - [Run the client](#run-the-client)
 - [Review a game](#review-a-game)
 - [Play a band](#play-a-band)
+- [Claude in the seat](#claude-in-the-seat)
 - [Settings](#settings)
 - [The data directory](#the-data-directory)
 - [Look at a map](#look-at-a-map)
@@ -397,6 +398,41 @@ Colour is dropped when the output is not a terminal.
 
 ```bash
 printf 'stay\n\n' | make play PLAY='--updates 10'
+```
+
+___
+
+## Claude in the seat
+
+Claude Code plays a band through the MCP server `dominion`, the tools of
+the seat described in [Players](../lab/players.md#claude). It needs the
+package `mcp`, which `make install` installs with the game. Register the
+server in `.mcp.json` at the root of the working copy; git ignores the
+file, so add `dominion` beside the servers already listed:
+
+```json
+{
+  "mcpServers": {
+    "dominion": {
+      "type": "stdio",
+      "command": ".venv/bin/python",
+      "args": ["-m", "dominion_theory.lab.dominion"]
+    }
+  }
+}
+```
+
+Claude Code starts the server when a session opens in the working copy
+and asks once whether to trust it. The server starts a server of the game
+of its own on a free port, logging into `data/mcp-server.log`, and stops
+it with the session. To play on a server already running, add
+`"--server", "http://127.0.0.1:8000"` to `args`.
+
+Check the server by hand: it waits for a client on its input, and
+Ctrl+C stops it.
+
+```bash
+.venv/bin/python -m dominion_theory.lab.dominion
 ```
 
 ___

@@ -19,7 +19,7 @@ ALLOWED: dict[str, set[str]] = {
     'db': {'core'},
     'runner': {'engine', 'store', 'content'},
     'api': {'runner', 'engine', 'db', 'i18n'},
-    'lab': {'players', 'runner', 'content', 'i18n'},
+    'lab': {'players', 'runner', 'content', 'i18n', 'client'},
     'client': {'i18n', 'runner'},
 }
 

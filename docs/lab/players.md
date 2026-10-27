@@ -214,20 +214,46 @@ ___
 
 ## Claude
 
-Claude plays through an MCP server, `dominion`, registered in
-`.mcp.json` of the working copy. The server is a client of the API: it
-starts a server of its own on a free port, as `make play` does, and
-creates games in step mode with the seat taken. The tools:
+Claude plays through an MCP server, `dominion`, over stdio, written
+with the Python SDK `mcp` in `lab/dominion.py`. The server is a client of
+the API, as the console client is: it starts a server of the game of its
+own on a free port, as `make play` does, logging into
+`data/mcp-server.log`, or plays on the one `--server` names. Its games
+are in step mode with the seat taken, one at a time. The tools:
 
 | Tool         | Does                                                             |
 |--------------|------------------------------------------------------------------|
-| `new_game`   | a new game, by seed and preset, in English or Russian            |
-| `look`       | the text of the seat: the date, the band, the standing, the land around, the story since the last look |
-| `council`    | the table, numbered as the text gives it                         |
-| `vote`       | the answer by its number                                         |
-| `advance`    | passes until a council sits, or for some days; gives the story   |
-| `panes`      | the people one by one, the skills, the stores                    |
+| `new_game`   | a new game, by seed and preset, in English or Russian; the game played before ends |
+| `look`       | the text of the seat: the date, the standing, the band, its fatigue and intent, the map of the land it knows, whether a council waits, the story since the last look |
+| `council`    | the table numbered: every option with its place, votes and the band's score, abstaining after them, 0 for silence |
+| `vote`       | the answer by its number; gives the story of the tick it closes  |
+| `advance`    | passes until a council waits for the seat, or until the days given have begun, at most 100; gives the story |
+| `panes`      | the people by stage, condition and role, the skills, the stores  |
 | `end`        | ends the game; its record is the one `make replay` plays         |
+
+The text is built in `lab/sitting.py` from what the API gives the seat
+and the catalogues, in English or Russian: the band and its stores as
+the console client says them, the map as the console client draws it,
+without colour, and the place of an option as the band knows it - its
+biome, food, water, threat, passability and a river. The story leaves
+out what every tick of step mode carries, the passes accepted and the
+days begun.
+
+The server is registered in `.mcp.json` of the working copy, which git
+ignores, beside the servers already there; `command` is the Python of
+the virtualenv, run from the root of the working copy:
+
+```json
+{
+  "mcpServers": {
+    "dominion": {
+      "type": "stdio",
+      "command": ".venv/bin/python",
+      "args": ["-m", "dominion_theory.lab.dominion"]
+    }
+  }
+}
+```
 
 Claude reads the morning's results as files - the report, the summary,
 the heatmaps - and needs no tool for it; see
@@ -253,13 +279,14 @@ ___
 |-----------|--------------------------------------------------------------|--------------------------------|
 | `engine`  | the observation as numbers, the features, a mind's score     | as before                      |
 | `players` | the seat's contract; `leader`, `silent`, `random`, `greedy`; the mind as a player | `engine`, `content` |
-| `lab`     | runs and training in process, summaries, reports, heatmaps, compare; the local model's player; the MCP server | `players`, `runner`, `content`, `i18n`, the API as a client |
+| `lab`     | runs and training in process, summaries, reports, heatmaps, compare; the local model's player; the MCP server | `players`, `runner`, `content`, `i18n`, `client` |
 
 The text of an observation is built from the numbers with the catalogues,
 in `lab`, so the engine still produces no words. `lab` reads `content`
 to check the sets of parameters of a run file before a game is played,
 and the tally of a game, which counts events of the engine, lives in
-`runner`. The table of
+`runner`. The MCP server reaches the game through the API with the calls,
+the session and the lines of `client`. The table of
 [the overview](../architecture/overview.md#packages) and the test of the
 imports follow it.
 

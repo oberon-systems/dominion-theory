@@ -2,7 +2,7 @@
 One seat of a game in step mode as a client keeps it: the band, the council, the standing and the cells seen.
 """
 
-from collections.abc import Iterator, Mapping
+from collections.abc import Generator, Mapping
 from contextlib import closing
 from functools import cached_property
 from typing import Any
@@ -47,7 +47,7 @@ class Session:
         self.waiting = message['waiting']
         self.watched.take(changes)
 
-    def stream(self) -> Iterator[Body]:
+    def stream(self) -> Generator[Body]:
         """
         Every message after the snapshot, applied before it is given out; a resync re-reads the snapshot.
         """

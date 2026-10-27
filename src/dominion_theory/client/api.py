@@ -63,6 +63,9 @@ class Api:
     def game(self, game_id: str) -> Body:
         return self._read('GET', f'/games/{game_id}')
 
+    def end(self, game_id: str) -> Body:
+        return self._read('DELETE', f'/games/{game_id}')
+
     def snapshot(self, game_id: str) -> Body:
         return self._read('GET', f'/games/{game_id}/snapshot')
 

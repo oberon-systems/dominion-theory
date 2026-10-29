@@ -40,6 +40,7 @@ occasion-first = it is the first evening
 occasion-death = people have died
 occasion-arrived = the band has reached the land it went to
 occasion-hunger = hunger presses
+occasion-thirst = thirst presses
 occasion-closed = the way is closed
 occasion-restless = the band wants another way
 occasion-season = the season has turned

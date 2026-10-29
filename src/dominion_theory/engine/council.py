@@ -33,11 +33,12 @@ FIRST = 'first'
 DEATH = 'death'
 ARRIVED = 'arrived'
 HUNGER = 'hunger'
+THIRST = 'thirst'
 CLOSED = 'closed'
 RESTLESS = 'restless'
 SEASON = 'season'
 RIVER = 'river'
-OCCASIONS = (FIRST, DEATH, ARRIVED, HUNGER, CLOSED, RESTLESS, SEASON, RIVER)
+OCCASIONS = (FIRST, DEATH, ARRIVED, HUNGER, THIRST, CLOSED, RESTLESS, SEASON, RIVER)
 
 
 type Proposal = dict[str, Any]
@@ -294,16 +295,16 @@ def behind(params: Params, band: Band, day: int) -> Place | None:
     return held['from'][0], held['from'][1]
 
 
-def hungers(params: Params, band: Band, era: str) -> bool:
+def hungers(params: Params, band: Band, era: str, need: str) -> bool:
     """
-    Whether hunger calls the council: always but during a go, which it turns only when the target feeds less
-    than the land the band stands on by the needs of the day, or when a member dies tonight.
+    Whether a need, hunger or thirst, calls the council: always but during a go, which it turns only when the
+    target feeds less than the land the band stands on by the needs of the day, or when a member dies tonight of it.
     """
     wanted = decisions.needs(params, band)
-    if max(wanted.values()) < params.units.band.roaming.hunger:
+    if wanted[need] < params.units.band.roaming.hunger:
         return False
     standing = None if band.intent is None else band.intent['proposal']
-    if standing is None or standing['kind'] != GO or max(wanted.values()) >= 1.0:
+    if standing is None or standing['kind'] != GO or wanted[need] >= 1.0:
         return True
     there = decisions.feeds(decisions.looks(params, band, era, target(standing)) or {}, wanted)
     return there < decisions.feeds(decisions.seen(params, band, band.place, era) or {}, wanted) - bands.NOTHING

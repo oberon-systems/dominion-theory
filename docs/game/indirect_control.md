@@ -85,7 +85,8 @@ council left them.
 | `first`    | it is the first evening of the game                          |
 | `death`    | somebody died of a cause in `council.blamed` since the last council |
 | `arrived`  | the band reached the place its go was bound to               |
-| `hunger`   | hunger or thirst reaches `roaming.hunger`; during a go only when its place feeds less than the land the band stands on, or a member dies tonight |
+| `hunger`   | hunger reaches `roaming.hunger`; during a go only when its place feeds less than the land the band stands on, or a member dies tonight of hunger |
+| `thirst`   | thirst reaches `roaming.hunger`, on the same terms as `hunger` |
 | `closed`   | the way of the decision in force was closed                  |
 | `restless` | the decision in force is a stay with fewer than half the votes of the leader: the band wants another thing |
 | `season`   | a season began since the last council, unless a winter camp is in force and still offered |

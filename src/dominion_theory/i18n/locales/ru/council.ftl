@@ -40,6 +40,7 @@ occasion-first = первый вечер
 occasion-death = погибли люди
 occasion-arrived = община пришла туда, куда шла
 occasion-hunger = подступает голод
+occasion-thirst = подступает жажда
 occasion-closed = путь закрыт
 occasion-restless = община хочет иного
 occasion-season = сменилось время года

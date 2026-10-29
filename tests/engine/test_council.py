@@ -269,6 +269,19 @@ def test_hunger_and_a_band_that_wants_another_thing_call_the_council(params: Par
 
 
 @pytest.mark.parametrize(
+    ('stores', 'occasion'),
+    [({'dried': 200.0}, 'occasion-thirst'), ({'water': 200.0}, 'occasion-hunger')],
+)
+def test_the_council_names_the_need_that_presses(params: Params, stores: dict[str, float], occasion: str) -> None:
+    game = land(params, stripped=STRIPPED, parts=AFTERNOON)
+    quiet(game)
+    band(game).intent = {'proposal': STAY}
+    band(game).stores = Stock({name: [[float(game.day), amount]] for name, amount in stores.items()})
+
+    assert told(game.step())[-1][1]['occasion'] == occasion
+
+
+@pytest.mark.parametrize(
     ('to', 'stripped', 'dying', 'occasions'),
     [
         (EAST, STRIPPED, False, []),

@@ -255,7 +255,8 @@ What stage 2 puts into the phases of
    vote, the place and its route.
 2. **Councils** - a council that sits is decided with the player's
    answer, and rises. The winner becomes the band's intent; an option the
-   player carried against the leader is also judged at the next council.
+   player carried against the leader is also judged: a go when it ends or
+   a council replaces it, a stay or a camp at the next council.
 3. **Decisions** - the band picks its action, among all it may take or
    among those its intent allows, along its route under a go, building
    first under a winter camp; in the tick of a council, and while it is

@@ -889,6 +889,8 @@ class Weights(Node):
     move: Factor
     momentum: Factor
     intent: Factor
+    back: Factor
+    visited: Share
 
 
 class Stage(Node):
@@ -903,6 +905,7 @@ class Stage(Node):
 class Decisions(Node):
     levels: dict[Name, Stage]
     distance: Factor
+    distance_known: Factor
     horizon: Span
     unknown: dict[Name, Share]
     unknown_seasons: dict[Name, dict[Name, Factor]] = Field(default_factory=dict)
@@ -1030,6 +1033,7 @@ class Council(Node):
     spread: Positive
     voice: Voice
     judgement: Judgement
+    memory: Duration
     status: Status
     blamed: tuple[Name, ...]
 

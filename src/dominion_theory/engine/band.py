@@ -195,6 +195,10 @@ class Band:
     worn: dict[str, float] = field(default_factory=dict)
     # The season what the band remembers of the land is of.
     season: str = ''
+    # The last decision of the council, the cell it was taken on and the day it was taken or its go ended.
+    decision: dict[str, Any] | None = None
+    # The cells the band ended a day on, with the last such day.
+    visited: dict[Place, int] = field(default_factory=dict)
     counted: tuple[int, Census] | None = field(default=None, init=False, repr=False, compare=False)
     laid: dict[Any, Params] = field(default_factory=dict, init=False, repr=False, compare=False)
 
@@ -233,6 +237,8 @@ class Band:
             spoiled=dict(plain['spoiled']),
             worn=dict(plain['worn']),
             season=plain['season'],
+            decision=plain['decision'],
+            visited={(held['x'], held['y']): held['day'] for held in plain['visited']},
         )
 
     @property
@@ -293,6 +299,8 @@ class Band:
             'spoiled': dict(sorted(self.spoiled.items())),
             'worn': dict(sorted(self.worn.items())),
             'season': self.season,
+            'decision': self.decision,
+            'visited': [{'x': x, 'y': y, 'day': self.visited[x, y]} for x, y in sorted(self.visited)],
         }
 
     def shown(self, params: Params, scale: int) -> dict[str, Any]:
@@ -1185,8 +1193,8 @@ def unsettle(params: Params, band: Band, threat: float) -> None:
 
 def look(land: Land, band: Band, day: int) -> list[Place]:
     """
-    Stores what the band sees around it and, when it forgets, drops what it saw too long ago; gives the cells
-    that are news.
+    Stores what the band sees around it and, when it forgets, drops what it saw and where it stood too long ago;
+    gives the cells that are news.
     """
     params = land.params
     rules = params.units.band
@@ -1207,6 +1215,8 @@ def look(land: Land, band: Band, day: int) -> list[Place]:
         oldest = day - params.parts(rules.memory) // params.time.parts_per_day
         for at in [at for at, cell in band.known.items() if cell['seen'] < oldest]:
             del band.known[at]
+        for at in [at for at, held in band.visited.items() if held < oldest]:
+            del band.visited[at]
     return news
 
 

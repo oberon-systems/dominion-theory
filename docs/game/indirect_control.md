@@ -85,7 +85,7 @@ council left them.
 | `first`    | it is the first evening of the game                          |
 | `death`    | somebody died of a cause in `council.blamed` since the last council |
 | `arrived`  | the band reached the place its go was bound to               |
-| `hunger`   | hunger or thirst reaches `roaming.hunger`                    |
+| `hunger`   | hunger or thirst reaches `roaming.hunger`; during a go only when its place feeds less than the land the band stands on, or a member dies tonight |
 | `closed`   | the way of the decision in force was closed                  |
 | `restless` | the decision in force is a stay with fewer than half the votes of the leader: the band wants another thing |
 | `season`   | a season began since the last council, unless a winter camp is in force and still offered |
@@ -96,8 +96,9 @@ occasion is a key, so that a chance encounter can later call a council
 of its own, with options of its own: a pack of wolves that is fled,
 fought or fed.
 
-1. **Judgement** - the proposal of the council before, if the player
-   turned the band, is judged first; see [The judgement](#the-judgement).
+1. **Judgement** - a stay or a winter camp the player turned the band to
+   at the council before is judged first; a go is judged when it ends,
+   see [The judgement](#the-judgement).
 2. **The table** - the others vote, and the votes are shown to the
    player; see [The table of votes](#the-table-of-votes).
 3. **The answer** - the council waits for the player; see
@@ -110,7 +111,10 @@ votes included, reaches the votes of the leader even with the player's
 voice added, nothing the player could say would change the day. Then the
 table is drawn but nobody is asked: the event `council-agreed` names the
 leader, it becomes the band's intent, nothing is paid for silence, and the
-day counts as one the player voted for, its deaths and births included.
+day belongs to nobody: its deaths cost the player nothing and its births
+earn nothing. In game 4f160478 a settled council undid the go the player
+had carried the evening before, a predator killed 2 on the land it chose,
+and the player paid 15.8 status for a move they had voted against.
 The higher the status, the louder the voice and the more often the
 council sits.
 
@@ -132,8 +136,9 @@ looks to the band.
 The options are a stay to gather, a winter camp while one is offered,
 and a go to a place. The band names
 one place each way, the land its [pull](decisions.md#scoring-the-actions)
-finds there: the best cell it knows nearer that way, or the land it does
-not know `decisions.horizon` cells past its sight. Two ways that lead to
+finds there: the best cell it knows nearer that way, or the first cell
+that way it does not know, at most `decisions.horizon` cells past its
+sight, with distance and visits weighed as there. Two ways that lead to
 the same cell are one option, and a go already in force is one more, so
 the table says whether the band wants to go on.
 
@@ -159,6 +164,23 @@ winter = weights.move * (worth(own and its reach in winter, food * fed, threat *
 go     = weights.move * pull
 ```
 
+### The council remembers
+
+The band keeps its last decision, `decision` on the band: the proposal,
+the cell it was taken on and the day it was taken, moved to the day its
+go ended. A council that re-decides the decision in force keeps it.
+
+- **Momentum** - the go in force gets `weights.momentum` on the table, so
+  the band goes on unless something else is clearly better.
+- **Going back** - a go to the cell the last decision left, through the
+  decision and `council.memory` days after its go ended, loses
+  `weights.move * weights.back` a day. When survival leaves it the only
+  land that feeds a starving band, it is the only option, and the band
+  goes back.
+
+In game 4f160478 an `arrived` council sent the band back the same evening
+to the meadow it had just left, and did so for years.
+
 A winter camp is never offered on land too dangerous for it: when the
 threat of the band's cell, with the dread of the band, times what its
 guard leaves over a day, reaches `winter_camp.unsafe`, 0.5. Mountains,
@@ -176,9 +198,11 @@ another.
 When the food or the water of the band ran out and its people go short -
 starvation or thirst holds - staying and the winter camp go off the
 table. Of the ways off
-its land, those to the land that gives the most food and water by the
-needs stay, the nearest of them; the threat is not weighed. A band whose
-own land gives as much as any of them stays on it to gather. A band that
+its land to land that gives more food and water by the needs than its
+own, those of the best weighed worth stay, the nearest of them: `gives`
+weighed by distance and visits as [Decisions](decisions.md#scoring-the-actions)
+weighs a pull. The threat is not weighed. A band whose own land gives as
+much as any of them stays on it to gather. A band that
 ranges from a winter camp gathers its reach already, so it takes only
 the ways beyond the reach; where it knows nothing there, the unknown.
 
@@ -332,9 +356,9 @@ ___
 
 ## An intent
 
-An intent holds from the decision to the next council: the night and
-the working day after it. The band camps in the evening and the night
-whatever the intent.
+An intent holds from the decision until a council replaces it: the
+night and the working days after it. The band camps in the evening and
+the night whatever the intent.
 
 | Proposal          | The band                                    |
 |-------------------|---------------------------------------------|
@@ -346,9 +370,11 @@ A tired band camps whatever its intent, until its tiredness ends. A go
 holds until the band stands on its place, which ends it and calls the
 council that evening (`arrived`), or until no route is left (`closed`),
 as [Decisions](decisions.md#under-an-intent) tells. A band on its way
-does not turn for another wish: `restless` never holds for a go. A band
-that agreed to stay goes on gathering a stripped cell until hunger calls
-the council.
+does not turn for another wish: `restless` never holds for a go, and
+hunger holds only when the place feeds less than the land the band
+stands on, or a member dies tonight. A starving band on a go roams and
+forages on the way. A band that agreed to stay goes on gathering a
+stripped cell until hunger calls the council.
 
 A winter camp is built first, for `winter_camp.build` days of work
 without gathering; a band in the state of starvation or thirst gathers
@@ -363,9 +389,14 @@ ___
 
 ## The judgement
 
-An intent is judged at the next council, before the new table: for a go,
-mostly the council its arrival calls. The game
-compares the band at the decision with the band at the judgement.
+A go is judged when it ends: when the band arrives, when its way is
+closed, or when a council replaces it with another decision, always on
+the land the band stands on then. A council that keeps the go does not
+judge it. A stay and a winter camp are judged at the next council,
+before the new table. The game compares the band at the decision with
+the band at the judgement. In game 4f160478 a go to the hills one cell
+off was judged `even` at the hunger council of the next evening, before
+the band had moved.
 
 The player turned the band away from what its people wanted, so the
 day is judged against the day the leader promised.
@@ -432,7 +463,9 @@ Deaths of age, of frailty and in childbirth cost nothing, count for no
 judgement and call no council.
 
 The player voted for a day when the player's option won the evening
-council before it, backed or carried. A player who kept silent at that
+council before it, backed or carried. A settled council belongs to
+nobody: the day after it costs no deaths and earns no births, whoever
+spoke at the council before. A player who kept silent at that
 council answers for the deaths of the day and earns nothing from its
 births; a player who was outvoted argued against the day and answers
 for neither. A death or a birth belongs to the day it
@@ -518,6 +551,7 @@ council:
     least: 2.0
   judgement:
     slack: 0.1
+  memory: {days: 10}
   status:
     start: 50
     abstained: -2
@@ -561,8 +595,8 @@ seq 500          council-opened leader proposal-stay-and-gather, occasion occasi
 
 The player backs the go east: 4 + 3.75 = 7.75 beats 6. The band lays its
 route from the next morning, walks it and arrives on the second day; its
-arrival calls the council, which judges the go against the 0.5 staying
-promised: the land reached scores 0.55 by the same measure, and the go
+arrival judges the go against the 0.5 staying promised and calls the
+council: the land reached scores 0.55 by the same measure, and the go
 worked.
 
 ```text

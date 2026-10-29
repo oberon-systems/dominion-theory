@@ -401,11 +401,21 @@ def test_a_band_remembers_the_land_it_has_seen_for_a_year() -> None:
     nothing = {'biome': 'water', 'river': False, **dict.fromkeys(held.eras.band.properties, 0.0)}
     band(game).known[kept] = {**nothing, 'seen': game.day - 90}
     band(game).known[gone] = {**nothing, 'seen': game.day - 110}
+    band(game).visited = {kept: game.day - 90, gone: game.day - 110}
 
     do(game, camp())
 
     assert kept in band(game).known
     assert gone not in band(game).known
+    assert band(game).visited == {kept: game.day - 90}
+
+
+def test_a_band_remembers_the_cell_it_ends_a_day_on(params: Params) -> None:
+    game = land(params)
+
+    do(game, camp(), DAY)
+
+    assert band(game).visited == {HOME: SUMMER // DAY}
 
 
 def test_news_of_the_land_come_with_the_tick_and_old_memories_go_where_a_memory_is_set() -> None:
@@ -846,19 +856,22 @@ def test_a_restored_game_carries_the_band_in_the_middle_of_a_day(params: Params)
     do(game, gathering({'forage': 1.0}), 2)
     do(game, moving('north-east'))
     do(game, camp(), 4)
+    band(game).decision = {'proposal': {'kind': 'stay-and-gather'}, 'from': [WEST, NORTH + 1], 'day': game.day}
 
     copy = Game.restore(carried(game))
     copy.choose = game.choose
 
     assert copy.state_hash() == game.state_hash()
     assert band(copy).plain() == json.loads(json.dumps(band(game).plain()))
+    assert (band(copy).decision, band(copy).visited) == (band(game).decision, band(game).visited)
+    assert band(copy).visited
     assert [copy.step().hash for _ in range(3 * DAY)] == [game.step().hash for _ in range(3 * DAY)]
 
 
 def test_a_snapshot_of_the_format_before_the_band_is_refused(params: Params) -> None:
     snapshot = land(params).snapshot()
 
-    assert snapshot["format"] == 31
+    assert snapshot["format"] == 32
     with pytest.raises(ValueError, match='format 2'):
         Game.restore({**snapshot, 'format': 2})
 

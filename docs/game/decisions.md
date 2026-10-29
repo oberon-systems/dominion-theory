@@ -172,12 +172,17 @@ roam = roaming.speed * weights.move * (pull - staying)
   takes, 1 when all of it fits, so a loaded band does not gather.
 - **Pull** of a neighbour is the best worth among the known cells that
   lie closer to it than to the band, each divided by 1 plus its distance
-  in cells times `distance`. The neighbour itself is one of them. A
+  in cells times `distance_known`. The neighbour itself is one of them. A
   worth below zero is multiplied instead, so that distance never makes
   bad land look better.
-- **The unknown** is one more of them: the cell `decisions.horizon`
-  cells past the sight that way, when the band does not know it. It is
-  worth what the band expects of land it has not seen,
+- **Visited land** fades: a known cell the band has ended a day on, by
+  `visited` on the band, is worth `weights.visited` of its worth when that
+  worth is above zero. Bad land is not made better by it.
+- **The unknown** is one more of them: the first cell that way the band
+  does not know, at most `decisions.horizon` cells past the sight. Its
+  worth is divided by 1 plus its distance times `distance`, which is less
+  than `distance_known`: cell for cell, far known land loses to the unknown
+  nearby. It is worth what the band expects of land it has not seen,
   `decisions.unknown`, in the season of what it remembers: the factors of
   `decisions.unknown_seasons` are laid over it as the seasons of the
   temperate land are, so winter promises 0.2 food, not 0.5. A worth of it
@@ -185,6 +190,16 @@ roam = roaming.speed * weights.move * (pull - staying)
   hope of food and water that sends it there, not fear: a band on
   stripped land leans out towards it, a band in a forest or on grass
   stays. A horizon of 0 turns it off.
+
+The council weighs land to go to the same way, distance and visits
+included, for its own options, for a place a voice names and for where a
+starving band goes. An old camp of food 0.9 five cells off, visited, is
+worth `0.9 * 0.7 / (1 + 5 * 0.5) = 0.18`; the unknown three cells off,
+`0.5 / (1 + 3 * 0.25) = 0.29`, wins. A visited forest next door of food
+0.8, `0.56 / 1.5 = 0.37`, beats both: a hungry band next to food does not
+walk into nothing. Before game 4f160478 one distance served both, the
+unknown lay always four cells off, and a band shuttled for 15 years on
+one patch of 5 by 5 cells.
 
 A move scores above zero only when something known, or the unknown, is
 better than staying. A band on good land stays; a band on stripped
@@ -299,6 +314,7 @@ units:
         fed: {days: 1, need: 0.4}
         hungry: {days: 0, need: 0.8}
       distance: 0.25
+      distance_known: 0.5
       horizon: 2
       unknown: {food: 0.5, water: 0.5, threat: 0.4, passability: 0.7, stone: 0.1, wood: 0.2, plants: 0.3, game: 0.3}
       unknown_seasons:
@@ -315,6 +331,8 @@ units:
         move: 3.0
         momentum: 0.1
         intent: 0.6
+        back: 0.3
+        visited: 0.7
     dread: {encounter: 0.3, lasts: {days: 20}}
     unease: {gain: 0.1, fade: 0.2}
     route: {margin: 4, threat: 2.0, hunger: 1.0, thirst: 1.0}
@@ -352,10 +370,10 @@ way.
 ```text
 own forest      0.4 * 0.9 + 0.1 * 0.6  - 2.0 * 0.6 * 0.4 = -0.06
 grass east      0.4 * 0.8 + 0.1 * 0.28 - 2.0 * 0.6 * 0.1 =  0.23
-pull            0.23 / 1.25                             =  0.18
-move east       3.0 * (0.18 + 0.06)                     =  0.73
+pull            0.23 / 1.5                              =  0.15
+move east       3.0 * (0.15 + 0.06)                     =  0.64
 grass ahead     1.5 * 0.4 * 0.8, no water: two days held =  0.48
-roam east       0.75 * 0.73 + 0.5 * 0.48                =  0.79
+roam east       0.75 * 0.64 + 0.5 * 0.48                =  0.72
 gather forage                                           =  0.50
 -> roam east
 ```
@@ -367,9 +385,9 @@ the roam is weighed.
 
 ```text
 own forest      0.8 * 0.9 + 0.1 * 0.6                   =  0.78
-grass east     (0.8 * 0.8 + 0.1 * 0.28) / 1.25          =  0.53
+grass east     (0.8 * 0.8 + 0.1 * 0.28) / 1.5           =  0.45
 grass ahead     1.5 * 0.8 * 0.8, no water: two days held =  0.96
-roam east       0.75 * 3.0 * (0.53 - 0.78) + 0.5 * 0.96 = -0.07
+roam east       0.75 * 3.0 * (0.45 - 0.78) + 0.5 * 0.96 = -0.27
 gather forage   1.5 * 0.8 * 0.9 * 1.0                   =  1.08
 -> gather forage
 ```
@@ -381,10 +399,10 @@ still gives.
 
 ```text
 gather forage   1.5 * 0.8 * 0.09 * 1.0                     = 0.11
-roam east       pull   (0.8 * 0.9 + 0.06) / 1.75           = 0.45
+roam east       pull   (0.8 * 0.9 + 0.06) / 2.5            = 0.31
                 own     0.8 * 0.09 + 0.06                  = 0.13
                 ahead   1.5 * 0.8 * 0.09, no water         = 0.11
-                0.75 * 3.0 * (0.45 - 0.13) + 0.5 * 0.11    = 0.76
+                0.75 * 3.0 * (0.31 - 0.13) + 0.5 * 0.11    = 0.46
 -> roam east
 ```
 

@@ -122,9 +122,37 @@ def test_a_band_leans_out_of_stripped_land_to_the_unknown_but_not_out_of_a_fores
     assert best_move(hoping, grass) < 0
 
 
+def test_far_visited_land_loses_to_the_unknown_nearby_and_a_visited_forest_next_door_wins(params: Params) -> None:
+    far, near, unknown = (HOME[0] + 5, HOME[1]), EAST, (HOME[0] + 3, HOME[1])
+    band = held({far: FOREST, near: FOREST}, 30.0, 30.0, visited={far: 0, near: 0})
+
+    weighed = [(far, 0.9, 5), (unknown, 0.5, 3), (near, 0.8, 1)]
+    camp, new, forest = (decisions.weighed(params, band, at, value, away) for at, value, away in weighed)
+
+    assert (camp, new, forest) == pytest.approx((0.9 * 0.7 / 3.5, 0.5 / 1.75, 0.8 * 0.7 / 1.5))
+    assert camp < new < forest
+    assert decisions.weighed(params, band, far, -0.2, 5) == pytest.approx(-0.2 * 3.5)
+    assert decisions.weighed(params, band, unknown, -0.2, 3) == -0.2
+
+
+def pulled(params: Params, band: Band) -> tuple[int, int] | None:
+    walks = decisions.options(params, band, ERA, allowed={'move'}, walking=True)
+    return next(held.pull for held in walks if held.action['towards'] == 'east')
+
+
+def test_a_hungry_band_pulls_to_the_unknown_nearest_past_its_sight_rather_than_to_far_land_it_stood_on() -> None:
+    hoping = load_params(overrides={**SMALL, 'units.band.decisions.horizon': 2})
+    far, unknown = (HOME[0] + 4, HOME[1]), (HOME[0] + 3, HOME[1])
+    fresh = held({**around(STRIPPED), far: FOREST}, 11.25, 45.0)
+    stood = held({**around(STRIPPED), far: FOREST}, 11.25, 45.0, visited={far: 0})
+    beside = held({**around(STRIPPED), EAST: FOREST}, 11.25, 45.0, visited={EAST: 0})
+
+    assert (pulled(hoping, fresh), pulled(hoping, stood), pulled(hoping, beside)) == (far, unknown, EAST)
+
+
 def test_unease_sends_a_band_to_poorer_but_safer_land_and_not_on_through_the_same() -> None:
     params = load_params(overrides=SMALL)
-    poorer = {**around(FOREST), EAST: {**FOREST, 'threat': 0.3, 'food': 0.1}}
+    poorer = {**around(FOREST), EAST: {**FOREST, 'threat': 0.25, 'food': 0.05}}
     band, alike = held(poorer, 30.0, 30.0), held(around(FOREST), 30.0, 30.0)
 
     calm = best_move(params, band)
@@ -170,7 +198,7 @@ def test_a_fed_band_leaves_the_dangerous_forest_for_the_open_grass(params: Param
 
     own = 0.4 * 0.9 + 0.1 * 0.6 - 2.0 * 0.6 * 0.4
     grass = 0.4 * 0.8 + 0.1 * 0.28 - 2.0 * 0.6 * 0.1
-    assert found['east'] == pytest.approx(3.0 * (grass / 1.25 - own))
+    assert found['east'] == pytest.approx(3.0 * (grass / 1.5 - own))
     assert decisions.decide(params, band, 0, ERA) == {'kind': 'roam', 'towards': 'east'}
 
 
@@ -182,7 +210,7 @@ def test_a_hungry_band_stays_in_the_forest_to_gather(params: Params) -> None:
     # Hunger 0.8 presses: the band fears nothing.
     own = 0.8 * 0.9 + 0.1 * 0.6
     grass = 0.8 * 0.8 + 0.1 * 0.28
-    assert found['roam-east'] == pytest.approx(0.75 * 3.0 * (grass / 1.25 - own) + 0.5 * 1.5 * 0.8 * 0.8)
+    assert found['roam-east'] == pytest.approx(0.75 * 3.0 * (grass / 1.5 - own) + 0.5 * 1.5 * 0.8 * 0.8)
     assert found['gather'] == pytest.approx(1.5 * 0.8 * 0.9 * 10 / 11 + 1.2 * 0.1 * 0.6 / 11)
     assert decisions.decide(params, band, 0, ERA) == {
         'kind': 'gather',
@@ -211,7 +239,7 @@ def test_a_roam_is_the_slower_move_with_the_foraging_of_what_the_band_is_short_o
     def walk(thirst: float) -> float:
         own = 0.4 * 0.9 + thirst * 0.6 - 2.0 * 0.6 * 0.4
         grass = 0.4 * 0.8 + thirst * 0.28 - 2.0 * 0.6 * 0.1
-        return 0.75 * 3.0 * (grass / 1.25 - own)
+        return 0.75 * 3.0 * (grass / 1.5 - own)
 
     assert roams[0] == pytest.approx(walk(0.1) + 0.5 * 1.5 * 0.4 * 0.8)
     assert roams[1] == pytest.approx(walk(0.4) + 0.5 * (1.5 * 0.4 * 0.8 + 1.2 * 0.4 * 0.28))
@@ -242,7 +270,7 @@ def test_the_stripped_example_of_the_document_walks_to_the_remembered_forest() -
         {
             'camp': 0.0,
             'gather': 1.5 * 0.8 * 0.09,
-            'roam-east': 0.75 * 3.0 * (forest / 1.75 - own) + 0.5 * 1.5 * 0.8 * 0.09,
+            'roam-east': 0.75 * 3.0 * (forest / 2.5 - own) + 0.5 * 1.5 * 0.8 * 0.09,
         }
     )
     assert decisions.decide(params, band, 0, ERA) == {'kind': 'roam', 'towards': 'east'}

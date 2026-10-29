@@ -507,30 +507,40 @@ def _pull(
     unknown: dict[str, float],
 ) -> tuple[float, str, Place]:
     """
-    The best land that way: a known cell nearer that way than here, or the unknown `horizon` cells past what
-    the band sees, which is worth what the band expects of land it does not know.
+    The best land that way: a known cell nearer that way than here, or the first cell that way the band does
+    not know, at most `horizon` cells past what it sees, which is worth what the band expects of such land.
     """
     rules = params.units.band
-    distance = rules.decisions.distance
     target = band.x + step[0], band.y + step[1]
     beyond = rules.sight + rules.decisions.horizon
-    past = band.x + step[0] * beyond, band.y + step[1] * beyond
+    ahead = [(band.x + step[0] * cells, band.y + step[1] * cells) for cells in range(1, beyond + 1)]
+    past = next((at for at in ahead if at not in band.known), None)
     nearer = [at for at in sorted(enterable) if at == target or far(target, at) < far(band.place, at)]
     candidates = [(at, seen(params, band, at, era)) for at in nearer]
-    if rules.decisions.horizon and past not in band.known:
+    if rules.decisions.horizon and past is not None:
         candidates.append((past, unknown))
     best: tuple[float, str, Place] | None = None
     for at, cell in candidates:
-        away = far(band.place, at)
         value, need = worth(params, band, cell or {}, wanted, band.unease)
-        # Distance makes good land less good and known bad land worse; the unknown is no worse for being far.
-        if value > 0:
-            value = value / (1.0 + away * distance)
-        elif cell is not unknown:
-            value = value * (1.0 + away * distance)
+        value = weighed(params, band, at, value, far(band.place, at))
         if best is None or value > best[0]:
             best = value, need, at
     return best or (0.0, REST, target)
+
+
+def weighed(params: Params, band: Band, at: Place, value: float, away: int) -> float:
+    """
+    What land worth `value` is worth to go to `away` cells off: good land less for the distance, known land
+    by `distance_known` a cell and less again where the band stood, the unknown by `distance`; known bad land is
+    worse for the distance, the unknown no worse for being far.
+    """
+    rules = params.units.band.decisions
+    if at not in band.known:
+        return value / (1.0 + away * rules.distance) if value > 0 else value
+    if value <= 0:
+        return value * (1.0 + away * rules.distance_known)
+    faded = rules.weights.visited if at in band.visited else 1.0
+    return faded * value / (1.0 + away * rules.distance_known)
 
 
 def expected(params: Params, band: Band) -> dict[str, float]:

@@ -46,7 +46,9 @@ is no number of a band in the code.
 | `states`     | which of the bad states hold now; none means `normal`   |
 | `action`     | what it did in the last tick                            |
 | `intent`     | what the council bound it to, if anything               |
+| `decision`   | the last decision of the council, the cell it was taken on and the day it was taken or its go ended |
 | `known`      | the cells it has seen and when                          |
+| `visited`    | the cells it ended a day on, and the last such day      |
 | `dread`      | the extra threat it sees on cells where it was struck   |
 | `unease`     | how much more staying in danger makes it fear threat    |
 | `route`      | the cells still ahead to the place of a go, and the day they were laid |
@@ -783,6 +785,12 @@ seen: a cell that was stripped bare stays bare in its memory until it is
 seen again. Older memories are dropped. Before game 1d862e91 a band
 forgot what it had not seen for 20 days, so a band that wintered in one
 camp knew only the 25 cells around it by the end of the winter.
+
+It remembers as long where it stood: every cell it ends a day on goes
+into `visited` with that day, and is dropped with the memories of the
+same age. Land it stood on is worth less to go to, by
+`decisions.weights.visited`; see
+[Decisions](../game/decisions.md#scoring-the-actions).
 
 A band knows what the seasons do to its land. When a season starts, every
 remembered cell is expected as the new season makes it: the share of its

@@ -152,9 +152,9 @@ def survived(params: Params, band: Band, era: str, days: list[tuple[Proposal, fl
     """
     What survival leaves of the days, before any score is weighed: a band whose food or water ran out and whose
     people go short keeps only the ways off its land - off the reach of a winter camp it ranges from, where it
-    gathers already - to the land that gives most of what it lacks, the nearest of them; on land that gives as
-    much as any of them it stays to gather. A band that neither starves nor thirsts and keeps to its camp has
-    no way off.
+    gathers already - to land that gives more of what it lacks, the best of it by distance and visits, the
+    nearest of those; on land that gives as much as any of them it stays to gather. A band that neither starves
+    nor thirsts and keeps to its camp has no way off.
     """
     if bands.STARVATION not in band.states and bands.THIRST not in band.states:
         return [held for held in days if held[0]['kind'] != GO] if stocked(params, band) else days
@@ -168,9 +168,15 @@ def survived(params: Params, band: Band, era: str, days: list[tuple[Proposal, fl
     own = decisions.feeds(decisions.seen(params, band, band.place, era) or {}, wanted)
     if own >= max(gives) - bands.NOTHING:
         return days
-    fed = [held for held, given in zip(away, gives, strict=True) if given >= max(gives) - bands.NOTHING]
-    far = [decisions.far(band.place, place(proposal, band)) for proposal, _ in fed]
-    return [held for held, cells in zip(fed, far, strict=True) if cells == min(far)]
+    weighed = []
+    for held, given in zip(away, gives, strict=True):
+        at = place(held[0], band)
+        cells = decisions.far(band.place, at)
+        if given > own + bands.NOTHING:
+            weighed.append((held, decisions.weighed(params, band, at, given, cells), cells))
+    best = max(value for _, value, _ in weighed) - bands.NOTHING
+    nearest = min(cells for _, value, cells in weighed if value >= best)
+    return [held for held, value, cells in weighed if value >= best and cells == nearest]
 
 
 def stocked(params: Params, band: Band) -> bool:
@@ -195,11 +201,7 @@ def _aimed(params: Params, band: Band, era: str, inside: Inside, to: Place) -> f
     if cell is None or way is None:
         return None
     value = decisions.worth(params, band, cell, wanted, band.unease)[0]
-    if value > 0:
-        value = value / (1.0 + len(way) * rules.distance)
-    elif to in band.known:
-        value = value * (1.0 + len(way) * rules.distance)
-    return rules.weights.move * value
+    return rules.weights.move * decisions.weighed(params, band, to, value, len(way))
 
 
 def offered(params: Params, day: int) -> bool:
@@ -242,18 +244,69 @@ def table(
     extra: Sequence[Proposal] = (),
     wintering: bool = False,
     cold: bool = True,
+    behind: Place | None = None,
 ) -> Table:
     """
     How the others' votes lie over the options survival leaves the band, each with its words and the band's score
-    of a day of it; options without a vote are left out.
+    of a day of it as the council remembers its last decision, which left the land `behind`; options without a
+    vote are left out.
     """
     days = survived(params, band, era, score(params, band, era, inside, extra, wintering, cold))
+    days = remembered(params, band, days, behind)
     given = votes([held for _, held in days], voters(params, band) - 1, params.council.spread)
     laid = [
         {'proposal': proposal, 'key': key(proposal, band), 'votes': held, 'score': round(day, 4)}
         for (proposal, day), held in zip(days, given, strict=True)
     ]
     return [entry for entry in laid if entry['votes']]
+
+
+def remembered(
+    params: Params, band: Band, days: list[tuple[Proposal, float]], behind: Place | None
+) -> list[tuple[Proposal, float]]:
+    """
+    The days as the council remembers its last decision: the go in force keeps `momentum`, a go back to the land
+    that decision left loses `back` a day.
+    """
+    weights = params.units.band.decisions.weights
+    standing = None if band.intent is None else band.intent['proposal']
+    found = []
+    for proposal, held in days:
+        if proposal['kind'] == GO and proposal == standing:
+            held += weights.momentum
+        if proposal['kind'] == GO and target(proposal) == behind:
+            held -= weights.move * weights.back
+        found.append((proposal, held))
+    return found
+
+
+def behind(params: Params, band: Band, day: int) -> Place | None:
+    """
+    The land the last decision of the council left, while the band remembers it: through the decision in force,
+    then `memory` days from the day its go ended.
+    """
+    held = band.decision
+    if held is None:
+        return None
+    standing = band.intent is not None and band.intent['proposal'] == held['proposal']
+    if not standing and day > held['day'] + params.days(params.council.memory):
+        return None
+    return held['from'][0], held['from'][1]
+
+
+def hungers(params: Params, band: Band, era: str) -> bool:
+    """
+    Whether hunger calls the council: always but during a go, which it turns only when the target feeds less
+    than the land the band stands on by the needs of the day, or when a member dies tonight.
+    """
+    wanted = decisions.needs(params, band)
+    if max(wanted.values()) < params.units.band.roaming.hunger:
+        return False
+    standing = None if band.intent is None else band.intent['proposal']
+    if standing is None or standing['kind'] != GO or max(wanted.values()) >= 1.0:
+        return True
+    there = decisions.feeds(decisions.looks(params, band, era, target(standing)) or {}, wanted)
+    return there < decisions.feeds(decisions.seen(params, band, band.place, era) or {}, wanted) - bands.NOTHING
 
 
 def leader(laid: Table) -> Proposal | None:

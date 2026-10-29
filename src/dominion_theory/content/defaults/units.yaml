@@ -151,6 +151,8 @@ units:
         fed: {days: 1, need: 0.4}
         hungry: {days: 0, need: 0.8}
       distance: 0.25
+      # Known land costs more a cell than the unknown, so a far old camp loses to new land nearby.
+      distance_known: 0.5
       horizon: 2
       unknown: {food: 0.5, water: 0.5, threat: 0.4, passability: 0.7, stone: 0.1, wood: 0.2, plants: 0.3, game: 0.3}
       # The seasons of the temperate land laid over what the band expects of land it does not know.
@@ -169,3 +171,5 @@ units:
         move: 3.0
         momentum: 0.1
         intent: 0.6
+        back: 0.3
+        visited: 0.7

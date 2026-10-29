@@ -65,7 +65,7 @@ from .events import (
 from .hashing import digest
 from .streams import Streams
 
-SNAPSHOT_FORMAT = 31
+SNAPSHOT_FORMAT = 32
 DIED = 'died'
 BANISHED = 'banished'
 VOTED = 'voted'
@@ -583,28 +583,22 @@ class Game:
 
     def _open(self, tick: _Tick) -> None:
         """
-        The council of the evening, when an occasion calls it: the intent before ends and is judged, then the
-        others' votes are laid out. Without an occasion the last decision stands.
+        The council of the evening, when an occasion calls it: a turned stay or camp before it is judged, then the
+        others' votes are laid out, the decision in force among them until the council replaces it. Without an
+        occasion the last decision stands.
         """
         band = self.band
         if band is None or self.over:
             return
-        standing = None if band.intent is None else band.intent['proposal']
-        extra: tuple[dict[str, Any], ...] = () if standing is None else (standing,)
-        old = [at for at in band.camps if at != band.place and self.inside(*at)]
-        if self.wintering and old:
-            # In the season of the camp the band names the old camp nearest it as a place to go.
-            extra += (council.going(min(old, key=lambda at: (decisions.far(band.place, at), at))),)
-        laid = council.table(self.params, band, self.era, self.inside, extra, self.wintering, self.wintering)
+        laid = self._laid(band, self._named(band))
         occasion = self._occasion(band, laid)
         if occasion is None:
             return
         self.since = _nothing_since(first=False)
-        band.intent = None
         if not self.seated:
             self._bind(band, council.leader(laid))
             return
-        if self.judgement is not None:
+        if self.judgement is not None and self.judgement['proposal']['kind'] != GO:
             self._verdict(tick, band, self.judgement)
             if self.over:
                 return
@@ -612,8 +606,9 @@ class Game:
         values = {'leader': council.key(leader, band), 'occasion': f'{council.OCCASION}{occasion}'}
         spoken = council.voice(self.params, bands.voters(self.params, band), self.status)
         if council.settled(laid, spoken):
-            self.answered['tomorrow'] = VOTED
-            self._bind(band, leader)
+            # A council the seat could not turn belongs to nobody: its day costs no deaths and earns no births.
+            self.answered['tomorrow'] = None
+            self._decide(tick, band, leader)
             tick.events.append(Event(COUNCIL_AGREED, values))
             return
         self.council = tick.seat['council'] = {
@@ -627,12 +622,26 @@ class Game:
         self._totals['councils'] += 1
         tick.events.append(Event(COUNCIL_OPENED, values))
 
+    def _named(self, band: Band) -> tuple[council.Proposal, ...]:
+        """
+        What the band names at a council beside the land it knows: the decision in force and, in the season of the
+        camp, the old camp nearest it.
+        """
+        named: tuple[council.Proposal, ...] = () if band.intent is None else (band.intent['proposal'],)
+        old = [at for at in band.camps if at != band.place and self.inside(*at)]
+        if self.wintering and old:
+            named += (council.going(min(old, key=lambda at: (decisions.far(band.place, at), at))),)
+        return named
+
+    def _laid(self, band: Band, extra: tuple[council.Proposal, ...]) -> council.Table:
+        behind = council.behind(self.params, band, self.day)
+        return council.table(self.params, band, self.era, self.inside, extra, self.wintering, self.wintering, behind)
+
     def _occasion(self, band: Band, laid: council.Table) -> str | None:
         """
         The first of the occasions that holds this evening, None when nothing calls the council.
         """
         since = self.since
-        hungry = max(decisions.needs(self.params, band).values()) >= self.params.units.band.roaming.hunger
         standing = None if band.intent is None else band.intent['proposal']
         kept = standing is not None and standing['kind'] in (GO, WINTER)
         # A band on its way to a place, or wintering, does not turn for another wish before it gets there.
@@ -643,7 +652,7 @@ class Game:
             council.FIRST: since[council.FIRST],
             council.DEATH: since[council.DEATH] > 0,
             council.ARRIVED: since[council.ARRIVED],
-            council.HUNGER: hungry,
+            council.HUNGER: council.hungers(self.params, band, self.era),
             council.CLOSED: since[council.CLOSED],
             council.RESTLESS: restless,
             council.SEASON: since[council.SEASON] and not wintered,
@@ -664,7 +673,9 @@ class Game:
         answer = tick.answers.get(self.seats[0])
         self.answered['tomorrow'] = SILENT
         if answer is None or answer['kind'] == ABSTAIN:
-            self._bind(band, sitting['leader'])
+            self._decide(tick, band, sitting['leader'])
+            if self.over:
+                return
             self._status(tick, self.params.council.status.abstained)
             tick.events.append(Event(COUNCIL_ABSTAINED, {'status': self.status}))
             self._banish(tick)
@@ -673,10 +684,12 @@ class Game:
         laid = sitting['table']
         if all(entry['proposal'] != answer for entry in laid):
             # A point the others did not name is weighed by them like their own, and the votes are laid again.
-            laid = council.table(self.params, band, self.era, self.inside, (answer,), self.wintering, self.wintering)
+            laid = self._laid(band, (*self._named(band), answer))
         winner, yes = council.decide(laid, answer, spoken)
         self.answered['tomorrow'] = VOTED if winner == answer else None
-        self._bind(band, winner)
+        self._decide(tick, band, winner)
+        if self.over:
+            return
         said = council.key(answer, band)
         if winner != answer:
             self._status(tick, self.params.council.status.outvoted)
@@ -688,6 +701,8 @@ class Game:
         else:
             every = bands.voters(self.params, band) - 1 + spoken
             tick.events.append(Event(COUNCIL_TURNED, {'proposal': said, 'yes': yes, 'all': every}))
+            if self.judgement is not None:
+                return
             self.judgement = {
                 'proposal': answer,
                 'key': said,
@@ -699,10 +714,34 @@ class Game:
                 'unease': band.unease,
             }
 
-    @staticmethod
-    def _bind(band: Band, decided: council.Proposal | None) -> None:
+    def _bind(self, band: Band, decided: council.Proposal | None) -> None:
+        """
+        The band takes what a council decided; a new decision is remembered with the cell it was taken on.
+        """
+        standing = None if band.intent is None else band.intent['proposal']
         band.intent = None if decided is None else {'proposal': dict(decided)}
         band.route = None
+        if decided is not None and decided != standing:
+            band.decision = {'proposal': dict(decided), 'from': list(band.place), 'day': self.day}
+
+    def _decide(self, tick: _Tick, band: Band, decided: council.Proposal | None) -> None:
+        """
+        A council decided: a turned go it replaces is judged on the land reached, then the band is bound.
+        """
+        judgement = self.judgement
+        if judgement is not None and judgement['proposal']['kind'] == GO and judgement['proposal'] != decided:
+            self._verdict(tick, band, judgement)
+        self._bind(band, decided)
+
+    def _ended(self, tick: _Tick, band: Band, proposal: council.Proposal) -> None:
+        """
+        A go arrived or closed: the band remembers the day it ended, and a turn of it is judged on the land reached.
+        """
+        band.intent = band.route = None
+        if band.decision is not None and band.decision['proposal'] == proposal:
+            band.decision = {**band.decision, 'day': self.day}
+        if self.judgement is not None and self.judgement['proposal'] == proposal:
+            self._verdict(tick, band, self.judgement)
 
     def _decisions(self, tick: _Tick) -> None:
         band = self.band
@@ -727,9 +766,9 @@ class Game:
                 band.wander, band.reason = None, decisions.reason(held)
                 tick.action = held.action
                 return
-            band.intent = band.route = None
             self.since[council.CLOSED] = True
             tick.events.append(Event(INTENT_ENDED, {'proposal': council.key(proposal, band)}))
+            self._ended(tick, band, proposal)
         tick.action = self.choose(self, band)
 
     def _next(self, band: Band, to: Place) -> str | None:
@@ -775,9 +814,9 @@ class Game:
             band.camped += 1
         proposal = None if band.intent is None else band.intent['proposal']
         if proposal is not None and proposal['kind'] == GO and band.place == council.target(proposal):
-            band.intent = band.route = None
             self.since[council.ARRIVED] = True
             tick.events.append(Event(INTENT_ARRIVED, {}))
+            self._ended(tick, band, proposal)
         self._states(tick, *bands.tire(self.params.units.band, band))
         before = set(band.known)
         tick.known = [{'x': x, 'y': y, **band.known[x, y]} for x, y in bands.look(self, band, self.day)]
@@ -885,6 +924,7 @@ class Game:
             tick.events.append(Event(PEOPLE_SICKENED, {'count': sickened, 'cause': kind}))
 
     def _day_ends(self, tick: _Tick, band: Band) -> None:
+        band.visited[band.place] = self.day
         people = self.streams['people']
         feeds = bands.fed(self.params, band)
         sickened = bands.eat(self.params, band, people).sickened

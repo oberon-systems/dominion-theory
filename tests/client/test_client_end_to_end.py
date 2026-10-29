@@ -133,11 +133,13 @@ def test_a_vote_that_turns_the_band_sends_it_there_and_judges_it_on_arrival(api:
 
     updates, lines, actions = played(api, called, lang)
     turned, judged, table = COUNCIL[lang]
-    judging = EVENING + DAY - 1
+    sitting = EVENING + DAY - 1
+    events = [{held['key'] for held in update['events']} for update in updates]
+    arrived = next(seq for seq, keys in enumerate(events) if 'intent-arrived' in keys)
 
-    assert [action['kind'] for action in actions[EVENING : judging + 1]] == ['camp', 'camp', 'roam', 'move', 'roam']
+    assert [action['kind'] for action in actions[EVENING : sitting + 1]] == ['camp', 'camp', 'roam', 'move', 'roam']
     assert updates[EVENING]['changes']['seat'] == {'council': None}
-    assert updates[judging]['changes']['seat']['status'] == 54.0
+    assert updates[arrived]['changes']['seat']['status'] == 54.0
     assert turned in lines[EVENING]
-    assert judged in lines[judging] and table in lines[judging]
+    assert judged in lines[arrived] and table in lines[sitting]
     assert api.snapshot(called)['seat']['seated'] is True

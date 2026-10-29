@@ -6,6 +6,7 @@ council:
     least: 2.0
   judgement:
     slack: 0.1
+  memory: {days: 10}
   status:
     start: 50
     abstained: -2

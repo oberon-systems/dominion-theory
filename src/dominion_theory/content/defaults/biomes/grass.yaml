@@ -26,8 +26,8 @@ biomes:
             seasons:
               spring: {times: 0.8}
               winter: {times: 0.7}
-          stone: {base: 0.0}
-          wood: {base: 0.0}
+          stone: {base: 0.05, recovery: {days: 60}}
+          wood: {base: 0.05, recovery: {days: 60}}
           plants: {base: 0.6, recovery: {days: 30}}
           game: {base: 0.6, recovery: {days: 60}}
-        resources: [water, forage, herbs, cords]
+        resources: [water, forage, stones, sticks, herbs, cords]

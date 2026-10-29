@@ -707,11 +707,13 @@ def around(at: Place, reach: int) -> list[Place]:
     return found
 
 
-def ranging(band: Band) -> bool:
+def ranging(params: Params, band: Band) -> bool:
     """
-    Whether the band gathers within the reach of a winter camp: it is bound to one, or stands on its camp, built
-    or not.
+    Whether the band gathers within the reach of a winter camp: in the seasons of the camp it is bound to one, or
+    stands on its camp, built or not.
     """
+    if band.season not in params.units.band.winter_camp.seasons:
+        return False
     proposal = None if band.intent is None else band.intent['proposal']
     camp = band.camp
     return (proposal is not None and proposal['kind'] == WINTER) or (
@@ -725,7 +727,7 @@ def reached(land: Land, band: Band, name: str) -> tuple[Place, float] | None:
     ranges an enterable cell within reach that lists the resource, worth afar of its own; the earlier on a tie.
     """
     held = source(land, band.place, name)
-    if not ranging(band):
+    if not ranging(land.params, band):
         return held
     camp = land.params.units.band.winter_camp
     prop = land.params.resources[name].land
@@ -757,10 +759,43 @@ def weight(params: Params, band: Band) -> float:
     What the stores and the kits of the members weigh on the carry: the water the waterskins hold does not, and
     nothing kept in a built winter camp the band stands on does.
     """
-    if sheltered(band):
-        return 0.0
+    return 0.0 if sheltered(band) else _load(params, band)
+
+
+def _load(params: Params, band: Band) -> float:
     held = band.stores.weight(params.resources) + sum(member.kit.weight(params.resources) for member in band.members)
     return held - min(_water(params, band), skins(params, band))
+
+
+def abandoned(params: Params, band: Band) -> float:
+    """
+    The kilos a band would leave in its built winter camp if it went now: what its stores and kits weigh with a
+    day of what it eats and drinks over what it carries; nothing off such a camp.
+    """
+    if not sheltered(band):
+        return 0.0
+    rations = sum(held * params.resources[name].weight_kg for name, held in _rations(params, band).items())
+    return max(0.0, _load(params, band) + rations - carry(params, band))
+
+
+def spared(params: Params, band: Band) -> float:
+    """
+    The kilos a band leaving its winter camp drops before any food: its spare goods and its water over a day of
+    drinking.
+    """
+    resources, rations = params.resources, _rations(params, band)
+    goods = sum(band.held(name) * resources[name].weight_kg for name in band.stores if resources[name].kind == GOODS)
+    water = sum(
+        max(0.0, band.held(name) - rations.get(name, 0.0)) * resources[name].weight_kg
+        for name in band.stores
+        if resources[name].kind == WATER
+    )
+    return goods + water
+
+
+def _rations(params: Params, band: Band) -> dict[str, float]:
+    eaters = census(params, band).eaters
+    return {name: eaters * rate for name, rate in params.units.band.consumption_per_day.items()}
 
 
 def skins(params: Params, band: Band) -> float:
@@ -933,27 +968,29 @@ def leave(params: Params, band: Band) -> None:
     """
     The band leaves its winter camp. What its members wear and carry, clothes, weapons and litters, goes with
     them, and the litters carry the food and the water: of the stores it leaves behind first the spare goods,
-    then fresh food, then the reserve, then water, the oldest lots first, until a day of what it eats and drinks
-    still fits on the carry; what is left stays in the camp.
+    then the water over a day of drinking, then fresh food, then the reserve, then the rest of the water, the
+    oldest lots first, until a day of what it eats and drinks still fits on the carry; what is left stays in the
+    camp.
     """
-    stocked = sheltered(band)
+    over = abandoned(params, band)
     band.camp = None
-    if not stocked:
-        return
-    eaters = census(params, band).eaters
-    rates = params.units.band.consumption_per_day
-    rations = sum(eaters * rate * params.resources[name].weight_kg for name, rate in rates.items())
-    over = weight(params, band) + rations - carry(params, band)
-    resources = params.resources
+    resources, rations = params.resources, _rations(params, band)
 
     def last(name: str) -> int:
         held = resources[name]
-        return 0 if held.kind == GOODS else 3 if held.kind == WATER else 2 if held.reserve else 1
+        return 0 if held.kind == GOODS else 1 if held.kind == WATER else 3 if held.reserve else 2
 
-    for name in sorted(band.stores, key=last):
-        if over > 0 and band.held(name) > 0:
-            left = band.stores.part(name, min(band.held(name), over / resources[name].weight_kg))
-            over -= left.weight(resources)
+    def drop(name: str, most: float) -> None:
+        nonlocal over
+        if over > 0 and most > 0:
+            dropped = band.stores.part(name, min(most, over / resources[name].weight_kg))
+            over -= dropped.weight(resources)
+
+    order = sorted(band.stores, key=last)
+    for name in order:
+        drop(name, band.held(name) - (rations.get(name, 0.0) if resources[name].kind == WATER else 0.0))
+    for name in order:
+        drop(name, band.held(name))
     band.restocked()
 
 
@@ -1084,7 +1121,7 @@ def _hunted(land: Land, band: Band) -> tuple[Place, float] | None:
     within reach worth afar of its own; the earlier on a tie, None without game.
     """
     found, best = band.place, land.value(GAME, *band.place)
-    if ranging(band):
+    if ranging(land.params, band):
         camp = land.params.units.band.winter_camp
         for x, y in around(band.place, camp.reach):
             value = land.value(GAME, x, y) * camp.afar if enterable(land, x, y) else 0.0

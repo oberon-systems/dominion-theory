@@ -33,12 +33,12 @@ ___
 | `food`        | 0.7  | 30 days  | spring 0.7, autumn 1.1, winter 0.3 |
 | `threat`      | 0.6  | none     | none                               |
 | `passability` | 0.3  | none     | none                               |
-| `stone`       | 0.0  | none     | none                               |
-| `wood`        | 0.0  | none     | none                               |
+| `stone`       | 0.05 | 60 days  | none                               |
+| `wood`        | 0.05 | 60 days  | none                               |
 | `plants`      | 0.8  | 30 days  | none                               |
 | `game`        | 0.3  | 60 days  | none                               |
 
-Resources: `water`, `forage`, `herbs`, `cords`. Colour: `#4A6B5D`.
+Resources: `water`, `forage`, `stones`, `sticks`, `herbs`, `cords`. Colour: `#4A6B5D`.
 
 Swamp is the biome that closed stage 1: it was added by its data file,
 its name in two catalogues, this document and one test, with no line of

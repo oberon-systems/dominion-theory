@@ -360,29 +360,31 @@ gather forage                                           =  0.50
 -> roam east
 ```
 
-The same place with less than a day of food: hungry, hunger 0.8, calm
-0.2. The danger hardly counts and the forest feeds better than the
-grass. A hungry band does not walk, so only the roam is weighed.
+The same place with less than a day of food: hungry, hunger 0.8. A band
+that hunger presses fears nothing, so the danger does not count, and the
+forest feeds better than the grass. A hungry band does not walk, so only
+the roam is weighed.
 
 ```text
-own forest      0.8 * 0.9 + 0.1 * 0.6  - 2.0 * 0.2 * 0.4 =  0.62
-grass east     (0.8 * 0.8 + 0.1 * 0.28 - 2.0 * 0.2 * 0.1) / 1.25 = 0.50
+own forest      0.8 * 0.9 + 0.1 * 0.6                   =  0.78
+grass east     (0.8 * 0.8 + 0.1 * 0.28) / 1.25          =  0.53
 grass ahead     1.5 * 0.8 * 0.8, no water: two days held =  0.96
-roam east       0.75 * 3.0 * (0.50 - 0.62) + 0.5 * 0.96 =  0.22
+roam east       0.75 * 3.0 * (0.53 - 0.78) + 0.5 * 0.96 = -0.07
 gather forage   1.5 * 0.8 * 0.9 * 1.0                   =  1.08
 -> gather forage
 ```
 
 A hungry band on a stripped forest cell, food at a stock of 0.1, with a
 full forest remembered three cells to the east. It is hungry, so it
-roams there, gathering what the stripped cell ahead still gives.
+fears nothing and roams there, gathering what the stripped cell ahead
+still gives.
 
 ```text
 gather forage   1.5 * 0.8 * 0.09 * 1.0                     = 0.11
-roam east       pull   (0.8 * 0.9 + 0.06 - 0.16) / 1.75    = 0.35
-                own     0.8 * 0.09 + 0.06 - 0.16           = -0.03
-                ahead   1.5 * 0.8 * 0.09, no water       = 0.11
-                0.75 * 3.0 * (0.35 + 0.03) + 0.5 * 0.11    = 0.91
+roam east       pull   (0.8 * 0.9 + 0.06) / 1.75           = 0.45
+                own     0.8 * 0.09 + 0.06                  = 0.13
+                ahead   1.5 * 0.8 * 0.09, no water         = 0.11
+                0.75 * 3.0 * (0.45 - 0.13) + 0.5 * 0.11    = 0.76
 -> roam east
 ```
 

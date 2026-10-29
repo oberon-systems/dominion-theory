@@ -30,11 +30,11 @@ ___
 | `threat`      | 0.7  | none     | none       |
 | `passability` | 0.3  | none     | none       |
 | `stone`       | 0.6  | 90 days  | none       |
-| `wood`        | 0.0  | none     | none       |
+| `wood`        | 0.05 | 60 days  | none       |
 | `plants`      | 0.0  | none     | none       |
 | `game`        | 0.0  | none     | none       |
 
-Resources: `water`, `forage`, `stones`. Colour: `#8B8989`.
+Resources: `water`, `forage`, `stones`, `sticks`. Colour: `#8B8989`.
 
 The old generator put mountains on middle heights, next to the shore.
 That is the defect this rule fixes.

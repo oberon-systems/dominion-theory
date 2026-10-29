@@ -36,7 +36,7 @@ BASES = {
     'food': 0.9,
     'threat': 0.4,
     'passability': 0.6,
-    'stone': 0.0,
+    'stone': 0.05,
     'wood': 0.8,
     'plants': 0.5,
     'game': 0.7,
@@ -46,7 +46,7 @@ FOREST = {
     'name': {'key': 'biome-forest', 'values': {}},
     'colour': '#006400',
     'properties': BASES,
-    'resources': ['water', 'forage', 'sticks', 'herbs', 'cords'],
+    'resources': ['water', 'forage', 'stones', 'sticks', 'herbs', 'cords'],
 }
 
 

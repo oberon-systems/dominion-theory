@@ -153,12 +153,13 @@ def survived(params: Params, band: Band, era: str, days: list[tuple[Proposal, fl
     What survival leaves of the days, before any score is weighed: a band whose food or water ran out and whose
     people go short keeps only the ways off its land - off the reach of a winter camp it ranges from, where it
     gathers already - to the land that gives most of what it lacks, the nearest of them; on land that gives as
-    much as any of them it stays to gather.
+    much as any of them it stays to gather. A band that neither starves nor thirsts and keeps to its camp has
+    no way off.
     """
     if bands.STARVATION not in band.states and bands.THIRST not in band.states:
-        return days
+        return [held for held in days if held[0]['kind'] != GO] if stocked(params, band) else days
     wanted = decisions.needs(params, band)
-    reach = params.units.band.winter_camp.reach if bands.ranging(band) else 0
+    reach = params.units.band.winter_camp.reach if bands.ranging(params, band) else 0
     away = [held for held in days if decisions.far(band.place, place(held[0], band)) > reach]
     if not away:
         return days
@@ -170,6 +171,16 @@ def survived(params: Params, band: Band, era: str, days: list[tuple[Proposal, fl
     fed = [held for held, given in zip(away, gives, strict=True) if given >= max(gives) - bands.NOTHING]
     far = [decisions.far(band.place, place(proposal, band)) for proposal, _ in fed]
     return [held for held, cells in zip(fed, far, strict=True) if cells == min(far)]
+
+
+def stocked(params: Params, band: Band) -> bool:
+    """
+    Whether a band keeps to its built winter camp: in the seasons of the camp, on land still safe for one, while
+    leaving it would drop food, not only spare goods and water over a day of drinking.
+    """
+    if band.season not in params.units.band.winter_camp.seasons or unsafe(params, band):
+        return False
+    return bands.abandoned(params, band) > bands.spared(params, band) + bands.NOTHING
 
 
 def _aimed(params: Params, band: Band, era: str, inside: Inside, to: Place) -> float | None:

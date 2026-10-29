@@ -32,12 +32,12 @@ ___
 | `food`        | 0.9  | 20 days  | spring 0.6, autumn 1.2, winter 0.3 |
 | `threat`      | 0.2  | none     | none                               |
 | `passability` | 0.9  | none     | spring 0.5                         |
-| `stone`       | 0.0  | none     | none                               |
-| `wood`        | 0.0  | none     | none                               |
+| `stone`       | 0.05 | 60 days  | none                               |
+| `wood`        | 0.05 | 60 days  | none                               |
 | `plants`      | 0.7  | 30 days  | none                               |
 | `game`        | 0.5  | 60 days  | none                               |
 
-Resources: `water`, `forage`, `herbs`, `cords`. Colour: `#9ACD32`.
+Resources: `water`, `forage`, `stones`, `sticks`, `herbs`, `cords`. Colour: `#9ACD32`.
 
 It is the first biome where a season changes how the land is crossed: in
 spring the river is out of its banks.

@@ -713,11 +713,9 @@ def test_a_year_of_votes_gives_the_same_hashes_twice(params: Params) -> None:
 
 @pytest.mark.parametrize(
     ('day', 'offered'),
-    [(20, False), (59, False), (60, True), (70, True), (99, True), (100, False), (159, False), (160, True)],
+    [(20, False), (49, False), (50, True), (70, True), (99, True), (100, False), (149, False), (150, True)],
 )
-def test_a_winter_camp_is_offered_in_the_winter_and_the_ten_days_before_it(
-    params: Params, day: int, offered: bool
-) -> None:
+def test_a_winter_camp_is_offered_in_the_autumn_and_the_winter(params: Params, day: int, offered: bool) -> None:
     assert council.offered(params, day) is offered
 
 
@@ -943,6 +941,45 @@ def test_a_starving_band_on_the_best_land_it_knows_stays_to_gather(params: Param
     days = council.score(params, held, ERA, game.inside)
 
     assert council.survived(params, held, ERA, days) == days
+
+
+def camped(game: Game, stores: dict[str, float]) -> bands.Band:
+    held = band(game)
+    held.camp = {'x': held.x, 'y': held.y, 'built': 1.0}
+    held.stores = Stock({name: [[float(game.day), amount]] for name, amount in stores.items()})
+    held.restocked()
+    return held
+
+
+@pytest.mark.parametrize(('parts', 'kept'), [(WINTER + 2, True), (EVENING, False)])
+def test_a_band_whose_stocked_camp_it_could_not_carry_away_has_no_way_off_only_in_the_seasons_of_the_camp(
+    params: Params, parts: int, kept: bool
+) -> None:
+    game = land(params, stripped=STRIPPED, parts=parts)
+    held = camped(game, {'dried': 2000.0, 'water': 45.0})
+    days = council.score(params, held, ERA, game.inside)
+
+    found = council.survived(params, held, ERA, days)
+
+    assert council.stocked(params, held) == kept
+    assert any(proposal['kind'] == 'go' for proposal, _ in days)
+    assert found == ([day for day in days if day[0]['kind'] != 'go'] if kept else days)
+
+
+def test_a_camp_is_not_kept_for_spare_goods_or_water_on_unsafe_land_or_by_a_starving_band(params: Params) -> None:
+    unsafe = load_params(overrides={**SMALL, 'units.band.winter_camp.unsafe': 0.0})
+    spare = camped(land(params, parts=WINTER + 2), {'sticks': 4000.0, 'water': 45.0})
+    watered = camped(land(params, parts=WINTER + 2), {'forage': 20.0, 'water': 4000.0})
+    dangerous = camped(land(unsafe, parts=WINTER + 2), {'dried': 2000.0, 'water': 45.0})
+    game = land(params, stripped=STRIPPED, parts=WINTER + 2)
+    hungry = camped(game, {'dried': 2000.0, 'water': 45.0})
+    hungry.states.append(bands.STARVATION)
+    days = council.score(params, hungry, ERA, game.inside)
+
+    assert (council.stocked(params, spare), council.stocked(params, watered)) == (False, False)
+    assert not council.stocked(unsafe, dangerous)
+    assert council.stocked(params, hungry)
+    assert any(proposal['kind'] == 'go' for proposal, _ in council.survived(params, hungry, ERA, days))
 
 
 def test_a_band_that_hunger_presses_fears_nothing(params: Params) -> None:

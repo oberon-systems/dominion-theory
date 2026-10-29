@@ -259,6 +259,12 @@ takes 15 x 1.0 x 0.8 x 0.3 = 3.6 sticks a tick. The decisions and the
 council see a cell so: its wood, stone and plants are the larger of its
 own and of its neighbours' at that share.
 
+Every land but the water, the shallows, the ice and the snow has a
+little stone and wood lying about, 0.05 of each, back in 60 days once
+picked up: a band far from hills and forests still gathers a few poor
+stones and sticks, slowly. Hills, mountains and outcrops give stone,
+forests wood, many times more.
+
 The quality of a stone or a cord is drawn when it is gathered, from the
 range of the biome of the cell it came from, on a stream of its own,
 `goods`, and rounded to two places. The reed of a floodplain makes the
@@ -269,6 +275,7 @@ best cords, the bast of a forest the worst.
 | `stones` | `mountain`   | 0.8 to 1.0   | cuts 240 to 300 food         |
 | `stones` | `outcrops`   | 0.65 to 0.9  | cuts about 195 to 270 food   |
 | `stones` | `hills`      | 0.5 to 0.75  | cuts about 150 to 225 food   |
+| `stones` | any other land | 0.3 to 0.5 | cuts about 90 to 150 food    |
 | `cords`  | `floodplain` | 0.8 to 1.0   | makes the best goods          |
 | `cords`  | `swamp`      | 0.65 to 0.9  | makes good goods              |
 | `cords`  | `grass`      | 0.55 to 0.8  | makes fair goods              |
@@ -696,7 +703,11 @@ resources:
     property: stone
     weight_kg: 0.5
     wears: {eaten: 300}
-    quality: {mountain: {min: 0.8, max: 1.0}, outcrops: {min: 0.65, max: 0.9}, hills: {min: 0.5, max: 0.75}}
+    quality:
+      mountain: {min: 0.8, max: 1.0}
+      outcrops: {min: 0.65, max: 0.9}
+      hills: {min: 0.5, max: 0.75}
+      grass: {min: 0.3, max: 0.5}  # and so every other land but the water, the shallows, the ice and the snow
     keep: {per: head, amount: 0.3}
     gives:
       - {to: band, path: units.band.consumption_per_day.forage, times: 0.9}

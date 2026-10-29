@@ -179,8 +179,9 @@ def test_a_hungry_band_stays_in_the_forest_to_gather(params: Params) -> None:
 
     found = scores(params, band)
 
-    own = 0.8 * 0.9 + 0.1 * 0.6 - 2.0 * 0.2 * 0.4
-    grass = 0.8 * 0.8 + 0.1 * 0.28 - 2.0 * 0.2 * 0.1
+    # Hunger 0.8 presses: the band fears nothing.
+    own = 0.8 * 0.9 + 0.1 * 0.6
+    grass = 0.8 * 0.8 + 0.1 * 0.28
     assert found['roam-east'] == pytest.approx(0.75 * 3.0 * (grass / 1.25 - own) + 0.5 * 1.5 * 0.8 * 0.8)
     assert found['gather'] == pytest.approx(1.5 * 0.8 * 0.9 * 10 / 11 + 1.2 * 0.1 * 0.6 / 11)
     assert decisions.decide(params, band, 0, ERA) == {
@@ -235,8 +236,8 @@ def test_the_stripped_example_of_the_document_walks_to_the_remembered_forest() -
 
     found = scores(params, band)
 
-    own = 0.8 * 0.09 - 2.0 * 0.2 * 0.4
-    forest = 0.8 * 0.9 - 2.0 * 0.2 * 0.4
+    own = 0.8 * 0.09
+    forest = 0.8 * 0.9
     assert found == pytest.approx(
         {
             'camp': 0.0,

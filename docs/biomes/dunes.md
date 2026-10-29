@@ -32,9 +32,9 @@ ___
 | `food`        | 0.15 | 60 days  | none    |
 | `threat`      | 0.2  | none     | none    |
 | `passability` | 0.7  | none     | none    |
-| `stone`       | 0.0  | none     | none    |
-| `wood`        | 0.0  | none     | none    |
+| `stone`       | 0.05 | 60 days  | none    |
+| `wood`        | 0.05 | 60 days  | none    |
 | `plants`      | 0.0  | none     | none    |
 | `game`        | 0.0  | none     | none    |
 
-Resources: `water`, `forage`. Colour: `#EAD9A0`.
+Resources: `water`, `forage`, `stones`, `sticks`. Colour: `#EAD9A0`.

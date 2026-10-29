@@ -86,7 +86,7 @@ option, and each feature is a name, so a mind says what it weighs:
 | `river`             | 1 when its place has a river                                |
 | `unknown`           | 1 when its place is land the band does not know             |
 | `distance`          | the cells of its route over the sight of the band; 0 where it stands or knows no way |
-| `winter_short`      | for a winter camp, the share of the season of winter left, 1 before it begins |
+| `winter_short`      | for a winter camp, the share of its seasons left, the autumn and the winter as one, 1 before they begin |
 | `short_stay`        | for a stay, 1 when the days of food or water are below a day |
 | `outvoted`          | for an option not leading, abstaining aside, the share of the leader's votes the seat's voice lacks |
 

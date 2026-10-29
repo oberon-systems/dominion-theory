@@ -17,8 +17,8 @@ biomes:
               winter: {times: 0.4}
           threat: {base: 0.4}
           passability: {base: 0.6}
-          stone: {base: 0.0}
+          stone: {base: 0.05, recovery: {days: 60}}
           wood: {base: 0.8, recovery: {days: 30}}
           plants: {base: 0.5, recovery: {days: 30}}
           game: {base: 0.7, recovery: {days: 60}}
-        resources: [water, forage, sticks, herbs, cords]
+        resources: [water, forage, stones, sticks, herbs, cords]

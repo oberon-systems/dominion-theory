@@ -658,10 +658,12 @@ class WinterCamp(Node):
     giving afar of a gathering. Once built, while the band stands on its cell staying in it is worth kept more
     to the others, the threat, the spoiling and the eating are multiplied by their factors, and so is what a
     camp takes off fatigue; nothing kept in it weighs. It is never offered on land whose threat, with the dread
-    of the band and what its guard leaves, reaches unsafe.
+    of the band and what its guard leaves, reaches unsafe. Only in its seasons does a band range around it and
+    keep to a built one while leaving would drop food.
     """
 
     offered: Offered
+    seasons: tuple[Name, ...] = Field(min_length=1)
     unsafe: Share
     build: Duration
     reach: Span
@@ -1375,6 +1377,7 @@ class Params(Node):
         seasons = [season.name for season in self.time.seasons]
         for path, listed in (
             ('units.band.winter_camp.offered.seasons', band.winter_camp.offered.seasons),
+            ('units.band.winter_camp.seasons', band.winter_camp.seasons),
             ('units.band.drying.seasons', band.drying.seasons),
         ):
             for wanted in listed:

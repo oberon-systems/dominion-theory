@@ -31,12 +31,12 @@ ___
 | `food`        | 0.2  | 60 days  | summer 1.5, winter 0.1 |
 | `threat`      | 0.4  | none     | none                   |
 | `passability` | 0.6  | none     | none                   |
-| `stone`       | 0.0  | none     | none                   |
-| `wood`        | 0.0  | none     | none                   |
+| `stone`       | 0.05 | 60 days  | none                   |
+| `wood`        | 0.05 | 60 days  | none                   |
 | `plants`      | 0.0  | none     | none                   |
 | `game`        | 0.4  | 60 days  | none                   |
 
-Resources: `water`, `forage`. Colour: `#A9B8A0`.
+Resources: `water`, `forage`, `stones`, `sticks`. Colour: `#A9B8A0`.
 
 The frozen sea is still `water`. Ice as a biome of its own is not in the
 first set.

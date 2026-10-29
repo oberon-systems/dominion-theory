@@ -31,11 +31,11 @@ ___
 | `threat`      | 0.3  | none     | none                               |
 | `passability` | 0.7  | none     | none                               |
 | `stone`       | 0.5  | 90 days  | none                               |
-| `wood`        | 0.0  | none     | none                               |
+| `wood`        | 0.05 | 60 days  | none                               |
 | `plants`      | 0.0  | none     | none                               |
 | `game`        | 0.3  | 60 days  | none                               |
 
-Resources: `water`, `forage`, `stones`. Colour: `#8F9A5B`.
+Resources: `water`, `forage`, `stones`, `sticks`. Colour: `#8F9A5B`.
 
 The first window must hold some hills: see
 [Generation](generation.md#the-first-window).

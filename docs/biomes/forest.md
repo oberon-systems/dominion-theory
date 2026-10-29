@@ -28,12 +28,12 @@ ___
 | `food`        | 0.9  | 30 days  | spring 0.7, autumn 1.2, winter 0.4 |
 | `threat`      | 0.4  | none     | none                               |
 | `passability` | 0.6  | none     | none                               |
-| `stone`       | 0.0  | none     | none                               |
+| `stone`       | 0.05 | 60 days  | none                               |
 | `wood`        | 0.8  | 30 days  | none                               |
 | `plants`      | 0.5  | 30 days  | none                               |
 | `game`        | 0.7  | 60 days  | none                               |
 
-Resources: `water`, `forage`, `sticks`, `herbs`, `cords`. Colour: `#006400`.
+Resources: `water`, `forage`, `stones`, `sticks`, `herbs`, `cords`. Colour: `#006400`.
 
 A stripped forest takes longer to recover than grass, so a band that
 stays is pushed to move on.

@@ -127,8 +127,10 @@ units:
     # What the guard of the band leaves of the threat it meets, in camp and on the march.
     threat: {camp: 1.0, march: 1.0}
     winter_camp:
-      # Offered through the winter and the second half of the autumn, so a camp can be stocked before the cold.
-      offered: {seasons: [winter], before: {days: 10}}
+      # Offered from the first day of the autumn, so a camp is stocked from its reach before the cold.
+      offered: {seasons: [autumn, winter], before: {days: 0}}
+      # In these seasons a band ranges around its camp and keeps to a built one while leaving it would drop food.
+      seasons: [autumn, winter]
       # The threat, with dread and the guard, at which a camp is not offered: no camp in the mountains.
       unsafe: 0.5
       build: {days: 2}

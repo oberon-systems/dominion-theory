@@ -46,7 +46,7 @@ def test_forest_is_the_one_of_its_document() -> None:
         'winter': ('times', 0.4),
     }
     assert forest.eras['band'].properties['threat'].recovery is None
-    assert forest.eras['band'].resources == ('water', 'forage', 'sticks', 'herbs', 'cords')
+    assert forest.eras['band'].resources == ('water', 'forage', 'stones', 'sticks', 'herbs', 'cords')
 
 
 def test_spot_checks_of_the_other_biomes() -> None:

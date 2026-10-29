@@ -111,7 +111,8 @@ def test_band_is_the_one_of_its_document() -> None:
     assert band.making.model_dump() == {'per_part': 1.0, 'hands': 3, 'mastery': {'half': 10.0, 'floor': 0.6}}
     assert band.shelter.model_dump() == {'encounter': 0.5, 'frailty': 0.5}
     assert band.winter_camp.model_dump() == {
-        'offered': {'seasons': ('winter',), 'before': {'days': 10}},
+        'offered': {'seasons': ('autumn', 'winter'), 'before': {'days': 0}},
+        'seasons': ('autumn', 'winter'),
         'unsafe': 0.5,
         'build': {'days': 2},
         'reach': 1,
@@ -511,9 +512,9 @@ def test_goods_spoil_or_wear_by_their_uses_and_draw_a_quality_where_their_proper
     assert refused({'resources.forage': worn})['path'] == 'resources.forage'
     assert refused({'resources.stones.kind': 'alpha'})['path'] == 'resources.stones'
     assert refused({'resources.stones.quality.hills.max': 1.5})['path'] == 'resources.stones.quality.hills.max'
-    assert refused({'resources.stones.quality': {'forest': {'min': 0.5, 'max': 0.6}}}) == {
+    assert refused({'resources.stones.quality': {'water': {'min': 0.5, 'max': 0.6}}}) == {
         'path': 'resources.stones.quality',
-        'found': 'forest',
+        'found': 'water',
         'expected': 'a biome that gives the property stone',
     }
 

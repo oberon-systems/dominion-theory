@@ -405,8 +405,8 @@ ___
 A winter camp is the council's answer `winter-camp`, offered on any day
 to a band that knows how to winter and never on land whose threat with
 the band's dread and guard reaches `winter_camp.unsafe`, 0.5. It wins
-the vote only in its season, the winter and the second half of the
-autumn, `before` 10 days; see
+the vote only in its season, the autumn and the winter, `before` 0 days;
+see
 [Indirect control](../game/indirect_control.md#the-table-of-votes). The band builds it on the cell
 it stands on with the action `build`: `winter_camp.build`, 2 days of the
 active parts, 6 ticks, with no gathering; while it starves or thirsts
@@ -463,19 +463,39 @@ stores and the kits lie in the camp, so the band gathers as much as its
 land gives. When the band leaves its camp its members wear their clothes
 and carry their weapons, and the litters carry the food and the water.
 Of the stores it leaves behind first the spare goods - sticks, stones,
-hides and the rest - then fresh food, then the reserve, then water, the
-oldest lots first, until a day's ration still fits on the carry; what is
-left stays in the camp and is lost to the band. In seed 4 of the lives a
+hides and the rest - then the water over a day of drinking, then fresh
+food, then the reserve, then the rest of the water, the oldest lots
+first, until a day's ration still fits on the carry; what is left stays
+in the camp and is lost to the band. Water is found again by any river;
+in seed 7 of the long run a band kept 600 litres in its camp, since
+nothing kept there weighs, and would have left its food for them. In seed 4 of the lives a
 band that carried all its spare goods out of a camp had no room to
 gather and starved in a forest. Before game 1d862e91 a band went into the winter with two
 days of food; a band that came out of a stocked camp with all its
 reserve on its back could carry no water and died of thirst in spring.
 
+In the autumn and the winter, `winter_camp.seasons`, a band does not
+leave its built camp while leaving would drop food: it eats its stores
+down to what it carries first. Spare goods and water over a day of
+drinking do not hold it. Starvation, thirst and land grown
+too dangerous for a camp lift the rule; see
+[Survival before the votes](../game/indirect_control.md#survival-before-the-votes).
+In the spring and the summer the band may leave and drop what it cannot
+carry, since the land feeds it again. In seed 4 of the lives a band left
+its camp on the first day of the autumn with 697 food, kept 36 and
+starved through the winter on fresh land.
+
 ### The reach of a camp
 
-A band ranges while it is bound to a winter camp or stands on its camp,
-built or not: from the evening the camp is chosen, the days of the build
-included. A ranging band gathers each resource from the best cell within
+A band ranges in the seasons of the camp, `winter_camp.seasons`, the
+autumn and the winter, while it is bound to a winter camp or stands on
+its camp, built or not: from the evening the camp is chosen, the days of
+the build included. In the spring and the summer a band on its camp
+gathers its own cell alone and leaves it once the cell is stripped: the
+band roams in the warm seasons and settles in the autumn to stock its
+camp. In seed 7 of the long run a band that ranged the whole year stood
+on one place for a year beside fresh land, and the player had nothing
+to do. A ranging band gathers each resource from the best cell within
 `winter_camp.reach`, 1: its own and the 8 around it. A cell around counts
 when the band can enter it and it lists the resource, and it gives
 `winter_camp.afar`, 1.0, of a gathering; the cell gathered from pays its
@@ -915,7 +935,8 @@ units:
     threat: {camp: 1.0, march: 1.0}
     drying: {of: forage, into: dried, keeps: 0.7, seasons: [spring, summer, autumn]}
     winter_camp:
-      offered: {seasons: [winter], before: {days: 10}}
+      offered: {seasons: [autumn, winter], before: {days: 0}}
+      seasons: [autumn, winter]
       unsafe: 0.5
       build: {days: 2}
       reach: 1

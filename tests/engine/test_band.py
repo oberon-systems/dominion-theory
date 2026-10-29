@@ -386,7 +386,7 @@ def test_the_band_knows_what_lies_within_its_sight(params: Params) -> None:
         'food': pytest.approx(0.9),
         'threat': pytest.approx(0.4),
         'passability': pytest.approx(0.6),
-        'stone': 0.0,
+        'stone': pytest.approx(0.05),
         'wood': pytest.approx(0.8),
         'plants': pytest.approx(0.5),
         'game': pytest.approx(0.7),
@@ -953,7 +953,7 @@ def gathered(game: Game) -> float:
 
 
 def test_a_band_around_its_winter_camp_gathers_the_richest_cell_in_reach(params: Params) -> None:
-    alone, ranging = land(params), land(params)
+    alone, ranging = land(params, parts=WINTER), land(params, parts=WINTER)
     for game in (alone, ranging):
         game.cells.lower(HOME, 'food', 0.9)
     band(ranging).camp = {'x': WEST, 'y': NORTH + 1, 'built': 0.0}
@@ -971,12 +971,22 @@ def test_a_band_around_its_winter_camp_gathers_the_richest_cell_in_reach(params:
 def test_a_cell_away_from_the_camp_gives_afar_of_a_gathering() -> None:
     taken = []
     for afar in (1.0, 0.5):
-        game = land(load_params(overrides={**SMALL, 'units.band.winter_camp.afar': afar}))
+        game = land(load_params(overrides={**SMALL, 'units.band.winter_camp.afar': afar}), parts=WINTER)
         game.cells.lower(HOME, 'food', 0.9)
         band(game).camp = {'x': WEST, 'y': NORTH + 1, 'built': 0.0}
         taken.append(gathered(game))
 
     assert taken[1] == pytest.approx(taken[0] * 0.5)
+
+
+def test_a_band_on_its_camp_out_of_the_seasons_of_the_camp_gathers_its_own_cell_alone(params: Params) -> None:
+    alone, camped = land(params), land(params)
+    for game in (alone, camped):
+        game.cells.lower(HOME, 'food', 0.9)
+    band(camped).camp = {'x': WEST, 'y': NORTH + 1, 'built': 1.0}
+
+    assert not bands.ranging(params, band(camped))
+    assert gathered(camped) == pytest.approx(gathered(alone))
 
 
 def test_the_cells_in_reach_are_the_rings_around_a_place() -> None:

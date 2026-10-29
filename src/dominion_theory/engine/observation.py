@@ -178,17 +178,22 @@ def _ground(game: Game, band: Band, proposal: dict[str, Any], wanted: dict[str, 
 
 def _winter_left(params: Params, day: int) -> float:
     """
-    The share of the season that offers a winter camp still to come, 1 before it begins.
+    The share of the run of seasons that offer a winter camp still to come, 1 before it begins.
     """
     per_year = params.time.days_per_year
     today = day % per_year + 1
-    schedule = SeasonSchedule(params.time, 1)
-    season = schedule.season(today)
-    if season not in params.units.band.winter_camp.offered.seasons:
+    starts = SeasonSchedule(params.time, 1).starts
+    offered = params.units.band.winter_camp.offered.seasons
+    at = max(index for index, (_, start) in enumerate(starts) if start <= today)
+    if starts[at][0] not in offered:
         return 1.0
-    starts = [start for _, start in schedule.starts]
-    begun = max(start for name, start in schedule.starts if name == season and start <= today)
-    ends = min((start for start in starts if start > begun), default=per_year + 1)
+    first, last = at, at
+    while first > 0 and starts[first - 1][0] in offered:
+        first -= 1
+    while last + 1 < len(starts) and starts[last + 1][0] in offered:
+        last += 1
+    begun = starts[first][1]
+    ends = starts[last + 1][1] if last + 1 < len(starts) else per_year + 1
     return (ends - today) / (ends - begun)
 
 

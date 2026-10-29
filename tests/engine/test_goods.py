@@ -650,3 +650,12 @@ def test_nothing_kept_in_a_built_winter_camp_weighs_and_a_band_leaving_it_drops_
     assert held.held('forage') < 10.0
     assert held.stores['dried'][-1] == [5.0, 40.0]
     assert bands.weight(params, held) + rations == pytest.approx(bands.carry(params, held))
+
+
+def test_a_band_leaving_its_winter_camp_drops_the_water_over_a_day_of_drinking_before_food(params: Params) -> None:
+    held = holding({'water': [[0.0, 40.0]], 'forage': [[0.0, 30.0]], 'sticks': [[0.0, 2.0]]})
+    held.camp = {'x': held.x, 'y': held.y, 'built': 1.0}
+
+    bands.leave(params, held)
+
+    assert (held.held('sticks'), held.held('water'), held.held('forage')) == pytest.approx((0.0, 10.0, 30.0))

@@ -133,7 +133,7 @@ def seen(params: Params, band: Band, at: Place, era: str, ranged: bool = True) -
         for prop in _goods(params, near, era):
             if near.get(prop, 0.0) * beside > held.get(prop, 0.0):
                 held = {**held, prop: near[prop] * beside}
-    if ranged and at == band.place and ranging(band):
+    if ranged and at == band.place and ranging(params, band):
         held = _ranged(params, band, held, era)
     if at in band.dread:
         held = {**held, THREAT: perceived(band, at, cell.get(THREAT, 0.0))}
@@ -203,7 +203,7 @@ def gathers(params: Params, band: Band, at: Place, era: str) -> set[str]:
         found.update(_listed(params, shore, era))
     for near in _beside(band, at):
         found.update(name for name in _listed(params, near, era) if params.resources[name].kind == GOODS)
-    if at == band.place and ranging(band):
+    if at == band.place and ranging(params, band):
         for near in _reach(params, band):
             found.update(_listed(params, near, era))
     return found

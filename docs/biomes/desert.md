@@ -29,12 +29,12 @@ ___
 | `food`        | 0.1  | 90 days  | none    |
 | `threat`      | 0.3  | none     | none    |
 | `passability` | 0.8  | none     | none    |
-| `stone`       | 0.0  | none     | none    |
-| `wood`        | 0.0  | none     | none    |
+| `stone`       | 0.05 | 60 days  | none    |
+| `wood`        | 0.05 | 60 days  | none    |
 | `plants`      | 0.0  | none     | none    |
 | `game`        | 0.0  | none     | none    |
 
-Resources: `water`, `forage`. Colour: `#D9C27E`.
+Resources: `water`, `forage`, `stones`, `sticks`. Colour: `#D9C27E`.
 
 The first window is placed in the temperate north and asks for forest, so
 a band does not start in a desert. It is on the planet for the eras that

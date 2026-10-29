@@ -186,6 +186,15 @@ the ways beyond the reach; where it knows nothing there, the unknown.
 gives = hunger * food + thirst * water, of the land of the option
 ```
 
+A band that neither starves nor thirsts and stands in its built winter
+camp in the autumn or the winter, `winter_camp.seasons`, keeps to it
+while leaving would drop food: every go goes off the table, and the band
+eats its stores down to what it carries. Spare goods and water over a
+day of drinking do not hold it. Land grown too dangerous for a camp, by
+`winter_camp.unsafe`, lifts the rule; so do starvation and thirst. In
+seed 4 of the lives a band left a camp of 697 food on the first day of
+the autumn with 36 on its back and starved in the winter.
+
 The votes are laid over what is left. A place the player names is
 weighed the same way, so a place the rule took off gets no vote of the
 others.
@@ -203,10 +212,11 @@ food.
 
 A winter camp is offered on any day to a band that knows the skill
 `wintering`: from its second winter on. It wins only in its season, the
-seasons of `units.band.winter_camp.offered`, the winter, and the
-`before` days ahead of them, the last 10 days of the autumn: only then
-does a built camp add its keep to staying, and only in the winter does
-the band see the threat of its camp halved. Out of its season the camp
+seasons of `units.band.winter_camp.offered`, the autumn and the winter,
+and the `before` days ahead of them, none: only then does a built camp
+add its keep to staying and does the band see the threat of its camp
+halved. The band settles in the autumn and stocks its camp from the
+reach for two months before the cold. Out of its season the camp
 is scored by the winter its reach would feed, which loses to the land
 of the summer. In its season the old camp nearest the band, one it built
 before and remembers, is named as a place to go; a band bound to winter

@@ -155,6 +155,8 @@ def test_a_mind_scores_by_its_weights_and_a_tie_goes_to_the_order_of_the_table()
     assert choose(Mind(features=('abstain',), weights=(-1.0,)), seen()) == 1
 
 
-@pytest.mark.parametrize(('day', 'left'), [(5, 1.0), (69, 1.0), (70, 1.0), (85, 0.5), (99, pytest.approx(1 / 30))])
-def test_the_share_of_winter_left_is_whole_before_it_and_shrinks_in_it(params: Params, day: int, left: Any) -> None:
+@pytest.mark.parametrize(('day', 'left'), [(5, 1.0), (49, 1.0), (50, 1.0), (75, 0.5), (99, pytest.approx(1 / 50))])
+def test_the_share_of_the_camp_seasons_left_is_whole_before_them_and_shrinks_in_them(
+    params: Params, day: int, left: Any
+) -> None:
     assert _winter_left(params, day) == left

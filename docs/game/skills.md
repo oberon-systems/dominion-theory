@@ -60,8 +60,8 @@ met, not from the start.
 
 | Skill         | Learned when                                              | Needs                    | Opens |
 |---------------|-----------------------------------------------------------|--------------------------|-------|
-| `orientation` | 4 biomes seen, or 30 days on the march                    | -                        | a go to a place of the player's own, `go_place` |
-| `wintering`   | a winter lived through                                    | -                        | the winter camp, `winter_camp` |
+| `orientation` | 4 biomes seen, or 30 days on the march                    | -                        | a direction or a cell of the player's own, `go_place` |
+| `wintering`   | a winter lived through                                    | -                        | `camp` as the winter camp, `winter_camp` |
 | `stone_tools` | a night on or beside hills, mountain or outcrops          | -                        | gathering `stones` |
 | `sticks`      | a night in or beside a forest                             | -                        | gathering `sticks` |
 | `litters`     | 8 cells walked in or beside a forest                      | `sticks`, `herbs`        | making `litters` |
@@ -558,13 +558,14 @@ ___
 
 Two skills gate what the council offers and what the player may say.
 
-- **Without `orientation`** - a `vote` that proposes a place no option of
-  the table names is refused with `refused-not-learned`. Backing a go
-  the others named is allowed. The council says it in `place`, so a
-  client offers no cell of the player's own.
-- **Without `wintering`** - the winter camp is not offered, to the
-  player or to the band's own decision; a `vote` that names it is
-  refused with `refused-not-learned`.
+- **Without `orientation`** - a `vote` that proposes a direction or a
+  cell no option of the table names is refused with
+  `refused-not-learned`. Backing a plan the others named is allowed, and
+  an `explore` goes the way the band picks. The council says it in
+  `place`, so a client offers no direction or cell of the player's own.
+- **Without `wintering`** - the plan `camp` is the stand of a month in
+  every season, to the player and to the band's own decision: no winter
+  camp is built.
 
 A council called by a new skill, an occasion, is a later bridge to the
 encounters between bands and is not built now.

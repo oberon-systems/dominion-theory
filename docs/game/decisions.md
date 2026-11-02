@@ -12,7 +12,7 @@ Part of the stage 2 design in [the roadmap](../roadmap.md).
 - [What a cell is worth](#what-a-cell-is-worth)
 - [Scoring the actions](#scoring-the-actions)
 - [Choosing](#choosing)
-- [Under an intent](#under-an-intent)
+- [Under a plan](#under-a-plan)
 - [The reason](#the-reason)
 - [Parameters](#parameters)
 - [Examples](#examples)
@@ -201,6 +201,32 @@ walk into nothing. Before game 4f160478 one distance served both, the
 unknown lay always four cells off, and a band shuttled for 15 years on
 one patch of 5 by 5 cells.
 
+### The lure of the unknown
+
+A band whose known land is poor, or too small for it, is drawn to land
+it does not know. The council weighs the plans `explore` by the pull of
+their first target times the lure; the band's own choice in a tick is
+not lured.
+
+```text
+lure    = 1 + lure.poor * poor + lure.crowded * crowded
+poor    = max(0, 1 - best / hoped)
+crowded = max(0, eaters / fed - lure.from)
+```
+
+- **`best`** is the best worth among the known cells within the sight of
+  the band, visits weighed, and **`hoped`** the worth of the unknown in
+  the season, `decisions.unknown`; `poor` is 0 while the band knows land
+  as good as it hopes for and 1 when nothing it knows is worth anything.
+- **`fed`** is how many people the known cells within the sight feed a
+  day by what their food grows back, over the ration of one eater, and
+  `eaters` the band's own; `crowded` grows once the band eats more than
+  `lure.from` of what its land grows.
+
+In game 4f160478 the band lived 15 years on about 5 by 5 cells, never
+found the river its map named and stayed at 30 to 38 people from the
+sixth year on: its land fed no more, and nothing drew it further.
+
 A move scores above zero only when something known, or the unknown, is
 better than staying. A band on good land stays; a band on stripped
 land goes.
@@ -232,33 +258,46 @@ and how a band on a bare plain finds better land.
 
 ___
 
-## Under an intent
+## Under a plan
 
-A proposal the council passed is the band's intent. An intent does not
-replace the function: it narrows the options and the function chooses
-among what is left. A tired band camps whatever its intent, until its
-tiredness ends.
+A plan the council passed is the band's intent. A plan does not replace
+the function: it narrows the options and the function chooses among
+what is left. A tired band camps whatever its plan, until its tiredness
+ends. The plans and their legs are told in
+[Indirect control](indirect_control.md#a-plan); the plans `camp` and
+`roam` are not the actions `camp` and `roam` of this document.
 
-| Intent            | Options left                                              |
-|-------------------|-----------------------------------------------------------|
-| `go` to a place   | a move or a roam to the next cell of the route, a gathering, or a camp; a starving or thirsting band only moves or roams |
-| `stay-and-gather` | gathering of any resource, or a camp                      |
-| `winter-camp`     | a build until the camp stands, then as `stay-and-gather`; a starving or thirsting band gathers first |
+| Plan                        | Options left                                    |
+|-----------------------------|-------------------------------------------------|
+| `roam`, `explore`, marching | a move or a roam to the next cell of the route of the leg, a gathering, or a camp; a starving or thirsting band only moves or roams |
+| `roam`, `explore`, standing | gathering of any resource, or a camp            |
+| `camp`                      | gathering of any resource, or a camp            |
+| `camp` in its season        | a build until the camp stands, then as `camp`; a starving or thirsting band gathers first |
 
-Under a `go` intent the moves and the roams are scored with the pull
-replaced by a fixed `weights.intent`, and a roam gets the whole of that
-gain, not `roaming.speed` of it: the intent names the way, not the pace.
-The cell it stands on is weighed against that without the goods it
-lacks, which its gathering weighs already, so a band short of herbs
-does not leave a go for every meadow. The band roams wherever the cell ahead feeds it, walks over bare land
-and stops to gather only where that is worth more than going on. A band that starves or thirsts does not stop:
-it goes for food or water and forages only on the way. Before this, the band of seed 4 in the lives sat on a
-stripped winter cell for 25 days, gathering it again every day instead of walking two cells.
+A band on a leg marches while it is not tired and while its stores hold
+at least `plan.march` days of food and of water, and stands once either
+fails, until its tiredness has ended and its stores hold `plan.stock`
+days, or its cell gives the gatherers less than a day's food. At the end
+of a stand, and when a leg is reached, the band picks its next leg as
+[Indirect control](indirect_control.md#a-plan) tells. A band that
+starves or thirsts does not stand.
+
+On the march the moves and the roams are scored with the pull replaced
+by a fixed `weights.intent`, and a roam gets the whole of that gain, not
+`roaming.speed` of it: the plan names the way, not the pace. The cell it
+stands on is weighed against that without the goods it lacks, which its
+gathering weighs already, so a band short of herbs does not leave its
+leg for every meadow. The band roams wherever the cell ahead feeds it,
+walks over bare land and stops to gather only where that is worth more
+than going on. A band that starves or thirsts does not stop: it goes for
+food or water and forages only on the way. Before this, the band of seed
+4 in the lives sat on a stripped winter cell for 25 days, gathering it
+again every day instead of walking two cells.
 
 ### The route
 
-A go is walked by a route: the cheapest chain of cells from the band to
-the place, by the eight neighbours, searched in a box around both with
+A leg is walked by a route: the cheapest chain of cells from the band to
+its target, by the eight neighbours, searched in a box around both with
 `route.margin` cells to spare. A step into a cell costs the time its
 passability takes, its threat as the band sees it, and the food and
 water it lacks as much as the band wants them.
@@ -280,11 +319,11 @@ route bends round a forest or a lake when the way round costs less, and
 of two ways that cost the same it keeps nearer the straight line. The
 route is laid anew every morning, with what the band has seen since, and
 whenever its next cell turns out closed. When no route is left, the
-intent ends early.
+plan is spent.
 
-The band holds an intent to its end, starving or not. That is what makes
-a bad proposal bad; see
-[Indirect control](indirect_control.md#an-intent).
+The band holds a plan to its end, starving or not, while its stores
+cover it. That is what makes a bad plan bad; see
+[Indirect control](indirect_control.md#a-plan).
 
 ___
 
@@ -323,6 +362,7 @@ units:
         winter: {food: 0.4, water: 0.8, passability: 0.7}
       idle: 0.05
       wander: {days: 1}
+      lure: {poor: 1.0, crowded: 1.0, from: 0.7}
       weights:
         hunger: 1.5
         thirst: 1.2
@@ -343,7 +383,10 @@ see [Survival before the votes](indirect_control.md#survival-before-the-votes).
 `levels` are read from
 the most days down; their days must differ, one of them must be 0, and
 every need lies between 0 and 1. Every name of `unknown` is a property
-of every era.
+of every era. `lure.poor` and `lure.crowded` are 0 or more, `lure.from`
+above 0; 0 for both weights turns the lure off. The rhythm of a plan,
+`units.band.plan`, is given in
+[Indirect control](indirect_control.md#parameters).
 
 ___
 

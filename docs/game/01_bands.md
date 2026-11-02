@@ -84,7 +84,7 @@ as for a gathering; see [Band](../units/band.md#gathering). The band
 picks between walking and roaming itself, but a hungry band does not
 walk: hungry or thirsty, it only roams. A camp is not a thing on the map: nothing is
 built and nothing is left behind. A winter camp is the one thing a band
-builds, and only under the council's `winter-camp`; it is the band's
+builds, and only under the council's plan `camp` in its season; it is the band's
 while the band stands on its cell, see
 [Band](../units/band.md#winter-camp).
 
@@ -252,20 +252,22 @@ What stage 2 puts into the phases of
 [one tick](../architecture/overview.md#one-tick).
 
 1. **Commands** - a `vote` is checked: the seat, the council, a second
-   vote, the place and its route.
+   vote, the plan, its direction or cell and its route.
 2. **Councils** - a council that sits is decided with the player's
-   answer, and rises. The winner becomes the band's intent; an option the
-   player carried against the leader is also judged: a go when it ends or
-   a council replaces it, a stay or a camp at the next council.
+   answer, and rises. The winner becomes the band's plan, its intent; the
+   plan in force, when the player carried it against the leader, is
+   judged before the table is laid.
 3. **Decisions** - the band picks its action, among all it may take or
-   among those its intent allows, along its route under a go, building
-   first under a winter camp; in the tick of a council, and while it is
-   tired under an intent, it camps.
+   among those its plan allows, marching or standing on a leg of a
+   `roam` or an `explore`, building first under a `camp` in its season;
+   in the tick of a council, and while it is tired under a plan, it
+   camps.
 4. **Actions** - the band moves, gathers, camps or builds; the hunters
    hunt in a working tick the band stands; in the camp parts the adults
    make goods, and in the evening the personal goods are handed out and
    the sticks wear by the night; fatigue and what it knows are brought up
-   to date; a band that stands on the place of its go has arrived.
+   to date; a band that stands on the target of its leg has reached it,
+   and picks the next leg or, with nothing left, its plan is spent.
 5. **World** - cells recover; on the first tick of a day stores and
    goods spoil; an encounter is drawn, under the threat a winter camp and
    the guard of the band lower; on the last tick of a day people eat and
@@ -278,7 +280,7 @@ What stage 2 puts into the phases of
    [Skills](skills.md#counters). The goods made, spoiled and worn are
    told in whole units.
 6. **Calendar** - as before; when the new part of the day is
-   `council.part` and an occasion calls it, the intent ends and is
+   `council.part` and an occasion calls it, the plan ends and is
    judged, and the council sits down with its table. With an empty seat
    the leader of the table binds the band and nothing sits.
 7. **Report** - as before. The report gains the band in `changes` and
@@ -331,7 +333,7 @@ of them. Both views of the API show the same for now.
       "fatigue": 0.3,
       "states": [],
       "action": {"kind": "gather", "shares": {"forage": 0.83, "water": 0.17}},
-      "intent": {"proposal": {"kind": "go", "to": {"x": 2304, "y": 742}}},
+      "intent": {"proposal": {"kind": "roam", "direction": "ne"}, "until": 140, "leg": {"x": 2304, "y": 742}, "standing": false},
       "route": [{"x": 2302, "y": 743}, {"x": 2303, "y": 742}, {"x": 2304, "y": 742}],
       "roles": {"gatherer": 14, "nanny": 1, "hunter": 0},
       "camp": null,
@@ -344,8 +346,11 @@ of them. Both views of the API show the same for now.
 
 `ages` counts the members by stage, `pregnant`, `injured` and `sick`
 the members who are, `wounds` the injured by severity; the members themselves stay in the state of the game.
-`route` is the cells still ahead to the place of a go, empty when the
-band is not on its way. `roles` counts the members by role.
+`intent` is the plan in force: its `proposal`, `until`, the day of
+the game its term ends, `leg`, the target of the leg it walks or null, and
+`standing`, whether the band stands between legs. `route` is the cells
+still ahead to the target of the leg, empty when the band is not on its
+way. `roles` counts the members by role.
 `lore` is the skills the band knows; see [Skills](skills.md).
 `goods` is the goods it holds, in its stores and in the kits of its
 members, per good, and `kit` the members holding each personal good;

@@ -40,7 +40,7 @@ Every command has the same outside and its own inside.
 {
   "id": "c-0192",
   "kind": "vote",
-  "proposal": {"kind": "go", "to": {"x": 2305, "y": 744}}
+  "proposal": {"kind": "roam", "direction": "ne"}
 }
 ```
 
@@ -114,20 +114,24 @@ council in stage 2.
 
 The API checks the form of a command; the rules are the engine's, and it
 judges a `vote` when the game next steps. A vote backs an option of the
-table, proposes a place of the player's own, or abstains with
+table, proposes a plan of the player's own, or abstains with
 `{"kind": "abstain"}`.
 
-A proposal is one of three.
+A proposal is a plan for the band's next month, one of three.
 
-| Proposal          | Fields                         | In the game                           |
-|-------------------|--------------------------------|---------------------------------------|
-| `go`              | `to`: a cell, `{"x", "y"}`     | "we go to the land where the sun rises" |
-| `stay-and-gather` | none                           | "we stay and gather"                  |
-| `winter-camp`     | none                           | "we make a winter camp here"          |
+| Proposal  | Fields                                    | In the game                           |
+|-----------|-------------------------------------------|---------------------------------------|
+| `camp`    | none                                      | "we camp here"; in its season "we make a winter camp here" |
+| `roam`    | `direction` or `to`, exactly one          | "we roam to the north-east"           |
+| `explore` | `direction` or `to`, exactly one          | "we explore to the east"              |
 
-The cell of a `go` is in planet coordinates at the scale of the window,
-two whole numbers. A go is said by the direction of its place from the
-band, so the words of the same place change as the band walks.
+A `direction` is one of `n`, `ne`, `e`, `se`, `s`, `sw`, `w`, `nw`. The
+cell `to`, `{"x", "y"}`, is in planet coordinates at the scale of the
+window, two whole numbers: land the band knows for a `roam`, land it
+does not know for an `explore`. A plan with `to` is said by the
+direction of its cell from the band, so the words of the same cell
+change as the band walks. The plans are told in
+[Indirect control](../game/indirect_control.md#the-table-of-votes).
 
 Reasons a vote may be refused, checked in this order:
 
@@ -136,9 +140,8 @@ Reasons a vote may be refused, checked in this order:
 | `refused-seat-banished`      | the player is no longer in the band          |
 | `refused-no-council`         | no council sits now, or the seat is empty    |
 | `refused-already-voted`      | the seat has answered this council           |
-| `refused-no-such-place`      | the place is the band's own, outside the window, cannot be entered, or has no route |
-| `refused-not-learned`        | a place no option names, without the skill `orientation`, or a winter camp without `wintering` |
-| `refused-unsafe-land`        | a winter camp is named on land whose threat, with the band's dread and guard, reaches `winter_camp.unsafe` |
+| `refused-no-such-place`      | the cell is the band's own, outside the window, cannot be entered, or has no route; a `roam` names land the band does not know or an `explore` land it knows; a direction leads nowhere |
+| `refused-not-learned`        | a direction or a cell no option names, without the skill `orientation` |
 
 The rules behind them are in
 [Indirect control](../game/indirect_control.md#the-players-answer).
@@ -173,7 +176,7 @@ until the next one, in step mode. The addresses are shortened.
 
 ```text
 GET  /games/7f3a9c1e/snapshot       -> seq 310, waiting ["player"], seat.council with its table
-POST /games/7f3a9c1e/commands       {"id": "c-1", "kind": "vote", "proposal": {"kind": "go", "to": {"x": 2305, "y": 744}}}
+POST /games/7f3a9c1e/commands       {"id": "c-1", "kind": "vote", "proposal": {"kind": "explore", "direction": "e"}}
 WS   /games/7f3a9c1e/updates        <- seq 311: command-accepted c-1, council-turned
 POST /games/7f3a9c1e/commands       {"id": "c-2", "kind": "pass"}
 WS   /games/7f3a9c1e/updates        <- seq 312: command-accepted c-2
@@ -182,7 +185,7 @@ WS   /games/7f3a9c1e/updates        <- seq 312: command-accepted c-2
 A vote at midday, when no council sits.
 
 ```text
-POST /games/7f3a9c1e/commands       {"id": "c-3", "kind": "vote", "proposal": {"kind": "stay-and-gather"}}
+POST /games/7f3a9c1e/commands       {"id": "c-3", "kind": "vote", "proposal": {"kind": "camp"}}
 WS   /games/7f3a9c1e/updates        <- seq 313: command-refused c-3, refused-no-council
 ```
 

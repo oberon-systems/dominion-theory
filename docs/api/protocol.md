@@ -164,25 +164,29 @@ not start at the origin; see
   seat has no council.
 - **`council`** - the council of the day while it sits, `null` otherwise:
   the `leader`, the option the others lean to or `null`, the `table`,
-  every option with its words, `key`, its votes and the band's own
-  `score` of a day of it, as
+  every option with its words, `key`, its first target `to`, that
+  cell's `offset` from the band, what the band `expect`s there, its votes
+  and the band's own `score` of it, as
   [Indirect control](../game/indirect_control.md#the-table-of-votes)
   lays them out, the `occasion` that called it, the `voice`, the votes
-  the player's word adds,
-  `winter`, whether a winter camp is offered, and `place`, whether the
-  player may name a place no option names; see
+  the player's word adds, `stores`, the days of food and water the band
+  holds, `winter`, whether `camp` is a winter camp now, and `place`,
+  whether the player may name a direction or a cell no option names; see
   [Skills](../game/skills.md#the-council).
 
 ```json
 {
-  "leader": {"kind": "stay-and-gather"},
+  "leader": {"kind": "camp"},
   "table": [
-    {"proposal": {"kind": "stay-and-gather"}, "key": "proposal-stay-and-gather", "votes": 8, "score": 0.52},
-    {"proposal": {"kind": "go", "to": {"x": 2301, "y": 740}}, "key": "proposal-go-through-grass", "votes": 1, "score": 0.31},
-    {"proposal": {"kind": "go", "to": {"x": 2304, "y": 744}}, "key": "proposal-go-forest", "votes": 5, "score": 0.47}
+    {"proposal": {"kind": "camp"}, "key": "proposal-camp", "to": null, "offset": null, "expect": null, "votes": 8, "score": 0.52},
+    {"proposal": {"kind": "roam", "direction": "n"}, "key": "proposal-roam-n", "to": {"x": 2301, "y": 740},
+     "offset": {"dx": 0, "dy": -4}, "expect": {"food": 0.6, "water": 0.3, "threat": 0.1}, "votes": 1, "score": 0.31},
+    {"proposal": {"kind": "explore", "direction": "e"}, "key": "proposal-explore-e", "to": {"x": 2304, "y": 744},
+     "offset": {"dx": 3, "dy": 0}, "expect": {"food": 0.5, "water": 0.5, "threat": 0.4}, "votes": 5, "score": 0.47}
   ],
-  "occasion": "river",
+  "occasion": "found",
   "voice": 3.75,
+  "stores": {"food": 6.0, "water": 4.0},
   "winter": false,
   "place": true
 }
@@ -205,8 +209,8 @@ A unit is a band in stage 2, as
 | `fatigue`    | 0 for rested, growing with work                             |
 | `states`     | `starvation`, `thirst`, `tiredness`, in that order          |
 | `action`     | what it did in the last tick: `camp`, `build`, `gather`, `move` or `roam` |
-| `intent`     | the proposal the council bound it to, or `null`             |
-| `route`      | the cells still ahead to the place of a go, each `{"x", "y"}` |
+| `intent`     | the plan the council bound it to, or `null`                 |
+| `route`      | the cells still ahead to the target of the leg, each `{"x", "y"}` |
 | `roles`      | the people by role: `gatherer`, `nanny`                     |
 | `camp`       | its winter camp, `{"x", "y", "built"}` with the share built, or `null` |
 | `camps`      | the winter camps it has built, each `{"x", "y"}`            |
@@ -215,11 +219,13 @@ A unit is a band in stage 2, as
 
 An action of `gather` carries its `shares`, the share of the gatherers
 that went to every resource, `{"forage": 0.56, "water": 0.44}`, and one
-of `move` its `towards`. An intent is `null` or a proposal as
-[Commands](commands.md#the-commands) gives it.
+of `move` its `towards`. An intent is `null` or the plan in force: the
+proposal as [Commands](commands.md#the-commands) gives it, `until`, the
+day of the game its term ends, `leg`, the target of the leg or `null`, and
+`standing`, whether the band stands between legs.
 
 ```json
-{"proposal": {"kind": "go", "to": {"x": 2304, "y": 744}}}
+{"proposal": {"kind": "roam", "direction": "ne"}, "until": 140, "leg": {"x": 2304, "y": 744}, "standing": false}
 ```
 
 ___
@@ -240,7 +246,7 @@ Each message on the stream is one update.
   "seq": 312,
   "date": {"year": 1, "month": 7, "day": 3, "part": "evening", "season": "autumn"},
   "events": [
-    {"key": "council-turned", "values": {"proposal": "proposal-stay-and-gather", "yes": 8.75, "all": 17.75}}
+    {"key": "council-turned", "values": {"proposal": "proposal-winter-camp", "yes": 8.75, "all": 17.75}}
   ],
   "changes": {
     "units": [
@@ -260,7 +266,7 @@ Each message on the stream is one update.
         "fatigue": 0.0,
         "states": [],
         "action": {"kind": "camp"},
-        "intent": {"proposal": {"kind": "stay-and-gather"}},
+        "intent": {"proposal": {"kind": "camp"}, "until": 240, "leg": null, "standing": true},
         "route": [],
         "roles": {"gatherer": 17, "nanny": 1, "hunter": 0},
         "camp": null,

@@ -45,13 +45,13 @@ is no number of a band in the code.
 | `fatigue`    | how tired it is, from 0 to 1                            |
 | `states`     | which of the bad states hold now; none means `normal`   |
 | `action`     | what it did in the last tick                            |
-| `intent`     | what the council bound it to, if anything               |
-| `decision`   | the last decision of the council, the cell it was taken on and the day it was taken or its go ended |
+| `intent`     | the plan the council bound it to, if anything: the proposal, the day its term ends, the target of its leg, whether it stands, and the measures it is judged by |
+| `decision`   | the last decision of the council, the cell it was taken on and the day it was taken or its plan ended |
 | `known`      | the cells it has seen and when                          |
 | `visited`    | the cells it ended a day on, and the last such day      |
 | `dread`      | the extra threat it sees on cells where it was struck   |
 | `unease`     | how much more staying in danger makes it fear threat    |
-| `route`      | the cells still ahead to the place of a go, and the day they were laid |
+| `route`      | the cells still ahead to the target of the leg, and the day they were laid |
 | `camp`       | the cell of its winter camp and the share of it built   |
 
 Stage 2 puts one band on the map, the player's. Other bands are stage 3.
@@ -404,11 +404,11 @@ ___
 
 ## Winter camp
 
-A winter camp is the council's answer `winter-camp`, offered on any day
-to a band that knows how to winter and never on land whose threat with
-the band's dread and guard reaches `winter_camp.unsafe`, 0.5. It wins
-the vote only in its season, the autumn and the winter, `before` 0 days;
-see
+A winter camp is the council's plan `camp` in its season, the autumn
+and the winter, `before` 0 days, for a band that knows how to winter and
+never on land whose threat with the band's dread and guard reaches
+`winter_camp.unsafe`, 0.5; outside them `camp` is the stand of a month.
+See
 [Indirect control](../game/indirect_control.md#the-table-of-votes). The band builds it on the cell
 it stands on with the action `build`: `winter_camp.build`, 2 days of the
 active parts, 6 ticks, with no gathering; while it starves or thirsts
@@ -440,11 +440,12 @@ band stays on it, and its effects above hold in any season; its keep in
 the vote and the lower threat the band sees in it count only in its
 season, so in the spring the band leaves the land it ate bare over the
 winter. The decision to winter ends with the first season that does not
-offer a camp, so the spring calls the council.
+offer a camp, so the spring calls the council, and the camp is judged
+by the winter it gave.
 
 The band remembers every camp it built, `camps`, and the map marks them.
-In the season of the camp the council names the nearest of them as a
-place to go. A band bound to winter on a camp of its own does not build:
+In the season of the camp the council names the nearest of them as the
+cell of a `roam`. A band bound to winter on a camp of its own does not build:
 it puts the camp in order in the evening, a camp part it spends in camp
 anyway, and the camp stands from that evening on.
 
@@ -919,6 +920,7 @@ units:
       slowdown: 0.03
       slowest: 0.3
     roaming: {speed: 0.75, share: 0.5, hunger: 0.8}
+    plan: {march: 3, stock: 5}
     fatigue:
       move: 0.3
       roam: 0.15

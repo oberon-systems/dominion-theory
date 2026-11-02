@@ -54,6 +54,17 @@ repos:
       - id: pymarkdown
         args: [scan]
 
+  - repo: https://github.com/gitleaks/gitleaks
+    rev: v8.30.1
+    hooks:
+      - id: gitleaks
+      # The stock hook reads only the index, so `make lint` never shows it a new file.
+      - id: gitleaks
+        alias: gitleaks-files
+        name: Detect hardcoded secrets in the files given
+        entry: bash -c 'for f; do gitleaks dir --redact --no-banner "$f" || exit 1; done' --
+        pass_filenames: true
+
   # Tables stay plain; a change of a column's type is agreed with the user first.
   - repo: local
     hooks:

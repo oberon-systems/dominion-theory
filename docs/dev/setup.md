@@ -61,9 +61,11 @@ make lint
 
 The hooks are [ruff](https://docs.astral.sh/ruff/),
 [black](https://black.readthedocs.io/), [flake8](https://flake8.pycqa.org/),
-[mypy](https://mypy.readthedocs.io/) and
-[pymarkdown](https://pymarkdown.readthedocs.io/). ruff and black rewrite
-files: when a hook reports a change, run the command again.
+[mypy](https://mypy.readthedocs.io/),
+[pymarkdown](https://pymarkdown.readthedocs.io/) and
+[gitleaks](https://github.com/gitleaks/gitleaks), which refuses secrets
+with the rules of `.gitleaks.toml`. ruff and black rewrite files: when a
+hook reports a change, run the command again.
 
 Run the tests.
 

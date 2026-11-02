@@ -90,7 +90,9 @@ documents - is followed by `tests/datamon.py`: it remembers which files
 and folders each test module opened or listed, by their sha256, and
 `pytest --data-changed` runs the modules whose files moved, a new module,
 or every module when nothing is remembered yet. A module with a failed
-test is forgotten, so it runs again until it passes. What both remember
+test is forgotten, so it runs again until it passes; one that ran only
+in part, cut by testmon, `-k` or a test named on the command line,
+keeps what it remembered before. What both remember
 lies in `.testmondata` and `.datamon.json`, kept out of git.
 
 | A change of           | Runs                                              |

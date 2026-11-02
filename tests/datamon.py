@@ -99,10 +99,17 @@ def selected(modules: Iterable[str], record: Record | None, root: Path = ROOT) -
     return {module for module in wanted if module not in record or module in moved}
 
 
+def entire(collected: Mapping[str, set[str]], done: Mapping[str, set[str]], named: set[str]) -> set[str]:
+    """
+    The modules every test of which ran: one cut by testmon, by -k or by a test named on the command line is not.
+    """
+    return {module for module, ran in done.items() if module not in named and collected.get(module, set()) <= ran}
+
+
 def kept(record: Record, ran: Mapping[str, Iterable[str]], failed: set[str], root: Path = ROOT) -> Record:
     """
     The record after a run: a module that passed keeps what it read as it is now; one with a failed test is
-    forgotten, so it runs again until it passes.
+    forgotten, so it runs again until it passes. Only modules that ran whole are to be given as ran.
     """
     after = {**record, **{module: {name: digest(name, root) for name in sorted(read)} for module, read in ran.items()}}
     return {module: read for module, read in after.items() if module not in failed}
@@ -128,6 +135,9 @@ def _clear() -> None:
 sys.addaudithook(_audit)
 _ran: Record = {}
 _failed: set[str] = set()
+_collected: dict[str, set[str]] = {}
+_done: dict[str, set[str]] = {}
+_named: set[str] = set()
 
 
 def pytest_addoption(parser: pytest.Parser) -> None:
@@ -135,13 +145,17 @@ def pytest_addoption(parser: pytest.Parser) -> None:
 
 
 def pytest_collection_modifyitems(config: pytest.Config, items: list[pytest.Item]) -> None:
-    if not config.getoption(OPTION):
-        return
-    keep = selected({item.nodeid.split('::')[0] for item in items}, load())
-    dropped = [item for item in items if item.nodeid.split('::')[0] not in keep]
-    if dropped:
-        config.hook.pytest_deselected(items=dropped)
-        items[:] = [item for item in items if item.nodeid.split('::')[0] in keep]
+    if config.getoption(OPTION):
+        keep = selected({item.nodeid.split('::')[0] for item in items}, load())
+        dropped = [item for item in items if item.nodeid.split('::')[0] not in keep]
+        if dropped:
+            config.hook.pytest_deselected(items=dropped)
+            items[:] = [item for item in items if item.nodeid.split('::')[0] in keep]
+    for item in items:
+        _collected.setdefault(item.nodeid.split('::')[0], set()).add(item.nodeid)
+    _named.update(
+        os.path.relpath(os.path.abspath(arg.split('::')[0]), config.rootpath) for arg in config.args if '::' in arg
+    )
 
 
 @pytest.hookimpl(wrapper=True)
@@ -154,6 +168,7 @@ def pytest_runtest_protocol(item: pytest.Item, nextitem: pytest.Item | None) -> 
         return (yield)
     finally:
         _ran[module] = dict.fromkeys(Reading.touched, '')
+        _done.setdefault(module, set()).add(item.nodeid)
 
 
 def pytest_runtest_logreport(report: pytest.TestReport) -> None:
@@ -165,5 +180,6 @@ def pytest_sessionfinish(session: pytest.Session) -> None:
     Reading.module = None
     if not _ran:
         return
-    record = kept(load() or {}, _ran, _failed)
+    whole = entire(_collected, _done, _named)
+    record = kept(load() or {}, {module: read for module, read in _ran.items() if module in whole}, _failed)
     KEPT.write_text(json.dumps(record, indent=1, sort_keys=True) + '\n', encoding='utf-8')

@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from datamon import ROOT, changed, digest, kept, relative, selected
+from datamon import ROOT, changed, digest, entire, kept, relative, selected
 
 
 def test_data_of_the_repository_is_kept_and_code_hidden_folders_and_runs_are_not() -> None:
@@ -52,3 +52,13 @@ def test_a_module_that_failed_is_forgotten_and_one_that_passed_keeps_what_it_rea
 
     assert after == {'tests/a.py': {'alpha.ftl': digest('alpha.ftl', tmp_path)}}
     assert selected(('tests/a.py', 'tests/b.py', 'tests/c.py'), after, tmp_path) == {'tests/b.py', 'tests/c.py'}
+
+
+def test_a_module_cut_by_the_selection_keeps_what_it_read_before() -> None:
+    collected = {'tests/a.py': {'tests/a.py::one', 'tests/a.py::two'}, 'tests/b.py': {'tests/b.py::one'}}
+    named = {'tests/c.py'}
+
+    assert entire(collected, {'tests/a.py': {'tests/a.py::one'}, 'tests/b.py': {'tests/b.py::one'}}, set()) == {
+        'tests/b.py'
+    }
+    assert entire({**collected, 'tests/c.py': {'tests/c.py::one'}}, {'tests/c.py': {'tests/c.py::one'}}, named) == set()

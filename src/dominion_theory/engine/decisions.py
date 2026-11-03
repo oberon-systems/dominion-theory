@@ -48,11 +48,11 @@ WANDER = 'wander'
 THREAT = 'threat'
 # The need a property of a cell answers, and the state that makes it whole.
 NEEDS: dict[str, tuple[str, str]] = {'food': (HUNGER, STARVATION), 'water': (THIRST, THIRST)}
-# What a band may still do under the intent of each proposal: docs/game/decisions.md, Under an intent.
+# What a band may still do under each plan: docs/game/decisions.md, Under a plan.
 NARROWED: dict[str, frozenset[str]] = {
-    commands.GO: frozenset({MOVE, ROAM, GATHER, CAMP}),
-    commands.STAY: frozenset({GATHER, CAMP}),
-    commands.WINTER: frozenset({GATHER, CAMP}),
+    commands.CAMP: frozenset({GATHER, CAMP}),
+    commands.ROAM: frozenset({MOVE, ROAM, GATHER, CAMP}),
+    commands.EXPLORE: frozenset({MOVE, ROAM, GATHER, CAMP}),
 }
 
 
@@ -562,18 +562,20 @@ def looks(params: Params, band: Band, era: str, at: Place) -> dict[str, Any] | N
     return seen(params, band, at, era) if reachable(band, at) else None
 
 
-def intended(params: Params, band: Band, proposal: dict[str, Any], era: str, towards: str | None) -> Scored:
+def intended(
+    params: Params, band: Band, proposal: dict[str, Any], era: str, towards: str | None, winter: bool = False
+) -> Scored:
     """
-    The best of what an intent leaves the band, a go narrowed to the direction of the next cell of its route,
+    The best of what a plan leaves the band, a leg narrowed to the direction of the next cell of its route,
     walked without stopping to gather while the band starves or thirsts; a winter camp is built before anything
     else unless the band starves or thirsts, or stands on a camp of its own it puts in order in the evening.
     """
     suffering = STARVATION in band.states or THIRST in band.states
-    if proposal['kind'] == commands.WINTER and not sheltered(band) and not suffering and band.place not in band.camps:
+    if winter and not sheltered(band) and not suffering and band.place not in band.camps:
         return Scored(building(), 0.0, SHELTER)
     ways = None if towards is None else {towards}
     found = options(params, band, era, NARROWED[proposal['kind']], ways)
-    if proposal['kind'] == commands.GO and suffering:
+    if proposal['kind'] in commands.GOING and suffering:
         # A band that goes for food or water walks there: it forages only on the way.
         found = [held for held in found if held.action['kind'] in (MOVE, ROAM)] or found
     return max(found, key=lambda held: held.score)

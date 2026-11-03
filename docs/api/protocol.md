@@ -221,11 +221,12 @@ An action of `gather` carries its `shares`, the share of the gatherers
 that went to every resource, `{"forage": 0.56, "water": 0.44}`, and one
 of `move` its `towards`. An intent is `null` or the plan in force: the
 proposal as [Commands](commands.md#the-commands) gives it, `until`, the
-day of the game its term ends, `leg`, the target of the leg or `null`, and
-`standing`, whether the band stands between legs.
+day of the game its term ends, `leg`, the target of the leg or `null`,
+`standing`, whether the band stands between legs, and `winter`, whether
+the plan is a winter camp.
 
 ```json
-{"proposal": {"kind": "roam", "direction": "ne"}, "until": 140, "leg": {"x": 2304, "y": 744}, "standing": false}
+{"proposal": {"kind": "roam", "direction": "ne"}, "until": 140, "leg": {"x": 2304, "y": 744}, "standing": false, "winter": false}
 ```
 
 ___
@@ -266,7 +267,7 @@ Each message on the stream is one update.
         "fatigue": 0.0,
         "states": [],
         "action": {"kind": "camp"},
-        "intent": {"proposal": {"kind": "camp"}, "until": 240, "leg": null, "standing": true},
+        "intent": {"proposal": {"kind": "camp"}, "until": 240, "leg": null, "standing": true, "winter": true},
         "route": [],
         "roles": {"gatherer": 17, "nanny": 1, "hunter": 0},
         "camp": null,

@@ -38,17 +38,16 @@ SAMPLES: dict[str, dict[str, Any]] = {
     'people-cured': {'count': 2},
     'band-died': {},
     'encounter': {'kind': 'encounter-predator', 'lost': 1},
-    'council-opened': {'leader': 'proposal-stay-and-gather', 'occasion': 'occasion-hunger'},
-    'council-agreed': {'leader': 'proposal-go-forest', 'occasion': 'occasion-arrived'},
-    'council-followed': {'proposal': 'proposal-stay-and-gather'},
-    'council-turned': {'proposal': 'proposal-go-forest', 'yes': 8.75, 'all': 17.75},
-    'council-outvoted': {'proposal': 'proposal-go-through-grass', 'winner': 'proposal-stay-and-gather', 'status': 49.0},
+    'council-opened': {'leader': 'proposal-camp', 'occasion': 'occasion-hunger'},
+    'council-agreed': {'leader': 'proposal-roam-e', 'occasion': 'occasion-spent'},
+    'council-followed': {'proposal': 'proposal-camp'},
+    'council-turned': {'proposal': 'proposal-roam-e', 'yes': 8.75, 'all': 17.75},
+    'council-outvoted': {'proposal': 'proposal-roam-n', 'winner': 'proposal-camp', 'status': 49.0},
     'council-abstained': {'status': 48.0},
-    'proposal-worked': {'proposal': 'proposal-stay-and-gather', 'status': 53.0},
-    'proposal-even': {'proposal': 'proposal-stay-and-gather', 'status': 53.0},
-    'proposal-failed': {'proposal': 'proposal-go-unknown', 'status': 44.0},
-    'intent-ended': {'proposal': 'proposal-go-hills'},
-    'intent-arrived': {},
+    'proposal-worked': {'proposal': 'proposal-camp', 'status': 53.0},
+    'proposal-even': {'proposal': 'proposal-winter-camp', 'status': 53.0},
+    'proposal-failed': {'proposal': 'proposal-explore-sw', 'status': 44.0},
+    'plan-ended': {'proposal': 'proposal-roam', 'why': 'closed'},
     'seat-blamed': {'lost': 3, 'status': 35.0},
     'seat-praised': {'born': 1, 'status': 55.0},
     'seat-banished': {},
@@ -223,17 +222,17 @@ def test_a_line_carries_the_band_and_the_status_when_it_moved() -> None:
 
 def test_a_line_shows_the_table_of_a_council_that_sits() -> None:
     table = [
-        {'proposal': {'kind': 'stay-and-gather'}, 'key': 'proposal-stay-and-gather', 'votes': 8},
-        {'proposal': {'kind': 'go', 'to': {'x': 3, 'y': 0}}, 'key': 'proposal-go-forest', 'votes': 5},
+        {'proposal': {'kind': 'camp'}, 'key': 'proposal-camp', 'votes': 8},
+        {'proposal': {'kind': 'roam', 'direction': 'e'}, 'key': 'proposal-roam-e', 'votes': 5},
     ]
-    sitting = {'leader': {'kind': 'stay-and-gather'}, 'table': table}
+    sitting = {'leader': {'kind': 'camp'}, 'table': table}
     opened = {'seq': 9, 'date': DATE, 'events': [], 'changes': {'seat': {'council': sitting}}}
     empty = {'seq': 9, 'date': DATE, 'events': [], 'changes': {'seat': {'council': {'leader': None, 'table': []}}}}
 
     assert line(opened, 'en') == (
-        'day 1, month 3, year 1, summer: ' 'The votes: we stay and gather - 8; we go into the forest - 5.'
+        'day 1, month 3, year 1, summer: ' 'The votes: we camp here - 8; we roam to the east - 5.'
     )
-    assert line(opened, 'ru').endswith('Голоса: остаёмся собирать - 8; идём в лес - 5.')
+    assert line(opened, 'ru').endswith('Голоса: стоим здесь - 8; кочуем на восток - 5.')
     assert line(empty, 'en') == 'day 1, month 3, year 1, summer'
 
 

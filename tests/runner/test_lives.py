@@ -29,7 +29,7 @@ def test_the_reference_is_the_one_of_this_band() -> None:
 def test_inputs_follow_the_band_and_of_the_council_only_its_spread_and_the_status_it_starts_with() -> None:
     kept = lives.inputs(load_params())
 
-    for council in ({'council.status.go_worked': 9}, {'council.status.abstained': -5}, {'council.voice.share': 0.9}):
+    for council in ({'council.status.roam_worked': 9}, {'council.status.abstained': -5}, {'council.voice.share': 0.9}):
         assert lives.inputs(load_params(overrides=council)) == kept
     band = ({'units.band.carry_kg': 7.0}, {'encounters.chance': 0.1}, {'planet.sea': 0.5})
     for changed in (*band, {'council.status.start': 60}, {'council.spread': 0.5}):
@@ -56,7 +56,7 @@ def test_the_same_seed_ends_every_year_in_the_same_state_and_another_seed_does_n
     life = lives.live(7, 2, overrides=SMALL)
 
     assert lives.live(7, 2, overrides=SMALL).hashes == life.hashes
-    assert lives.live(7, 2, overrides={**SMALL, 'council.status.go_worked': 9}).hashes == life.hashes
+    assert lives.live(7, 2, overrides={**SMALL, 'council.status.roam_worked': 9}).hashes == life.hashes
     assert lives.live(8, 2, overrides=SMALL).hashes != life.hashes
 
 

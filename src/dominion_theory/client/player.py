@@ -13,6 +13,7 @@ from .api import Api
 from .drawing import pictured
 from .lines import (
     ANSWER,
+    CAMPING,
     GO,
     KIND,
     KINDS,
@@ -22,12 +23,15 @@ from .lines import (
     STATUS,
     UNCLEAR,
     WHERE,
+    WINTER,
+    Known,
     Look,
     Menu,
     Option,
     Part,
     menu,
     parts,
+    picked,
     where,
 )
 from .session import Session
@@ -45,10 +49,11 @@ STYLES: dict[Look, dict[str, Any]] = {
 NAMES = {
     'go': GO,
     'roam': GO,
+    'explore': GO,
     **{kind: kind for kind in KINDS},
-    'stay': 'stay-and-gather',
-    'winter': 'winter-camp',
-    'w': 'winter-camp',
+    'stay': CAMPING,
+    'winter': WINTER,
+    'w': WINTER,
 }
 LEADING: dict[str, Any] = {'fg': 'green', 'bold': True}
 # A place answered with nothing: back to the answers.
@@ -83,10 +88,14 @@ def understood(answer: str, listed: list[Option]) -> Option | None:
         number = int(said)
         return listed[number - 1] if 1 <= number <= len(listed) else None
     kind = NAMES.get(said) if said else SILENCE['kind']
-    return next((option for option in listed if option.kind == kind), None)
+    # A camp is told as a winter camp in its season; either name answers it.
+    camping = {CAMPING, WINTER}
+    return next((option for option in listed if option.kind == kind or {option.kind, kind} <= camping), None)
 
 
-def pointed(answer: str, places: list[Option], place: Place | None = None) -> Proposal | None:
+def pointed(
+    answer: str, places: list[Option], place: Place | None = None, known: Known | None = None
+) -> Proposal | None:
     """
     A number of the places, a point as two offsets from the band, x then y ('+3 -2'), or nothing to go back.
     """
@@ -99,7 +108,7 @@ def pointed(answer: str, places: list[Option], place: Place | None = None) -> Pr
     offsets = said.split()
     if place is not None and len(offsets) == 2 and all(_offset(word) for word in offsets):
         dx, dy = (int(word) for word in offsets)
-        return {'kind': GO, 'to': {'x': place[0] + dx, 'y': place[1] + dy}}
+        return picked((place[0] + dx, place[1] + dy), known)
     return None
 
 
@@ -133,7 +142,7 @@ def prompted(given: Menu, lang: str) -> Proposal:
             WHERE,
             places,
             POINT,
-            lambda answer: pointed(answer, given.places, given.place if given.pointing else None),
+            lambda answer: pointed(answer, given.places, given.place if given.pointing else None, given.known),
             lang,
         )
         if proposal is not RETURN:

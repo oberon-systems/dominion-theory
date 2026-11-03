@@ -28,10 +28,10 @@ AFTERNOON = 100 + 2
 GRASS = Ground('grass', 0.6, 0.4, 0.2, 1.0, False, False, 0)
 FOREST = Ground('forest', 0.8, 0.5, 0.4, 0.5, True, False, 4)
 UNKNOWN = Ground(None, 0.5, 0.5, 0.4, 0.7, False, True, 6)
-STAY = Option(1, {'kind': 'stay-and-gather'}, 'proposal-stay-and-gather', 8, True, 0.5, GRASS)
-EAST = Option(2, {'kind': 'go', 'to': {'x': 3, 'y': 0}}, 'proposal-go-forest', 5, False, 0.45, FOREST)
-FAR = Option(3, {'kind': 'go', 'to': {'x': 9, 'y': 0}}, 'proposal-go-unknown', 1, False, 0.2, UNKNOWN)
-CAMP = Option(4, {'kind': 'winter-camp'}, 'proposal-winter-camp', 0, False, 0.1, GRASS)
+STAY = Option(1, {'kind': 'camp'}, 'proposal-camp', 8, True, 0.5, GRASS)
+EAST = Option(2, {'kind': 'roam', 'to': {'x': 3, 'y': 0}}, 'proposal-roam-e', 5, False, 0.45, FOREST)
+FAR = Option(3, {'kind': 'explore', 'to': {'x': 9, 'y': 0}}, 'proposal-explore-e', 1, False, 0.2, UNKNOWN)
+CAMP = Option(4, {'kind': 'camp'}, 'proposal-winter-camp', 0, False, 0.1, GRASS)
 ABSTAINING = Option(5, {'kind': 'abstain'}, 'proposal-abstain', 0, False, 0.0, None)
 
 
@@ -108,7 +108,7 @@ def test_the_seat_sees_every_option_of_the_table_numbered_with_abstaining_last(p
     assert found.leader is not None and found.leader.proposal == game.council['leader']
     assert (found.occasion, found.voice, found.status) == ('first', game.council['voice'], game.status)
     assert found.options[-1].ground is None
-    walks = [option.ground for option in found.options if option.kind == 'go']
+    walks = [option.ground for option in found.options if option.kind in ('roam', 'explore')]
     assert walks and all(ground is not None and ground.route and not ground.unknown for ground in walks)
     assert found.people == {'child': 0, 'adult': 15, 'elder': 0}
 
@@ -122,9 +122,9 @@ def test_the_features_of_a_known_table() -> None:
     named = [dict(zip(FEATURES, features(table, option), strict=True)) for option in table.options]
 
     assert named[1] == {
-        'go': 1.0,
-        'stay': 0.0,
-        'winter': 0.0,
+        'camp': 0.0,
+        'roam': 1.0,
+        'explore': 0.0,
         'abstain': 0.0,
         'votes': pytest.approx(5 / 14),
         'leader': 0.0,
@@ -141,13 +141,14 @@ def test_the_features_of_a_known_table() -> None:
     }
     assert (named[0]['leader'], named[0]['short_stay'], named[0]['distance']) == (1.0, 1.0, 0.0)
     assert (named[2]['unknown'], named[2]['outvoted']) == (1.0, 0.5)
-    assert (named[3]['winter'], named[3]['winter_short']) == (1.0, 0.4)
+    assert (named[3]['camp'], named[3]['winter_short']) == (1.0, 0.4)
+    assert (named[2]['explore'], named[0]['winter_short']) == (1.0, 0.0)
     assert named[4]['abstain'] == 1.0 and sum(named[4].values()) == 1.0
 
 
 def test_a_mind_scores_by_its_weights_and_a_tie_goes_to_the_order_of_the_table() -> None:
     weighed = Mind(features=('score', 'leader'), weights=(1.0, 0.1))
-    walking = Mind(features=('go',), weights=(1.0,))
+    walking = Mind(features=('roam',), weights=(1.0,))
 
     assert scores(weighed, seen()) == pytest.approx([0.6, 0.45, 0.2, 0.1, 0.0])
     assert choose(weighed, seen()) == 1

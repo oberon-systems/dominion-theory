@@ -144,7 +144,7 @@ draws it plays, the horizon and the size of a generation:
 train:
   mind: linear_v2
   from: linear_v1
-  features: [go, stay, winter, abstain, votes, leader, score, hunger_food, thirst_water, calm_threat]
+  features: [camp, roam, explore, abstain, votes, leader, score, hunger_food, thirst_water, calm_threat]
   lands: {first: 1, count: 8}
   draws: 4
   until: {people: 150, years: 6}

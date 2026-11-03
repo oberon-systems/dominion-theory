@@ -333,7 +333,7 @@ of them. Both views of the API show the same for now.
       "fatigue": 0.3,
       "states": [],
       "action": {"kind": "gather", "shares": {"forage": 0.83, "water": 0.17}},
-      "intent": {"proposal": {"kind": "roam", "direction": "ne"}, "until": 140, "leg": {"x": 2304, "y": 742}, "standing": false},
+      "intent": {"proposal": {"kind": "roam", "direction": "ne"}, "until": 140, "leg": {"x": 2304, "y": 742}, "standing": false, "winter": false},
       "route": [{"x": 2302, "y": 743}, {"x": 2303, "y": 742}, {"x": 2304, "y": 742}],
       "roles": {"gatherer": 14, "nanny": 1, "hunter": 0},
       "camp": null,
@@ -348,7 +348,8 @@ of them. Both views of the API show the same for now.
 the members who are, `wounds` the injured by severity; the members themselves stay in the state of the game.
 `intent` is the plan in force: its `proposal`, `until`, the day of
 the game its term ends, `leg`, the target of the leg it walks or null, and
-`standing`, whether the band stands between legs. `route` is the cells
+`standing`, whether the band stands between legs, and `winter`, whether
+the plan is a winter camp. `route` is the cells
 still ahead to the target of the leg, empty when the band is not on its
 way. `roles` counts the members by role.
 `lore` is the skills the band knows; see [Skills](skills.md).

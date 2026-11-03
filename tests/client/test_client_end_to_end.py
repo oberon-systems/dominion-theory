@@ -13,7 +13,7 @@ WINDOW = 10
 DAY = 5
 EVENING = 3
 # The cell north of where the band of seed 42 starts.
-NORTHWARD = {'id': 'c-3', 'kind': 'vote', 'proposal': {'kind': 'go', 'to': {'x': 107, 'y': 46}}}
+NORTHWARD = {'id': 'c-3', 'kind': 'vote', 'proposal': {'kind': 'roam', 'to': {'x': 107, 'y': 46}}}
 # A band that needs nothing, sees nothing, meets nothing and gains nothing by a winter camp: it camps, so the
 # frame is tested alone.
 QUIET = (
@@ -98,13 +98,13 @@ def test_a_game_year_is_played_printed_and_replayed(server: str, lang: str) -> N
 
 COUNCIL = {
     'en': (
-        'You turned the band: we go on through the forest.',
-        'It went well: we go on through the forest. Your standing is now 54.',
+        'You turned the band: we roam to the north.',
+        'It went well: we roam to the north. Your standing is now 54.',
         'The votes: ',
     ),
     'ru': (
-        'Вы повернули общину: идём по лесу.',
-        'Всё вышло хорошо: идём по лесу. Ваш вес теперь 54.',
+        'Вы повернули общину: кочуем на север.',
+        'Всё вышло хорошо: кочуем на север. Ваш вес теперь 54.',
         'Голоса: ',
     ),
 }
@@ -135,7 +135,7 @@ def test_a_vote_that_turns_the_band_sends_it_there_and_judges_it_on_arrival(api:
     turned, judged, table = COUNCIL[lang]
     sitting = EVENING + DAY - 1
     events = [{held['key'] for held in update['events']} for update in updates]
-    arrived = next(seq for seq, keys in enumerate(events) if 'intent-arrived' in keys)
+    arrived = next(seq for seq, keys in enumerate(events) if 'plan-ended' in keys)
 
     assert [action['kind'] for action in actions[EVENING : sitting + 1]] == ['camp', 'camp', 'roam', 'move', 'roam']
     assert updates[EVENING]['changes']['seat'] == {'council': None}

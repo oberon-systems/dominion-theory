@@ -157,16 +157,17 @@ def test_council_is_the_one_of_its_document() -> None:
 
     assert (council.part, council.spread, council.voice.share, council.voice.least) == ('evening', 0.2, 0.5, 2.0)
     assert council.judgement.slack == 0.1
+    assert load_params().days(council.term) == 10
     assert council.status.model_dump() == {
         'start': 50.0,
         'abstained': -2.0,
         'outvoted': -1.0,
-        'go_worked': 4.0,
-        'go_failed': -6.0,
-        'go_even': 0.0,
-        'stay_worked': 3.0,
-        'stay_failed': -6.0,
-        'stay_even': 0.0,
+        'roam_worked': 4.0,
+        'roam_failed': -6.0,
+        'roam_even': 0.0,
+        'explore_worked': 4.0,
+        'explore_failed': -6.0,
+        'explore_even': 0.0,
         'camp_worked': 3.0,
         'camp_failed': -6.0,
         'camp_even': 0.0,

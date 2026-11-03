@@ -208,7 +208,8 @@ def test_a_record_with_councils_replays_with_every_hash_and_counts_them(service:
         if runner.game.council is not None and band is not None:
             way = VOTED[sat % len(VOTED)]
             to = None if way is None else {'x': band.x + way[0], 'y': band.y + way[1]}
-            proposal = {'kind': 'abstain'} if to is None else {'kind': 'go', 'to': to}
+            kind = 'roam' if to is not None and (to['x'], to['y']) in band.known else 'explore'
+            proposal = {'kind': 'abstain'} if to is None else {'kind': kind, 'to': to}
             runner.submit(Vote(seat='player', proposal=proposal, id=f'c-{tick}'))
             sat += 1
         else:

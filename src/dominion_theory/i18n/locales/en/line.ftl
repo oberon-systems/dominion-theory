@@ -58,9 +58,11 @@ line-direction-west = west
 line-direction-north-west = north-west
 
 play-question = What do you say at the council?
-play-kind-go = Roam
-play-kind-stay-and-gather = Stay at the camp and gather
+play-kind-go = Go
+play-kind-camp = Camp here and gather
 play-kind-winter-camp = Make a winter camp here
+play-kind-roam = Roam
+play-kind-explore = Explore
 play-kind-abstain = Say nothing
 play-where = Where to go?
 play-pick = Point the way

@@ -856,7 +856,7 @@ def test_a_restored_game_carries_the_band_in_the_middle_of_a_day(params: Params)
     do(game, gathering({'forage': 1.0}), 2)
     do(game, moving('north-east'))
     do(game, camp(), 4)
-    band(game).decision = {'proposal': {'kind': 'stay-and-gather'}, 'from': [WEST, NORTH + 1], 'day': game.day}
+    band(game).decision = {'proposal': {'kind': 'camp'}, 'from': [WEST, NORTH + 1], 'day': game.day}
 
     copy = Game.restore(carried(game))
     copy.choose = game.choose
@@ -871,7 +871,7 @@ def test_a_restored_game_carries_the_band_in_the_middle_of_a_day(params: Params)
 def test_a_snapshot_of_the_format_before_the_band_is_refused(params: Params) -> None:
     snapshot = land(params).snapshot()
 
-    assert snapshot["format"] == 32
+    assert snapshot["format"] == 33
     with pytest.raises(ValueError, match='format 2'):
         Game.restore({**snapshot, 'format': 2})
 

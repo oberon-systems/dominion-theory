@@ -13,8 +13,8 @@ LOUD = {**SMALL, 'council.voice.least': 20.0, 'skills': {}, 'encounters.chance':
 WITHIN = 200
 GRASS = Ground('grass', 0.6, 0.4, 0.2, 1.0, False, False, 0)
 FOREST = Ground('forest', 0.8, 0.5, 0.4, 0.5, True, False, 4)
-STAY = Option(1, {'kind': 'stay-and-gather'}, 'proposal-stay-and-gather', 8, True, 0.5, GRASS)
-EAST = Option(2, {'kind': 'go', 'to': {'x': 3, 'y': 0}}, 'proposal-go-forest', 6, False, 0.6, FOREST)
+STAY = Option(1, {'kind': 'camp'}, 'proposal-camp', 8, True, 0.5, GRASS)
+EAST = Option(2, {'kind': 'roam', 'to': {'x': 3, 'y': 0}}, 'proposal-roam-e', 6, False, 0.6, FOREST)
 ABSTAINING = Option(3, {'kind': 'abstain'}, 'proposal-abstain', 0, False, 0.0, None)
 
 
@@ -86,7 +86,7 @@ def test_a_player_is_made_by_its_name_or_by_a_mind_of_the_tree(params: Params) -
 
 
 def test_an_answer_is_the_vote_of_its_option_and_one_naming_none_is_silence() -> None:
-    assert vote(seen(), 2) == Vote('player', {'kind': 'go', 'to': {'x': 3, 'y': 0}})
+    assert vote(seen(), 2) == Vote('player', {'kind': 'roam', 'to': {'x': 3, 'y': 0}})
     assert vote(seen(), 3) == Vote('player', {'kind': 'abstain'})
     assert vote(seen(), 0) is None
     assert vote(seen(), 9) is None

@@ -18,7 +18,6 @@ def test_every_key_is_declared_once_with_its_values() -> None:
         'refused-no-such-place',
         'refused-seat-banished',
         'refused-not-learned',
-        'refused-unsafe-land',
     )
 
 

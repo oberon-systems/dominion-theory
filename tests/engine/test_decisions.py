@@ -245,12 +245,12 @@ def test_a_roam_is_the_slower_move_with_the_foraging_of_what_the_band_is_short_o
     assert roams[1] == pytest.approx(walk(0.4) + 0.5 * (1.5 * 0.4 * 0.8 + 1.2 * 0.4 * 0.28))
 
 
-def test_an_intent_to_go_gives_the_roam_the_whole_gain(params: Params) -> None:
+def test_a_plan_to_roam_gives_the_roam_the_whole_gain(params: Params) -> None:
     band = held({HOME: FOREST, EAST: GRASS}, forage=22.5, water=30.0)
-    going = {'kind': 'go', 'to': {'x': EAST[0], 'y': EAST[1]}}
+    going = {'kind': 'roam', 'to': {'x': EAST[0], 'y': EAST[1]}}
 
     held_to = decisions.intended(params, band, going, ERA, 'east')
-    found = decisions.options(params, band, ERA, decisions.NARROWED['go'], {'east'})
+    found = decisions.options(params, band, ERA, decisions.NARROWED['roam'], {'east'})
 
     by_kind = {scored.action['kind']: scored.score for scored in found}
     assert by_kind['roam'] == pytest.approx(by_kind['move'] + 0.5 * 1.5 * 0.4 * 0.8)

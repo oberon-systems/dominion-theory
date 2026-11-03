@@ -144,28 +144,47 @@ class Roam(BaseModel):
 Action = Annotated[Camp | Build | Gather | Walk | Roam, Field(discriminator='kind')]
 
 
-class GoProposal(BaseModel):
-    kind: Literal['go']
-    to: Spot
+Way = Literal['n', 'ne', 'e', 'se', 's', 'sw', 'w', 'nw']
 
 
-class StayProposal(BaseModel):
-    kind: Literal['stay-and-gather']
+class CampProposal(BaseModel):
+    kind: Literal['camp']
 
 
-class WinterCampProposal(BaseModel):
-    kind: Literal['winter-camp']
+class RoamProposal(BaseModel):
+    """
+    A roam names a direction or a cell, never both.
+    """
+
+    kind: Literal['roam']
+    direction: Way | None = None
+    to: Spot | None = None
 
 
-Proposal = Annotated[GoProposal | StayProposal | WinterCampProposal, Field(discriminator='kind')]
+class ExploreProposal(BaseModel):
+    """
+    An explore names a direction or a cell, never both.
+    """
+
+    kind: Literal['explore']
+    direction: Way | None = None
+    to: Spot | None = None
+
+
+Proposal = Annotated[CampProposal | RoamProposal | ExploreProposal, Field(discriminator='kind')]
 
 
 class Intent(BaseModel):
     """
-    A proposal the player carried against the leader, held until the next council.
+    The plan the council bound the band to: its proposal, the day of the game its term ends, the target of the leg
+    it walks, whether it stands between legs and whether it is a winter camp.
     """
 
     proposal: Proposal
+    until: int
+    leg: Spot | None
+    standing: bool
+    winter: bool
 
 
 class Reason(BaseModel):
@@ -221,14 +240,22 @@ class Unit(BaseModel):
     lore: list[str]
 
 
+class Offset(BaseModel):
+    dx: int
+    dy: int
+
+
 class Votes(BaseModel):
     """
-    One option of the table: the proposal, its words as the band says them where it stands, its votes and the
-    band's score of a day of it.
+    One option of the table: the proposal, its words as the band says them where it stands, the cell it is aimed
+    at, that cell from the band and what the band expects there, its votes and the band's score of it.
     """
 
     proposal: Proposal
     key: str
+    to: Spot | None = None
+    offset: Offset | None = None
+    expect: dict[str, float] | None = None
     votes: int
     score: float | None = None
 
@@ -236,13 +263,15 @@ class Votes(BaseModel):
 class Council(BaseModel):
     """
     The council of the day while it sits: the others' votes, the option they lead with, the occasion that called
-    it, the player's voice, whether a winter camp is offered and whether the player may name a place of their own.
+    it, the player's voice, the days of food and water in store, whether a camp is a winter camp now and whether
+    the player may name a direction or a cell of their own.
     """
 
     leader: Proposal | None
     table: list[Votes]
     occasion: str | None = None
     voice: float | None = None
+    stores: dict[str, float | None] | None = None
     winter: bool = False
     place: bool = True
 

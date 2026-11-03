@@ -9,14 +9,18 @@ from typing import Any
 PASS = 'pass'  # noqa: S105
 VOTE = 'vote'
 ABSTAIN = 'abstain'
-GO = 'go'
-STAY = 'stay-and-gather'
-WINTER = 'winter-camp'
+CAMP = 'camp'
+ROAM = 'roam'
+EXPLORE = 'explore'
+DIRECTION = 'direction'
+TO = 'to'
+WAYS = ('n', 'ne', 'e', 'se', 's', 'sw', 'w', 'nw')
 
 BUILT = frozenset({PASS, VOTE})
 ENVELOPE = ('id', 'kind')
-# The fields of a proposal besides its kind.
-PROPOSALS: dict[str, tuple[str, ...]] = {GO: ('to',), STAY: (), WINTER: ()}
+# The fields a proposal may name besides its kind; a roam or an explore names exactly one of them.
+PROPOSALS: dict[str, tuple[str, ...]] = {CAMP: (), ROAM: (DIRECTION, TO), EXPLORE: (DIRECTION, TO)}
+GOING = (ROAM, EXPLORE)
 
 
 @dataclass(frozen=True, kw_only=True)

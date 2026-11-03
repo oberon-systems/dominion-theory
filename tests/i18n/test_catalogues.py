@@ -12,7 +12,7 @@ from dominion_theory.core.errors import DominionError
 from dominion_theory.db.profiles import LOCALE_UNKNOWN, LOCALES, PROFILE_NOT_FOUND
 from dominion_theory.engine import EVENTS, REASONS, council
 from dominion_theory.engine.band import STATES
-from dominion_theory.engine.commands import GO, PROPOSALS
+from dominion_theory.engine.commands import GOING, PROPOSALS, WAYS
 from dominion_theory.engine.events import SKILL, STATE
 from dominion_theory.i18n import DATE, LANGUAGES, catalogue
 from dominion_theory.lab import sitting
@@ -58,10 +58,9 @@ def in_use() -> set[str]:
     names |= {f'{STATE}{state}' for state in STATES}
     names |= {f'encounter-{kind}' for kind in params.encounters.kinds}
     names |= {f'{SKILL}{skill}' for skill in params.skills}
-    names |= {council.key({'kind': kind}) for kind in PROPOSALS if kind != GO}
-    names.add(council.key(council.going((0, 0))))
-    goes = (*params.biomes, *(f'{council.THROUGH}{biome}' for biome in params.biomes), council.UNKNOWN)
-    names |= {f'proposal-go-{land}' for land in goes}
+    names |= {council.key({'kind': kind}) for kind in PROPOSALS}
+    names.add(council.key(council.CAMPING, winter=True))
+    names |= {council.key(council.heading(kind, way)) for kind in GOING for way in WAYS}
     names.add(council.key(None))
     names |= {f'{council.OCCASION}{occasion}' for occasion in council.OCCASIONS}
     people = params.units.band.people

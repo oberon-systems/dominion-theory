@@ -44,9 +44,9 @@ TO = ('band', 'member')
 HUNTED = ('meat', 'hides')
 # What a mind may weigh of an option, each a function of the engine: docs/lab/players.md, What a seat sees.
 FEATURES = (
-    'go',
-    'stay',
-    'winter',
+    'camp',
+    'roam',
+    'explore',
     'abstain',
     'votes',
     'leader',
@@ -1015,12 +1015,12 @@ class Status(Node):
     start: Points
     abstained: Amount
     outvoted: Amount
-    go_worked: Amount
-    go_failed: Amount
-    go_even: Amount
-    stay_worked: Amount
-    stay_failed: Amount
-    stay_even: Amount
+    roam_worked: Amount
+    roam_failed: Amount
+    roam_even: Amount
+    explore_worked: Amount
+    explore_failed: Amount
+    explore_even: Amount
     camp_worked: Amount
     camp_failed: Amount
     camp_even: Amount
@@ -1032,6 +1032,7 @@ class Council(Node):
     part: Name
     spread: Positive
     voice: Voice
+    term: Duration
     judgement: Judgement
     memory: Duration
     status: Status
@@ -1474,6 +1475,8 @@ class Params(Node):
         for cause in self.council.blamed:
             if cause not in CAUSES:
                 raise _invalid('council.blamed', cause, f'one of {", ".join(CAUSES)}')
+        if self.days(self.council.term) < 1:
+            raise _invalid('council.term', self.council.term.model_dump(exclude_none=True), 'at least a day')
 
     def _check_encounters(self) -> None:
         for action in self.encounters.actions:

@@ -11,13 +11,13 @@ from dominion_theory.client.screen import ended
 type Body = dict[str, Any]
 
 DATE = {'year': 1, 'month': 1, 'day': 1, 'part': 'midday', 'season': 'spring'}
-STAY = {'kind': 'stay-and-gather'}
-EAST = {'kind': 'go', 'to': {'x': 3, 'y': 0}}
+STAY = {'kind': 'camp'}
+EAST = {'kind': 'roam', 'direction': 'e'}
 COUNCIL = {
     'leader': STAY,
     'table': [
-        {'proposal': STAY, 'key': 'proposal-stay-and-gather', 'votes': 8},
-        {'proposal': EAST, 'key': 'proposal-go-forest', 'votes': 5},
+        {'proposal': STAY, 'key': 'proposal-camp', 'to': None, 'votes': 8},
+        {'proposal': EAST, 'key': 'proposal-roam-e', 'to': {'x': 3, 'y': 0}, 'votes': 5},
     ],
 }
 BAND = {
@@ -44,7 +44,7 @@ KNOWN = {
     'water': [0.6, 0.6],
     'food': [0.9, 0.5],
 }
-TURNED = {'key': 'council-turned', 'values': {'proposal': 'proposal-go-forest', 'yes': 9.0, 'all': 14.0}}
+TURNED = {'key': 'council-turned', 'values': {'proposal': 'proposal-roam-e', 'yes': 9.0, 'all': 14.0}}
 ACCEPTED = {'key': 'command-accepted', 'values': {'id': 'vote-3'}}
 UPDATES = [
     {
@@ -56,7 +56,7 @@ UPDATES = [
     },
     {'seq': 5, 'date': DATE, 'events': [], 'changes': {}, 'waiting': []},
 ]
-SAID = 'day 1, month 1, year 1, spring: ' 'You turned the band: we go into the forest. 9 voices of 14 were for it.'
+SAID = 'day 1, month 1, year 1, spring: ' 'You turned the band: we roam to the east. 9 voices of 14 were for it.'
 WITHIN = 200
 # A terminal low enough that an opened pane would push the council off it.
 SMALL = (120, 24)
@@ -161,7 +161,7 @@ def test_a_cell_picked_with_the_cursor_on_the_map_is_where_the_band_is_sent() ->
     asyncio.run(played())
 
     assert (seen['title'], seen['cell'].splitlines()[0]) == ('The target', 'forest')
-    assert api.sent[0] == {'id': 'vote-3', 'kind': 'vote', 'proposal': {'kind': 'go', 'to': {'x': 0, 'y': 0}}}
+    assert api.sent[0] == {'id': 'vote-3', 'kind': 'vote', 'proposal': {'kind': 'roam', 'to': {'x': 0, 'y': 0}}}
 
 
 class Learned(Scripted):
@@ -191,7 +191,7 @@ class Agreed(Scripted):
         return {**held, 'seat': {**held['seat'], 'council': None}}
 
     def updates(self, game_id: str, after: int) -> Generator[Body]:
-        values = {'leader': 'proposal-stay-and-gather', 'occasion': 'occasion-first'}
+        values = {'leader': 'proposal-camp', 'occasion': 'occasion-first'}
         agreed = {'key': 'council-agreed', 'values': values}
         yield {'seq': 4, 'date': DATE, 'events': [agreed], 'changes': {}, 'waiting': ['player']}
         yield {'seq': 5, 'date': DATE, 'events': [], 'changes': {}, 'waiting': []}

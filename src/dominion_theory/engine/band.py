@@ -14,7 +14,6 @@ from ..content import GOODS, KINDS, PERSONAL, TO, USES, Bonus, Duration, Params,
 from ..content import Band as Rules
 from . import lore as lores
 from .cells import Place
-from .commands import WINTER
 from .stock import Stock
 from .streams import Streams
 
@@ -175,7 +174,7 @@ class Band:
     wander: dict[str, Any] | None = None
     dread: dict[Place, float] = field(default_factory=dict)
     unease: float = 0.0
-    # The cells still ahead to the target of a go, and the day they were laid.
+    # The cells still ahead to the target of a leg, and the day they were laid.
     route: dict[str, Any] | None = None
     # The parts of today out of camp_parts in which the band camped.
     camped: int = 0
@@ -195,7 +194,7 @@ class Band:
     worn: dict[str, float] = field(default_factory=dict)
     # The season what the band remembers of the land is of.
     season: str = ''
-    # The last decision of the council, the cell it was taken on and the day it was taken or its go ended.
+    # The last decision of the council, the cell it was taken on and the day it was taken or its plan ended.
     decision: dict[str, Any] | None = None
     # The cells the band ended a day on, with the last such day.
     visited: dict[Place, int] = field(default_factory=dict)
@@ -722,11 +721,15 @@ def ranging(params: Params, band: Band) -> bool:
     """
     if band.season not in params.units.band.winter_camp.seasons:
         return False
-    proposal = None if band.intent is None else band.intent['proposal']
     camp = band.camp
-    return (proposal is not None and proposal['kind'] == WINTER) or (
-        camp is not None and (camp['x'], camp['y']) == band.place
-    )
+    return wintering(band) or (camp is not None and (camp['x'], camp['y']) == band.place)
+
+
+def wintering(band: Band) -> bool:
+    """
+    Whether the band is bound to a winter camp: a camp the council chose in its season.
+    """
+    return band.intent is not None and bool(band.intent.get('winter'))
 
 
 def reached(land: Land, band: Band, name: str) -> tuple[Place, float] | None:
@@ -1058,7 +1061,7 @@ def mend(band: Band) -> None:
     A camp part of a band bound to winter on a camp it built before: the old camp is put in order over it, not
     built anew.
     """
-    if band.intent is not None and band.intent['proposal']['kind'] == WINTER and band.place in band.camps:
+    if wintering(band) and band.place in band.camps:
         band.camp = {'x': band.x, 'y': band.y, 'built': 1.0}
 
 

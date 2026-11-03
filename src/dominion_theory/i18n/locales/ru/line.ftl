@@ -63,9 +63,11 @@ line-direction-west = на запад
 line-direction-north-west = на северо-запад
 
 play-question = Что вы скажете на совете?
-play-kind-go = Кочевать
-play-kind-stay-and-gather = Остаться на стоянке и собирать
+play-kind-go = Идти
+play-kind-camp = Стоять здесь и собирать
 play-kind-winter-camp = Поставить здесь зимний лагерь
+play-kind-roam = Кочевать
+play-kind-explore = Разведать
 play-kind-abstain = Промолчать
 play-where = Куда идти?
 play-pick = Указать направление

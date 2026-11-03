@@ -13,8 +13,8 @@ from ..client import Api, Session
 from ..client.drawing import glyph, pictured
 from ..client.lines import (
     ABSTAIN,
+    CAMPING,
     FATIGUE,
-    GO,
     GONE,
     INTENT,
     KIND,
@@ -27,6 +27,7 @@ from ..client.lines import (
     SKILL,
     STATUS,
     TITLE,
+    WINTER,
     band_words,
     held_parts,
     intended,
@@ -159,10 +160,10 @@ class Sitting:
         session.known()
         said = [self._say(COUNCIL, occasion=f'{OCCASION}{sitting.get("occasion")}', voice=sitting.get('voice') or 0)]
         for number, entry in enumerate(sitting['table'], 1):
-            values = {'number': number, 'option': self._option(entry['proposal']), 'votes': entry['votes']}
+            values = {'number': number, 'option': self._option(entry, sitting.get('winter')), 'votes': entry['votes']}
             leads = entry['proposal'] == sitting.get('leader')
             said.append(self._say(LEADS if leads else OPTION, **values, score=entry.get('score') or 0.0))
-            ground = self._ground(entry['proposal'])
+            ground = self._ground(entry)
             if ground:
                 said[-1] += f' {ground}'
         said.append(f'{len(sitting["table"]) + 1}. {self._say(f"{KIND}{ABSTAIN}")}')
@@ -297,13 +298,14 @@ class Sitting:
         signs = ', '.join(f'{glyph(biome)} {self._say(f"{BIOME}{biome}")}' for biome in seen)
         return [self._say(LAND), *rows, self._say(LEGEND, signs=signs)]
 
-    def _option(self, proposal: Mapping[str, Any]) -> str:
-        session = self.session
-        if proposal['kind'] == GO and session is not None and session.place is not None:
-            return where(way(target(proposal), session.place, session.watched.known.get), self.lang)
-        return self._say(f'{KIND}{proposal["kind"]}')
+    def _option(self, entry: Mapping[str, Any], winter: bool | None) -> str:
+        session, at = self.session, target(entry)
+        if at is not None and session is not None and session.place is not None:
+            return where(way(at, session.place, session.watched.known.get), self.lang)
+        kind = entry['proposal']['kind']
+        return self._say(f'{KIND}{WINTER if winter and kind == CAMPING else kind}')
 
-    def _ground(self, proposal: Mapping[str, Any]) -> str:
+    def _ground(self, entry: Mapping[str, Any]) -> str:
         """
         The land an option keeps the band on, as it knows it: the biome, its food, water, threat and passability,
         a river.
@@ -311,7 +313,7 @@ class Sitting:
         session = self.session
         if session is None or session.place is None:
             return ''
-        cell = session.watched.known.get(target(proposal) if proposal['kind'] == GO else session.place)
+        cell = session.watched.known.get(target(entry) or session.place)
         if cell is None:
             return ''
         held = [self._say(f'{BIOME}{cell["biome"]}')]

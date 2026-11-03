@@ -17,7 +17,7 @@ from . import council, decisions, encounters, lore, routes
 from .band import Action, Band
 from .cells import Cells, Place, valued
 from .clock import DAY_STARTED, SEASON_STARTED, Clock, Date
-from .commands import ABSTAIN, BUILT, GO, VOTE, WINTER, Command
+from .commands import ABSTAIN, BUILT, CAMP, GOING, ROAM, TO, VOTE, Command
 from .counters import Counters
 from .events import (
     BAND_DIED,
@@ -35,14 +35,13 @@ from .events import (
     GOODS_MADE,
     GOODS_SPOILED,
     GOODS_WORN,
-    INTENT_ARRIVED,
-    INTENT_ENDED,
     KIND,
     PEOPLE_BORN,
     PEOPLE_CURED,
     PEOPLE_INJURED,
     PEOPLE_LOST,
     PEOPLE_SICKENED,
+    PLAN_ENDED,
     PROPOSAL_EVEN,
     PROPOSAL_FAILED,
     PROPOSAL_WORKED,
@@ -53,7 +52,6 @@ from .events import (
     REFUSED_SEAT_BANISHED,
     REFUSED_UNKNOWN_COMMAND,
     REFUSED_UNKNOWN_SEAT,
-    REFUSED_UNSAFE,
     SEAT_BANISHED,
     SEAT_BLAMED,
     SEAT_PRAISED,
@@ -65,7 +63,7 @@ from .events import (
 from .hashing import digest
 from .streams import Streams
 
-SNAPSHOT_FORMAT = 32
+SNAPSHOT_FORMAT = 33
 DIED = 'died'
 BANISHED = 'banished'
 VOTED = 'voted'
@@ -182,10 +180,10 @@ def _nothing_since(first: bool) -> dict[str, Any]:
     return {
         council.FIRST: first,
         council.DEATH: 0,
-        council.ARRIVED: False,
-        council.CLOSED: False,
+        council.ENCOUNTER: False,
+        council.FOUND: False,
+        council.SPENT: False,
         council.SEASON: False,
-        council.RIVER: False,
     }
 
 
@@ -546,15 +544,15 @@ class Game:
             return REFUSED_NO_COUNCIL
         if voted:
             return REFUSED_ALREADY_VOTED
-        if answer['kind'] == GO and self._way(self.band, council.target(answer)) is None:
+        if answer['kind'] not in GOING:
+            return None
+        band = self.band
+        aimed = council.aim(self.params, band, self.era, self.inside, answer)
+        if aimed is None or not council.fits(self.params, band, self.era, self.inside, answer):
             return REFUSED_NO_SUCH_PLACE
         named = any(entry['proposal'] == answer for entry in self.council['table'])
-        if answer['kind'] == GO and not named and not self._opened(lore.GO_PLACE):
+        if not named and not self._opened(lore.GO_PLACE):
             return REFUSED_NOT_LEARNED
-        if answer['kind'] == WINTER and not self.camping:
-            return REFUSED_NOT_LEARNED
-        if answer['kind'] == WINTER and council.unsafe(self.params, self.band):
-            return REFUSED_UNSAFE
         return None
 
     def _way(self, band: Band, to: Place) -> list[list[int]] | None:
@@ -583,27 +581,27 @@ class Game:
 
     def _open(self, tick: _Tick) -> None:
         """
-        The council of the evening, when an occasion calls it: a turned stay or camp before it is judged, then the
-        others' votes are laid out, the decision in force among them until the council replaces it. Without an
-        occasion the last decision stands.
+        The council of the evening, when an occasion calls it: the turned plan in force is judged first, then the
+        others' votes are laid out, the plan in force among them until the council replaces it. Without an
+        occasion the plan in force stands.
         """
         band = self.band
         if band is None or self.over:
             return
-        laid = self._laid(band, self._named(band))
-        occasion = self._occasion(band, laid)
+        occasion = self._occasion(band)
         if occasion is None:
             return
         self.since = _nothing_since(first=False)
+        laid = self._laid(band, self._named(band))
         if not self.seated:
             self._bind(band, council.leader(laid))
             return
-        if self.judgement is not None and self.judgement['proposal']['kind'] != GO:
+        if self.judgement is not None:
             self._verdict(tick, band, self.judgement)
             if self.over:
                 return
         leader = council.leader(laid)
-        values = {'leader': council.key(leader, band), 'occasion': f'{council.OCCASION}{occasion}'}
+        values = {'leader': self._key(band, leader), 'occasion': f'{council.OCCASION}{occasion}'}
         spoken = council.voice(self.params, bands.voters(self.params, band), self.status)
         if council.settled(laid, spoken):
             # A council the seat could not turn belongs to nobody: its day costs no deaths and earns no births.
@@ -616,7 +614,8 @@ class Game:
             'table': laid,
             'occasion': occasion,
             'voice': spoken,
-            'winter': self.camping,
+            'stores': council.stores(self.params, band),
+            'winter': council.winters(self.params, band, self.wintering),
             'place': self._opened(lore.GO_PLACE),
         }
         self._totals['councils'] += 1
@@ -624,42 +623,44 @@ class Game:
 
     def _named(self, band: Band) -> tuple[council.Proposal, ...]:
         """
-        What the band names at a council beside the land it knows: the decision in force and, in the season of the
-        camp, the old camp nearest it.
+        What the band names at a council beside the land it knows: the plan in force and, in the season of the
+        camp, a roam to the old camp nearest it.
         """
         named: tuple[council.Proposal, ...] = () if band.intent is None else (band.intent['proposal'],)
         old = [at for at in band.camps if at != band.place and self.inside(*at)]
         if self.wintering and old:
-            named += (council.going(min(old, key=lambda at: (decisions.far(band.place, at), at))),)
+            named += (council.going(ROAM, min(old, key=lambda at: (decisions.far(band.place, at), at))),)
         return named
 
     def _laid(self, band: Band, extra: tuple[council.Proposal, ...]) -> council.Table:
         behind = council.behind(self.params, band, self.day)
         return council.table(self.params, band, self.era, self.inside, extra, self.wintering, self.wintering, behind)
 
-    def _occasion(self, band: Band, laid: council.Table) -> str | None:
+    def _occasion(self, band: Band) -> str | None:
         """
         The first of the occasions that holds this evening, None when nothing calls the council.
         """
-        since = self.since
-        standing = None if band.intent is None else band.intent['proposal']
-        kept = standing is not None and standing['kind'] in (GO, WINTER)
-        # A band on its way to a place, or wintering, does not turn for another wish before it gets there.
-        restless = not kept and council.restless(laid, standing)
+        since, intent = self.since, band.intent
         # A winter camp ends with the season that offers it, not with the one it was built in.
-        wintered = standing is not None and standing['kind'] == WINTER and self.wintering
+        wintered = bands.wintering(band) and self.wintering
         held = {
             council.FIRST: since[council.FIRST],
             council.DEATH: since[council.DEATH] > 0,
-            council.ARRIVED: since[council.ARRIVED],
-            council.HUNGER: council.hungers(self.params, band, self.era, council.HUNGER),
-            council.THIRST: council.hungers(self.params, band, self.era, council.THIRST),
-            council.CLOSED: since[council.CLOSED],
-            council.RESTLESS: restless,
+            council.HUNGER: council.hungers(self.params, band, council.HUNGER),
+            council.THIRST: council.hungers(self.params, band, council.THIRST),
+            council.ENCOUNTER: since[council.ENCOUNTER],
+            council.FOUND: since[council.FOUND],
+            council.SPENT: since[council.SPENT],
+            council.TERM: intent is None or self.day >= intent['until'],
             council.SEASON: since[council.SEASON] and not wintered,
-            council.RIVER: since[council.RIVER],
         }
         return next((name for name in council.OCCASIONS if held[name]), None)
+
+    def _key(self, band: Band, proposal: council.Proposal | None) -> str:
+        winter = (
+            proposal is not None and proposal['kind'] == CAMP and council.winters(self.params, band, self.wintering)
+        )
+        return council.key(proposal, band, winter)
 
     def _councils(self, tick: _Tick) -> None:
         band = self.band
@@ -691,10 +692,10 @@ class Game:
         self._decide(tick, band, winner)
         if self.over:
             return
-        said = council.key(answer, band)
+        said = self._key(band, answer)
         if winner != answer:
             self._status(tick, self.params.council.status.outvoted)
-            values = {'proposal': said, 'winner': council.key(winner, band), 'status': self.status}
+            values = {'proposal': said, 'winner': self._key(band, winner), 'status': self.status}
             tick.events.append(Event(COUNCIL_OUTVOTED, values))
             self._banish(tick)
         elif answer == sitting['leader']:
@@ -717,27 +718,42 @@ class Game:
 
     def _bind(self, band: Band, decided: council.Proposal | None) -> None:
         """
-        The band takes what a council decided; a new decision is remembered with the cell it was taken on.
+        The band takes the plan a council decided, its term starting anew, aimed at the first target of its way; a
+        new decision is remembered with the cell it was taken on.
         """
         standing = None if band.intent is None else band.intent['proposal']
-        band.intent = None if decided is None else {'proposal': dict(decided)}
         band.route = None
-        if decided is not None and decided != standing:
+        if decided is None:
+            band.intent = None
+            return
+        winter = decided['kind'] == CAMP and council.winters(self.params, band, self.wintering)
+        leg = None
+        if decided['kind'] in GOING:
+            leg = council.aim(self.params, band, self.era, self.inside, decided)
+        band.intent = {
+            'proposal': dict(decided),
+            'until': council.until(self.params, self.day, winter),
+            'leg': None if leg is None else {'x': leg[0], 'y': leg[1]},
+            'standing': False,
+            'winter': winter,
+        }
+        if decided != standing:
             band.decision = {'proposal': dict(decided), 'from': list(band.place), 'day': self.day}
 
     def _decide(self, tick: _Tick, band: Band, decided: council.Proposal | None) -> None:
-        """
-        A council decided: a turned go it replaces is judged on the land reached, then the band is bound.
-        """
-        judgement = self.judgement
-        if judgement is not None and judgement['proposal']['kind'] == GO and judgement['proposal'] != decided:
-            self._verdict(tick, band, judgement)
         self._bind(band, decided)
 
-    def _ended(self, tick: _Tick, band: Band, proposal: council.Proposal) -> None:
+    def _spent(self, tick: _Tick, band: Band, why: str) -> None:
         """
-        A go arrived or closed: the band remembers the day it ended, and a turn of it is judged on the land reached.
+        A plan ran its course: the band remembers the day it ended, a turn of it is judged on the land reached, and
+        the council sits this evening.
         """
+        intent = band.intent
+        if intent is None:
+            return
+        proposal = intent['proposal']
+        self.since[council.SPENT] = True
+        tick.events.append(Event(PLAN_ENDED, {'proposal': self._key(band, proposal), 'why': why}))
         band.intent = band.route = None
         if band.decision is not None and band.decision['proposal'] == proposal:
             band.decision = {**band.decision, 'day': self.day}
@@ -761,15 +777,15 @@ class Game:
             tick.action = rested.action
             return
         if proposal is not None:
-            towards = None if proposal['kind'] != GO else self._next(band, council.target(proposal))
-            if proposal['kind'] != GO or towards is not None:
-                held = decisions.intended(self.params, band, proposal, self.era, towards)
+            leg = None if band.intent is None else band.intent['leg']
+            towards = None if leg is None else self._next(band, (leg['x'], leg['y']))
+            if proposal['kind'] == CAMP or towards is not None:
+                winter = band.intent is not None and band.intent['winter']
+                held = decisions.intended(self.params, band, proposal, self.era, towards, winter)
                 band.wander, band.reason = None, decisions.reason(held)
                 tick.action = held.action
                 return
-            self.since[council.CLOSED] = True
-            tick.events.append(Event(INTENT_ENDED, {'proposal': council.key(proposal, band)}))
-            self._ended(tick, band, proposal)
+            self._spent(tick, band, council.CLOSED)
         tick.action = self.choose(self, band)
 
     def _next(self, band: Band, to: Place) -> str | None:
@@ -813,16 +829,34 @@ class Game:
             bands.wear(self.params, band, bands.NIGHTS, band.population)
         if done['kind'] == bands.CAMP and self.date.part not in self.params.units.band.camp_parts:
             band.camped += 1
-        proposal = None if band.intent is None else band.intent['proposal']
-        if proposal is not None and proposal['kind'] == GO and band.place == council.target(proposal):
-            self.since[council.ARRIVED] = True
-            tick.events.append(Event(INTENT_ARRIVED, {}))
-            self._ended(tick, band, proposal)
         self._states(tick, *bands.tire(self.params.units.band, band))
         before = set(band.known)
+        biomes = {cell['biome'] for cell in band.known.values()}
         tick.known = [{'x': x, 'y': y, **band.known[x, y]} for x, y in bands.look(self, band, self.day)]
-        if any(cell['river'] and (cell['x'], cell['y']) not in before for cell in tick.known):
-            self.since[council.RIVER] = True
+        fresh = [cell for cell in tick.known if (cell['x'], cell['y']) not in before]
+        if any(cell['river'] or cell['biome'] not in biomes for cell in fresh):
+            self.since[council.FOUND] = True
+        self._leg(tick, band)
+
+    def _leg(self, tick: _Tick, band: Band) -> None:
+        """
+        A band that stands on the target of its leg aims at the next one of its way, or its plan is spent: its cell
+        reached, or nothing left that way.
+        """
+        intent = band.intent
+        leg = None if intent is None else intent['leg']
+        if intent is None or leg is None or band.place != (leg['x'], leg['y']):
+            return
+        proposal = intent['proposal']
+        if TO in proposal:
+            self._spent(tick, band, council.REACHED)
+            return
+        ahead = council.aim(self.params, band, self.era, self.inside, proposal)
+        if ahead is None or ahead == band.place:
+            self._spent(tick, band, council.NOTHING)
+            return
+        intent['leg'] = {'x': ahead[0], 'y': ahead[1]}
+        band.route = None
 
     def _world(self, tick: _Tick) -> None:
         tick.cells = self.cells.regain(self._regained)
@@ -915,6 +949,7 @@ class Game:
         )
         if lost or injured or sickened:
             bands.frighten(self.params, band)
+            self.since[council.ENCOUNTER] = True
         self._totals['encounters'] += 1
         tick.events.append(Event(ENCOUNTER, {'kind': f'{KIND}{kind}', 'lost': lost}))
         if lost:
@@ -977,7 +1012,6 @@ class Game:
                 self.since[council.SEASON] = True
                 self._wintered(was)
                 self._reseason(tick, was)
-                self._thaw()
         if self.date.part == self.params.council.part:
             self._open(tick)
 
@@ -988,17 +1022,6 @@ class Game:
         seasons = self.params.units.band.winter_camp.offered.seasons
         if self.band is not None and was in seasons and self.date.season not in seasons:
             lore.wintered(self.band)
-
-    def _thaw(self) -> None:
-        """
-        The decision to winter ends with the first season that does not offer a camp; the camp itself stands
-        until the band leaves its cell.
-        """
-        band = self.band
-        if band is None or self.wintering:
-            return
-        if band.intent is not None and band.intent['proposal']['kind'] == WINTER:
-            band.intent = None
 
     def _reseason(self, tick: _Tick, was: str) -> None:
         band = self.band

@@ -14,7 +14,7 @@ type NewGame = Callable[..., dict[str, Any]]
 
 EVENING = 3
 
-STAY = {'id': 'c-1', 'kind': 'vote', 'proposal': {'kind': 'stay-and-gather'}}
+STAY = {'id': 'c-1', 'kind': 'vote', 'proposal': {'kind': 'camp'}}
 MALFORMED: list[dict[str, Any]] = [
     {'kind': 'pass'},
     {'id': '', 'kind': 'pass'},
@@ -22,21 +22,25 @@ MALFORMED: list[dict[str, Any]] = [
     {'id': 'c-1'},
     {'id': 'c-1', 'kind': 'alpha'},
     {'id': 'c-1', 'kind': ['pass']},
-    {'id': 'c-1', 'kind': 'pass', 'proposal': {'kind': 'stay-and-gather'}},
+    {'id': 'c-1', 'kind': 'pass', 'proposal': {'kind': 'camp'}},
     {'id': 'c-1', 'kind': 'vote'},
-    {'id': 'c-1', 'kind': 'vote', 'proposal': 'stay-and-gather'},
+    {'id': 'c-1', 'kind': 'vote', 'proposal': 'camp'},
+    {'id': 'c-1', 'kind': 'vote', 'proposal': {'kind': 'stay-and-gather'}},
     {'id': 'c-1', 'kind': 'vote', 'proposal': {'kind': 'rest'}},
     {'id': 'c-1', 'kind': 'vote', 'proposal': {'kind': 'alpha'}},
     {'id': 'c-1', 'kind': 'vote', 'proposal': {'kind': 'move'}},
     {'id': 'c-1', 'kind': 'vote', 'proposal': {'kind': 'move', 'towards': 'up'}},
     {'id': 'c-1', 'kind': 'vote', 'proposal': {'kind': 'move', 'towards': 'east'}},
-    {'id': 'c-1', 'kind': 'vote', 'proposal': {'kind': 'go'}},
-    {'id': 'c-1', 'kind': 'vote', 'proposal': {'kind': 'go', 'to': [3, 4]}},
-    {'id': 'c-1', 'kind': 'vote', 'proposal': {'kind': 'go', 'to': {'x': 3}}},
-    {'id': 'c-1', 'kind': 'vote', 'proposal': {'kind': 'go', 'to': {'x': 'alpha', 'y': 4}}},
-    {'id': 'c-1', 'kind': 'vote', 'proposal': {'kind': 'go', 'to': {'x': 3.5, 'y': 4}}},
-    {'id': 'c-1', 'kind': 'vote', 'proposal': {'kind': 'go', 'to': {'x': 3, 'y': 4, 'z': 5}}},
-    {'id': 'c-1', 'kind': 'vote', 'proposal': {'kind': 'stay-and-gather', 'towards': 'east'}},
+    {'id': 'c-1', 'kind': 'vote', 'proposal': {'kind': 'go', 'to': {'x': 3, 'y': 4}}},
+    {'id': 'c-1', 'kind': 'vote', 'proposal': {'kind': 'roam'}},
+    {'id': 'c-1', 'kind': 'vote', 'proposal': {'kind': 'roam', 'to': [3, 4]}},
+    {'id': 'c-1', 'kind': 'vote', 'proposal': {'kind': 'roam', 'to': {'x': 3}}},
+    {'id': 'c-1', 'kind': 'vote', 'proposal': {'kind': 'roam', 'to': {'x': 'alpha', 'y': 4}}},
+    {'id': 'c-1', 'kind': 'vote', 'proposal': {'kind': 'roam', 'to': {'x': 3.5, 'y': 4}}},
+    {'id': 'c-1', 'kind': 'vote', 'proposal': {'kind': 'roam', 'to': {'x': 3, 'y': 4, 'z': 5}}},
+    {'id': 'c-1', 'kind': 'vote', 'proposal': {'kind': 'explore', 'direction': 'up'}},
+    {'id': 'c-1', 'kind': 'vote', 'proposal': {'kind': 'explore', 'direction': 'n', 'to': {'x': 3, 'y': 4}}},
+    {'id': 'c-1', 'kind': 'vote', 'proposal': {'kind': 'camp', 'towards': 'east'}},
     {'id': 'c-1', 'kind': 'vote', 'proposal': {'kind': 'abstain', 'towards': 'east'}},
     {**STAY, 'unit': 1},
 ]
@@ -56,8 +60,9 @@ def test_a_malformed_command_is_refused(envelope: dict[str, Any]) -> None:
         {'id': 'c-1', 'kind': 'pass'},
         STAY,
         {'id': 'c-1', 'kind': 'vote', 'proposal': {'kind': 'abstain'}},
-        {'id': 'c-1', 'kind': 'vote', 'proposal': {'kind': 'go', 'to': {'x': 3, 'y': 4}}},
-        {'id': 'c-1', 'kind': 'vote', 'proposal': {'kind': 'go', 'to': {'x': -2, 'y': 0}}},
+        {'id': 'c-1', 'kind': 'vote', 'proposal': {'kind': 'roam', 'to': {'x': 3, 'y': 4}}},
+        {'id': 'c-1', 'kind': 'vote', 'proposal': {'kind': 'explore', 'to': {'x': -2, 'y': 0}}},
+        {'id': 'c-1', 'kind': 'vote', 'proposal': {'kind': 'explore', 'direction': 'sw'}},
     ],
 )
 def test_a_well_formed_command_is_read(envelope: dict[str, Any]) -> None:
@@ -97,7 +102,7 @@ def test_a_repeated_command_id_is_taken_once(client: TestClient, new_game: NewGa
 def test_a_command_the_rules_refuse_is_not_an_error_of_the_api(client: TestClient, new_game: NewGame) -> None:
     game = new_game(seated=True, overrides={**SMALL, 'council.voice.least': 20.0})['id']
 
-    nowhere = {'id': 'c-1', 'kind': 'vote', 'proposal': {'kind': 'go', 'to': {'x': -1, 'y': -1}}}
+    nowhere = {'id': 'c-1', 'kind': 'vote', 'proposal': {'kind': 'roam', 'to': {'x': -1, 'y': -1}}}
 
     with client.websocket_connect(f'{PREFIX}/games/{game}/updates?after=0') as stream:
         for tick in range(EVENING):

@@ -76,7 +76,7 @@ option, and each feature is a name, so a mind says what it weighs:
 
 | Feature             | Is                                                          |
 |---------------------|-------------------------------------------------------------|
-| `go`, `stay`, `winter`, `abstain` | 1 for the kind of the option, else 0          |
+| `camp`, `roam`, `explore`, `abstain` | 1 for the kind of the option, else 0        |
 | `votes`             | its votes over the voters                                   |
 | `leader`            | 1 when it leads the table                                   |
 | `score`             | the band's own score of it                                  |
@@ -166,7 +166,7 @@ replays exactly.
 ```yaml
 minds:
   linear_v1:
-    features: [go, stay, winter, abstain, votes, leader, score, hunger_food, thirst_water, calm_threat]
+    features: [camp, roam, explore, abstain, votes, leader, score, hunger_food, thirst_water, calm_threat]
     weights: [0.1, 0.2, 0.0, -1.0, 0.5, 0.3, 1.0, 0.8, 0.6, -0.7]
     trained: {run: 20261020-train, generations: 48, reward: 0.31}
 ```

@@ -13,7 +13,8 @@ from . import band as bands
 from . import council, decisions, lore, routes
 from .band import Band
 from .clock import SeasonSchedule
-from .commands import ABSTAIN, GO, STAY, WINTER
+from .commands import ABSTAIN, CAMP, EXPLORE, ROAM
+from .events import PROPOSAL
 
 if TYPE_CHECKING:
     from .game import Game
@@ -23,6 +24,7 @@ WATER = 'water'
 THREAT = 'threat'
 PASSABILITY = 'passability'
 SEAT = 'player'
+WINTER = f'{PROPOSAL}{council.WINTERING}'
 
 
 @dataclass(frozen=True)
@@ -116,7 +118,7 @@ def observe(game: Game) -> Observation | None:
             entry['votes'],
             entry['proposal'] == leader,
             entry['score'],
-            _ground(game, band, entry['proposal'], wanted),
+            _ground(game, band, entry.get('to'), wanted),
         )
         for at, entry in enumerate(sitting['table'], start=1)
     ]
@@ -155,9 +157,9 @@ def observe(game: Game) -> Observation | None:
     )
 
 
-def _ground(game: Game, band: Band, proposal: dict[str, Any], wanted: dict[str, float]) -> Ground:
+def _ground(game: Game, band: Band, aimed: dict[str, int] | None, wanted: dict[str, float]) -> Ground:
     params, era = game.params, game.era
-    to = band.place if proposal['kind'] != GO else council.target(proposal)
+    to = band.place if aimed is None else (aimed['x'], aimed['y'])
     cell = decisions.seen(params, band, to, era)
     held = decisions.expected(params, band) if cell is None else cell
     route: int | None = 0
@@ -222,9 +224,9 @@ type Feature = Callable[[Observation, Option], float]
 
 # Every name of content.FEATURES, as docs/lab/players.md tells them.
 MEASURES: dict[str, Feature] = {
-    'go': lambda seen, option: float(option.kind == GO),
-    'stay': lambda seen, option: float(option.kind == STAY),
-    'winter': lambda seen, option: float(option.kind == WINTER),
+    'camp': lambda seen, option: float(option.kind == CAMP),
+    'roam': lambda seen, option: float(option.kind == ROAM),
+    'explore': lambda seen, option: float(option.kind == EXPLORE),
     'abstain': lambda seen, option: float(option.kind == ABSTAIN),
     'votes': lambda seen, option: option.votes / max(sum(held.votes for held in seen.options), 1),
     'leader': lambda seen, option: float(option.leads),
@@ -235,8 +237,8 @@ MEASURES: dict[str, Feature] = {
     'river': lambda seen, option: _on('river', option),
     'unknown': lambda seen, option: _on('unknown', option),
     'distance': _far,
-    'winter_short': lambda seen, option: seen.winter_left if option.kind == WINTER else 0.0,
-    'short_stay': lambda seen, option: float(option.kind == STAY and min(seen.food_days, seen.water_days) < 1.0),
+    'winter_short': lambda seen, option: seen.winter_left if option.key == WINTER else 0.0,
+    'short_stay': lambda seen, option: float(option.kind == CAMP and min(seen.food_days, seen.water_days) < 1.0),
     'outvoted': _lacks,
 }
 

@@ -112,18 +112,19 @@ MESSAGES: tuple[str, ...] = (
     *(f'{STAGE}{name}' for name in STAGES),
     *(f'{CONDITION}{name}' for name in CONDITIONS),
     *(f'{DIRECTION}{towards}' for towards in DIRECTIONS),
-    *(f'{KIND}{kind}' for kind in ('go', 'stay-and-gather', 'winter-camp', 'abstain')),
+    *(f'{KIND}{kind}' for kind in ('go', 'camp', 'winter-camp', 'roam', 'explore', 'abstain')),
     *(f'{LAND}{biome}' for biome in GLYPHS),
     *(f'{THROUGH}{biome}' for biome in GLYPHS),
 )
 
 GO = 'go'
-STAY = 'stay-and-gather'
+CAMPING = 'camp'
 WINTER = 'winter-camp'
+GOING = ('roam', 'explore')
 ABSTAIN = 'abstain'
 SILENCE = {'kind': ABSTAIN}
-# The answers of the menu in its order; a go opens the places it may lead to.
-KINDS = (GO, STAY, WINTER, ABSTAIN)
+# The answers of the menu in its order; a go opens the places the roams and the explores lead to.
+KINDS = (GO, CAMPING, WINTER, ABSTAIN)
 LOSSES = frozenset(
     {
         'command-refused',
@@ -176,13 +177,15 @@ class Way(NamedTuple):
 
 class Option(NamedTuple):
     """
-    An answer of the menu or a place of a go; the proposal is None for the go that opens the places.
+    An answer of the menu or a place of a go, with the cell it is aimed at; the proposal is None for the go that
+    opens the places.
     """
 
     kind: str
     proposal: Mapping[str, Any] | None
     leader: bool
     way: Way | None = None
+    at: Place | None = None
 
 
 class Menu(NamedTuple):
@@ -194,6 +197,7 @@ class Menu(NamedTuple):
     places: list[Option]
     place: Place | None
     pointing: bool = True
+    known: Known | None = None
 
 
 def words(message: Mapping[str, Any], lang: str) -> str:
@@ -288,8 +292,9 @@ def council_words(council: Mapping[str, Any], lang: str) -> str:
     return render(COUNCIL, {'table': '; '.join(told)}, lang)
 
 
-def target(proposal: Mapping[str, Any]) -> Place:
-    return proposal['to']['x'], proposal['to']['y']
+def target(proposal: Mapping[str, Any]) -> Place | None:
+    to = proposal.get('to')
+    return None if to is None else (to['x'], to['y'])
 
 
 def quality(cell: Mapping[str, Any]) -> str:
@@ -328,8 +333,9 @@ def where(told: Way, lang: str) -> str:
 
 
 def intended(proposal: Mapping[str, Any], place: Place | None, known: Known, lang: str) -> str:
-    if proposal['kind'] == GO and place is not None:
-        return where(way(target(proposal), place, known), lang)
+    to = target(proposal)
+    if to is not None and place is not None:
+        return where(way(to, place, known), lang)
     return render(f'{KIND}{proposal["kind"]}', lang=lang)
 
 
@@ -348,30 +354,34 @@ def menu(council: Mapping[str, Any], place: Place | None, known: Known) -> Menu:
     def winnable(entry: Mapping[str, Any]) -> bool:
         return won(entry['votes'], [other['votes'] for other in table if other is not entry])
 
-    answers = [Option(GO, None, leader.get('kind') == GO)]
-    for kind in (STAY, WINTER):
-        votes = sum(entry['votes'] for entry in table if entry['proposal']['kind'] == kind)
-        others = [entry['votes'] for entry in table if entry['proposal']['kind'] != kind]
-        if (kind != WINTER or council.get('winter')) and won(votes, others):
-            answers.append(Option(kind, {'kind': kind}, leader.get('kind') == kind))
+    answers = [Option(GO, None, leader.get('kind') in GOING)]
+    camps = [entry['votes'] for entry in table if entry['proposal']['kind'] == CAMPING]
+    others = [entry['votes'] for entry in table if entry['proposal']['kind'] != CAMPING]
+    if camps and won(sum(camps), others):
+        kind = WINTER if council.get('winter') else CAMPING
+        answers.append(Option(kind, {'kind': CAMPING}, leader.get('kind') == CAMPING))
     answers.append(Option(ABSTAIN, SILENCE, False))
-    goes = [entry for entry in table if entry['proposal']['kind'] == GO and winnable(entry)]
+    goes = [entry for entry in table if entry['proposal']['kind'] in GOING and winnable(entry)]
     levels = sorted({entry['votes'] for entry in goes}, reverse=True)[:LEVELS]
     # One place for each of the most voted levels, the leader first among its equals.
     chosen = [
         min((entry for entry in goes if entry['votes'] == votes), key=lambda entry: entry['proposal'] != leader)
         for votes in levels
     ]
-    places = [
-        Option(
-            GO,
-            entry['proposal'],
-            entry['proposal'] == leader,
-            None if place is None else way(target(entry['proposal']), place, known),
-        )
-        for entry in chosen
-    ]
-    return Menu(answers, places, place, council.get('place', True))
+    places = []
+    for entry in chosen:
+        at = target(entry)
+        told = None if place is None or at is None else way(at, place, known)
+        places.append(Option(entry['proposal']['kind'], entry['proposal'], entry['proposal'] == leader, told, at))
+    return Menu(answers, places, place, council.get('place', True), known)
+
+
+def picked(at: Place, known: Known | None) -> dict[str, Any]:
+    """
+    A cell of the player's own: a roam to land the band knows, an explore of land it does not.
+    """
+    kind = 'roam' if known is not None and known(at) is not None else 'explore'
+    return {'kind': kind, 'to': {'x': at[0], 'y': at[1]}}
 
 
 def look(key: str) -> Look:

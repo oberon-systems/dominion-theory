@@ -189,7 +189,8 @@ roam = roaming.speed * weights.move * (pull - staying)
   below zero is not made worse by distance. The band expects land as dangerous as a forest, so it is
   hope of food and water that sends it there, not fear: a band on
   stripped land leans out towards it, a band in a forest or on grass
-  stays. A horizon of 0 turns it off.
+  stays. A horizon of 0 turns it off, and the council's plans `explore`
+  with it.
 
 The council weighs land to go to the same way, distance and visits
 included, for its own options, for a place a voice names and for where a

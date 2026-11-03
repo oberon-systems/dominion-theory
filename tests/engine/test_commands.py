@@ -8,10 +8,10 @@ def test_pass_and_the_vote_are_built() -> None:
 
 def test_envelope_is_the_id_the_kind_and_the_rest() -> None:
     assert Pass(seat='player', id='c-1').envelope() == {'id': 'c-1', 'kind': 'pass'}
-    assert Vote(seat='player', proposal={'kind': 'go', 'to': {'x': 3, 'y': 4}}, id='c-2').envelope() == {
+    assert Vote(seat='player', proposal={'kind': 'roam', 'to': {'x': 3, 'y': 4}}, id='c-2').envelope() == {
         'id': 'c-2',
         'kind': 'vote',
-        'proposal': {'kind': 'go', 'to': {'x': 3, 'y': 4}},
+        'proposal': {'kind': 'roam', 'to': {'x': 3, 'y': 4}},
     }
 
 

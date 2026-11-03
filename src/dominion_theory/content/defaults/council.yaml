@@ -1,6 +1,7 @@
 council:
   part: evening
   spread: 0.2
+  term: {months: 1}
   voice:
     share: 0.5
     least: 2.0
@@ -11,12 +12,12 @@ council:
     start: 50
     abstained: -2
     outvoted: -1
-    go_worked: 4
-    go_failed: -6
-    go_even: 0
-    stay_worked: 3
-    stay_failed: -6
-    stay_even: 0
+    roam_worked: 4
+    roam_failed: -6
+    roam_even: 0
+    explore_worked: 4
+    explore_failed: -6
+    explore_even: 0
     camp_worked: 3
     camp_failed: -6
     camp_even: 0

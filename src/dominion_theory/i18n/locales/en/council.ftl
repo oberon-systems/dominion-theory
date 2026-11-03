@@ -1,50 +1,36 @@
-proposal-go-grass = we go to the meadows
-proposal-go-forest = we go into the forest
-proposal-go-hills = we go onto the hills
-proposal-go-mountain = we go into the mountains
-proposal-go-outcrops = we go to the rocks
-proposal-go-water = we go to the water
-proposal-go-shallows = we go into the shallows
-proposal-go-swamp = we go into the swamp
-proposal-go-marsh = we go into the coastal marshes
-proposal-go-floodplain = we go onto the floodplain
-proposal-go-desert = we go into the desert
-proposal-go-dunes = we go into the dunes
-proposal-go-tundra = we go into the tundra
-proposal-go-snow = we go into the snow
-proposal-go-ice = we go onto the ice
-proposal-go-through-grass = we go on through the meadows
-proposal-go-through-forest = we go on through the forest
-proposal-go-through-hills = we go on over the hills
-proposal-go-through-mountain = we go on through the mountains
-proposal-go-through-outcrops = we go on over the rocks
-proposal-go-through-water = we go on over the water
-proposal-go-through-shallows = we go on through the shallows
-proposal-go-through-swamp = we go on through the swamp
-proposal-go-through-marsh = we go on through the marshes
-proposal-go-through-floodplain = we go on along the floodplain
-proposal-go-through-desert = we go on through the desert
-proposal-go-through-dunes = we go on over the dunes
-proposal-go-through-tundra = we go on across the tundra
-proposal-go-through-snow = we go on through the snow
-proposal-go-through-ice = we go on across the ice
-proposal-go-unknown = we go into land we do not know
-proposal-go = we go on to the land we set out for
-proposal-stay-and-gather = we stay and gather
+proposal-camp = we camp here
 proposal-winter-camp = we make a winter camp here
+proposal-roam = we roam
+proposal-explore = we go to see land we do not know
+proposal-roam-n = we roam to the north
+proposal-roam-ne = we roam to the north-east
+proposal-roam-e = we roam to the east
+proposal-roam-se = we roam to the south-east
+proposal-roam-s = we roam to the south
+proposal-roam-sw = we roam to the south-west
+proposal-roam-w = we roam to the west
+proposal-roam-nw = we roam to the north-west
+proposal-explore-n = we explore to the north
+proposal-explore-ne = we explore to the north-east
+proposal-explore-e = we explore to the east
+proposal-explore-se = we explore to the south-east
+proposal-explore-s = we explore to the south
+proposal-explore-sw = we explore to the south-west
+proposal-explore-w = we explore to the west
+proposal-explore-nw = we explore to the north-west
 proposal-none = nothing in particular
 
 council-opened = The council sits: { $occasion }. Most lean to: { $leader }.
 council-agreed = The council meets: { $occasion }; all are of one mind: { $leader }.
 occasion-first = it is the first evening
 occasion-death = people have died
-occasion-arrived = the band has reached the land it went to
 occasion-hunger = hunger presses
 occasion-thirst = thirst presses
-occasion-closed = the way is closed
-occasion-restless = the band wants another way
+occasion-encounter = the band was struck
+occasion-found = new land has been seen
+occasion-spent = the plan has run its course
+occasion-term = the month of the plan is over
 occasion-season = the season has turned
-occasion-river = a river has been seen
 council-followed = You spoke with the others: { $proposal }.
 council-turned = You turned the band: { $proposal }. { NUMBER($yes, maximumFractionDigits: 1) } voices of { NUMBER($all, maximumFractionDigits: 1) } were for it.
 council-outvoted = The council would not have it: { $proposal }; it chose { $winner }. Your standing is now { NUMBER($status, maximumFractionDigits: 1) }.
@@ -52,8 +38,12 @@ council-abstained = You said nothing at the council. Your standing is now { NUMB
 proposal-worked = It went well: { $proposal }. Your standing is now { NUMBER($status, maximumFractionDigits: 1) }.
 proposal-even = It came out even: { $proposal }. Your standing stays { NUMBER($status, maximumFractionDigits: 1) }.
 proposal-failed = It went badly: { $proposal }. Your standing is now { NUMBER($status, maximumFractionDigits: 1) }.
-intent-ended = The way is closed, the band gives up: { $proposal }.
-intent-arrived = The band has reached the land it set out for.
+plan-ended =
+    { $why ->
+        [reached] The band has reached the land it set out for: { $proposal }.
+        [nothing] Nothing better lies that way: { $proposal }.
+       *[closed] The way is closed, the band gives up: { $proposal }.
+    }
 seat-blamed =
     { $lost ->
         [one] { $lost } person died on a day you voted for. Your standing is now { NUMBER($status, maximumFractionDigits: 1) }.

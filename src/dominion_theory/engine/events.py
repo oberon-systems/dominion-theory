@@ -28,8 +28,7 @@ COUNCIL_ABSTAINED = 'council-abstained'
 PROPOSAL_WORKED = 'proposal-worked'
 PROPOSAL_EVEN = 'proposal-even'
 PROPOSAL_FAILED = 'proposal-failed'
-INTENT_ENDED = 'intent-ended'
-INTENT_ARRIVED = 'intent-arrived'
+PLAN_ENDED = 'plan-ended'
 SEAT_BLAMED = 'seat-blamed'
 SEAT_PRAISED = 'seat-praised'
 SEAT_BANISHED = 'seat-banished'
@@ -44,7 +43,6 @@ REFUSED_NO_COUNCIL = 'refused-no-council'
 REFUSED_ALREADY_VOTED = 'refused-already-voted'
 REFUSED_NO_SUCH_PLACE = 'refused-no-such-place'
 REFUSED_SEAT_BANISHED = 'refused-seat-banished'
-REFUSED_UNSAFE = 'refused-unsafe-land'
 REFUSED_NOT_LEARNED = 'refused-not-learned'
 
 EVENTS: dict[str, tuple[str, ...]] = {
@@ -72,8 +70,7 @@ EVENTS: dict[str, tuple[str, ...]] = {
     PROPOSAL_WORKED: ('proposal', 'status'),
     PROPOSAL_EVEN: ('proposal', 'status'),
     PROPOSAL_FAILED: ('proposal', 'status'),
-    INTENT_ENDED: ('proposal',),
-    INTENT_ARRIVED: (),
+    PLAN_ENDED: ('proposal', 'why'),
     SEAT_BLAMED: ('lost', 'status'),
     SEAT_PRAISED: ('born', 'status'),
     SEAT_BANISHED: (),
@@ -91,7 +88,6 @@ REASONS: tuple[str, ...] = (
     REFUSED_NO_SUCH_PLACE,
     REFUSED_SEAT_BANISHED,
     REFUSED_NOT_LEARNED,
-    REFUSED_UNSAFE,
 )
 STATE = 'state-'
 KIND = 'encounter-'

@@ -57,8 +57,8 @@ from .lines import (
     menu,
     parts,
     people_parts,
+    picked,
     sheltered,
-    target,
     words,
 )
 from .player import coloured, label
@@ -228,8 +228,7 @@ class Screen(App[str | None]):
         if self._mode != PLACES or self._menu is None:
             return
         places = self._menu.places
-        proposal = places[event.option_index].proposal if event.option_index < len(places) else None
-        self._lit = None if proposal is None else target(proposal)
+        self._lit = places[event.option_index].at if event.option_index < len(places) else None
         self._draw()
 
     def on_option_list_option_selected(self, event: OptionList.OptionSelected) -> None:
@@ -262,7 +261,7 @@ class Screen(App[str | None]):
 
     def action_pick(self) -> None:
         if self._cursor is not None and self._cursor != self._session.place:
-            self._send({'kind': 'go', 'to': {'x': self._cursor[0], 'y': self._cursor[1]}})
+            self._send(picked(self._cursor, self._session.watched.known.get))
 
     def action_detail(self, pane: str) -> None:
         self._detail = None if self._detail == pane else pane
@@ -375,7 +374,7 @@ class Screen(App[str | None]):
             return
         places = self._menu.places
         self._mode, self._cursor = PLACES, None
-        self._lit = None if not places or places[0].proposal is None else target(places[0].proposal)
+        self._lit = places[0].at if places else None
         said = [self._label(option) for option in places]
         if self._menu.pointing:
             said.append(Text(render(PICK, lang=self._lang)))

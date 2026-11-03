@@ -7,9 +7,9 @@ from dominion_theory.api.schemas import (
     Intent,
     NewGame,
     Resync,
-    SeatChange,
+    RoamProposal,
     Snapshot,
-    StayProposal,
+    Spot,
     Update,
     View,
     stream_schema,
@@ -42,7 +42,7 @@ def test_the_band_and_its_council_fit_the_snapshot_and_the_stream_and_lose_nothi
     for tick in range(EVENING):
         runner.submit(Pass(seat='player', id=f'p-{tick}'))
     assert runner.game.council is not None
-    runner.submit(Vote(seat='player', proposal={'kind': 'go', 'to': {'x': 107, 'y': 46}}, id='c-1'))
+    runner.submit(Vote(seat='player', proposal={'kind': 'explore', 'to': {'x': 107, 'y': 46}}, id='c-1'))
     for tick in range(EVENING + 1, EVENING + 2 * DAY + 1):
         runner.submit(Pass(seat='player', id=f'p-{tick}'))
 
@@ -52,19 +52,28 @@ def test_the_band_and_its_council_fit_the_snapshot_and_the_stream_and_lose_nothi
     assert all(isinstance(update, Update) for update in read)
     assert [update.model_dump(exclude_unset=True) for update in read] == [update.data() for update in sent]
     assert snapshot.model_dump(exclude_unset=True) == runner.snapshot()
-    risen, opened, silent = read[EVENING], read[EVENING + DAY - 1], read[EVENING + DAY]
-    assert isinstance(risen, Update) and isinstance(opened, Update) and isinstance(silent, Update)
-    assert risen.changes.seat == SeatChange(council=None) and 'council' in risen.changes.seat.model_fields_set
+    opened, risen = read[EVENING - 1], read[EVENING]
+    assert isinstance(opened, Update) and isinstance(risen, Update)
     assert opened.changes.seat.council is not None
     assert sum(entry.votes for entry in opened.changes.seat.council.table) == 14
-    assert silent.changes.seat == SeatChange(council=None, status=51.84)
-    assert (snapshot.seat.status, snapshot.seat.seated) == (51.84, True)
+    assert opened.changes.seat.council.stores is not None
+    assert risen.changes.seat.council is None and 'council' in risen.changes.seat.model_fields_set
+    assert snapshot.seat.seated
 
 
-def test_an_intent_is_a_proposal_alone() -> None:
-    held = Intent.model_validate({'proposal': {'kind': 'stay-and-gather'}})
+def test_an_intent_is_a_plan_with_its_term_and_its_leg() -> None:
+    held = Intent.model_validate(
+        {
+            'proposal': {'kind': 'roam', 'direction': 'ne'},
+            'until': 40,
+            'leg': {'x': 3, 'y': 1},
+            'standing': False,
+            'winter': False,
+        }
+    )
 
-    assert held == Intent(proposal=StayProposal(kind='stay-and-gather'))
+    assert held.proposal == RoamProposal(kind='roam', direction='ne')
+    assert (held.until, held.leg, held.standing, held.winter) == (40, Spot(x=3, y=1), False, False)
 
 
 def test_the_schema_describes_both_messages() -> None:

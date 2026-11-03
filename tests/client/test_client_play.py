@@ -14,15 +14,15 @@ type Body = dict[str, Any]
 
 DATE = {'year': 1, 'month': 1, 'day': 1, 'part': 'morning', 'season': 'spring'}
 SEAT = ['player']
-STAY = {'kind': 'stay-and-gather'}
-EAST = {'kind': 'go', 'to': {'x': 3, 'y': 0}}
-NORTH = {'kind': 'go', 'to': {'x': 1, 'y': -2}}
+STAY = {'kind': 'camp'}
+EAST = {'kind': 'explore', 'direction': 'e'}
+NORTH = {'kind': 'roam', 'to': {'x': 1, 'y': -2}}
 COUNCIL: dict[str, Any] = {
     'leader': STAY,
     'table': [
-        {'proposal': STAY, 'key': 'proposal-stay-and-gather', 'votes': 8},
-        {'proposal': EAST, 'key': 'proposal-go-forest', 'votes': 5},
-        {'proposal': NORTH, 'key': 'proposal-go-through-grass', 'votes': 1},
+        {'proposal': STAY, 'key': 'proposal-camp', 'to': None, 'votes': 8},
+        {'proposal': EAST, 'key': 'proposal-explore-e', 'to': {'x': 3, 'y': 0}, 'votes': 5},
+        {'proposal': NORTH, 'key': 'proposal-roam-n', 'to': {'x': 1, 'y': -2}, 'votes': 1},
     ],
 }
 BAND = {
@@ -126,16 +126,17 @@ def test_the_menu_gives_the_answers_and_the_places_of_the_goes_best_first_the_le
 
     assert [(option.kind, option.proposal, option.leader) for option in given.answers] == [
         ('go', None, False),
-        ('stay-and-gather', STAY, True),
+        ('camp', STAY, True),
         ('abstain', SILENCE, False),
     ]
     assert [label(option, 'en') for option in given.answers] == [
-        'Roam',
-        'Stay at the camp and gather',
+        'Go',
+        'Camp here and gather',
         'Say nothing',
     ]
-    assert marked(given.answers[1], 'en') == click.style('Stay at the camp and gather', fg='green', bold=True)
-    assert marked(given.answers[0], 'en') == 'Roam'
+    assert marked(given.answers[1], 'en') == click.style('Camp here and gather', fg='green', bold=True)
+    assert marked(given.answers[0], 'en') == 'Go'
+    assert [option.at for option in given.places] == [(3, 0), (1, -2)]
     assert [label(option, 'ru') for option in given.places] == [
         'Идём в незнакомые земли, далеко',
         'Идём по лесу, далеко',
@@ -148,7 +149,7 @@ def test_what_the_voice_of_the_player_cannot_win_is_not_offered() -> None:
     outweighed = {'leader': EAST, 'table': [{**COUNCIL['table'][0], 'votes': 1}, {**COUNCIL['table'][1], 'votes': 9}]}
 
     assert [option.proposal for option in heard.places] == [EAST]
-    assert [option.kind for option in heard.answers] == ['go', 'stay-and-gather', 'abstain']
+    assert [option.kind for option in heard.answers] == ['go', 'camp', 'abstain']
     assert [option.kind for option in menu({**outweighed, 'voice': 3.75}, (1, 0), WATCHED.get).answers] == [
         'go',
         'abstain',
@@ -156,9 +157,12 @@ def test_what_the_voice_of_the_player_cannot_win_is_not_offered() -> None:
 
 
 def test_the_places_are_one_of_each_of_the_three_most_voted_the_leader_first_among_equals() -> None:
-    goes = [council.going((x, 0)) for x in range(2, 8)]
+    goes = [council.going('roam', (x, 0)) for x in range(2, 8)]
     votes = (2, 5, 2, 5, 1, 0)
-    table = [{'proposal': go, 'key': 'proposal-go', 'votes': held} for go, held in zip(goes, votes, strict=True)]
+    table = [
+        {'proposal': go, 'key': 'proposal-roam-e', 'to': go['to'], 'votes': held}
+        for go, held in zip(goes, votes, strict=True)
+    ]
 
     given = menu({'leader': goes[3], 'table': table}, (1, 0), WATCHED.get)
 
@@ -234,12 +238,13 @@ def test_the_debug_line_follows_every_update() -> None:
     ('answer', 'kind'),
     [
         ('1', 'go'),
-        (' 2 ', 'stay-and-gather'),
+        (' 2 ', 'camp'),
         ('3', 'abstain'),
         ('', 'abstain'),
         ('abstain', 'abstain'),
-        ('stay', 'stay-and-gather'),
+        ('stay', 'camp'),
         ('roam', 'go'),
+        ('explore', 'go'),
         ('4', None),
         ('0', None),
         ('+3 -2', None),
@@ -259,9 +264,9 @@ def test_an_answer_is_a_number_a_name_or_nothing(answer: str, kind: str | None) 
         ('2', NORTH),
         ('3', None),
         ('', RETURN),
-        ('+3 -2', {'kind': 'go', 'to': {'x': 4, 'y': -2}}),
-        ('-1 0', {'kind': 'go', 'to': {'x': 0, 'y': 0}}),
-        ('3 2', {'kind': 'go', 'to': {'x': 4, 'y': 2}}),
+        ('+3 -2', {'kind': 'explore', 'to': {'x': 4, 'y': -2}}),
+        ('-1 0', {'kind': 'explore', 'to': {'x': 0, 'y': 0}}),
+        ('3 2', {'kind': 'explore', 'to': {'x': 4, 'y': 2}}),
         ('+3', None),
         ('+-3 2', None),
         ('4', None),
@@ -273,6 +278,10 @@ def test_a_place_is_a_number_a_point_or_nothing_to_go_back(answer: str, proposal
     assert pointed(answer, menu(COUNCIL, (1, 0), WATCHED.get).places, (1, 0)) == proposal
 
 
+def test_a_point_on_land_the_band_knows_is_a_roam() -> None:
+    assert pointed('+0 -2', [], (1, 0), WATCHED.get) == {'kind': 'roam', 'to': {'x': 1, 'y': -2}}
+
+
 def test_a_vote_from_the_terminal_turns_the_band_and_its_verdict_moves_the_status(server: str) -> None:
     played = CliRunner().invoke(
         cli,
@@ -280,7 +289,7 @@ def test_a_vote_from_the_terminal_turns_the_band_and_its_verdict_moves_the_statu
         input='alpha\n1\n+0 -1\n',
     )
     lines = played.stdout.splitlines()
-    north = 'we go on through the forest'
+    north = 'we roam to the north'
 
     assert played.exit_code == 0
     assert 'Not understood: alpha.' in lines
@@ -328,12 +337,13 @@ def test_the_debug_line_tells_the_band_cell_under_the_map() -> None:
 def test_a_winter_camp_is_answered_only_while_the_council_offers_it() -> None:
     offered = menu({**COUNCIL, 'winter': True}, (1, 0), WATCHED.get)
 
-    assert [option.kind for option in offered.answers] == ['go', 'stay-and-gather', 'winter-camp', 'abstain']
-    assert label(offered.answers[2], 'en') == 'Make a winter camp here'
-    assert understood('w', offered.answers) == offered.answers[2]
+    assert [option.kind for option in offered.answers] == ['go', 'winter-camp', 'abstain']
+    assert offered.answers[1].proposal == STAY
+    assert label(offered.answers[1], 'en') == 'Make a winter camp here'
+    assert understood('w', offered.answers) == understood('stay', offered.answers) == offered.answers[1]
     assert [option.kind for option in menu(COUNCIL, (1, 0), WATCHED.get).answers] == [
         'go',
-        'stay-and-gather',
+        'camp',
         'abstain',
     ]
 
@@ -344,4 +354,4 @@ def test_a_place_of_the_players_own_is_named_only_while_the_council_allows_it() 
 
     assert (allowed.pointing, closed.pointing) == (True, False)
     assert pointed('+1 +0', closed.places, place) is None
-    assert pointed('+1 +0', allowed.places, allowed.place) == {'kind': 'go', 'to': {'x': 2, 'y': 0}}
+    assert pointed('+1 +0', allowed.places, allowed.place) == {'kind': 'explore', 'to': {'x': 2, 'y': 0}}

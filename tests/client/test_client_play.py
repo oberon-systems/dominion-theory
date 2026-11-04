@@ -62,10 +62,18 @@ FOREST = {'biome': 'forest', 'river': False, 'water': 0.6, 'food': 0.5, 'threat'
 # The band stands in a forest that goes on north; east of it lies land it does not know.
 WATCHED = {(1, 0): FOREST, (1, -2): FOREST}
 SMALL = ('planet.circumference_km=4000', 'planet.window.width=32', 'planet.window.height=16')
-# A voice that outweighs the whole band, so that what the player says is what the council does; no skill gates it.
+# A voice that outweighs the whole band, so that what the player says is what the council does; no skill gates it,
+# and no stand for its stores keeps the band from where it was sent.
 LOUD = tuple(
     part
-    for given in (*SMALL, 'council.voice.least=20.0', 'skills={}', 'units.band.decisions.weights.goods=0')
+    for given in (
+        *SMALL,
+        'council.voice.least=20.0',
+        'skills={}',
+        'units.band.decisions.weights.goods=0',
+        'units.band.plan.march=0',
+        'units.band.plan.stock=0',
+    )
     for part in ('--set', given)
 )
 

@@ -902,6 +902,21 @@ class Stage(Node):
     need: Share
 
 
+class Lure(Node):
+    """
+    What draws the council to land the band does not know: known land poorer than it hopes for, and a band eating
+    more than `from` of what its land grows back.
+    """
+
+    poor: Factor
+    crowded: Factor
+    from_: Positive = Field(alias='from')
+
+    @model_serializer
+    def _as_written(self) -> dict[str, float]:
+        return {'poor': self.poor, 'crowded': self.crowded, 'from': self.from_}
+
+
 class Decisions(Node):
     levels: dict[Name, Stage]
     distance: Factor
@@ -911,6 +926,7 @@ class Decisions(Node):
     unknown_seasons: dict[Name, dict[Name, Factor]] = Field(default_factory=dict)
     idle: Factor
     wander: Duration
+    lure: Lure
     weights: Weights
 
     @model_validator(mode='after')
@@ -960,6 +976,21 @@ class Hunting(Node):
     hides: Factor
 
 
+class Plan(Node):
+    """
+    The rhythm of a band on a leg: the days of food and of water it marches on, and those a stand stocks it up to.
+    """
+
+    march: Factor
+    stock: Factor
+
+    @model_validator(mode='after')
+    def _march_not_above_stock(self) -> Self:
+        if self.march > self.stock:
+            raise ValueError('march not above stock')
+        return self
+
+
 class Band(Node):
     start: Start
     population: Population
@@ -978,6 +1009,7 @@ class Band(Node):
     states: States
     sight: Span
     memory: Duration | None = None
+    plan: Plan
     decisions: Decisions
     dread: Dread
     unease: Unease

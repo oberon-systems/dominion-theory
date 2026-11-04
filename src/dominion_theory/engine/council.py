@@ -263,19 +263,94 @@ def score(
     sheltered = cold and bands.sheltered(band) and not decisions.stripped(params, band, era)
     kept = params.units.band.winter_camp.kept if sheltered else 0.0
     own = decisions.wintering(params, band, era) if winters(params, band, wintering) else here
+    drawn = lure(params, band, era)
     days: list[Day] = [(dict(CAMPING), weights.move * (own + kept), band.place)]
     aimed = {band.place}
     for proposal, at in aims(params, band, era, inside):
         if at not in aimed:
             aimed.add(at)
-            days.append((proposal, weights.move * _value(params, band, era, at, wanted), at))
+            days.append((proposal, weights.move * _pull(params, band, era, proposal, at, wanted, drawn), at))
     for proposal in extra:
         if proposal['kind'] not in GOING or any(held == proposal for held, _, _ in days):
             continue
         named = aim(params, band, era, inside, proposal)
         if named is not None and fits(params, band, era, inside, proposal):
-            days.append((dict(proposal), weights.move * _value(params, band, era, named, wanted), named))
+            value = _pull(params, band, era, proposal, named, wanted, drawn)
+            days.append((dict(proposal), weights.move * value, named))
     return days
+
+
+def _pull(
+    params: Params, band: Band, era: str, proposal: Proposal, at: Place, wanted: dict[str, float], drawn: float
+) -> float:
+    """
+    What a plan's first target is worth to go to, an explore by its lure; land worth nothing is not made worse by it.
+    """
+    value = _value(params, band, era, at, wanted)
+    return value * drawn if proposal['kind'] == EXPLORE and value > 0 else value
+
+
+def lure(params: Params, band: Band, era: str) -> float:
+    """
+    What draws the council to land the band does not know: docs/game/decisions.md, The lure of the unknown.
+    """
+    held = params.units.band.decisions.lure
+    return 1.0 + held.poor * _poor(params, band, era) + held.crowded * _crowded(params, band, era)
+
+
+def _poor(params: Params, band: Band, era: str) -> float:
+    """
+    The share of what the band hopes of the unknown that the best known land within sight, visits weighed, leaves
+    wanting: 1 when nothing it knows is worth anything, 0 when it hopes for nothing.
+    """
+    wanted = decisions.needs(params, band)
+    hoped = decisions.worth(params, band, decisions.expected(params, band), wanted, band.unease)[0]
+    if hoped <= 0:
+        return 0.0
+    best = 0.0
+    for at in (band.place, *bands.around(band.place, params.units.band.sight)):
+        cell = decisions.seen(params, band, at, era) if decisions.reachable(band, at) else None
+        if cell is not None:
+            value = decisions.worth(params, band, cell, wanted, band.unease)[0]
+            best = max(best, decisions.weighed(params, band, at, value, 0))
+    return max(0.0, 1.0 - best / hoped)
+
+
+def _crowded(params: Params, band: Band, era: str) -> float:
+    """
+    How far the band eats over `lure.from` of what the known land within sight grows back.
+    """
+    eaters = bands.census(params, band).eaters
+    # Land that feeds nobody is no more crowded than land that feeds one: the lure stays finite.
+    fed = max(decisions.feeding(params, band, era), 1.0)
+    return max(0.0, eaters / fed - params.units.band.decisions.lure.from_)
+
+
+def stands(params: Params, band: Band, era: str) -> bool:
+    """
+    Whether a band on a leg stands now: a starving or thirsting band never does, a tired one does until it has
+    rested. Else it finishes the step it is on, marches on land that gives no day's food or with a load it could not
+    add to, and otherwise while its stores hold `plan.march` days, once it stands until they hold `plan.stock`.
+    """
+    if bands.STARVATION in band.states or bands.THIRST in band.states:
+        return False
+    if bands.TIREDNESS in band.states:
+        return True
+    # A gathering loses the way into the next cell: a stand each morning would never cross slow land.
+    if band.progress > 0 or decisions.barren(params, band, era) or _laden(params, band):
+        return False
+    rhythm = params.units.band.plan
+    holding = band.intent is not None and band.intent['standing']
+    days = min(bands.held_days(params, band, prop) for prop in decisions.NEEDS)
+    return days < (rhythm.stock if holding else rhythm.march)
+
+
+def _laden(params: Params, band: Band) -> bool:
+    """
+    Whether the band could carry no more of what it eats and drinks.
+    """
+    gathered = [name for name in params.units.band.gathering if params.resources[name].property in decisions.NEEDS]
+    return all(bands.room(params, band, name) <= bands.NOTHING for name in gathered)
 
 
 def unsafe(params: Params, band: Band) -> bool:

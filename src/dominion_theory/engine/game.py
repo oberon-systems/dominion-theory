@@ -721,7 +721,8 @@ class Game:
         The band takes the plan a council decided, its term starting anew, aimed at the first target of its way; a
         new decision is remembered with the cell it was taken on.
         """
-        standing = None if band.intent is None else band.intent['proposal']
+        force = None if band.intent is None else band.intent['proposal']
+        stood = decided == force and band.intent is not None and band.intent['standing']
         band.route = None
         if decided is None:
             band.intent = None
@@ -734,10 +735,10 @@ class Game:
             'proposal': dict(decided),
             'until': council.until(self.params, self.day, winter),
             'leg': None if leg is None else {'x': leg[0], 'y': leg[1]},
-            'standing': False,
+            'standing': stood,
             'winter': winter,
         }
-        if decided != standing:
+        if decided != force:
             band.decision = {'proposal': dict(decided), 'from': list(band.place), 'day': self.day}
 
     def _decide(self, tick: _Tick, band: Band, decided: council.Proposal | None) -> None:
@@ -770,23 +771,37 @@ class Game:
             band.wander, band.reason = None, decisions.reason(camped)
             tick.action = camped.action
             return
-        proposal = None if band.intent is None else band.intent['proposal']
-        if proposal is not None and bands.TIREDNESS in band.states:
+        self._rhythm(tick, band)
+        intent = band.intent
+        if intent is not None and bands.TIREDNESS in band.states:
             rested = decisions.Scored(bands.camp(), 0.0, decisions.REST)
             band.wander, band.reason = None, decisions.reason(rested)
             tick.action = rested.action
             return
-        if proposal is not None:
-            leg = None if band.intent is None else band.intent['leg']
-            towards = None if leg is None else self._next(band, (leg['x'], leg['y']))
-            if proposal['kind'] == CAMP or towards is not None:
-                winter = band.intent is not None and band.intent['winter']
-                held = decisions.intended(self.params, band, proposal, self.era, towards, winter)
+        if intent is not None:
+            proposal, standing, leg = intent['proposal'], intent['standing'], intent['leg']
+            towards = None if standing or leg is None else self._next(band, (leg['x'], leg['y']))
+            if proposal['kind'] == CAMP or standing or towards is not None:
+                held = decisions.intended(self.params, band, proposal, self.era, towards, intent['winter'], standing)
                 band.wander, band.reason = None, decisions.reason(held)
                 tick.action = held.action
                 return
             self._spent(tick, band, council.CLOSED)
         tick.action = self.choose(self, band)
+
+    def _rhythm(self, tick: _Tick, band: Band) -> None:
+        """
+        A band on a leg marches or stands, and the end of a stand aims it at what comes next on its way.
+        """
+        intent = band.intent
+        if intent is None or intent['proposal']['kind'] not in GOING:
+            return
+        now = council.stands(self.params, band, self.era)
+        if now == intent['standing']:
+            return
+        band.intent = {**intent, 'standing': now}
+        if not now:
+            self._onward(tick, band)
 
     def _next(self, band: Band, to: Place) -> str | None:
         """
@@ -847,15 +862,23 @@ class Game:
         leg = None if intent is None else intent['leg']
         if intent is None or leg is None or band.place != (leg['x'], leg['y']):
             return
-        proposal = intent['proposal']
-        if TO in proposal:
+        if TO in intent['proposal']:
             self._spent(tick, band, council.REACHED)
             return
-        ahead = council.aim(self.params, band, self.era, self.inside, proposal)
+        self._onward(tick, band)
+
+    def _onward(self, tick: _Tick, band: Band) -> None:
+        """
+        A band on a leg aims at what comes next on its way, or its plan is spent with nothing left that way.
+        """
+        intent = band.intent
+        if intent is None:
+            return
+        ahead = council.aim(self.params, band, self.era, self.inside, intent['proposal'])
         if ahead is None or ahead == band.place:
             self._spent(tick, band, council.NOTHING)
             return
-        intent['leg'] = {'x': ahead[0], 'y': ahead[1]}
+        band.intent = {**intent, 'leg': {'x': ahead[0], 'y': ahead[1]}}
         band.route = None
 
     def _world(self, tick: _Tick) -> None:

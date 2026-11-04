@@ -145,6 +145,8 @@ units:
       rest: 1.5
     # Forage left over tomorrow's ration dries by itself at the end of a day, a unit of it feeding 0.7 of a ration.
     drying: {of: forage, into: dried, keeps: 0.7, seasons: [spring, summer, autumn]}
+    # A band on a leg marches on `march` days of food and of water, and a stand stocks it up to `stock`.
+    plan: {march: 3, stock: 5}
     decisions:
       levels:
         sated: {days: 2, need: 0.1}
@@ -162,6 +164,8 @@ units:
         winter: {food: 0.4, water: 0.8, passability: 0.7}
       idle: 0.05
       wander: {days: 1}
+      # What draws the council to the unknown: poor known land, and a band eating over `from` of what its land grows.
+      lure: {poor: 1.0, crowded: 1.0, from: 0.7}
       weights:
         hunger: 1.5
         thirst: 1.2

@@ -341,6 +341,28 @@ def test_tiredness_ends_below_where_it_begins() -> None:
     assert refused({f'{BAND}.states.tiredness.ends': 0.8})['path'] == f'{BAND}.states.tiredness'
 
 
+def test_a_plan_marches_on_days_it_stocks() -> None:
+    plan = load_params().units.band.plan
+
+    assert (plan.march, plan.stock) == (3, 5)
+    assert refused({f'{BAND}.plan.march': 6.0})['path'] == f'{BAND}.plan'
+    assert refused({f'{BAND}.plan.march': -1.0})['path'] == f'{BAND}.plan.march'
+
+
+def test_the_lure_is_written_as_the_document_writes_it_and_read_back() -> None:
+    params = load_params()
+
+    assert params.units.band.decisions.lure.model_dump() == {'poor': 1.0, 'crowded': 1.0, 'from': 0.7}
+    assert Params.model_validate(params.tree()).hash == params.hash
+
+
+@pytest.mark.parametrize(('name', 'value'), [('poor', -0.1), ('crowded', -0.1), ('from', 0.0)])
+def test_the_weights_of_the_lure_are_not_negative_and_from_is_above_zero(name: str, value: float) -> None:
+    path = f'{BAND}.decisions.lure.{name}'
+
+    assert refused({path: value})['path'] == path
+
+
 @pytest.mark.parametrize(
     'path',
     [f'{BAND}.people.weakened.gathers', 'encounters.chance', f'{BAND}.shelter.encounter'],

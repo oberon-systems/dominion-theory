@@ -442,3 +442,29 @@ def test_a_camp_feeds_its_winter_while_its_land_gives_a_day_and_a_stripped_one_d
     assert decisions.fed(params, band, ERA, [bare] * 9, 'winter') < 0.3
     assert decisions.stripped(params, band, ERA)
     assert not decisions.stripped(params, held(around(wintry), 30.0, 30.0, season='winter'), ERA)
+
+
+def test_a_band_standing_on_its_leg_only_gathers_or_camps(params: Params) -> None:
+    band = held({HOME: FOREST, EAST: GRASS}, forage=22.5, water=30.0)
+    going = {'kind': 'roam', 'direction': 'e'}
+
+    marching = decisions.intended(params, band, going, ERA, 'east')
+    standing = decisions.intended(params, band, going, ERA, None, standing=True)
+
+    assert marching.action['kind'] in ('move', 'roam')
+    assert standing.action['kind'] == 'gather'
+
+
+def test_a_cell_is_barren_when_the_gatherers_take_less_than_a_days_food_of_it(params: Params) -> None:
+    assert decisions.barren(params, held({HOME: STRIPPED}, 30.0, 30.0), ERA)
+    assert not decisions.barren(params, held({HOME: FOREST}, 30.0, 30.0), ERA)
+    assert decisions.barren(params, held({}, 30.0, 30.0), ERA)
+
+
+def test_the_land_within_sight_feeds_by_what_its_food_grows_back(params: Params) -> None:
+    sight = params.units.band.sight
+    far = (HOME[0] + sight + 1, HOME[1])
+    band = held({HOME: GRASS, EAST: GRASS, far: GRASS}, 30.0, 30.0)
+
+    assert decisions.feeding(params, band, ERA) == pytest.approx(2 * 100 / 20)
+    assert decisions.feeding(params, held({}, 30.0, 30.0), ERA) == 0.0

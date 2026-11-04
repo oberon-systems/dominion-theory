@@ -281,17 +281,57 @@ def stripped(params: Params, band: Band, era: str) -> bool:
     return worked * best < eaten
 
 
+def barren(params: Params, band: Band, era: str) -> bool:
+    """
+    Whether the gatherers would take less than a day's food of the band from the cell it stands on, as it knows it.
+    """
+    own = seen(params, band, band.place, era)
+    worked, _ = _daily(params, band)
+    return own is None or worked * own.get(FOOD, 0.0) < census(params, band).eaters * _ration(params)
+
+
+def feeding(params: Params, band: Band, era: str) -> float:
+    """
+    The people the known cells within sight feed a day by what their food grows back, over the ration of one eater;
+    endless when nobody needs a ration.
+    """
+    ration = _ration(params)
+    if ration <= 0:
+        return math.inf
+    capacity = params.eras[era].capacity.get(FOOD, 0.0)
+    grown = 0.0
+    for at in (band.place, *around(band.place, params.units.band.sight)):
+        cell = band.known.get(at)
+        held = None if cell is None else params.biomes[cell['biome']].eras[era].properties.get(FOOD)
+        if cell is not None and held is not None and held.recovery is not None and FOOD in _fed(params, cell, era):
+            grown += capacity * params.time.parts_per_day / params.parts(held.recovery)
+    return grown / ration
+
+
+def _foods(params: Params) -> list[str]:
+    """
+    The resources of food the band gathers.
+    """
+    gathering = params.units.band.gathering
+    return [name for name, held in params.resources.items() if held.property == FOOD and name in gathering]
+
+
+def _ration(params: Params) -> float:
+    """
+    What one eater eats in a day of the food the band gathers.
+    """
+    return sum(params.units.band.consumption_per_day.get(name, 0.0) for name in _foods(params))
+
+
 def _daily(params: Params, band: Band) -> tuple[float, float]:
     """
     What the gatherers of a camp take in a day of food on land worth 1, and what the band eats of it in a camp.
     """
     rules = params.units.band
     counted = census(params, band)
-    names = [name for name, held in params.resources.items() if held.property == FOOD and name in rules.gathering]
-    rate = max((rules.gathering[name] for name in names), default=0.0)
+    rate = max((rules.gathering[name] for name in _foods(params)), default=0.0)
     worked = (params.time.parts_per_day - len(rules.camp_parts)) * counted.gatherers * rate
-    rations = sum(rules.consumption_per_day.get(name, 0.0) for name in names)
-    return worked, counted.eaters * rules.winter_camp.consumption * rations
+    return worked, counted.eaters * rules.winter_camp.consumption * _ration(params)
 
 
 def _as_in(params: Params, band: Band, cell: dict[str, Any], era: str, season: str) -> dict[str, Any]:
@@ -563,18 +603,25 @@ def looks(params: Params, band: Band, era: str, at: Place) -> dict[str, Any] | N
 
 
 def intended(
-    params: Params, band: Band, proposal: dict[str, Any], era: str, towards: str | None, winter: bool = False
+    params: Params,
+    band: Band,
+    proposal: dict[str, Any],
+    era: str,
+    towards: str | None,
+    winter: bool = False,
+    standing: bool = False,
 ) -> Scored:
     """
-    The best of what a plan leaves the band, a leg narrowed to the direction of the next cell of its route,
-    walked without stopping to gather while the band starves or thirsts; a winter camp is built before anything
-    else unless the band starves or thirsts, or stands on a camp of its own it puts in order in the evening.
+    The best of what a plan leaves the band: on the march a leg narrowed to the direction of the next cell of its
+    route, walked without stopping to gather while the band starves or thirsts; at a stand what a camp leaves it; a
+    winter camp is built before anything else unless the band starves or thirsts, or stands on a camp of its own it
+    puts in order in the evening.
     """
     suffering = STARVATION in band.states or THIRST in band.states
     if winter and not sheltered(band) and not suffering and band.place not in band.camps:
         return Scored(building(), 0.0, SHELTER)
     ways = None if towards is None else {towards}
-    found = options(params, band, era, NARROWED[proposal['kind']], ways)
+    found = options(params, band, era, NARROWED[commands.CAMP if standing else proposal['kind']], ways)
     if proposal['kind'] in commands.GOING and suffering:
         # A band that goes for food or water walks there: it forages only on the way.
         found = [held for held in found if held.action['kind'] in (MOVE, ROAM)] or found

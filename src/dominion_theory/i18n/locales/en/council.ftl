@@ -35,9 +35,28 @@ council-followed = You spoke with the others: { $proposal }.
 council-turned = You turned the band: { $proposal }. { NUMBER($yes, maximumFractionDigits: 1) } voices of { NUMBER($all, maximumFractionDigits: 1) } were for it.
 council-outvoted = The council would not have it: { $proposal }; it chose { $winner }. Your standing is now { NUMBER($status, maximumFractionDigits: 1) }.
 council-abstained = You said nothing at the council. Your standing is now { NUMBER($status, maximumFractionDigits: 1) }.
-proposal-worked = It went well: { $proposal }. Your standing is now { NUMBER($status, maximumFractionDigits: 1) }.
-proposal-even = It came out even: { $proposal }. Your standing stays { NUMBER($status, maximumFractionDigits: 1) }.
-proposal-failed = It went badly: { $proposal }. Your standing is now { NUMBER($status, maximumFractionDigits: 1) }.
+proposal-worked = It went well: { $proposal }. { verdict-reason } Your standing is now { NUMBER($status, maximumFractionDigits: 1) }.
+proposal-even = It came out even: { $proposal }. { verdict-reason } Your standing stays { NUMBER($status, maximumFractionDigits: 1) }.
+proposal-failed = It went badly: { $proposal }. { verdict-reason } Your standing is now { NUMBER($status, maximumFractionDigits: 1) }.
+verdict-reason =
+    { $short ->
+        [0] { "" }
+        [1] Hungry { $short } day,{ " " }
+       *[other] Hungry { $short } days,{ " " }
+    }{ $found ->
+        [0] { "" }
+        [1] { $found } new cell,{ " " }
+       *[other] { $found } new cells,{ " " }
+    }{ $short ->
+        [0] { $found ->
+            [0] Stores
+           *[other] stores
+        }
+       *[other] stores
+    } { NUMBER($before, maximumFractionDigits: 1) } -> { NUMBER($after, maximumFractionDigits: 1) } { $after ->
+        [1] day.
+       *[other] days.
+    }
 plan-ended =
     { $why ->
         [reached] The band has reached the land it set out for: { $proposal }.

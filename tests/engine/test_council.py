@@ -23,6 +23,10 @@ SMALL = {
     # A band that never stands for its stores walks its plan; RHYTHM below brings the stands back.
     'units.band.plan.march': 0.0,
     'units.band.plan.stock': 0.0,
+    # Only going short fails a plan here, and any plan that does not go short works; the fixture document asks the rest.
+    'council.judgement.kept': 0.0,
+    'council.judgement.enough': 0.0,
+    'council.judgement.found': 0,
     'units.band.unease.gain': 0.0,
     'units.band.people.birth.conceive_per_day': 0.0,
     'units.band.people.injury.per_day': 0.0,
@@ -55,6 +59,11 @@ SPRING = 100 * DAY
 @pytest.fixture
 def params() -> Params:
     return load_params(overrides=SMALL)
+
+
+@pytest.fixture
+def document() -> Params:
+    return load_params()
 
 
 def land(
@@ -138,6 +147,11 @@ def said(results: list[StepResult]) -> list[tuple[str, dict[str, Any]]]:
 
 def judged(result: StepResult) -> list[tuple[str, dict[str, Any]]]:
     return [held for held in told(result) if held[0].startswith('proposal-')]
+
+
+def judging(proposal: dict[str, Any], key: str = 'proposal-camp', **measures: Any) -> dict[str, Any]:
+    held = {'winter': False, 'day': 0, 'before': 6.0, 'short': 0, 'found': 0}
+    return {'proposal': proposal, 'key': key, **held, **measures}
 
 
 def test_the_voice_follows_the_document(params: Params) -> None:
@@ -438,14 +452,10 @@ def test_an_outvoted_player_pays_one_and_the_band_is_bound_to_the_winner(params:
 def test_the_first_example_turns_the_band_east_and_is_judged_when_it_arrives(params: Params) -> None:
     game = land(params, stripped=STRIPPED)
     sit(game, (STAY, 8), (NORTHWARD, 1), (EAST, 5))
-    promised = next(
-        held for proposal, held, _ in council.score(params, band(game), ERA, game.inside) if proposal == STAY
-    )
 
     turned = vote(game, EAST, 'c-7')
     game.since['first'] = False
     assert game.judgement is not None
-    expected = game.judgement['expected']
     later = steps(game, 3 * DAY)
 
     assert told(turned) == [
@@ -453,11 +463,16 @@ def test_the_first_example_turns_the_band_east_and_is_judged_when_it_arrives(par
         ('council-turned', {'proposal': 'proposal-roam-e', 'yes': 8.75, 'all': 17.75}),
     ]
     assert turned.units[0][4] == later[0].units[0][4] == 'camp'
-    assert expected == pytest.approx(promised)
     assert [result.units[0][4] for result in later[1:4]] == ['roam'] * 3
     reached = ('plan-ended', {'proposal': 'proposal-roam', 'why': 'reached'})
     at = next(at for at, result in enumerate(later) if reached in told(result))
-    assert judged(later[at]) == [('proposal-worked', {'proposal': 'proposal-roam-e', 'status': 54.0})]
+    [(found, values)] = judged(later[at])
+    assert (found, values['proposal'], values['status'], values['short']) == (
+        'proposal-worked',
+        'proposal-roam-e',
+        54.0,
+        0,
+    )
     assert [held for result in later for held in judged(result)] == judged(later[at])
     assert any(values.get('occasion') == 'occasion-spent' for _, values in said(later[at:]))
     assert game.judgement is None
@@ -471,9 +486,7 @@ def test_a_council_judges_the_turned_plan_in_force_before_its_table() -> None:
     bind(game, going)
     band(game).states = ['tiredness']
     game.since['death'] = 1
-    needs = decisions.needs(params, band(game))
-    promised = {'expected': -9.0, 'before': -9.0, 'unease': 0.0}
-    game.judgement = {'proposal': going, 'key': 'proposal-roam-e', 'needs': needs, **promised}
+    game.judgement = judging(going, 'proposal-roam-e', before=0.0)
 
     opened = game.step()
 
@@ -764,22 +777,150 @@ def test_a_point_the_others_did_not_name_is_weighed_by_them_and_wins_some(params
 
 
 @pytest.mark.parametrize(
-    ('proposal', 'now', 'verdict'),
+    ('proposal', 'short', 'before', 'after', 'found', 'verdict'),
     [
-        (EAST, 0.3, 'worked'),
-        (EAST, 0.2, 'failed'),
-        (EAST, 0.25, 'even'),
-        (STAY, 0.28, 'even'),
-        (STAY, 0.5, 'worked'),
-        (STAY, 0.1, 'failed'),
+        (EAST, 3, 12.0, 12.0, 9, 'failed'),
+        (EAST, 2, 12.0, 12.0, 9, 'even'),
+        (EAST, 1, 12.0, 12.0, 9, 'even'),
+        (EAST, 0, 12.0, 4.9, 9, 'failed'),
+        (EAST, 0, 12.0, 5.0, 9, 'worked'),
+        (EAST, 0, 8.0, 3.9, 9, 'failed'),
+        (EAST, 0, 8.0, 4.0, 9, 'even'),
+        (EAST, 0, 8.0, 4.9, 9, 'even'),
+        (EAST, 0, 8.0, 5.0, 9, 'worked'),
+        (EAST, 0, 3.0, 2.9, 9, 'even'),
+        (EAST, 0, 3.0, 3.0, 9, 'worked'),
+        (EAST, 0, 3.0, 3.0, 3, 'worked'),
+        (EAST, 0, 3.0, 3.0, 2, 'even'),
+        (council.heading('explore', 'ne'), 0, 6.0, 7.0, 9, 'worked'),
+        (council.heading('explore', 'ne'), 0, 6.0, 7.0, 2, 'even'),
+        (STAY, 5, 12.0, 3.0, 0, 'failed'),
+        (STAY, 3, 3.0, 3.0, 0, 'failed'),
+        (STAY, 1, 3.0, 3.0, 0, 'even'),
+        (STAY, 0, 12.0, 3.0, 0, 'failed'),
+        (STAY, 0, 3.0, 3.0, 0, 'worked'),
     ],
 )
-def test_the_verdicts_of_the_document_judge_the_land_only(
-    params: Params, proposal: dict[str, Any], now: float, verdict: str
+def test_the_verdicts_of_the_document_follow_the_term(
+    document: Params, proposal: dict[str, Any], short: int, before: float, after: float, found: int, verdict: str
 ) -> None:
-    judgement = {'proposal': proposal, 'expected': 0.3, 'before': 0.35}
+    judgement = judging(proposal, short=short, before=before, found=found)
 
-    assert council.verdict(params, judgement, now) == verdict
+    assert council.verdict(document, judgement, after) == verdict
+
+
+@pytest.mark.parametrize(
+    ('short', 'after', 'verdict'),
+    [(3, 40.0, 'failed'), (2, 3.0, 'even'), (1, 40.0, 'even'), (0, 5.0, 'worked'), (0, 4.9, 'even'), (0, 0.0, 'even')],
+)
+def test_a_camp_in_its_season_is_judged_by_the_winter(document: Params, short: int, after: float, verdict: str) -> None:
+    judgement = judging(STAY, winter=True, short=short, before=40.0)
+
+    assert council.verdict(document, judgement, after) == verdict
+
+
+def test_a_vote_for_a_camp_in_its_season_is_held_as_a_winter(params: Params) -> None:
+    game = land(params, parts=WINTER + 3)
+    sit(game, (EAST, 8), (STAY, 5))
+
+    vote(game, STAY)
+
+    assert game.judgement is not None
+    assert (game.judgement['winter'], game.judgement['key']) == (True, 'proposal-winter-camp')
+
+
+@pytest.mark.parametrize(
+    ('held', 'days'),
+    [
+        ({'food': 6.0, 'water': 4.0}, 4.0),
+        ({'food': None, 'water': 4.0}, 4.0),
+        ({'food': None, 'water': None}, 0.0),
+    ],
+)
+def test_the_stocks_are_the_fewer_of_the_stores_told(
+    params: Params, monkeypatch: pytest.MonkeyPatch, held: dict[str, float | None], days: float
+) -> None:
+    game = land(params)
+    monkeypatch.setattr(council, 'stores', lambda *_: held)
+
+    assert council.stocks(params, band(game)) == days
+
+
+@pytest.mark.parametrize('state', [bands.STARVATION, bands.THIRST])
+def test_a_plan_goes_short_once_a_day_and_not_on_the_night_of_its_decision(
+    params: Params, monkeypatch: pytest.MonkeyPatch, state: str
+) -> None:
+    game = land(params, parts=SUMMER)
+    monkeypatch.setattr(bands, 'suffer', lambda *_: ([], [], []))
+    monkeypatch.setattr(Game, '_open', lambda *_: None)
+    band(game).states = [state]
+    game.judgement = judging(STAY, day=game.day)
+
+    steps(game, DAY)
+    assert game.judgement['short'] == 0
+    steps(game, 2 * DAY)
+    assert game.judgement['short'] == 2
+    band(game).states = []
+    steps(game, DAY)
+    assert game.judgement['short'] == 2
+
+
+def test_a_plan_counts_only_the_cells_it_came_to_know(params: Params) -> None:
+    game = land(params)
+    sit(game, (STAY, 8), (NORTHWARD, 1), (EAST, 5))
+    vote(game, EAST)
+    assert game.judgement is not None
+    was, known = game.judgement['found'], len(band(game).known)
+
+    band(game).x = WEST + 3
+    game.step()
+
+    assert game.judgement['found'] - was == len(band(game).known) - known > 0
+
+
+def test_a_verdict_carries_its_measures(params: Params) -> None:
+    game = land(params)
+    judgement = judging(STAY, short=3, before=12.0, found=4)
+    after = council.stocks(params, band(game))
+    tick = _Tick()
+
+    game._verdict(tick, band(game), judgement)
+
+    assert [(event.key, event.values) for event in tick.events] == [
+        (
+            'proposal-failed',
+            {'proposal': 'proposal-camp', 'status': 44.0, 'after': after, 'short': 3, 'before': 12.0, 'found': 4},
+        )
+    ]
+    assert game.judgement is None
+
+
+@pytest.mark.parametrize(
+    ('table', 'key', 'anew'),
+    [
+        (((EAST, 8), (STAY, 5)), 'council-turned', True),
+        (((STAY, 8), (EAST, 5)), 'council-followed', False),
+    ],
+)
+def test_a_plan_a_council_keeps_is_judged_and_its_term_starts_anew(
+    params: Params, table: tuple[tuple[dict[str, Any], int], ...], key: str, anew: bool
+) -> None:
+    game = land(params)
+    sit(game, (EAST, 8), (STAY, 5))
+    vote(game, STAY)
+    game.since = dict(QUIET)
+    band(game).intent = {**intent(game), 'until': game.day}
+
+    results = steps(game, DAY - 1)
+    sit(game, *table)
+    kept = vote(game, STAY, 'c-2')
+
+    assert [found for result in results for found, _ in judged(result)] == ['proposal-worked']
+    assert told(kept)[-1][0] == key
+    assert (intent(game)['proposal'], intent(game)['until']) == (STAY, game.day + 10)
+    assert (game.judgement is not None) == anew
+    if game.judgement is not None:
+        assert (game.judgement['day'], game.judgement['short']) == (game.day, 0)
 
 
 @pytest.mark.parametrize(
@@ -798,17 +939,6 @@ def test_the_verdicts_of_the_document_judge_the_land_only(
 )
 def test_what_moves_status(params: Params, proposal: dict[str, Any], verdict: str, amount: float) -> None:
     assert council.amount(params, proposal, verdict) == amount
-
-
-def test_the_worth_of_the_land_is_weighed_by_the_needs_given(params: Params) -> None:
-    game = land(params, stripped=STRIPPED)
-    hungry = {'hunger': 1.0, 'thirst': 0.0}
-    stripped = council.worth(params, band(game), 'band', hungry, 0.0)
-    band(game).x = WEST + 3
-    bands.look(game, band(game), game.day)
-
-    assert council.worth(params, band(game), 'band', hungry, 0.0) > stripped
-    assert council.worth(params, band(game), 'band', {'hunger': 0.0, 'thirst': 0.0}, 0.0) < 0
 
 
 def test_a_death_under_a_judgement_is_paid_once_and_only_on_the_day_voted_for(params: Params) -> None:
@@ -833,7 +963,7 @@ def test_a_death_under_a_judgement_is_paid_once_and_only_on_the_day_voted_for(pa
 
     assert said(results)[1][0] == 'council-turned'
     assert (taken, blamed) == (3, 2)
-    assert values == {'proposal': 'proposal-camp', 'status': 50.0 - 5.0 * blamed + paid}
+    assert (values['proposal'], values['status']) == ('proposal-camp', 50.0 - 5.0 * blamed + paid)
 
 
 def test_status_rises_slowly_near_the_top_and_is_held_at_a_hundred(params: Params) -> None:
@@ -845,8 +975,8 @@ def test_status_rises_slowly_near_the_top_and_is_held_at_a_hundred(params: Param
     game.since['first'] = False
     results += steps(game, 3 * DAY)
 
-    verdicts = [held for result in results for held in judged(result)]
-    assert verdicts == [('proposal-worked', {'proposal': 'proposal-roam-e', 'status': 99.08})]
+    [(found, values)] = [held for result in results for held in judged(result)]
+    assert (found, values['proposal'], values['status']) == ('proposal-worked', 'proposal-roam-e', 99.08)
     assert council.held(105.0) == 100.0
 
 

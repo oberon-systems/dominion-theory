@@ -97,6 +97,70 @@ def test_missing_everywhere_gives_the_key(caplog: pytest.LogCaptureFixture) -> N
     assert 'the message alpha-missing is missing in en' in caplog.text
 
 
+@pytest.mark.parametrize(
+    ('key', 'measures', 'lang', 'words'),
+    [
+        (
+            'proposal-failed',
+            ('proposal-camp', 80.0, 5, 12.0, 3.0, 0),
+            'en',
+            'It went badly: we camp here. Hungry 5 days, stores 12 -> 3 days. Your standing is now 80.',
+        ),
+        (
+            'proposal-worked',
+            ('proposal-explore-ne', 54.0, 0, 6.0, 7.0, 9),
+            'en',
+            'It went well: we explore to the north-east. 9 new cells, stores 6 -> 7 days. Your standing is now 54.',
+        ),
+        (
+            'proposal-even',
+            ('proposal-camp', 54.0, 1, 3.5, 1.0, 1),
+            'en',
+            'It came out even: we camp here. Hungry 1 day, 1 new cell, stores 3.5 -> 1 day. Your standing stays 54.',
+        ),
+        (
+            'proposal-worked',
+            ('proposal-camp', 53.0, 0, 6.0, 6.0, 0),
+            'en',
+            'It went well: we camp here. Stores 6 -> 6 days. Your standing is now 53.',
+        ),
+        (
+            'proposal-failed',
+            ('proposal-camp', 80.0, 5, 12.0, 3.0, 0),
+            'ru',
+            'Вышло плохо: стоим здесь. Голодали 5 дней, запасы 12 -> 3 дн. Ваш вес теперь 80.',
+        ),
+        (
+            'proposal-worked',
+            ('proposal-explore-ne', 54.0, 0, 6.0, 7.0, 9),
+            'ru',
+            'Всё вышло хорошо: идём в разведку на северо-восток. 9 новых клеток, запасы 6 -> 7 дн. Ваш вес теперь 54.',
+        ),
+        (
+            'proposal-even',
+            ('proposal-camp', 54.0, 2, 3.5, 1.0, 1),
+            'ru',
+            (
+                'Ни хорошо, ни плохо: стоим здесь. Голодали 2 дня, 1 новая клетка, запасы 3,5 -> 1 дн. '
+                'Ваш вес остаётся 54.'
+            ),
+        ),
+        (
+            'proposal-worked',
+            ('proposal-camp', 53.0, 0, 6.0, 6.0, 0),
+            'ru',
+            'Всё вышло хорошо: стоим здесь. Запасы 6 -> 6 дн. Ваш вес теперь 53.',
+        ),
+    ],
+)
+def test_a_verdict_says_why_and_only_what_happened(
+    key: str, measures: tuple[str, float, int, float, float, int], lang: str, words: str
+) -> None:
+    values = dict(zip(('proposal', 'status', 'short', 'before', 'after', 'found'), measures, strict=True))
+
+    assert render(key, values, lang) == words
+
+
 def test_missing_value_is_logged(caplog: pytest.LogCaptureFixture) -> None:
     with caplog.at_level(logging.WARNING):
         assert render('error-game-not-found', {}, 'en') == 'There is no game id.'

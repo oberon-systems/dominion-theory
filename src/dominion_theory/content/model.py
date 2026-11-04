@@ -1040,7 +1040,15 @@ class Voice(Node):
 
 
 class Judgement(Node):
-    slack: Factor
+    """
+    The lines a plan is judged by: the days it may go short, the share of its stores it must keep or the days of
+    them that are enough, and the cells a roam or an explore must find.
+    """
+
+    short: Span
+    kept: Share
+    enough: Factor
+    found: Span
 
 
 class Status(Node):

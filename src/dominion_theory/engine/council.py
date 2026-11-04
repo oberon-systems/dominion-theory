@@ -499,6 +499,13 @@ def stores(params: Params, band: Band) -> dict[str, float | None]:
     return found
 
 
+def stocks(params: Params, band: Band) -> float:
+    """
+    The days the stores hold as the council is told them, the fewer of food and water; 0 when nobody eats.
+    """
+    return min((days for days in stores(params, band).values() if days is not None), default=0.0)
+
+
 def remembered(params: Params, band: Band, days: list[Day], behind: Place | None) -> list[Day]:
     """
     The plans as the council remembers its last decision: the plan in force keeps `momentum`, a plan back to the
@@ -577,42 +584,22 @@ def voice(params: Params, voting: int, status: float) -> float:
     return max(held.least, held.share * voting * status / HIGHEST)
 
 
-def worth(params: Params, band: Band, era: str, wanted: dict[str, float], unease: float) -> float:
+def verdict(params: Params, judgement: dict[str, Any], after: float) -> str:
     """
-    What the cell the band stands on is worth to it, weighed by the needs and the unease given.
+    How a plan ended, by how its days went and the days of stores held after them; a camp in its season by the
+    winter alone. Deaths and births are no part of it: each is paid once.
     """
-    cell = decisions.seen(params, band, band.place, era)
-    return decisions.worth(params, band, cell, wanted, unease)[0] if cell else 0.0
-
-
-def expected(
-    params: Params,
-    band: Band,
-    era: str,
-    inside: Inside,
-    leader: Proposal | None,
-    wintering: bool = False,
-    cold: bool = True,
-) -> float:
-    """
-    The plan the leader promised, or the camp when nobody voted.
-    """
-    days = score(params, band, era, inside, () if leader is None else (leader,), wintering, cold)
-    return next((held for proposal, held, _ in days if proposal == leader), days[0][1])
-
-
-def reached(params: Params, band: Band, era: str, wanted: dict[str, float], unease: float) -> float:
-    return params.units.band.decisions.weights.move * worth(params, band, era, wanted, unease)
-
-
-def verdict(params: Params, judgement: dict[str, Any], now: float) -> str:
-    """
-    How a plan ended: the land reached against what the leader promised, then against the land the band left.
-    Deaths are no part of it: each is paid once, by whoever voted for the plan.
-    """
-    if now >= judgement['expected']:
-        return WORKED
-    return EVEN if now >= judgement['before'] - params.council.judgement.slack else FAILED
+    held = params.council.judgement
+    short, before = judgement['short'], judgement['before']
+    if judgement['winter']:
+        if short > held.short:
+            return FAILED
+        return WORKED if short == 0 and after >= held.enough else EVEN
+    if short > held.short or (after < held.kept * before and after < held.enough):
+        return FAILED
+    asked = 0 if judgement['proposal']['kind'] == CAMP else held.found
+    worked = short == 0 and after >= min(before, held.enough) and judgement['found'] >= asked
+    return WORKED if worked else EVEN
 
 
 def amount(params: Params, proposal: Proposal, found: str) -> float:

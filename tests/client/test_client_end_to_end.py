@@ -41,6 +41,9 @@ LOUD = {
     'units.band.decisions.weights.goods': 0.0,
     'units.band.plan.march': 0.0,
     'units.band.plan.stock': 0.0,
+    'council.judgement.kept': 0.0,
+    'council.judgement.enough': 0.0,
+    'council.judgement.found': 0,
 }
 SPOKEN = {
     'en': {
@@ -107,12 +110,12 @@ def test_a_game_year_is_played_printed_and_replayed(server: str, lang: str) -> N
 COUNCIL = {
     'en': (
         'You turned the band: we roam to the north.',
-        'It went well: we roam to the north. Your standing is now 54.',
+        ('It went well: we roam to the north. ', ' Your standing is now 54.'),
         'The votes: ',
     ),
     'ru': (
         'Вы повернули общину: кочуем на север.',
-        'Всё вышло хорошо: кочуем на север. Ваш вес теперь 54.',
+        ('Всё вышло хорошо: кочуем на север. ', ' Ваш вес теперь 54.'),
         'Голоса: ',
     ),
 }
@@ -149,5 +152,5 @@ def test_a_vote_that_turns_the_band_sends_it_there_and_judges_it_on_arrival(api:
     assert updates[EVENING]['changes']['seat'] == {'council': None}
     assert updates[arrived]['changes']['seat']['status'] == 54.0
     assert turned in lines[EVENING]
-    assert judged in lines[arrived] and table in lines[sitting]
+    assert all(words in lines[arrived] for words in judged) and table in lines[sitting]
     assert api.snapshot(called)['seat']['seated'] is True

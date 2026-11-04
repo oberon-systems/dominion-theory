@@ -63,7 +63,7 @@ from .events import (
 from .hashing import digest
 from .streams import Streams
 
-SNAPSHOT_FORMAT = 33
+SNAPSHOT_FORMAT = 34
 DIED = 'died'
 BANISHED = 'banished'
 VOTED = 'voted'
@@ -708,12 +708,11 @@ class Game:
             self.judgement = {
                 'proposal': answer,
                 'key': said,
-                'needs': decisions.needs(self.params, band),
-                'expected': council.expected(
-                    self.params, band, self.era, self.inside, sitting['leader'], self.wintering, self.wintering
-                ),
-                'before': council.reached(self.params, band, self.era, decisions.needs(self.params, band), band.unease),
-                'unease': band.unease,
+                'winter': band.intent is not None and band.intent['winter'],
+                'day': self.day,
+                'before': council.stocks(self.params, band),
+                'short': 0,
+                'found': 0,
             }
 
     def _bind(self, band: Band, decided: council.Proposal | None) -> None:
@@ -746,8 +745,8 @@ class Game:
 
     def _spent(self, tick: _Tick, band: Band, why: str) -> None:
         """
-        A plan ran its course: the band remembers the day it ended, a turn of it is judged on the land reached, and
-        the council sits this evening.
+        A plan ran its course: the band remembers the day it ended, a turn of it is judged, and the council sits this
+        evening.
         """
         intent = band.intent
         if intent is None:
@@ -851,6 +850,8 @@ class Game:
         fresh = [cell for cell in tick.known if (cell['x'], cell['y']) not in before]
         if any(cell['river'] or cell['biome'] not in biomes for cell in fresh):
             self.since[council.FOUND] = True
+        if self.judgement is not None:
+            self.judgement = {**self.judgement, 'found': self.judgement['found'] + len(fresh)}
         self._leg(tick, band)
 
     def _leg(self, tick: _Tick, band: Band) -> None:
@@ -918,12 +919,13 @@ class Game:
 
     def _verdict(self, tick: _Tick, band: Band, judgement: dict[str, Any]) -> None:
         self.judgement = None
-        proposal = judgement['proposal']
-        # The land reached is weighed with the unease of the day it was promised, as the promise was.
-        now = council.reached(self.params, band, self.era, judgement['needs'], judgement['unease'])
-        found = council.verdict(self.params, judgement, now)
-        self._status(tick, council.amount(self.params, proposal, found))
-        tick.events.append(Event(VERDICTS[found], {'proposal': judgement['key'], 'status': self.status}))
+        after = council.stocks(self.params, band)
+        told = council.verdict(self.params, judgement, after)
+        self._status(tick, council.amount(self.params, judgement['proposal'], told))
+        values = {name: judgement[name] for name in ('short', 'before', 'found')}
+        tick.events.append(
+            Event(VERDICTS[told], {'proposal': judgement['key'], 'status': self.status, 'after': after, **values})
+        )
         self._banish(tick)
 
     def _status(self, tick: _Tick, amount: float) -> None:
@@ -992,6 +994,7 @@ class Game:
             tick.events.append(Event(PEOPLE_SICKENED, {'count': sickened, 'cause': bands.MEAT}))
         began, ended, lost = bands.suffer(self.params, band, self.day)
         self._states(tick, began, ended)
+        self._went_short(band)
         for cause, count in lost:
             self._lost(tick, cause, count)
         cured = bands.cure(self.params, band)
@@ -1019,6 +1022,16 @@ class Game:
         lore.day_ends(self, band)
         for skill in lore.learn(self.params, band):
             tick.events.append(Event(SKILL_LEARNED, {'skill': f'{SKILL}{skill}'}))
+
+    def _went_short(self, band: Band) -> None:
+        """
+        A day of a judged plan that ends in starvation or thirst; the night of the decision belongs to the plan before.
+        """
+        held = self.judgement
+        if held is None or held['day'] >= self.day:
+            return
+        if bands.STARVATION in band.states or bands.THIRST in band.states:
+            self.judgement = {**held, 'short': held['short'] + 1}
 
     def _states(self, tick: _Tick, began: list[str], ended: list[str]) -> None:
         tick.events.extend(Event(BAND_STATE_ENDED, {'state': f'{STATE}{state}'}) for state in ended)

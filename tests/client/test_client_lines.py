@@ -9,6 +9,7 @@ from dominion_theory.engine import EVENTS
 DATE = {'year': 1, 'month': 3, 'day': 1, 'part': 'morning', 'season': 'summer'}
 SEASON = {'key': 'season-started', 'values': {'year': 1, 'season': 'summer'}}
 MONTH = {'key': 'month-started', 'values': {'year': 1, 'month': 3, 'season': 'summer'}}
+MEASURES = {'short': 5, 'before': 12.0, 'after': 3.0, 'found': 9}
 BAND = {
     'id': 1,
     'kind': 'band',
@@ -44,9 +45,9 @@ SAMPLES: dict[str, dict[str, Any]] = {
     'council-turned': {'proposal': 'proposal-roam-e', 'yes': 8.75, 'all': 17.75},
     'council-outvoted': {'proposal': 'proposal-roam-n', 'winner': 'proposal-camp', 'status': 49.0},
     'council-abstained': {'status': 48.0},
-    'proposal-worked': {'proposal': 'proposal-camp', 'status': 53.0},
-    'proposal-even': {'proposal': 'proposal-winter-camp', 'status': 53.0},
-    'proposal-failed': {'proposal': 'proposal-explore-sw', 'status': 44.0},
+    'proposal-worked': {'proposal': 'proposal-camp', 'status': 53.0, **MEASURES},
+    'proposal-even': {'proposal': 'proposal-winter-camp', 'status': 53.0, **MEASURES},
+    'proposal-failed': {'proposal': 'proposal-explore-sw', 'status': 44.0, **MEASURES},
     'plan-ended': {'proposal': 'proposal-roam', 'why': 'closed'},
     'seat-blamed': {'lost': 3, 'status': 35.0},
     'seat-praised': {'born': 1, 'status': 55.0},

@@ -24,6 +24,8 @@ SPECIFIED: set[str] = {
     'error-command-invalid',
     'people-lost',
 }
+# Told inside the verdicts by a reference of the catalogue, not by any code.
+REFERENCED: set[str] = {'verdict-reason'}
 
 
 class Variables(Visitor):
@@ -67,7 +69,13 @@ def in_use() -> set[str]:
     names |= {f'{review.STAGE}{name}' for name in people.stages} | {f'{review.ROLE}{name}' for name in people.roles}
     names |= {f'{review.WOUND}{name}' for name in people.injury.severities}
     errors = {*ERRORS, PRESET_NOT_FOUND, PARAMS_INVALID, LOCALE_UNKNOWN, PROFILE_NOT_FOUND, UNIT_NOT_FOUND}
-    return {*EVENTS, *REASONS, DATE, *MESSAGES, *review.MESSAGES, *sitting.MESSAGES} | errors | names | SPECIFIED
+    return (
+        {*EVENTS, *REASONS, DATE, *MESSAGES, *review.MESSAGES, *sitting.MESSAGES}
+        | errors
+        | names
+        | SPECIFIED
+        | REFERENCED
+    )
 
 
 def test_languages_are_those_of_a_profile() -> None:

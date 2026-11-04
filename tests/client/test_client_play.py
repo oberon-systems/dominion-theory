@@ -73,6 +73,9 @@ LOUD = tuple(
         'units.band.decisions.weights.goods=0',
         'units.band.plan.march=0',
         'units.band.plan.stock=0',
+        'council.judgement.kept=0',
+        'council.judgement.enough=0',
+        'council.judgement.found=0',
     )
     for part in ('--set', given)
 )
@@ -303,7 +306,7 @@ def test_a_vote_from_the_terminal_turns_the_band_and_its_verdict_moves_the_statu
     assert 'Not understood: alpha.' in lines
     assert 'Your standing is 50.' in lines
     assert any(f'You turned the band: {north}.' in text for text in lines)
-    assert any(f'It went well: {north}. Your standing is now 54.' in text for text in lines)
+    assert any(f'It went well: {north}. ' in text and ' Your standing is now 54.' in text for text in lines)
     assert any('@ ' in text and not text.startswith('@ ') for text in lines)
     assert any(text.startswith('@ ') and '| reason ' in text for text in lines)
 

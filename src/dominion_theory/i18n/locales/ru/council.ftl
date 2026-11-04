@@ -35,9 +35,27 @@ council-followed = Вы сказали то же, что и все: { $proposal 
 council-turned = Вы повернули общину: { $proposal }. За — { NUMBER($yes, maximumFractionDigits: 1) } голосов из { NUMBER($all, maximumFractionDigits: 1) }.
 council-outvoted = Совет не согласился: { $proposal }; решили — { $winner }. Ваш вес теперь { NUMBER($status, maximumFractionDigits: 1) }.
 council-abstained = Вы промолчали на совете. Ваш вес теперь { NUMBER($status, maximumFractionDigits: 1) }.
-proposal-worked = Всё вышло хорошо: { $proposal }. Ваш вес теперь { NUMBER($status, maximumFractionDigits: 1) }.
-proposal-even = Ни хорошо, ни плохо: { $proposal }. Ваш вес остаётся { NUMBER($status, maximumFractionDigits: 1) }.
-proposal-failed = Вышло плохо: { $proposal }. Ваш вес теперь { NUMBER($status, maximumFractionDigits: 1) }.
+proposal-worked = Всё вышло хорошо: { $proposal }. { verdict-reason } Ваш вес теперь { NUMBER($status, maximumFractionDigits: 1) }.
+proposal-even = Ни хорошо, ни плохо: { $proposal }. { verdict-reason } Ваш вес остаётся { NUMBER($status, maximumFractionDigits: 1) }.
+proposal-failed = Вышло плохо: { $proposal }. { verdict-reason } Ваш вес теперь { NUMBER($status, maximumFractionDigits: 1) }.
+verdict-reason =
+    { $short ->
+        [0] { "" }
+        [one] Голодали { $short } день,{ " " }
+        [few] Голодали { $short } дня,{ " " }
+       *[many] Голодали { $short } дней,{ " " }
+    }{ $found ->
+        [0] { "" }
+        [one] { $found } новая клетка,{ " " }
+        [few] { $found } новые клетки,{ " " }
+       *[many] { $found } новых клеток,{ " " }
+    }{ $short ->
+        [0] { $found ->
+            [0] Запасы
+           *[other] запасы
+        }
+       *[other] запасы
+    } { NUMBER($before, maximumFractionDigits: 1) } -> { NUMBER($after, maximumFractionDigits: 1) } дн.
 plan-ended =
     { $why ->
         [reached] Община пришла туда, куда шла: { $proposal }.

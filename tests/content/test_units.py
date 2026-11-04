@@ -156,7 +156,7 @@ def test_council_is_the_one_of_its_document() -> None:
     council = load_params().council
 
     assert (council.part, council.spread, council.voice.share, council.voice.least) == ('evening', 0.2, 0.5, 2.0)
-    assert council.judgement.slack == 0.1
+    assert council.judgement.model_dump() == {'short': 2, 'kept': 0.5, 'enough': 5.0, 'found': 3}
     assert load_params().days(council.term) == 10
     assert council.status.model_dump() == {
         'start': 50.0,
@@ -389,6 +389,13 @@ def test_camp_parts_are_parts_of_the_day() -> None:
             f'{BAND}.population.wellbeing',
         ),
         ({'council.spread': 0.0}, 'council.spread'),
+        ({'council.judgement.short': -1}, 'council.judgement.short'),
+        ({'council.judgement.short': 1.5}, 'council.judgement.short'),
+        ({'council.judgement.kept': 1.5}, 'council.judgement.kept'),
+        ({'council.judgement.kept': -0.5}, 'council.judgement.kept'),
+        ({'council.judgement.enough': -1.0}, 'council.judgement.enough'),
+        ({'council.judgement.found': -1}, 'council.judgement.found'),
+        ({'council.judgement.found': 1.5}, 'council.judgement.found'),
     ],
 )
 def test_levels_growth_and_spread_are_checked(overrides: dict[str, object], path: str) -> None:

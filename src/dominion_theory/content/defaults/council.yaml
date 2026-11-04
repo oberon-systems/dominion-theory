@@ -6,7 +6,10 @@ council:
     share: 0.5
     least: 2.0
   judgement:
-    slack: 0.1
+    short: 2
+    kept: 0.5
+    enough: 5
+    found: 3
   memory: {days: 10}
   status:
     start: 50

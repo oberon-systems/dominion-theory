@@ -28,9 +28,8 @@ QUIET = {
 }
 PLANET = {'planet.circumference_km': 4000, 'planet.window.width': 32, 'planet.window.height': 16}
 SMALL = {**PLANET, **QUIET}
-# A voice that outweighs the band, so that the council always sits and is never settled; no skill gates it, and no
-# stand for its stores keeps the band from where it was sent.
-LOUD = {'council.voice.least': 20.0, 'skills': {}, 'units.band.plan.march': 0.0, 'units.band.plan.stock': 0.0}
+# A voice that outweighs the band, so that the council always sits and is never settled; no skill gates it.
+LOUD = {'council.voice.least': 20.0, 'skills': {}}
 DYING = {**PLANET, 'units.band.consumption_per_day.water': 100.0, 'units.band.people.stages.adult.reserve.water': 1.0}
 # Where the player sends the band from where it stands, silence for None.
 VOTED = ((0, -1), None, (1, 0))

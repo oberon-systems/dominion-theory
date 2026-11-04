@@ -382,12 +382,12 @@ def test_a_puller_carries_more_by_the_sex_and_the_band_walks_slower(params: Para
     held.restocked()
     assert bands.carry(params, held) == pytest.approx(22.0)
     assert bands.room(params, held) == pytest.approx(18.0)
-    assert bands.applied(params, held).units.band.speed.base == pytest.approx(1.2 * (1 - 0.15 * 0.5))
+    assert bands.applied(params, held).units.band.speed.base == pytest.approx(80.0 * (1 - 0.15 * 0.5))
     held.members[0].kit.add('litters', 0, 1.0)
     held.restocked()
     assert bands.carry(params, held) == pytest.approx(29.0)
     assert bands.room(params, held) == pytest.approx(21.0)
-    assert bands.applied(params, held).units.band.speed.base == pytest.approx(1.2 * 0.85)
+    assert bands.applied(params, held).units.band.speed.base == pytest.approx(80.0 * 0.85)
 
 
 def test_a_litter_wears_by_a_day_pulled_and_one_in_the_stores_does_not(params: Params) -> None:
@@ -477,7 +477,7 @@ def test_meat_is_eaten_with_forage_the_oldest_first_and_sickens_by_its_share(par
 
 
 def test_a_sick_member_gathers_and_walks_less_and_dies_more_of_frailty() -> None:
-    params = load_params()
+    params = load_params(overrides={'units.band.people.stages.adult.dies.frailty': 0.05})
     held = holding({}, bands.adults(2))
     held.members[1].sick = 5.0
     held.changed()
@@ -514,7 +514,7 @@ def test_poisoning_leaves_sick_instead_of_dead_while_herbs_last(params: Params) 
 
 
 def test_clothes_guard_their_holder_and_the_band_by_the_members_holding_them() -> None:
-    params = load_params()
+    params = load_params(overrides={'units.band.people.stages.adult.dies.frailty': 0.05})
     held = holding({}, bands.adults(2))
     held.members[1].kit.add('clothes', 0, 1.0)
     held.restocked()

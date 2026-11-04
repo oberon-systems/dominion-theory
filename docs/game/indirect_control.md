@@ -94,11 +94,11 @@ as the council that chose it left them.
 |-------------|-------------------------------------------------------------|
 | `first`     | it is the first evening of the game                         |
 | `death`     | somebody died of a cause in `council.blamed` since the last council |
-| `hunger`    | the stores no longer cover hunger: starvation holds, or a member dies tonight of hunger |
-| `thirst`    | the stores no longer cover thirst: thirst holds, or a member dies tonight of thirst |
+| `hunger`    | a member dies tonight of hunger                             |
+| `thirst`    | a member dies tonight of thirst                             |
 | `encounter` | an encounter struck the band since the last council         |
 | `found`     | the band saw a river or a biome it never knew since the last council |
-| `spent`     | the plan has run its course: its cell reached, nothing better that way, or no way further |
+| `spent`     | the plan has run its course: its cell reached, no way further, or a stand on land that no longer feeds the band |
 | `term`      | the term of the plan is over                                |
 | `season`    | a season began since the last council, unless a camp in its season is in force and the new season still offers it |
 
@@ -107,8 +107,8 @@ occasion is a key, so that a chance encounter can later call a council
 of its own, with options of its own: a pack of wolves that is fled,
 fought or fed.
 
-Hunger and thirst that the stores cover call nobody: a band that eats
-from its stores while it walks is following its plan, not failing it.
+Empty stores call nobody: the members live on their reserves while the
+band forages on its way, and that is following a plan, not failing it.
 Reaching a leg of a plan calls nobody either, and neither does a band
 that would rather do something else: the plan holds for its term. In
 game 4f160478 a council sat for every arrival, every hungry evening and
@@ -172,6 +172,12 @@ outside them, or on land too dangerous for a camp, it is the stand of a
 month. There is no separate winter camp on the table. In game 4f160478
 staying to gather and the winter camp tied 7 to 7 every autumn on the
 same cell with the same score, and the player had nothing to choose by.
+
+**A band that knows how winters.** In those seasons, on land safe for a
+camp whose cell and reach still feed it a day, the table holds only the
+winter camp and a `roam` to a camp the band built before. So it stands in
+its camp from the first day of the autumn to the spring and gathers all
+around it. Its first winter it does not know how, and goes on as it was.
 
 The table lays one `camp`, one `roam` and one `explore` each way, where
 that way leads somewhere: a `roam` where the sector holds known land
@@ -389,14 +395,17 @@ ___
 ## The decision
 
 The votes are counted with the player's voice added to the option the
-player named. The option with the most votes wins; a tie goes to the
+player named. A point counts with the votes of the options told by the
+same words, its way: a vote for a cell to the south is a vote for going
+south, the band goes to the cell, and a player on the way of the leader
+backs the leader. The option with the most votes wins; a tie goes to the
 player's option, and among the others to the fixed order.
 
 | The player             | The winner        | Then                                        |
 |------------------------|-------------------|---------------------------------------------|
 | backed the leader      | the leader        | the plan is the player's                    |
 | turned the band        | the player's option, not the leader | it is judged; the plan is the player's |
-| was outvoted           | another option    | `outvoted` is paid                          |
+| was outvoted           | another option    | nothing is paid; the plan is not the player's |
 | abstained              | the leader        | `abstained` is paid; the deaths of the plan are the player's |
 
 Whoever carried it, the winner becomes the band's plan, its intent: the
@@ -414,37 +423,40 @@ evening and the night whatever the plan.
 
 | Plan      | The band                                                       |
 |-----------|----------------------------------------------------------------|
-| `camp`    | stays on its cell, gathers and camps; in its season builds a winter camp first |
-| `roam`    | marches leg by leg towards better known land that way, or to its cell, and stands between legs |
-| `explore` | marches leg by leg into unknown land that way, or to its cell, and stands between legs |
+| `camp`    | stays on its cell, gathers and camps while the cell feeds it; in its season builds a winter camp first |
+| `roam`    | marches leg by leg that way, over better land where it knows some, or to its cell |
+| `explore` | marches leg by leg into unknown land that way, or to its cell  |
 
 **Legs.** A `roam` or an `explore` with a direction does not walk to one
-cell. At the decision and at every stand the band picks its next target
-in the sector: for a `roam` the best known cell there, weighed by
-distance and visits, when it is better than the own cell; for an
-`explore` the nearest cell there the band does not know, that a route
-reaches. A plan with `to` has one leg, to its cell. A leg is walked by a
-route, as [Decisions](decisions.md#the-route) tells.
+cell. At the decision and at every leg it reaches the band picks its
+next target in the sector: for a `roam` the best known cell there,
+weighed by distance and visits, when it is better than the own cell, and
+otherwise the nearest cell there that a route reaches, so a direction
+goes on over land no better than the own; for an `explore` the nearest
+cell there the band does not know, that a route reaches. A plan with `to`
+has one leg, to its cell. A leg is walked by a route, as
+[Decisions](decisions.md#the-route) tells.
 
-**Marching and standing.** The band marches while it is not tired and
-while its stores hold at least `plan.march` days of food and of water.
-Then it stands on the cell it reached: it gathers and camps until its
-tiredness has ended and its stores hold `plan.stock` days again, or its
-cell gives the gatherers less than a day's food. A starving or thirsting
-band does not stand: it roams on and forages on the way. So a plan is a
-few days of march and a day or two of standing, again and again, and
-the band rests on its way.
+**Marching.** A band on a leg walks every working part of the day. It
+does not stop to stock up: a roam forages on the way, a share of what the
+cell ahead gives, and a fresh cell gives more than one eaten down; with
+under 2 days of food or water it roams and forages more, at 0.6 of a walk,
+as [Band](../units/band.md#speed) tells. Only tiredness stops it, until it
+has rested, and the evening and the night.
 
-**The end.** A plan is spent when its cell is reached, when a direction
-has nothing better left for a `roam` or no unknown land a route reaches
-for an `explore`, or when no route is left; the event `plan-ended` tells
-which, and the council sits that evening (`spent`). A band on its plan
-does not turn for another wish, and hunger or thirst its stores cover
-does not turn it either; see [The council and its plan](#the-council-and-its-plan).
+**The end.** A plan is spent when its cell is reached, when no route
+leads further that way, or, for a `camp` outside its season, when its cell
+gives the gatherers less than a day's food and a way leads off it; such a
+camp is then left off the table of the council while a way off remains.
+The event `plan-ended` tells which, and the council sits that evening
+(`spent`). A band on its plan does not turn for another wish, and empty
+stores do not turn it either; see
+[The council and its plan](#the-council-and-its-plan).
 
-A winter camp is built first, for `winter_camp.build` days of work
-without gathering; a band in the state of starvation or thirst gathers
-and camps as under a stand, and builds on once the state ends. See
+A winter camp is built first, for `winter_camp.build` days of work by
+`winter_camp.builders` of the hands, while the others gather what the band
+needs; a band in the state of starvation or thirst gathers and camps
+first, and builds on once the state ends. See
 [Band](../units/band.md#winter-camp) for what it gives. The first season
 that no longer offers the camp, the spring, calls the council and the
 camp is judged there. The camp stands while the band stands on its cell,
@@ -513,7 +525,7 @@ ___
 | What happened                                           | Status  |
 |---------------------------------------------------------|---------|
 | abstained                                               | -2      |
-| outvoted                                                | -1      |
+| outvoted                                                | 0       |
 | backed the leader                                       | 0       |
 | a `roam` or an `explore` the player carried worked      | +4      |
 | a `roam` or an `explore` failed                         | -6      |
@@ -526,7 +538,7 @@ ___
 
 Only the deaths of the causes in `council.blamed` count: hunger, thirst
 and encounters, which follow from where the band went and what it did.
-Deaths of age, of frailty and in childbirth cost nothing, count for no
+Deaths of age and in childbirth cost nothing, count for no
 judgement and call no council.
 
 The player voted for a plan when the player's option won the council
@@ -628,7 +640,7 @@ council:
   status:
     start: 50
     abstained: -2
-    outvoted: -1
+    outvoted: 0
     roam_worked: 4
     roam_failed: -6
     roam_even: 0
@@ -641,20 +653,14 @@ council:
     death: -5
     birth: 5
   blamed: [hunger, thirst, encounter]
-units:
-  band:
-    plan:
-      march: 3
-      stock: 5
 ```
 
 `part` must be one of `time.day_parts`, and every cause of `blamed`
-one of `hunger`, `thirst`, `encounter`, `age`, `frailty`, `birth`. `spread` must be above 0.
+one of `hunger`, `thirst`, `encounter`, `age`, `birth`. `spread` must be above 0.
 `least` must be above 1, so that
 the player's voice is never an ordinary one. `term` is at least a day.
 `judgement.short` and `judgement.found` are whole numbers of 0 or more,
-`kept` lies in 0 to 1, and `enough`, `plan.march` and `plan.stock` are
-days, `march` not above `stock`. The values of `judgement` and `plan`
+`kept` lies in 0 to 1, and `enough` is days. The values of `judgement`
 are a first guess, tuned with the lives of the band. `DT_COUNCIL_WAIT_S`
 is a setting of the server, not of the game: it changes how long a
 person may think, never the outcome of a run in step mode.
@@ -681,13 +687,13 @@ The player backs the explore: 2 + 3.75 = 5.75 does not beat 6, and
 `camp` wins.
 
 ```text
-seq 500          council-outvoted proposal-explore-e, winner proposal-camp, status 49
+seq 500          council-outvoted proposal-explore-e, winner proposal-camp, status 50
 ```
 
 At the next council the player backs the roam to the north-east: 4 +
-3.75 = 7.75 beats 6. The band walks two days to the forest, stands a
-day there to gather and rest, picks its next leg in the sector, a
-meadow at 124, 36, and walks on. On the tenth day the term is over; the
+3.75 = 7.75 beats 6. The band walks two days to the forest, foraging on
+the way, picks its next leg in the sector, a meadow at 124, 36, and walks
+on. On the tenth day the term is over; the
 band never went short, its stores hold 7 days and it came to know 6
 cells, so the roam worked.
 

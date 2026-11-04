@@ -45,7 +45,7 @@ is no number of a band in the code.
 | `fatigue`    | how tired it is, from 0 to 1                            |
 | `states`     | which of the bad states hold now; none means `normal`   |
 | `action`     | what it did in the last tick                            |
-| `intent`     | the plan the council bound it to, if anything: the proposal, the day its term ends, the target of its leg, whether it stands, and the measures it is judged by |
+| `intent`     | the plan the council bound it to, if anything: the proposal, the day its term ends, the target of its leg, and the measures it is judged by |
 | `decision`   | the last decision of the council, the cell it was taken on and the day it was taken or its plan ended |
 | `known`      | the cells it has seen and when                          |
 | `visited`    | the cells it ended a day on, and the last such day      |
@@ -263,7 +263,7 @@ those of a newborn; see [Children grow safer](#children-grow-safer).
 | `hunger`    | every member with nothing left of its food, a day       | -     | -     | -     |
 | `thirst`    | every member with nothing left of its water, a day      | -     | -     | -     |
 | `encounter` | the share the encounter took of the sum of weights      | 3     | 1     | 2     |
-| `frailty`   | each member by its own chance, a day                    | 1.2   | 0.05  | 0.3   |
+| `age`, of frailty | each member by its own chance, a day              | 0     | 0     | 0.3   |
 | `age`       | each member past `age.begins` by its own chance, a day  | -     | -     | -     |
 | `birth`     | a mother at the birth                                   | -     | -     | -     |
 
@@ -273,18 +273,17 @@ nearest, so it may be a scare. Who dies of its count is drawn by the
 weights, nobody twice: a newborn is three times as likely as an adult
 to die of a predator.
 
-Frailty is illness, cold and all else a band in poor shape suffers. Its
-chance falls as wellbeing rises:
+Frailty is illness, cold and all else a band in poor shape suffers, and
+it takes only the old: children and adults have no weight for it, and a
+death of frailty is told as a death of age. Its chance falls as wellbeing
+rises:
 
 ```text
 frailty a year = dies.frailty * (1 - wellbeing) * sheltered
 age a year     = age.per_year * 2 ^ ((age - age.begins) / age.doubles), at most 1
 ```
 
-Both are asked every day as a share of the year. A newborn at wellbeing
-0.85 dies of frailty at 0.18 a year and a child of three at 0.02, so
-about four in five reach four; at wellbeing 0.5 about half do, before
-hunger and predators take their share. A band in camp dies less of
+Both are asked every day as a share of the year. A band in camp dies less of
 frailty, see [Shelter](#shelter). A sick member weighs
 `sickness.frailty`, twice, for frailty, and the goods of a member lower
 its weights by `people.exposure`, 1 for both causes without them:
@@ -310,13 +309,10 @@ The child settles in 7 months:
 | Age       | 0   | 7 months | 14 months | 21 months | 3 years |
 |-----------|-----|----------|-----------|-----------|---------|
 | encounter | 3   | 2        | 1.5       | 1.25      | 1.1     |
-| frailty   | 1.2 | 0.63     | 0.34      | 0.19      | 0.11    |
 | injury    | 0.5 | 0.75     | 0.88      | 0.94      | 0.97    |
 
-Where adults die at 0.22 a year, as in a hard game, about one child in
-five grows up, against one in twenty-five when the weights held for the
-whole stage. The reference of lives counts the children who grew up and
-those who died each year.
+The reference of lives counts the children who grew up and those who died
+each year.
 
 ### The order of a day
 
@@ -627,9 +623,16 @@ with water it has enough of and leave no room for food.
 
 | Roaming    | Is                                                        |
 |------------|-----------------------------------------------------------|
-| `speed`    | the share of the walking pace, 0.75                       |
+| `speed`    | the share of the speed of a walk, 0.6                     |
 | `share`    | the share of a gathering tick taken of every resource the band is short of, 0.5 |
 | `hunger`   | the need at which a band only roams, 0.8: a hungry band   |
+| `pressed`  | the `share` with nothing in the stores, 1                 |
+
+The lower the stores lie under the top level, 2 days, the fewer of food
+and water, the nearer the `share` comes to `pressed`, in a straight line: a
+band with a day left takes 0.75 of a gathering. A band short of food
+roams instead of walking, so it forages more and goes slower, and never
+stops on its way.
 
 A full forest feeds a band of 15 four or five days before it gives too
 little and the band is pushed on.
@@ -707,22 +710,29 @@ ___
 
 ## Speed
 
-A band moves one cell per tick over open ground. Each moving tick adds
-progress, and the band enters the next cell when the progress reaches 1.
+`speed.base`, 80 km a day, is the fastest a band walks: open ground, no
+load, adults only, rested. Everything else only takes from it, and nothing
+takes it under `speed.slowest`, 0.25 of it, 20 km a day.
 
 ```text
-progress = speed * value(passability, target cell)
-speed = max(slowest, base - slowdown * population / 10) * efficiency * pace
+speed = base * efficiency * pace * (1 - loaded * load / carry)
+km    = max(base * slowest, speed * gait * value(passability, target cell))
+cells = km / cell_km * parts_per_tick / the working parts of a day
 ```
 
-With a base of 1.2 and a slowdown of 0.03 a band of 15 walks at 1.155
-and a band of 150 at 0.75; no band is slower than 0.3. Litters lay
-`speed.base` times 0.85 by the share of the pullers who pull one, so a
-band of 15 whose pullers all pull walks at 0.975. A step along a
-diagonal costs the same as a straight one. Progress above 1 is not
-carried over. A camp keeps the progress, so a cell the band cannot cross
-in the active parts of one day is entered on the next; a gather, or a
-step towards another cell, loses all of it.
+`gait` is 1 for a walk and `roaming.speed`, 0.6, for a roam, so a band that
+forages on its way goes at most 48 km a day. A full load, `speed.loaded`,
+takes 0.3 of the speed. Litters lay `speed.base` times 0.85 by the share of
+the pullers who pull one. A step along a diagonal costs the same as a
+straight one.
+
+At 10 km a cell and three working parts a day the fastest walk crosses 2.67
+cells a tick. A band on a leg walks on along its route for as long as the
+tick lasts, sees the land from every cell it enters, and picks its next leg
+as it reaches one; a band with no plan enters one cell a tick at most. A
+camp keeps the progress, so a cell the band cannot cross in the active parts
+of one day is entered on the next; a gather, or a step towards another cell,
+loses all of it.
 
 ___
 
@@ -848,7 +858,7 @@ units:
           tires: 1.3
           conceives: false
           votes: false
-          dies: {encounter: 3.0, frailty: 1.2, injury: 0.5}
+          dies: {encounter: 3.0, frailty: 0.0, injury: 0.5}
           reserve: {food: 1.0, water: 1.0, grows: true}
         adult:
           until: {years: 17}
@@ -859,7 +869,7 @@ units:
           tires: 1.0
           conceives: true
           votes: true
-          dies: {encounter: 1.0, frailty: 0.05, injury: 1.0}
+          dies: {encounter: 1.0, frailty: 0.0, injury: 1.0}
           reserve: {food: 2.0, water: 2.0}
         elder:
           gathers: 0.4
@@ -915,12 +925,8 @@ units:
     consumption_per_day:
       forage: 1.0
       water: 1.0
-    speed:
-      base: 1.2
-      slowdown: 0.03
-      slowest: 0.3
-    roaming: {speed: 0.75, share: 0.5, hunger: 0.8}
-    plan: {march: 3, stock: 5}
+    speed: {base: 80.0, slowest: 0.25, loaded: 0.3}
+    roaming: {speed: 0.6, share: 0.5, hunger: 0.8, pressed: 1.0}
     fatigue:
       move: 0.3
       roam: 0.15
@@ -949,6 +955,7 @@ units:
       seasons: [autumn, winter]
       unsafe: 0.5
       build: {days: 2}
+      builders: 0.5
       reach: 1
       afar: 1.0
       kept: 0.2
@@ -1023,8 +1030,6 @@ ___
 - **A start of adults only** - a band starts without children or elders,
   so for four years no new adult joins it. A start with every stage is
   to be weighed in the lab.
-- **Carrying against speed** - a loaded band walks as fast as an empty
-  one.
 - **Drinking on the spot** - a band on a river still drinks from its
   stores. Water from the cell at the moment of drinking would make a
   river worth camping on.

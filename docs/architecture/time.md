@@ -129,7 +129,8 @@ changes.
 
 Only the band row is decided. The tribe row shows the intent: as the map
 zooms out and a cell covers more land, a tick covers more time, so that
-movement stays near one cell per tick.
+movement in cells per tick stays about the same. A band of the band era
+walks up to 2.67 cells a tick; see [Band](../units/band.md#speed).
 
 A change of era takes effect at the start of a day, so a tick never ends in
 the middle of one.

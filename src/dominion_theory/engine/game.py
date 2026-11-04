@@ -63,7 +63,7 @@ from .events import (
 from .hashing import digest
 from .streams import Streams
 
-SNAPSHOT_FORMAT = 34
+SNAPSHOT_FORMAT = 35
 DIED = 'died'
 BANISHED = 'banished'
 VOTED = 'voted'
@@ -687,18 +687,18 @@ class Game:
         if all(entry['proposal'] != answer for entry in laid):
             # A point the others did not name is weighed by them like their own, and the votes are laid again.
             laid = self._laid(band, (*self._named(band), answer))
-        winner, yes = council.decide(laid, answer, spoken)
+        said = self._key(band, answer)
+        winner, yes = council.decide(laid, answer, spoken, said)
         self.answered['tomorrow'] = VOTED if winner == answer else None
         self._decide(tick, band, winner)
         if self.over:
             return
-        said = self._key(band, answer)
         if winner != answer:
             self._status(tick, self.params.council.status.outvoted)
             values = {'proposal': said, 'winner': self._key(band, winner), 'status': self.status}
             tick.events.append(Event(COUNCIL_OUTVOTED, values))
             self._banish(tick)
-        elif answer == sitting['leader']:
+        elif said == self._key(band, sitting['leader']):
             tick.events.append(Event(COUNCIL_FOLLOWED, {'proposal': said}))
         else:
             every = bands.voters(self.params, band) - 1 + spoken
@@ -721,7 +721,6 @@ class Game:
         new decision is remembered with the cell it was taken on.
         """
         force = None if band.intent is None else band.intent['proposal']
-        stood = decided == force and band.intent is not None and band.intent['standing']
         band.route = None
         if decided is None:
             band.intent = None
@@ -734,7 +733,6 @@ class Game:
             'proposal': dict(decided),
             'until': council.until(self.params, self.day, winter),
             'leg': None if leg is None else {'x': leg[0], 'y': leg[1]},
-            'standing': stood,
             'winter': winter,
         }
         if decided != force:
@@ -770,37 +768,34 @@ class Game:
             band.wander, band.reason = None, decisions.reason(camped)
             tick.action = camped.action
             return
-        self._rhythm(tick, band)
         intent = band.intent
         if intent is not None and bands.TIREDNESS in band.states:
             rested = decisions.Scored(bands.camp(), 0.0, decisions.REST)
             band.wander, band.reason = None, decisions.reason(rested)
             tick.action = rested.action
             return
+        if intent is not None and self._eaten_out(band):
+            self._spent(tick, band, council.NOTHING)
+            intent = None
         if intent is not None:
-            proposal, standing, leg = intent['proposal'], intent['standing'], intent['leg']
-            towards = None if standing or leg is None else self._next(band, (leg['x'], leg['y']))
-            if proposal['kind'] == CAMP or standing or towards is not None:
-                held = decisions.intended(self.params, band, proposal, self.era, towards, intent['winter'], standing)
+            proposal, leg = intent['proposal'], intent['leg']
+            towards = None if leg is None else self._next(band, (leg['x'], leg['y']))
+            if proposal['kind'] == CAMP or towards is not None:
+                held = decisions.intended(self.params, band, proposal, self.era, towards, intent['winter'])
                 band.wander, band.reason = None, decisions.reason(held)
                 tick.action = held.action
                 return
             self._spent(tick, band, council.CLOSED)
         tick.action = self.choose(self, band)
 
-    def _rhythm(self, tick: _Tick, band: Band) -> None:
+    def _eaten_out(self, band: Band) -> bool:
         """
-        A band on a leg marches or stands, and the end of a stand aims it at what comes next on its way.
+        Whether the stand of a month is over: a winter camp keeps to its season, whatever its land still gives.
         """
         intent = band.intent
-        if intent is None or intent['proposal']['kind'] not in GOING:
-            return
-        now = council.stands(self.params, band, self.era)
-        if now == intent['standing']:
-            return
-        band.intent = {**intent, 'standing': now}
-        if not now:
-            self._onward(tick, band)
+        if intent is None or intent['proposal']['kind'] != CAMP or intent['winter']:
+            return False
+        return council.exhausted(self.params, band, self.era, self.inside)
 
     def _next(self, band: Band, to: Place) -> str | None:
         """
@@ -823,10 +818,15 @@ class Game:
         band = self.band
         if band is None or tick.action is None:
             return
-        was = band.place
-        done = bands.act(self, band, tick.action, self.day)
-        if band.place != was:
+
+        def onward() -> str | None:
             lore.entered(self, band)
+            self._looked(tick, band)
+            self._leg(tick, band)
+            leg = None if band.intent is None else band.intent['leg']
+            return None if leg is None else self._next(band, (leg['x'], leg['y']))
+
+        done = bands.act(self, band, tick.action, self.day, onward)
         if done['kind'] in (bands.MOVE, bands.ROAM):
             lore.march(band)
         resources = self.params.resources
@@ -844,15 +844,23 @@ class Game:
         if done['kind'] == bands.CAMP and self.date.part not in self.params.units.band.camp_parts:
             band.camped += 1
         self._states(tick, *bands.tire(self.params.units.band, band))
+        self._looked(tick, band)
+        self._leg(tick, band)
+
+    def _looked(self, tick: _Tick, band: Band) -> None:
+        """
+        What the band sees where it stands now: the new cells count for its plan, and a river or a biome it never
+        knew calls the council.
+        """
         before = set(band.known)
         biomes = {cell['biome'] for cell in band.known.values()}
-        tick.known = [{'x': x, 'y': y, **band.known[x, y]} for x, y in bands.look(self, band, self.day)]
-        fresh = [cell for cell in tick.known if (cell['x'], cell['y']) not in before]
+        seen = [{'x': x, 'y': y, **band.known[x, y]} for x, y in bands.look(self, band, self.day)]
+        tick.known += seen
+        fresh = [cell for cell in seen if (cell['x'], cell['y']) not in before]
         if any(cell['river'] or cell['biome'] not in biomes for cell in fresh):
             self.since[council.FOUND] = True
         if self.judgement is not None:
             self.judgement = {**self.judgement, 'found': self.judgement['found'] + len(fresh)}
-        self._leg(tick, band)
 
     def _leg(self, tick: _Tick, band: Band) -> None:
         """

@@ -18,7 +18,7 @@ DURATION_UNITS = ('parts', 'days', 'months', 'years')
 MODIFIER_KINDS = ('plus', 'times')
 LAYERS = ('elevation', 'relief', 'moisture', 'temperature', 'flow')
 ACTIONS = ('move', 'roam', 'gather', 'camp', 'build')
-CAUSES = ('hunger', 'thirst', 'encounter', 'age', 'frailty', 'birth')
+CAUSES = ('hunger', 'thirst', 'encounter', 'age', 'birth')
 BAND = 'band'
 PASSABILITY = 'passability'
 ZOOM = 5
@@ -654,18 +654,19 @@ class Drying(Node):
 
 class WinterCamp(Node):
     """
-    A camp built for the cold in days of work without gathering, gathered around within reach, a cell away
-    giving afar of a gathering. Once built, while the band stands on its cell staying in it is worth kept more
-    to the others, the threat, the spoiling and the eating are multiplied by their factors, and so is what a
-    camp takes off fatigue; nothing kept in it weighs. It is never offered on land whose threat, with the dread
-    of the band and what its guard leaves, reaches unsafe. Only in its seasons does a band range around it and
-    keep to a built one while leaving would drop food.
+    A camp built for the cold in days of work by `builders` of the hands while the others gather, gathered around
+    within reach, a cell away giving afar of a gathering. Once built, while the band stands on its cell staying in
+    it is worth kept more to the others, the threat, the spoiling and the eating are multiplied by their factors,
+    and so is what a camp takes off fatigue; nothing kept in it weighs. It is never offered on land whose threat,
+    with the dread of the band and what its guard leaves, reaches unsafe. Only in its seasons does a band range
+    around it and keep to a built one while leaving would drop food.
     """
 
     offered: Offered
     seasons: tuple[Name, ...] = Field(min_length=1)
     unsafe: Share
     build: Duration
+    builders: Share
     reach: Span
     afar: Share
     kept: Factor
@@ -837,9 +838,14 @@ class People(Node):
 
 
 class Speed(Node):
+    """
+    The fastest walk in kilometres a day, the share of it a band still walks at the worst, and the share a full load
+    takes of it.
+    """
+
     base: Positive
-    slowdown: Factor
-    slowest: Positive
+    slowest: Share
+    loaded: Share
 
 
 class Fatigue(Node):
@@ -857,13 +863,14 @@ class Fatigue(Node):
 
 class Roaming(Node):
     """
-    Walking while foraging: slower than a walk, taking a share of a gathering tick of all the cell ahead gives;
-    a band whose hunger or thirst reaches hunger only roams.
+    Walking while foraging: at speed of a walk, taking a share of a gathering tick of all the cell ahead gives, up
+    to pressed with nothing in the stores; a band whose hunger or thirst reaches hunger only roams.
     """
 
     speed: Share
     share: Share
     hunger: Share
+    pressed: Share
 
 
 class Tiredness(Node):
@@ -976,21 +983,6 @@ class Hunting(Node):
     hides: Factor
 
 
-class Plan(Node):
-    """
-    The rhythm of a band on a leg: the days of food and of water it marches on, and those a stand stocks it up to.
-    """
-
-    march: Factor
-    stock: Factor
-
-    @model_validator(mode='after')
-    def _march_not_above_stock(self) -> Self:
-        if self.march > self.stock:
-            raise ValueError('march not above stock')
-        return self
-
-
 class Band(Node):
     start: Start
     population: Population
@@ -1009,7 +1001,6 @@ class Band(Node):
     states: States
     sight: Span
     memory: Duration | None = None
-    plan: Plan
     decisions: Decisions
     dread: Dread
     unease: Unease

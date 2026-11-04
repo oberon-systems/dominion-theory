@@ -43,8 +43,6 @@ CLOSED = 'closed'
 EXPECTED = (decisions.FOOD, bands.WATER, decisions.THREAT)
 # The nearest unknown cells of a way a route is sought to before the way leads nowhere.
 TRIES = 4
-# The state that holds when the stores no longer cover a need.
-UNCOVERED = {need: state for need, state in decisions.NEEDS.values()}
 
 
 type Proposal = dict[str, Any]
@@ -166,14 +164,31 @@ def _better(params: Params, band: Band, era: str, inside: Inside) -> dict[str, P
 
 def _unknown(params: Params, band: Band, era: str, inside: Inside, way: str) -> Place | None:
     """
-    The nearest cell that way the band does not know and a route reaches, nearest the middle of the way first;
-    None when the first `TRIES` of them have no route, or a horizon of 0 turns the unknown off.
+    The nearest cell that way the band does not know and a route reaches; None when a horizon of 0 turns the unknown
+    off.
+    """
+    if not params.units.band.decisions.horizon:
+        return None
+    return _nearest(params, band, era, inside, way, lambda at: at not in band.known)
+
+
+def _ahead(params: Params, band: Band, era: str, inside: Inside, way: str) -> Place | None:
+    """
+    The nearest cell that way a route reaches, known or not, where no land that way is better than the own.
+    """
+    return _nearest(params, band, era, inside, way, lambda at: at not in band.known or decisions.reachable(band, at))
+
+
+def _nearest(
+    params: Params, band: Band, era: str, inside: Inside, way: str, wanted: Callable[[Place], bool]
+) -> Place | None:
+    """
+    The nearest wanted cell that way a route reaches, nearest the middle of the way first; None when the first
+    `TRIES` of them have no route.
     """
     window = params.planet.window
     middle = WAYS.index(way) * math.pi / 4
     tried = 0
-    if not params.units.band.decisions.horizon:
-        return None
 
     def off(at: Place) -> tuple[float, int, int]:
         bearing = math.atan2(at[0] - band.x, band.y - at[1])
@@ -186,7 +201,7 @@ def _unknown(params: Params, band: Band, era: str, inside: Inside, way: str) -> 
             for dy in range(-ring, ring + 1)
             if max(abs(dx), abs(dy)) == ring
         ]
-        found = [at for at in cells if inside(*at) and at not in band.known and sector(band.place, at) == way]
+        found = [at for at in cells if inside(*at) and wanted(at) and sector(band.place, at) == way]
         for at in sorted(found, key=off):
             if _routed(params, band, era, inside, at):
                 return at
@@ -213,8 +228,8 @@ def aims(params: Params, band: Band, era: str, inside: Inside) -> Iterator[tuple
 
 def aim(params: Params, band: Band, era: str, inside: Inside, proposal: Proposal) -> Place | None:
     """
-    The cell a plan goes to next: the own for a camp, the one it names, or the first target of its way; None
-    when that way leads nowhere.
+    The cell a plan goes to next: the own for a camp, the one it names, or the next target of its way, a roam going
+    on over land no better than its own; None when that way leads nowhere.
     """
     if proposal['kind'] == CAMP:
         return band.place
@@ -223,7 +238,7 @@ def aim(params: Params, band: Band, era: str, inside: Inside, proposal: Proposal
         return to
     way = proposal[DIRECTION]
     if proposal['kind'] == ROAM:
-        return _better(params, band, era, inside).get(way)
+        return _better(params, band, era, inside).get(way) or _ahead(params, band, era, inside, way)
     return _unknown(params, band, era, inside, way)
 
 
@@ -326,31 +341,11 @@ def _crowded(params: Params, band: Band, era: str) -> float:
     return max(0.0, eaters / fed - params.units.band.decisions.lure.from_)
 
 
-def stands(params: Params, band: Band, era: str) -> bool:
+def exhausted(params: Params, band: Band, era: str, inside: Inside) -> bool:
     """
-    Whether a band on a leg stands now: a starving or thirsting band never does, a tired one does until it has
-    rested. Else it finishes the step it is on, marches on land that gives no day's food or with a load it could not
-    add to, and otherwise while its stores hold `plan.march` days, once it stands until they hold `plan.stock`.
+    Whether the stand of a month is over: its land gives the gatherers less than a day's food and a way leads off it.
     """
-    if bands.STARVATION in band.states or bands.THIRST in band.states:
-        return False
-    if bands.TIREDNESS in band.states:
-        return True
-    # A gathering loses the way into the next cell: a stand each morning would never cross slow land.
-    if band.progress > 0 or decisions.barren(params, band, era) or _laden(params, band):
-        return False
-    rhythm = params.units.band.plan
-    holding = band.intent is not None and band.intent['standing']
-    days = min(bands.held_days(params, band, prop) for prop in decisions.NEEDS)
-    return days < (rhythm.stock if holding else rhythm.march)
-
-
-def _laden(params: Params, band: Band) -> bool:
-    """
-    Whether the band could carry no more of what it eats and drinks.
-    """
-    gathered = [name for name in params.units.band.gathering if params.resources[name].property in decisions.NEEDS]
-    return all(bands.room(params, band, name) <= bands.NOTHING for name in gathered)
+    return decisions.barren(params, band, era) and next(aims(params, band, era, inside), None) is not None
 
 
 def unsafe(params: Params, band: Band) -> bool:
@@ -462,10 +457,16 @@ def table(
     and what the band expects there, and the band's score of it as the council remembers its last decision, which
     left the land `behind`; options without a vote are left out.
     """
+    winter = winters(params, band, wintering)
     days = survived(params, band, era, score(params, band, era, inside, extra, wintering, cold))
+    if not winter and decisions.barren(params, band, era):
+        # Nobody votes to stay on land that feeds nobody while a way leads off it.
+        days = [held for held in days if held[0]['kind'] != CAMP] or days
+    elif winter and not decisions.stripped(params, band, era):
+        # In its season a band that knows how winters: here, or on a camp it built before.
+        days = [held for held in days if held[0]['kind'] == CAMP or held[2] in band.camps] or days
     days = remembered(params, band, days, behind)
     given = votes([held for _, held, _ in days], voters(params, band) - 1, params.council.spread)
-    winter = winters(params, band, wintering)
     laid = [
         _entry(params, band, era, proposal, day, held, at, winter)
         for (proposal, day, at), held in zip(days, given, strict=True)
@@ -539,10 +540,10 @@ def behind(params: Params, band: Band, day: int) -> Place | None:
 
 def hungers(params: Params, band: Band, need: str) -> bool:
     """
-    Whether a need, hunger or thirst, calls the council: once the stores no longer cover it, when its state holds
-    or a member dies tonight of it.
+    Whether a need, hunger or thirst, calls the council: a member dies tonight of it. Empty stores call nobody: the
+    members live on their reserves while the band forages on its way.
     """
-    return UNCOVERED[need] in band.states or decisions.needs(params, band)[need] >= 1.0
+    return decisions.needs(params, band)[need] >= 1.0
 
 
 def leader(laid: Table) -> Proposal | None:
@@ -555,17 +556,18 @@ def leader(laid: Table) -> Proposal | None:
     return next(dict(entry['proposal']) for entry in laid if entry['votes'] == most)
 
 
-def decide(laid: Table, proposal: Proposal, spoken: float) -> tuple[Proposal, float]:
+def decide(laid: Table, proposal: Proposal, spoken: float, said: str | None = None) -> tuple[Proposal, float]:
     """
-    The winner once the player's voice is added to the proposal, and the votes of the proposal; a tie goes to
-    the player, and among the others to the fixed order.
+    The winner once the player's voice is added to the proposal, and the votes of the proposal, with those of every
+    option told by the same words, `said`: a point on a way is that way; a tie goes to the player, and among the
+    others to the fixed order.
     """
-    options = [(dict(entry['proposal']), float(entry['votes'])) for entry in laid]
-    if all(option != proposal for option, _ in options):
-        options.append((dict(proposal), 0.0))
-    counted = [(option, held + spoken if option == proposal else held) for option, held in options]
-    best = max(range(len(counted)), key=lambda at: (counted[at][1], counted[at][0] == proposal, -at))
-    return counted[best][0], next(held for option, held in counted if option == proposal)
+    same = [entry for entry in laid if entry['proposal'] == proposal or (said and entry.get('key') == said)]
+    held = sum(float(entry['votes']) for entry in same) + spoken
+    others = [(dict(entry['proposal']), float(entry['votes'])) for entry in laid if entry not in same]
+    counted = [(dict(proposal), held), *others]
+    best = max(range(len(counted)), key=lambda at: (counted[at][1], at == 0, -at))
+    return counted[best][0], held
 
 
 def settled(laid: Table, spoken: float) -> bool:

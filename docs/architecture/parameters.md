@@ -214,7 +214,7 @@ council:
   status:
     start: 50
     abstained: -2
-    outvoted: -1
+    outvoted: 0
 ```
 
 The whole section and its numbers are in

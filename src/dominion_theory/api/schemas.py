@@ -120,6 +120,7 @@ class Camp(BaseModel):
 
 class Build(BaseModel):
     kind: Literal['build']
+    shares: dict[str, float] | None = None
 
 
 class Gather(BaseModel):
@@ -177,13 +178,12 @@ Proposal = Annotated[CampProposal | RoamProposal | ExploreProposal, Field(discri
 class Intent(BaseModel):
     """
     The plan the council bound the band to: its proposal, the day of the game its term ends, the target of the leg
-    it walks, whether it stands between legs and whether it is a winter camp.
+    it walks and whether it is a winter camp.
     """
 
     proposal: Proposal
     until: int
     leg: Spot | None
-    standing: bool
     winter: bool
 
 

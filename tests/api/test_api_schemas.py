@@ -67,13 +67,12 @@ def test_an_intent_is_a_plan_with_its_term_and_its_leg() -> None:
             'proposal': {'kind': 'roam', 'direction': 'ne'},
             'until': 40,
             'leg': {'x': 3, 'y': 1},
-            'standing': False,
             'winter': False,
         }
     )
 
     assert held.proposal == RoamProposal(kind='roam', direction='ne')
-    assert (held.until, held.leg, held.standing, held.winter) == (40, Spot(x=3, y=1), False, False)
+    assert (held.until, held.leg, held.winter) == (40, Spot(x=3, y=1), False)
 
 
 def test_the_schema_describes_both_messages() -> None:

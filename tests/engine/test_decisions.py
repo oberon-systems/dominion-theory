@@ -199,7 +199,7 @@ def test_a_fed_band_leaves_the_dangerous_forest_for_the_open_grass(params: Param
     own = 0.4 * 0.9 + 0.1 * 0.6 - 2.0 * 0.6 * 0.4
     grass = 0.4 * 0.8 + 0.1 * 0.28 - 2.0 * 0.6 * 0.1
     assert found['east'] == pytest.approx(3.0 * (grass / 1.5 - own))
-    assert decisions.decide(params, band, 0, ERA) == {'kind': 'roam', 'towards': 'east'}
+    assert decisions.decide(params, band, 0, ERA) == {'kind': 'move', 'towards': 'east'}
 
 
 def test_a_hungry_band_stays_in_the_forest_to_gather(params: Params) -> None:
@@ -210,7 +210,7 @@ def test_a_hungry_band_stays_in_the_forest_to_gather(params: Params) -> None:
     # Hunger 0.8 presses: the band fears nothing.
     own = 0.8 * 0.9 + 0.1 * 0.6
     grass = 0.8 * 0.8 + 0.1 * 0.28
-    assert found['roam-east'] == pytest.approx(0.75 * 3.0 * (grass / 1.5 - own) + 0.5 * 1.5 * 0.8 * 0.8)
+    assert found['roam-east'] == pytest.approx(0.6 * 3.0 * (grass / 1.5 - own) + 0.5 * 1.5 * 0.8 * 0.8)
     assert found['gather'] == pytest.approx(1.5 * 0.8 * 0.9 * 10 / 11 + 1.2 * 0.1 * 0.6 / 11)
     assert decisions.decide(params, band, 0, ERA) == {
         'kind': 'gather',
@@ -239,7 +239,7 @@ def test_a_roam_is_the_slower_move_with_the_foraging_of_what_the_band_is_short_o
     def walk(thirst: float) -> float:
         own = 0.4 * 0.9 + thirst * 0.6 - 2.0 * 0.6 * 0.4
         grass = 0.4 * 0.8 + thirst * 0.28 - 2.0 * 0.6 * 0.1
-        return 0.75 * 3.0 * (grass / 1.5 - own)
+        return 0.6 * 3.0 * (grass / 1.5 - own)
 
     assert roams[0] == pytest.approx(walk(0.1) + 0.5 * 1.5 * 0.4 * 0.8)
     assert roams[1] == pytest.approx(walk(0.4) + 0.5 * (1.5 * 0.4 * 0.8 + 1.2 * 0.4 * 0.28))
@@ -270,7 +270,7 @@ def test_the_stripped_example_of_the_document_walks_to_the_remembered_forest() -
         {
             'camp': 0.0,
             'gather': 1.5 * 0.8 * 0.09,
-            'roam-east': 0.75 * 3.0 * (forest / 2.5 - own) + 0.5 * 1.5 * 0.8 * 0.09,
+            'roam-east': 0.6 * 3.0 * (forest / 2.5 - own) + 0.5 * 1.5 * 0.8 * 0.09,
         }
     )
     assert decisions.decide(params, band, 0, ERA) == {'kind': 'roam', 'towards': 'east'}
@@ -444,15 +444,11 @@ def test_a_camp_feeds_its_winter_while_its_land_gives_a_day_and_a_stripped_one_d
     assert not decisions.stripped(params, held(around(wintry), 30.0, 30.0, season='winter'), ERA)
 
 
-def test_a_band_standing_on_its_leg_only_gathers_or_camps(params: Params) -> None:
+def test_a_band_on_its_leg_only_walks_however_the_cell_feeds_it(params: Params) -> None:
     band = held({HOME: FOREST, EAST: GRASS}, forage=22.5, water=30.0)
     going = {'kind': 'roam', 'direction': 'e'}
 
-    marching = decisions.intended(params, band, going, ERA, 'east')
-    standing = decisions.intended(params, band, going, ERA, None, standing=True)
-
-    assert marching.action['kind'] in ('move', 'roam')
-    assert standing.action['kind'] == 'gather'
+    assert decisions.intended(params, band, going, ERA, 'east').action['kind'] in ('move', 'roam')
 
 
 def test_a_cell_is_barren_when_the_gatherers_take_less_than_a_days_food_of_it(params: Params) -> None:

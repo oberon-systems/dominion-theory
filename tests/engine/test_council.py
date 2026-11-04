@@ -20,9 +20,6 @@ SMALL = {
     'units.band.decisions.horizon': 0,
     # Without the unknown nearby a dearer distance of known land keeps a fed band on stripped land.
     'units.band.decisions.distance_known': 0.25,
-    # A band that never stands for its stores walks its plan; RHYTHM below brings the stands back.
-    'units.band.plan.march': 0.0,
-    'units.band.plan.stock': 0.0,
     # Only going short fails a plan here, and any plan that does not go short works; the fixture document asks the rest.
     'council.judgement.kept': 0.0,
     'council.judgement.enough': 0.0,
@@ -120,7 +117,7 @@ def wintering(game: Game, until: int = 10_000) -> None:
     """
     The band bound to a winter camp on its cell, whatever the season.
     """
-    band(game).intent = {'proposal': STAY, 'until': until, 'leg': None, 'standing': False, 'winter': True}
+    band(game).intent = {'proposal': STAY, 'until': until, 'leg': None, 'winter': True}
 
 
 def aimed(laid: council.Table, proposal: dict[str, Any] | None) -> tuple[int, int]:
@@ -300,19 +297,32 @@ def test_the_term_of_the_plan_over_calls_the_council(params: Params) -> None:
 
 
 @pytest.mark.parametrize(
-    ('stores', 'state', 'occasion'),
-    [({'dried': 200.0}, 'thirst', 'occasion-thirst'), ({'water': 200.0}, 'starvation', 'occasion-hunger')],
+    ('stores', 'spent', 'occasion'),
+    [({'dried': 200.0}, 'thirsty', 'occasion-thirst'), ({'water': 200.0}, 'hungry', 'occasion-hunger')],
 )
-def test_the_council_names_the_need_the_stores_no_longer_cover(
-    params: Params, stores: dict[str, float], state: str, occasion: str
+def test_the_council_names_the_need_a_member_dies_of_tonight(
+    params: Params, stores: dict[str, float], spent: str, occasion: str
 ) -> None:
-    game = land(params, stripped=STRIPPED, parts=AFTERNOON)
+    game = land(params, parts=AFTERNOON)
     quiet(game)
     bind(game, STAY)
     band(game).stores = Stock({name: [[float(game.day), amount]] for name, amount in stores.items()})
-    band(game).states = [state]
+    setattr(band(game).members[1], spent, 1.0)
+    band(game).changed()
 
     assert told(game.step())[-1][1]['occasion'] == occasion
+
+
+@pytest.mark.parametrize('state', ['starvation', 'thirst'])
+def test_empty_stores_alone_call_no_council(params: Params, state: str) -> None:
+    game = land(params, parts=AFTERNOON)
+    quiet(game)
+    bind(game, EAST)
+    band(game).stores = Stock()
+    band(game).states = [state]
+    band(game).changed()
+
+    assert [key for key, _ in told(game.step()) if key.startswith('council-')] == []
 
 
 @pytest.mark.parametrize(('dying', 'occasions'), [(False, []), (True, ['occasion-hunger'])])
@@ -337,7 +347,7 @@ def test_hunger_on_a_plan_calls_the_council_only_once_a_member_dies_tonight(
 def test_a_band_on_its_way_does_not_turn_for_another_wish(params: Params) -> None:
     game = land(params, stripped=STRIPPED, parts=AFTERNOON)
     quiet(game)
-    bind(game, council.going('roam', (WEST, NORTH + 2)))
+    bind(game, EAST)
 
     evening = game.step()
 
@@ -407,7 +417,6 @@ def test_the_council_rises_in_the_evening_tick_and_the_band_camps_through_it(par
         'proposal': EAST,
         'until': game.day + 10,
         'leg': {'x': WEST + 2, 'y': NORTH + 1},
-        'standing': False,
         'winter': False,
     }
     assert (game.judgement, game.status) == (None, 50.0)
@@ -427,7 +436,7 @@ def test_silence_and_abstaining_cost_two(params: Params) -> None:
 
 @pytest.mark.parametrize('answer', [STAY, ABSTAIN])
 def test_a_band_that_the_council_keeps_on_its_cell_does_not_roam_away(params: Params, answer: dict[str, Any]) -> None:
-    game = land(params, stripped=STRIPPED)
+    game = land(params)
     sit(game, (STAY, 14))
 
     kinds = {result.units[0][4] for result in [vote(game, answer), *steps(game, DAY - 2)]}
@@ -435,7 +444,7 @@ def test_a_band_that_the_council_keeps_on_its_cell_does_not_roam_away(params: Pa
     assert kinds <= {'gather', 'camp'}
 
 
-def test_an_outvoted_player_pays_one_and_the_band_is_bound_to_the_winner(params: Params) -> None:
+def test_an_outvoted_player_pays_nothing_and_the_band_is_bound_to_the_winner(params: Params) -> None:
     game = land(params)
     sit(game, (STAY, 8), (NORTHWARD, 1), (EAST, 5))
 
@@ -443,7 +452,7 @@ def test_an_outvoted_player_pays_one_and_the_band_is_bound_to_the_winner(params:
 
     assert told(result)[-1] == (
         'council-outvoted',
-        {'proposal': 'proposal-roam-n', 'winner': 'proposal-camp', 'status': 49.0},
+        {'proposal': 'proposal-roam-n', 'winner': 'proposal-camp', 'status': 50.0},
     )
     assert intent(game)['proposal'] == STAY
     assert game.judgement is None
@@ -463,7 +472,7 @@ def test_the_first_example_turns_the_band_east_and_is_judged_when_it_arrives(par
         ('council-turned', {'proposal': 'proposal-roam-e', 'yes': 8.75, 'all': 17.75}),
     ]
     assert turned.units[0][4] == later[0].units[0][4] == 'camp'
-    assert [result.units[0][4] for result in later[1:4]] == ['roam'] * 3
+    assert [result.units[0][4] for result in later[1:3]] == ['roam'] * 2
     reached = ('plan-ended', {'proposal': 'proposal-roam', 'why': 'reached'})
     at = next(at for at, result in enumerate(later) if reached in told(result))
     [(found, values)] = judged(later[at])
@@ -674,8 +683,8 @@ def test_a_birth_earns_five_only_on_a_day_the_player_voted_for(answered: str | N
     assert game.answered == {'today': None, 'tomorrow': None}
 
 
-def test_an_intent_to_stay_never_moves(params: Params) -> None:
-    game = land(params, stripped=STRIPPED, parts=SUMMER + 1)
+def test_an_intent_to_stay_never_moves_while_its_land_feeds_the_band(params: Params) -> None:
+    game = land(params, parts=SUMMER + 1)
     bind(game, STAY)
 
     kinds = {result.units[0][4] for result in steps(game, DAY - 1)}
@@ -696,8 +705,9 @@ def test_a_go_walks_its_route_round_the_water(params: Params) -> None:
     route = band(game).route
 
     assert route is not None
-    assert route['cells'] == [[WEST, NORTH + 1], [WEST + 1, NORTH + 2], [WEST + 2, NORTH + 1], [WEST + 2, NORTH]]
-    assert band(game).action == {'kind': 'roam', 'towards': 'south'}
+    assert band(game).place == (WEST, NORTH + 1)
+    assert route['cells'] == [[WEST + 1, NORTH + 2], [WEST + 2, NORTH + 1], [WEST + 2, NORTH]]
+    assert band(game).action == {'kind': 'roam', 'towards': 'south-east'}
 
 
 def test_a_go_with_no_way_is_refused_and_one_held_ends_and_calls_the_council(params: Params) -> None:
@@ -718,12 +728,11 @@ def test_a_band_that_reaches_its_target_calls_the_council_that_evening(params: P
     quiet(game)
     bind(game, council.going('roam', (WEST + 1, NORTH + 1)))
 
-    afternoon, evening = steps(game, 2)
+    arrived = game.step()
 
     assert band(game).place == (WEST + 1, NORTH + 1)
-    assert told(afternoon) == []
-    assert told(evening)[0] == ('plan-ended', {'proposal': 'proposal-roam', 'why': 'reached'})
-    assert told(evening)[-1][1]['occasion'] == 'occasion-spent'
+    assert told(arrived) == [('plan-ended', {'proposal': 'proposal-roam', 'why': 'reached'})]
+    assert told(game.step())[-1][1]['occasion'] == 'occasion-spent'
 
 
 def test_a_plan_with_a_way_aims_at_its_next_leg_and_is_spent_when_nothing_better_lies_that_way(
@@ -1015,9 +1024,11 @@ def test_the_seat_judgement_and_intent_are_in_the_snapshot_and_restore_to_the_sa
     assert snapshot['judgement']['proposal'] == EAST
     assert snapshot['units'][0]['intent']['proposal'] == EAST
     assert copy.state_hash() == game.state_hash()
-    assert [told(result) for result in steps(copy, 2)] == [told(result) for result in steps(game, 2)]
+    copied = [told(result) for result in steps(copy, 2)]
+    assert copied == [told(result) for result in steps(game, 2)]
     assert copy.state_hash() == game.state_hash()
-    assert copy.council == game.council is not None
+    assert copy.council == game.council
+    assert any(key == 'proposal-worked' for held in copied for key, _ in held)
 
 
 def test_a_year_of_votes_gives_the_same_hashes_twice(params: Params) -> None:
@@ -1144,7 +1155,7 @@ def test_a_starving_band_bound_to_a_winter_camp_gathers_before_it_builds_and_a_h
 
     assert band(starving).action['kind'] in ('gather', 'camp')
     assert band(starving).camp is None
-    assert band(hungry).action == {'kind': 'build'}
+    assert band(hungry).action['kind'] == 'build'
 
 
 def test_the_others_judge_a_winter_camp_by_its_reach(params: Params) -> None:
@@ -1452,7 +1463,6 @@ def test_two_plans_aimed_at_the_same_cell_are_one_option(params: Params) -> None
     assert any(proposal == EAST for proposal, _, _ in days)
 
 
-RHYTHM = {**SMALL, 'units.band.plan.march': 3.0, 'units.band.plan.stock': 5.0, 'units.band.carry_kg': 30.0}
 LURING = {**SMALL, 'units.band.decisions.horizon': 2, 'units.band.decisions.distance_known': 0.5}
 NO_POOR = {'units.band.decisions.lure.poor': 0.0}
 NO_LURE = {**NO_POOR, 'units.band.decisions.lure.crowded': 0.0}
@@ -1473,183 +1483,172 @@ def supplied(game: Game, food: float, water: float) -> bands.Band:
     return held
 
 
-def standing(game: Game, stood: bool) -> None:
-    band(game).intent = {**intent(game), 'standing': stood}
+# The unknown lies open and every plan left on the table gets votes, so that only a rule can take one off it.
+ALL_VOTED = {**LURING, 'council.spread': 100.0}
 
 
-@pytest.mark.parametrize(
-    ('food', 'water', 'stood', 'stands'),
-    [
-        (4.0, 4.0, False, False),
-        (3.0, 3.0, False, False),
-        (2.0, 4.0, False, True),
-        (4.0, 2.0, False, True),
-        (4.0, 4.0, True, True),
-        (5.0, 4.0, True, True),
-        (5.0, 5.0, True, False),
-    ],
-)
-def test_a_band_on_a_leg_marches_on_its_stores_and_a_stand_stocks_them(
-    food: float, water: float, stood: bool, stands: bool
-) -> None:
-    game = land(load_params(overrides=RHYTHM))
+def test_a_band_that_knows_how_winters_has_only_its_camp_on_the_table() -> None:
+    game = land(load_params(overrides=ALL_VOTED), parts=WINTER)
+
+    assert [entry['proposal'] for entry in game._laid(band(game), ())] == [STAY]
+
+
+def test_a_band_that_does_not_know_how_to_winter_may_go_on_in_the_cold() -> None:
+    game = land(load_params(overrides=ALL_VOTED), parts=WINTER)
+    band(game).lore['known'] = [name for name in band(game).lore['known'] if name != 'wintering']
+
+    assert any(entry['proposal']['kind'] != 'camp' for entry in game._laid(band(game), ()))
+
+
+def test_a_camp_that_feeds_nobody_does_not_hold_a_band_in_the_cold(params: Params) -> None:
+    game = land(params, stripped=STRIPPED, parts=WINTER)
+
+    assert any(entry['proposal']['kind'] != 'camp' for entry in game._laid(band(game), ()))
+
+
+def test_a_point_on_the_way_of_an_option_gets_its_votes() -> None:
+    way = council.heading('roam', 'e')
+    laid = [
+        {'proposal': STAY, 'votes': 8, 'key': 'proposal-camp'},
+        {'proposal': way, 'votes': 5, 'key': 'proposal-roam-e'},
+    ]
+
+    assert council.decide(laid, EAST, 3.75, 'proposal-roam-e') == (EAST, 8.75)
+    assert council.decide(laid, EAST, 3.75) == (STAY, 3.75)
+
+
+def test_a_vote_on_the_way_of_the_leader_follows_it_and_the_band_goes_where_the_player_said(params: Params) -> None:
+    game = land(params)
+    way = council.heading('roam', 'e')
+    game.council = {
+        'leader': EAST,
+        'table': [
+            {'proposal': EAST, 'votes': 8, 'key': 'proposal-roam-e'},
+            {'proposal': way, 'votes': 1, 'key': 'proposal-roam-e'},
+            {'proposal': STAY, 'votes': 5, 'key': 'proposal-camp'},
+        ],
+    }
+
+    result = vote(game, way)
+
+    assert told(result)[-1] == ('council-followed', {'proposal': 'proposal-roam-e'})
+    assert intent(game)['proposal'] == way
+    assert game.judgement is None
+
+
+def test_part_of_the_hands_gathers_while_the_others_build(params: Params) -> None:
+    game = land(params, parts=SUMMER)
+    quiet(game)
+    wintering(game)
+    supplied(game, 0.5, 0.5)
+    before = band(game).held('water')
+
+    game.step()
+
+    camp = band(game).camp
+    assert band(game).action['kind'] == 'build' and band(game).action['shares']
+    assert camp is not None and camp['built'] > 0
+    assert band(game).held('water') > before
+
+
+@pytest.mark.parametrize(('food', 'water'), [(0.5, 0.5), (0.0, 9.0), (9.0, 9.0)])
+def test_a_band_on_a_leg_walks_whatever_its_stores_hold(params: Params, food: float, water: float) -> None:
+    game = land(params, parts=SUMMER)
     bind(game, EAST)
     supplied(game, food, water)
-    standing(game, stood)
-
-    assert council.stands(game.params, band(game), ERA) is stands
-
-
-def test_a_tired_band_stands_and_a_starving_or_thirsting_one_never_does() -> None:
-    game = land(load_params(overrides=RHYTHM))
-    bind(game, EAST)
-    supplied(game, 9.0, 9.0)
-    band(game).states = ['tiredness']
-    assert council.stands(game.params, band(game), ERA)
-
-    supplied(game, 0.0, 9.0)
-    standing(game, True)
-    band(game).states = ['starvation']
-    assert not council.stands(game.params, band(game), ERA)
-
-    supplied(game, 9.0, 0.0)
-    band(game).states = ['thirst']
-    assert not council.stands(game.params, band(game), ERA)
-
-
-@pytest.mark.parametrize('stood', [False, True])
-def test_a_band_does_not_stand_on_land_that_gives_no_days_food(stood: bool) -> None:
-    game = land(load_params(overrides=RHYTHM), stripped=STRIPPED)
-    bind(game, EAST)
-    supplied(game, 1.0, 1.0)
-    standing(game, stood)
-
-    assert decisions.barren(game.params, band(game), ERA)
-    assert not council.stands(game.params, band(game), ERA)
-
-
-@pytest.mark.parametrize('stood', [False, True])
-def test_a_band_that_could_carry_no_more_does_not_stand_for_its_stores(stood: bool) -> None:
-    game = land(load_params(overrides={**RHYTHM, 'units.band.carry_kg': 6.0}))
-    bind(game, EAST)
-    supplied(game, 2.0, 4.0)
-    standing(game, stood)
-
-    assert not council.stands(game.params, band(game), ERA)
-
-
-def test_a_band_finishes_its_step_before_it_stands_and_only_tiredness_stops_it() -> None:
-    game = land(load_params(overrides=RHYTHM), parts=SUMMER)
-    bind(game, EAST)
-    supplied(game, 2.0, 4.0)
-    band(game).progress, band(game).target = 0.5, (WEST + 1, NORTH + 1)
-
-    band(game).states = ['tiredness']
-    assert council.stands(game.params, band(game), ERA)
-    band(game).states = []
-    assert not council.stands(game.params, band(game), ERA)
 
     game.step()
 
     assert band(game).action['kind'] in ('move', 'roam')
-    assert band(game).place == (WEST + 1, NORTH + 1) and band(game).progress == 0.0
-    assert council.stands(game.params, band(game), ERA)
 
 
-def test_a_stocked_band_walks_its_leg() -> None:
-    game = land(load_params(overrides=RHYTHM), parts=SUMMER)
+def test_a_tired_band_on_a_leg_rests(params: Params) -> None:
+    game = land(params, parts=SUMMER)
     bind(game, EAST)
-    supplied(game, 4.0, 4.0)
+    band(game).states = ['tiredness']
 
     game.step()
 
-    assert band(game).action['kind'] in ('move', 'roam')
-    assert not intent(game)['standing']
-
-
-def test_a_band_short_of_its_march_stands_gathers_and_stays_on_its_cell() -> None:
-    game = land(load_params(overrides=RHYTHM), parts=SUMMER)
-    bind(game, EAST)
-    supplied(game, 2.0, 4.0)
-
-    game.step()
-
-    assert band(game).action['kind'] in ('gather', 'camp')
+    assert band(game).action['kind'] == 'camp'
     assert band(game).place == HOME
-    assert intent(game)['standing']
 
 
-def test_a_starving_band_on_a_leg_walks_on() -> None:
-    game = land(load_params(overrides=RHYTHM), stripped=STRIPPED, parts=AFTERNOON)
+def test_a_starving_band_on_a_leg_walks_on(params: Params) -> None:
+    game = land(params, stripped=STRIPPED, parts=AFTERNOON)
     bind(game, EAST)
     starving(game)
 
     game.step()
 
     assert band(game).action['kind'] in ('move', 'roam')
-    assert not intent(game)['standing']
 
 
-def test_the_end_of_a_stand_picks_the_next_leg() -> None:
-    game = land(load_params(overrides=RHYTHM), stripped=STRIPPED, parts=SUMMER)
+def test_a_roam_goes_on_that_way_over_land_no_better_than_its_own(params: Params) -> None:
+    game = land(params, rows=WIDE, at=MIDDLE)
+    way = council.heading('roam', 'e')
+
+    assert council.aim(params, band(game), ERA, game.inside, way) == (MIDDLE[0] + 1, MIDDLE[1])
+
+
+def test_a_reached_leg_of_a_way_aims_at_the_next_and_keeps_the_plan(params: Params) -> None:
+    game = land(params, rows=WIDE, at=MIDDLE)
     way = council.heading('roam', 'e')
     bind(game, way)
-    expected = council.aim(game.params, band(game), ERA, game.inside, way)
-    assert expected is not None
-    band(game).intent = {**intent(game), 'standing': True, 'leg': {'x': WEST + 1, 'y': NORTH}}
-
-    game._rhythm(_Tick(), band(game))
-
-    assert not intent(game)['standing']
-    assert intent(game)['leg'] == {'x': expected[0], 'y': expected[1]}
-
-
-def test_the_end_of_a_stand_with_nothing_left_that_way_spends_the_plan() -> None:
-    game = land(load_params(overrides=RHYTHM), parts=SUMMER)
-    bind(game, council.heading('roam', 'w'))
-    supplied(game, 5.0, 5.0)
-    standing(game, True)
     tick = _Tick()
 
-    game._rhythm(tick, band(game))
+    band(game).x += 1
+    game._leg(tick, band(game))
+
+    assert (intent(game)['proposal'], tick.events) == (way, [])
+    assert council.sector(band(game).place, (intent(game)['leg']['x'], intent(game)['leg']['y'])) == 'e'
+
+
+def test_a_way_that_leads_nowhere_spends_the_plan(params: Params) -> None:
+    game = land(params)
+    bind(game, council.heading('roam', 'w'))
+    tick = _Tick()
+
+    game._onward(tick, band(game))
 
     assert [(event.key, event.values['why']) for event in tick.events] == [('plan-ended', 'nothing')]
     assert (band(game).intent, game.since['spent']) == (None, True)
 
 
-def test_a_stand_calls_no_council() -> None:
-    game = land(load_params(overrides={**RHYTHM, 'units.band.plan.stock': 50.0}), parts=SUMMER)
-    bind(game, EAST)
-    supplied(game, 2.0, 4.0)
-    game.since = dict(QUIET)
-
-    results = steps(game, DAY)
-
-    assert intent(game)['standing'] and band(game).place == HOME
-    assert councils(game) == 0
-    assert [key for key, _ in said(results) if key.startswith('council-')] == []
-
-
-def test_a_council_that_keeps_the_plan_keeps_the_stand_and_another_plan_ends_it() -> None:
-    game = land(load_params(overrides=RHYTHM))
-    bind(game, EAST)
-    standing(game, True)
-
-    bind(game, EAST)
-    assert intent(game)['standing']
-
+def test_a_stand_on_land_that_feeds_nobody_is_spent_and_the_council_sits(params: Params) -> None:
+    game = land(params, stripped=STRIPPED, parts=SUMMER)
+    quiet(game)
     bind(game, STAY)
-    assert not intent(game)['standing']
+    result = game.step()
+
+    assert ('plan-ended', {'proposal': 'proposal-camp', 'why': 'nothing'}) in told(result)
+    assert (band(game).intent, game.since['spent']) == (None, True)
 
 
-def test_a_camp_has_no_rhythm() -> None:
-    game = land(load_params(overrides=RHYTHM), parts=SUMMER)
+def test_a_stand_on_land_that_feeds_the_band_holds(params: Params) -> None:
+    game = land(params, parts=SUMMER)
+    quiet(game)
     bind(game, STAY)
-    supplied(game, 1.0, 1.0)
 
-    game._rhythm(_Tick(), band(game))
+    game.step()
 
-    assert not intent(game)['standing']
+    assert intent(game)['proposal'] == STAY
+
+
+def test_a_winter_camp_holds_on_land_that_feeds_nobody(params: Params) -> None:
+    game = land(params, stripped=STRIPPED, parts=SUMMER)
+    quiet(game)
+    wintering(game)
+
+    game.step()
+
+    assert intent(game)['winter']
+
+
+def test_the_table_leaves_out_a_camp_on_land_that_feeds_nobody(params: Params) -> None:
+    fed, bare = land(params), land(params, stripped=STRIPPED)
+
+    assert any(entry['proposal'] == STAY for entry in fed._laid(band(fed), ()))
+    assert all(entry['proposal'] != STAY for entry in bare._laid(band(bare), ()))
 
 
 def test_rich_roomy_land_does_not_lure(params: Params) -> None:

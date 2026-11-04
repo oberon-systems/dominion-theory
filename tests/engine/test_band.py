@@ -19,6 +19,7 @@ SMALL = {
     'planet.window.height': 16,
     'encounters.chance': 0.0,
     'units.band.camp_parts': [],
+    'units.band.speed.loaded': 0.0,
     'units.band.decisions.horizon': 0,
     'units.band.unease.gain': 0.0,
     'units.band.people.birth.conceive_per_day': 0.0,
@@ -41,7 +42,8 @@ DEEPER = (WEST + 3, NORTH + 1)
 SUMMER = 100
 WINTER = 350
 DAY = 5
-PACE = 1.2 - 0.03 * 1.5
+# The cells a tick of the fastest walk crosses: 80 km over cells of 10 km and five working parts.
+PACE = 80.0 / 10 / 5
 CALENDAR = ('day-started', 'month-started', 'season-started', 'year-started')
 
 
@@ -187,6 +189,40 @@ def test_a_band_crosses_grass_in_a_tick_and_a_forest_in_two(params: Params) -> N
     assert counted(game)['moves'] == 3
 
 
+def test_a_walk_with_a_way_onward_enters_cell_after_cell_within_a_tick(params: Params) -> None:
+    game = land(params)
+    entered = []
+
+    def onward() -> str | None:
+        entered.append(band(game).place)
+        return 'north'
+
+    done = bands.act(game, band(game), moving('east'), game.day, onward)
+
+    # The grass takes 1 / PACE of the tick, and the rest of it goes into the forest.
+    assert entered == [MEADOW]
+    assert (band(game).place, band(game).target) == (MEADOW, FOREST)
+    assert band(game).progress == pytest.approx((1 - 1 / PACE) * PACE * 0.6)
+    assert done == {'kind': 'move', 'towards': 'north'}
+
+
+def test_no_land_slows_a_band_under_a_quarter_of_the_fastest_walk(params: Params) -> None:
+    game = land(params, at=MEADOW)
+    band(game).fatigue = 1.0
+
+    assert bands._crossing(game, band(game), 0.01, FOREST) == pytest.approx(PACE * 0.25)
+
+
+def test_a_full_load_takes_its_share_of_the_speed() -> None:
+    params = load_params(overrides={**SMALL, 'units.band.speed.loaded': 0.3})
+    held = bands.Band(id=1, x=WEST, y=NORTH, members=bands.adults(2))
+    light = bands.speed(params, held)
+    held.stores.add('water', 0, bands.carry(params, held), None)
+    held.restocked()
+
+    assert bands.speed(params, held) == pytest.approx(light * 0.7)
+
+
 def test_a_camp_keeps_the_way_into_a_cell_and_a_gather_loses_it(params: Params) -> None:
     kept, lost = land(params, at=MEADOW), land(params, at=MEADOW)
 
@@ -286,10 +322,11 @@ def test_a_roaming_band_forages_the_cell_ahead_and_walks_slower(params: Params) 
     result = do(game, roaming('east'))
 
     taken = {name: band(game).held(name) - before[name] for name in before}
-    assert taken == pytest.approx({'forage': 15 * 3 * 0.8 * 0.5, 'water': 15 * 4 * 0.28 * 0.5})
+    # A day in the stores lies halfway to nothing: 0.75 of a gathering, at the gait of foraging.
+    assert taken == pytest.approx({'forage': 15 * 3 * 0.8 * 0.75, 'water': 15 * 4 * 0.28 * 0.75})
     assert band(game).place == HOME
-    assert band(game).progress == pytest.approx(PACE * 0.75)
-    assert game.cells.stock(MEADOW, 'food') == pytest.approx(1 - 18 / 100 + 1 / (20 * DAY))
+    assert band(game).progress == pytest.approx(PACE * 0.6)
+    assert game.cells.stock(MEADOW, 'food') == pytest.approx(1 - 27 / 100 + 1 / (20 * DAY))
     assert band(game).fatigue == pytest.approx(0.15)
     assert counted(game)['roams'] == 1
     assert result.changes['units'][0]['action'] == {'kind': 'roam', 'towards': 'east'}
@@ -302,7 +339,22 @@ def test_a_roaming_band_takes_nothing_it_has_two_days_of(params: Params) -> None
     do(game, roaming('east'))
 
     assert band(game).held('water') == 45.0
-    assert band(game).held('forage') == pytest.approx(15 + 15 * 3 * 0.8 * 0.5)
+    assert band(game).held('forage') == pytest.approx(15 + 15 * 3 * 0.8 * 0.75)
+
+
+@pytest.mark.parametrize(('days', 'share'), [(0.0, 1.0), (1.0, 0.75), (1.5, 0.625)])
+def test_the_lower_the_stores_the_more_a_roam_forages_at_the_same_gait(
+    params: Params, days: float, share: float
+) -> None:
+    game = land(params)
+    band(game).stores['forage'] = [[float(game.day), days * 15]]
+    band(game).stores['water'] = [[float(game.day), 45.0]]
+    band(game).restocked()
+
+    do(game, roaming('east'))
+
+    assert band(game).held('forage') == pytest.approx(days * 15 + 15 * 3 * 0.8 * share)
+    assert band(game).progress == pytest.approx(PACE * 0.6)
 
 
 def test_a_roam_into_water_is_a_camp_and_takes_nothing(params: Params) -> None:
@@ -369,7 +421,7 @@ def test_fatigue_slows_the_pace_and_tiredness_begins_and_ends_in_camp(params: Pa
     assert ([told(result) for result in before], told(still)) == ([[], []], [])
     assert told(began) == [('band-state-began', {'state': 'state-tiredness'})]
     assert began.changes['units'][0]['states'] == ['tiredness']
-    assert slowed == pytest.approx(PACE * (1 - 0.5 * 0.9))
+    assert slowed == pytest.approx(80.0 * (1 - 0.5 * 0.9))
     assert told(ended) == [('band-state-ended', {'state': 'state-tiredness'})]
     assert band(game).states == []
 
@@ -576,18 +628,22 @@ def test_a_child_is_most_exposed_at_birth_and_nears_an_adult_as_it_grows(params:
     held = bands.Band(id=1, x=WEST, y=NORTH, members=members)
 
     assert bands.vulnerable(params, held, 'encounter') == pytest.approx([0.0, 1.0, 3.0, 2.0, 1.5, 1.25, 2.0])
-    assert bands.vulnerable(params, held, 'frailty')[2:6] == pytest.approx([1.2, 0.6, 0.3, 0.15])
+    assert bands.vulnerable(params, held, 'frailty')[2:6] == pytest.approx([0.0, 0.0, 0.0, 0.0])
     assert bands._injurable(params, held)[2:6] == pytest.approx([0.5, 0.75, 0.875, 0.9375])
 
 
-def test_the_old_and_the_frail_die_and_the_hurt_are_injured_while_the_player_lives() -> None:
-    ageing = {'units.band.people.age.per_year': 0.5, 'units.band.people.injury.per_day': 0.5}
+def test_the_old_and_the_frail_die_of_age_and_the_hurt_are_injured_while_the_player_lives() -> None:
+    ageing = {
+        'units.band.people.age.per_year': 0.5,
+        'units.band.people.injury.per_day': 0.5,
+        'units.band.people.stages.child.dies.frailty': 1.2,
+    }
     params = load_params(overrides={**SMALL, **ageing})
     held = bands.Band(id=1, x=WEST, y=NORTH, members=[*bands.adults(2, 2000), bands.Member(0, 'female')])
 
     lived = bands.live(params, held, 10, 0.5, False, 0.0, dice())
 
-    assert lived.lost == [('age', 1), ('frailty', 1)]
+    assert lived.lost == [('age', 1), ('age', 1)]
     assert (held.population, held.members[0].player, held.members[0].age_days) == (1, True, 2001)
     assert (lived.injured, held.members[0].wound) == (1, {'severity': 'light', 'left': 10.0})
 
@@ -648,7 +704,7 @@ def test_meat_heals_a_wound_faster(params: Params, meat: float, days: int) -> No
 
 @pytest.mark.parametrize('meat', [0.5, 1.0])
 def test_meat_carries_more_and_dies_less_of_frailty(meat: float) -> None:
-    params = load_params()
+    params = load_params(overrides={'units.band.people.stages.adult.dies.frailty': 0.05})
     held = bands.Band(id=1, x=WEST, y=NORTH, members=bands.adults(2))
     carried, frail = bands.carry(params, held), bands.vulnerable(params, held, 'frailty')[1]
 
@@ -674,7 +730,7 @@ def test_a_band_in_camp_dies_less_of_frailty(camped: float, shelter: float, lost
     even: Any = Even()
     lived = bands.live(params, held, 10, 0.0, False, camped, even)
 
-    assert dict(lived.lost).get('frailty', 0) == lost
+    assert dict(lived.lost).get('age', 0) == lost
 
 
 def test_a_day_in_camp_heals_a_wound_by_two_days_and_a_day_of_work_by_one(params: Params) -> None:
@@ -871,7 +927,7 @@ def test_a_restored_game_carries_the_band_in_the_middle_of_a_day(params: Params)
 def test_a_snapshot_of_the_format_before_the_band_is_refused(params: Params) -> None:
     snapshot = land(params).snapshot()
 
-    assert snapshot["format"] == 34
+    assert snapshot["format"] == 35
     with pytest.raises(ValueError, match='format 2'):
         Game.restore({**snapshot, 'format': 2})
 

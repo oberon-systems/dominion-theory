@@ -270,18 +270,13 @@ ends. The plans and their legs are told in
 
 | Plan                        | Options left                                    |
 |-----------------------------|-------------------------------------------------|
-| `roam`, `explore`, marching | a move or a roam to the next cell of the route of the leg, a gathering, or a camp; a starving or thirsting band only moves or roams |
-| `roam`, `explore`, standing | gathering of any resource, or a camp            |
+| `roam`, `explore`           | a move or a roam to the next cell of the route of the leg |
 | `camp`                      | gathering of any resource, or a camp            |
-| `camp` in its season        | a build until the camp stands, then as `camp`; a starving or thirsting band gathers first |
+| `camp` in its season        | a build, part of the hands gathering, until the camp stands, then as `camp`; a starving or thirsting band gathers first |
 
-A band on a leg marches while it is not tired and while its stores hold
-at least `plan.march` days of food and of water, and stands once either
-fails, until its tiredness has ended and its stores hold `plan.stock`
-days, or its cell gives the gatherers less than a day's food. At the end
-of a stand, and when a leg is reached, the band picks its next leg as
-[Indirect control](indirect_control.md#a-plan) tells. A band that
-starves or thirsts does not stand.
+A band on a leg walks whatever its stores hold, and when a leg is reached
+it picks its next leg as [Indirect control](indirect_control.md#a-plan)
+tells.
 
 On the march the moves and the roams are scored with the pull replaced
 by a fixed `weights.intent`, and a roam gets the whole of that gain, not

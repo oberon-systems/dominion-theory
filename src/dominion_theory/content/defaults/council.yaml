@@ -14,7 +14,7 @@ council:
   status:
     start: 50
     abstained: -2
-    outvoted: -1
+    outvoted: 0
     roam_worked: 4
     roam_failed: -6
     roam_even: 0

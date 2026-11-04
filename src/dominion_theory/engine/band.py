@@ -4,7 +4,7 @@ The band: what it holds and the rules of its day, as docs/units/band.md and docs
 
 import copy
 import math
-from collections.abc import Iterable
+from collections.abc import Callable, Iterable
 from dataclasses import asdict, dataclass, field
 from typing import Any, Protocol
 
@@ -346,8 +346,12 @@ def camp() -> Action:
     return {'kind': CAMP}
 
 
-def building() -> Action:
-    return {'kind': BUILD}
+def building(shares: dict[str, float] | None = None) -> Action:
+    """
+    A part of work on a winter camp, with the share of the gatherers that goes to every resource among the hands
+    not building.
+    """
+    return {'kind': BUILD, 'shares': shares} if shares else {'kind': BUILD}
 
 
 def gathering(shares: dict[str, float]) -> Action:
@@ -753,9 +757,26 @@ def reached(land: Land, band: Band, name: str) -> tuple[Place, float] | None:
 
 
 def speed(params: Params, band: Band) -> float:
+    """
+    The kilometres a day a band walks on open ground: the fastest walk, less what its members, its load and its
+    fatigue take of it.
+    """
     rules = applied(params, band).units.band
-    pace = max(rules.speed.slowest, rules.speed.base - rules.speed.slowdown * band.population / 10)
-    return pace * efficiency(rules, band) * census(params, band).pace
+    carried = carry(params, band)
+    load = min(weight(params, band) / carried, 1.0) if carried > 0 else 1.0
+    return rules.speed.base * efficiency(rules, band) * census(params, band).pace * (1.0 - rules.speed.loaded * load)
+
+
+def _crossing(land: Land, band: Band, gait: float, target: Place) -> float:
+    """
+    The cells a working tick crosses towards a cell, at a gait and by its passability, never under `speed.slowest`
+    of the fastest walk.
+    """
+    params = land.params
+    era, fastest = params.eras[land.era], params.units.band.speed
+    km = max(fastest.base * fastest.slowest, speed(params, band) * gait * land.value(PASSABILITY, *target))
+    working = max(params.time.parts_per_day - len(params.units.band.camp_parts), 1)
+    return km / era.cell_km * era.parts_per_tick / working
 
 
 def efficiency(rules: Rules, band: Band) -> float:
@@ -879,6 +900,15 @@ def held_days(params: Params, band: Band, prop: str) -> float:
     return sum(band.held(name) for name in resources) / eaten if eaten > 0 else math.inf
 
 
+def pressed(params: Params, band: Band) -> float:
+    """
+    How far the stores lie below the top level of the needs, the fewer of food and water: 0 while they hold it, 1
+    with nothing.
+    """
+    top = max(level.days for level in params.units.band.decisions.levels.values())
+    return max(0.0, 1.0 - min(held_days(params, band, prop) for prop in (FOOD, WATER)) / top)
+
+
 def short(params: Params, band: Band, name: str) -> bool:
     """
     Whether the band holds fewer days of what a resource feeds than the top level of its needs asks.
@@ -931,21 +961,22 @@ def room(params: Params, band: Band, name: str | None = None) -> float:
     return free if name is None else free + spare(params, band, name)
 
 
-def act(land: Land, band: Band, action: Action, day: int) -> Action:
+def act(land: Land, band: Band, action: Action, day: int, onward: Callable[[], str | None] | None = None) -> Action:
     """
     Carries one action out and gives it back as it was done: a move that cannot be made is a camp. The way into
-    the next cell is kept over a camp and lost to a gather.
+    the next cell is kept over a camp and lost to a gather. A walk that enters a cell asks onward where the rest of
+    the tick goes, and ends without an answer.
     """
     rules = land.params.units.band
     kind = action['kind']
     if kind == MOVE:
-        done = _move(land, band, action, rules, 1.0)
+        done = _move(land, band, action, 1.0, onward)
     elif kind == ROAM:
-        done = _roam(land, band, action, rules, day)
+        done = _roam(land, band, action, rules, day, onward)
     elif kind == GATHER:
         done = _gather(land, band, action, rules, day)
     elif kind == BUILD:
-        done = _build(land, band)
+        done = _build(land, band, action, rules, day)
     else:
         done = camp()
     if done['kind'] in (GATHER, BUILD):
@@ -960,19 +991,34 @@ def act(land: Land, band: Band, action: Action, day: int) -> Action:
     return done
 
 
-def _move(land: Land, band: Band, action: Action, rules: Rules, pace: float) -> Action:
-    dx, dy = DIRECTIONS[action['towards']]
-    target = band.x + dx, band.y + dy
-    if not enterable(land, *target):
-        return camp()
-    if band.target != target:
-        band.progress, band.target = 0.0, target
-    band.progress += speed(land.params, band) * pace * land.value(PASSABILITY, *target)
-    if band.progress >= 1.0:
+def _move(
+    land: Land, band: Band, action: Action, gait: float, onward: Callable[[], str | None] | None = None
+) -> Action:
+    """
+    A tick of walking: cell after cell for as long as the tick lasts and onward names a way; what is left of a cell
+    is kept as progress.
+    """
+    towards, left = action['towards'], 1.0
+    while True:
+        dx, dy = DIRECTIONS[towards]
+        target = band.x + dx, band.y + dy
+        if not enterable(land, *target):
+            return camp() if left == 1.0 else {'kind': action['kind'], 'towards': towards}
+        if band.target != target:
+            band.progress, band.target = 0.0, target
+        rate = _crossing(land, band, gait, target)
+        needed = (1.0 - band.progress) / rate if rate > 0 else math.inf
+        if needed > left:
+            band.progress += rate * left
+            return {'kind': action['kind'], 'towards': towards}
+        left -= needed
         leave(land.params, band)
         band.x, band.y = target
         band.progress, band.target = 0.0, None
-    return {'kind': action['kind'], 'towards': action['towards']}
+        ahead = None if onward is None else onward()
+        if ahead is None or left <= 0:
+            return {'kind': action['kind'], 'towards': towards}
+        towards = ahead
 
 
 def leave(params: Params, band: Band) -> None:
@@ -1005,25 +1051,29 @@ def leave(params: Params, band: Band) -> None:
     band.restocked()
 
 
-def _roam(land: Land, band: Band, action: Action, rules: Rules, day: int) -> Action:
+def _roam(
+    land: Land, band: Band, action: Action, rules: Rules, day: int, onward: Callable[[], str | None] | None = None
+) -> Action:
     """
-    A share of a gathering tick of every resource the cell ahead gives that the band is short of, then a slow
-    step into it.
+    A share of a gathering tick of every resource the cell ahead gives that the band is short of, the larger the
+    lower its stores lie, then a walk at the gait of foraging.
     """
     dx, dy = DIRECTIONS[action['towards']]
     ahead = band.x + dx, band.y + dy
     if not enterable(land, *ahead):
         return camp()
+    held = rules.roaming
+    share = held.share + (held.pressed - held.share) * pressed(land.params, band)
     for name in rules.gathering:
         if name in _era(land, *ahead).resources and short(land.params, band, name):
-            _take(land, band, name, rules, day, rules.roaming.share, ahead)
-    return _move(land, band, action, rules, rules.roaming.speed)
+            _take(land, band, name, rules, day, share, ahead)
+    return _move(land, band, action, held.speed, onward)
 
 
-def _gather(land: Land, band: Band, action: Action, rules: Rules, day: int) -> Action:
+def _gather(land: Land, band: Band, action: Action, rules: Rules, day: int, hands: float = 1.0) -> Action:
     """
-    The gatherers split by the shares of the action: every share takes its resource from its own source, with
-    the same share of the room. The hunters hunt instead.
+    The gatherers, or the given share of them, split by the shares of the action: every share takes its resource
+    from its own source, with the same share of the room. The hunters hunt instead.
     """
     free = room(land.params, band)
     counted = census(land.params, band)
@@ -1031,16 +1081,17 @@ def _gather(land: Land, band: Band, action: Action, rules: Rules, day: int) -> A
     for name, share in action['shares'].items():
         held = reached(land, band, name)
         if held is not None and share > 0:
-            hands = counted.gatherers - counted.hunting
+            gatherers = counted.gatherers - counted.hunting
             space = free * share + spare(land.params, band, name)
-            _take(land, band, name, rules, day, share * held[1], held[0], space, hands)
+            _take(land, band, name, rules, day, share * held[1] * hands, held[0], space, gatherers)
             done[name] = share
     return gathering(done) if done else camp()
 
 
-def _build(land: Land, band: Band) -> Action:
+def _build(land: Land, band: Band, action: Action, rules: Rules, day: int) -> Action:
     """
-    A part of work on the winter camp of the cell the band stands on; a camp elsewhere is given up.
+    A part of work on the winter camp of the cell the band stands on, a camp elsewhere given up; the hands that do
+    not build gather.
     """
     params = land.params
     if band.camp is None or (band.camp['x'], band.camp['y']) != band.place:
@@ -1053,7 +1104,10 @@ def _build(land: Land, band: Band) -> Action:
     band.camp['built'] = min(round(band.camp['built'] + share, 9), 1.0)
     if band.camp['built'] >= 1.0 and band.place not in band.camps:
         band.camps.append(band.place)
-    return building()
+    shares = action.get('shares')
+    if shares:
+        _gather(land, band, action, rules, day, 1.0 - rules.winter_camp.builders)
+    return building(shares)
 
 
 def mend(band: Band) -> None:
@@ -1682,7 +1736,8 @@ def live(
     sheltered = 1.0 - (1.0 - rules.shelter.frailty) * camped
     weights = vulnerable(params, band, FRAILTY, season)
     frail = [held * (1.0 - wellbeing) * sheltered / per_year for held in weights]
-    lived.lost.append((FRAILTY, bury(params, band, _chanced(rng, frail), day)))
+    # Only the old die of frailty, so it is told as what it is: a death of age.
+    lived.lost.append((AGE, bury(params, band, _chanced(rng, frail), day)))
     hurt = [
         held * applied(params, band, member).units.band.people.injury.per_day
         for held, member in zip(_injurable(params, band), band.members, strict=True)

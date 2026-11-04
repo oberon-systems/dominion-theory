@@ -602,6 +602,16 @@ def looks(params: Params, band: Band, era: str, at: Place) -> dict[str, Any] | N
     return seen(params, band, at, era) if reachable(band, at) else None
 
 
+def _building(params: Params, band: Band, era: str) -> Action:
+    """
+    A build with the shares of what the hands that do not build gather, as the need for it weighs.
+    """
+    if params.units.band.winter_camp.builders >= 1.0:
+        return building()
+    found = options(params, band, era, {GATHER})
+    return building(found[0].action['shares']) if found else building()
+
+
 def intended(
     params: Params,
     band: Band,
@@ -609,21 +619,19 @@ def intended(
     era: str,
     towards: str | None,
     winter: bool = False,
-    standing: bool = False,
 ) -> Scored:
     """
     The best of what a plan leaves the band: on the march a leg narrowed to the direction of the next cell of its
-    route, walked without stopping to gather while the band starves or thirsts; at a stand what a camp leaves it; a
-    winter camp is built before anything else unless the band starves or thirsts, or stands on a camp of its own it
-    puts in order in the evening.
+    route, walked without stopping to gather; a winter camp is built before anything else unless the band starves
+    or thirsts, or stands on a camp of its own it puts in order in the evening.
     """
     suffering = STARVATION in band.states or THIRST in band.states
     if winter and not sheltered(band) and not suffering and band.place not in band.camps:
-        return Scored(building(), 0.0, SHELTER)
+        return Scored(_building(params, band, era), 0.0, SHELTER)
     ways = None if towards is None else {towards}
-    found = options(params, band, era, NARROWED[commands.CAMP if standing else proposal['kind']], ways)
-    if proposal['kind'] in commands.GOING and suffering:
-        # A band that goes for food or water walks there: it forages only on the way.
+    found = options(params, band, era, NARROWED[proposal['kind']], ways)
+    if proposal['kind'] in commands.GOING:
+        # A band on its way forages only on the way: a roam takes a share of what the cell ahead gives.
         found = [held for held in found if held.action['kind'] in (MOVE, ROAM)] or found
     return max(found, key=lambda held: held.score)
 

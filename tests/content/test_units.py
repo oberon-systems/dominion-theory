@@ -61,7 +61,7 @@ def test_band_is_the_one_of_its_document() -> None:
     )
     assert band.threat.model_dump() == {'camp': 1.0, 'march': 1.0}
     assert band.carry_water_kg == 0.0
-    assert (band.speed.base, band.speed.slowdown, band.speed.slowest) == (1.2, 0.03, 0.3)
+    assert (band.speed.base, band.speed.slowest, band.speed.loaded) == (80.0, 0.25, 0.3)
     assert band.fatigue.model_dump() == {
         'move': 0.3,
         'roam': 0.15,
@@ -70,7 +70,7 @@ def test_band_is_the_one_of_its_document() -> None:
         'build': 0.15,
         'slows': 0.5,
     }
-    assert band.roaming.model_dump() == {'speed': 0.75, 'share': 0.5, 'hunger': 0.8}
+    assert band.roaming.model_dump() == {'speed': 0.6, 'share': 0.5, 'hunger': 0.8, 'pressed': 1.0}
     assert band.people.weakened.model_dump() == {'pace': 0.6, 'gathers': 0.6}
     assert {name: role.model_dump() for name, role in band.people.roles.items()} == {
         'gatherer': {'gathers': 1.0, 'cares': None, 'share': None, 'needs': None, 'gives': ()},
@@ -115,6 +115,7 @@ def test_band_is_the_one_of_its_document() -> None:
         'seasons': ('autumn', 'winter'),
         'unsafe': 0.5,
         'build': {'days': 2},
+        'builders': 0.5,
         'reach': 1,
         'afar': 1.0,
         'kept': 0.2,
@@ -161,7 +162,7 @@ def test_council_is_the_one_of_its_document() -> None:
     assert council.status.model_dump() == {
         'start': 50.0,
         'abstained': -2.0,
-        'outvoted': -1.0,
+        'outvoted': 0.0,
         'roam_worked': 4.0,
         'roam_failed': -6.0,
         'roam_even': 0.0,
@@ -341,14 +342,6 @@ def test_tiredness_ends_below_where_it_begins() -> None:
     assert refused({f'{BAND}.states.tiredness.ends': 0.8})['path'] == f'{BAND}.states.tiredness'
 
 
-def test_a_plan_marches_on_days_it_stocks() -> None:
-    plan = load_params().units.band.plan
-
-    assert (plan.march, plan.stock) == (3, 5)
-    assert refused({f'{BAND}.plan.march': 6.0})['path'] == f'{BAND}.plan'
-    assert refused({f'{BAND}.plan.march': -1.0})['path'] == f'{BAND}.plan.march'
-
-
 def test_the_lure_is_written_as_the_document_writes_it_and_read_back() -> None:
     params = load_params()
 
@@ -428,7 +421,7 @@ def test_people_are_those_of_the_band_document() -> None:
         ({f'{BAND}.start.stage': 'elder'}, f'{BAND}.start.stage', 'one of child, adult'),
         ({f'{BAND}.start.oldest': {'years': 4}}, f'{BAND}.start.oldest', 'an age above the start of the start stage'),
         ({f'{BAND}.people.birth.pause.min': {'months': 3}}, f'{BAND}.people.birth.pause', 'min not above max'),
-        ({'council.blamed': ['boredom']}, 'council.blamed', 'one of hunger, thirst, encounter, age, frailty, birth'),
+        ({'council.blamed': ['boredom']}, 'council.blamed', 'one of hunger, thirst, encounter, age, birth'),
     ],
 )
 def test_people_are_checked(overrides: dict[str, object], path: str, expected: str) -> None:

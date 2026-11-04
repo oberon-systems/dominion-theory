@@ -79,7 +79,7 @@ ___
 
 A roaming band takes `roaming.share` of what a tick of gathering would
 give, of every resource the cell ahead gives that the band is short of,
-and that cell pays for it
+more the lower its stores lie under 2 days, and that cell pays for it
 as for a gathering; see [Band](../units/band.md#gathering). The band
 picks between walking and roaming itself, but a hungry band does not
 walk: hungry or thirsty, it only roams. A camp is not a thing on the map: nothing is
@@ -258,8 +258,8 @@ What stage 2 puts into the phases of
    plan in force, when the player carried it against the leader, is
    judged before the table is laid.
 3. **Decisions** - the band picks its action, among all it may take or
-   among those its plan allows, marching or standing on a leg of a
-   `roam` or an `explore`, building first under a `camp` in its season;
+   among those its plan allows, marching on a leg of a `roam` or an
+   `explore`, building first under a `camp` in its season;
    in the tick of a council, and while it is tired under a plan, it
    camps.
 4. **Actions** - the band moves, gathers, camps or builds; the hunters
@@ -348,8 +348,7 @@ of them. Both views of the API show the same for now.
 the members who are, `wounds` the injured by severity; the members themselves stay in the state of the game.
 `intent` is the plan in force: its `proposal`, `until`, the day of
 the game its term ends, `leg`, the target of the leg it walks or null, and
-`standing`, whether the band stands between legs, and `winter`, whether
-the plan is a winter camp. `route` is the cells
+`winter`, whether the plan is a winter camp. `route` is the cells
 still ahead to the target of the leg, empty when the band is not on its
 way. `roles` counts the members by role.
 `lore` is the skills the band knows; see [Skills](skills.md).

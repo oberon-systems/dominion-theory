@@ -3,7 +3,9 @@ The MCP server `dominion` over stdio: Claude in the seat of a game, through a se
 one named, docs/lab/players.md.
 """
 
+import ctypes
 import logging
+import signal
 import socket
 import subprocess
 import sys
@@ -27,6 +29,8 @@ LOG = 'mcp-server.log'
 STARTS_WITHIN_S = 30.0
 POLL_S = 0.2
 NOISY = ('httpx', 'httpcore', 'websockets')
+PR_SET_PDEATHSIG = 1
+STOPS_ON = (signal.SIGTERM, signal.SIGHUP)
 RULES = """
 You sit in the council of a band of foragers as one voice of it, weighed by your standing. The band does what the
 council decides; you only speak at a council when it sits for you. Look, read the council, vote by a number, then
@@ -111,6 +115,15 @@ def _awaited(api: Api, seconds: float) -> None:
             time.sleep(POLL_S)
 
 
+def _dies_with_parent() -> None:
+    # The kernel sends SIGTERM to the game server once the MCP server dies, even by SIGKILL.
+    ctypes.CDLL(None, use_errno=True).prctl(PR_SET_PDEATHSIG, signal.SIGTERM)
+
+
+def _stopped(signum: int, _frame: object) -> None:
+    raise SystemExit(128 + signum)
+
+
 @contextmanager
 def _own_server(data: Path) -> Iterator[str]:
     """
@@ -125,6 +138,7 @@ def _own_server(data: Path) -> Iterator[str]:
             stdin=subprocess.DEVNULL,
             stdout=log,
             stderr=subprocess.STDOUT,
+            preexec_fn=_dies_with_parent if sys.platform == 'linux' else None,
         )
     try:
         yield f'http://{HOST}:{port}'
@@ -141,6 +155,8 @@ def cli(address: str | None) -> None:
     """
     for name in NOISY:
         logging.getLogger(name).setLevel(logging.WARNING)
+    for signum in STOPS_ON:
+        signal.signal(signum, _stopped)
     started = _own_server(Settings().data_dir) if address is None else _given(address)
     with started as found, closing(Api(found)) as api:
         _awaited(api, STARTS_WITHIN_S)

@@ -3,4 +3,4 @@ commitizen==4.19.3
 pre-commit==4.7.0
 pytest==9.2.0
 pytest-testmon==2.3.0
-wyld-cz==0.4.1
+wyld-cz==0.5.0
